@@ -32,4 +32,8 @@ class LoginForm(BaseForm):
 
     def clean_password(self):
         password = self.cleaned_data.get('password')
+        try:
+            user = User.objects.get(password=password)
+        except User.DoesNotExist:
+            raise ValidationError("Password does not exist.")
         return password
