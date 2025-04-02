@@ -118,8 +118,8 @@ else:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# Media should always be stored on S3, even in development
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
 
 # Storage Configuration
 STORAGES = {
@@ -135,4 +135,14 @@ STORAGES = {
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
         },
     },
+    "media": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "location": "media",
+        },
+    },
 }
+
+# Ensure media is always stored on S3
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
