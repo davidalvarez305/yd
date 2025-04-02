@@ -1,8 +1,10 @@
 # On Windows (Command Prompt)
-venv\Scripts\activate
+env\Scripts\activate
 
 # On Windows (PowerShell)
-venv\Scripts\Activate.ps1
+Set-ExecutionPolicy Unrestricted -Scope Process
+
+env\Scripts\Activate.ps1
 
 # On macOS/Linux
-source venv/bin/activate
+source env/bin/activate
