@@ -3,7 +3,7 @@ from django.utils.timezone import now
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 
-from website.website import settings
+from website import settings
 
 class CRMBaseView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
@@ -31,3 +31,6 @@ class CRMBaseView(LoginRequiredMixin, TemplateView):
             context["crm_user_phone_number"] = user.phone_number """
 
         return context
+
+class IndexView(CRMBaseView):
+    template_name = "index.html"
