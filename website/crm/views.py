@@ -22,12 +22,12 @@ class CRMBaseView(LoginRequiredMixin, TemplateView):
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
         })
 
-        # Fetch unread messages count
+        """ # Fetch unread messages count
         context["unread_messages"] = Message.objects.filter(is_read=False).count()
 
         # Get user's phone number
         if self.request.user.is_authenticated:
             user = get_object_or_404(User, user=self.request.user)
-            context["crm_user_phone_number"] = user.phone_number
+            context["crm_user_phone_number"] = user.phone_number """
 
         return context
