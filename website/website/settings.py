@@ -22,6 +22,8 @@ LOGIN_URL = "/login"  # Change this to your desired login URL
 INSTALLED_APPS = [
     'crm',
     'core',
+    'communication',
+    'marketing',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
