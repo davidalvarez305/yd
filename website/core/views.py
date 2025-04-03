@@ -2,6 +2,7 @@ from django.views.generic import TemplateView, View
 from django.utils.timezone import now
 from django.http import HttpResponseServerError, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
@@ -146,7 +147,8 @@ class LoginView(BaseWebsiteView):
         # Check if the user is already logged in
         if request.user.is_authenticated:
             if request.request.user.is_superuser:
-                return redirect('/crm/lead')
+                messages.info(request, "Already logged in.")
+                return redirect(reverse('crm_leads'))
 
         return render(request, self.template_name, context)
 
@@ -164,10 +166,10 @@ class LoginView(BaseWebsiteView):
                 login(request, user)
 
                 if request.user.is_superuser:
-                    return redirect('/crm/lead')
+                    return redirect(reverse('crm_leads'))
 
                 # Normal user redirection
-                return redirect('/')
+                return redirect(reverse('home'))
             else:
                 messages.error(request, "Invalid username or password.")
         else:
@@ -199,10 +201,10 @@ class ContactView(BaseWebsiteView):
                     body=form.cleaned_data["message"]
                 )
                 messages.success(request, "Contact form received successfully.")
-                return redirect('contact')
+                return redirect(reverse('contact'))
             except Exception as e:
                 messages.error(request, "Failed to send the contact form.")
-                return redirect('contact')
+                return redirect(reverse('contact'))
         else:
             messages.error(request, "Invalid form data.")
             return render(request, self.template_name, {
@@ -213,4 +215,4 @@ class ContactView(BaseWebsiteView):
 class LogoutView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
         logout(request)
-        return redirect('/')
+        return redirect(reverse('home'))
