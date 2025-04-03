@@ -15,6 +15,5 @@ urlpatterns = [
     
     # Partial templates
     path('pop-up-modal', views.get_pop_up_modal, name='pop_up_modal'),
-    path('error-modal', views.get_error_modal, name='error_modal'),
-    path('opt-out-confirmation-modal', views.get_opt_out_confirmation_modal, name='opt_out_confirmation_modal'),
+    path('error-modal', views.get_error_modal, name='error_modal')
 ]

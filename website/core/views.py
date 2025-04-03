@@ -220,6 +220,3 @@ def get_error_modal(request):
     err_message = request.GET.get('err', 'An error occurred')
     context = {'Message': err_message}
     return render(request, "error_banner.html", context)
-
-def get_opt_out_confirmation_modal(request):
-    return render(request, "opt_out_confirmation_modal.html")
