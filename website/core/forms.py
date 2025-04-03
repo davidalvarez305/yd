@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import re
 
 class BaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -31,6 +32,10 @@ class BaseForm(forms.Form):
                 field.widget.attrs.update({
                     'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary'
                 })
+            elif isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({
+                    'class': 'peer sr-only'
+                })
             if field.label:
                 field.label = f'<label class="font-medium">{field.label}</label>'
 
@@ -59,7 +64,7 @@ class LoginForm(BaseForm):
             raise ValidationError("Username does not exist.")
         return username
 
-class ContactForm(forms.Form):
+class ContactForm(BaseForm):
     first_name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
@@ -94,3 +99,49 @@ class ContactForm(forms.Form):
         }),
         required=True
     )
+
+class QuoteForm(BaseForm):
+    full_name = forms.CharField(
+        max_length=100,
+        label="Full Name*",
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Full Name',
+            'autocomplete': 'name',
+            'required': True,
+        }),
+        required=True
+    )
+
+    phone_number = forms.CharField(
+        max_length=15,
+        label="Phone Number*",
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Phone Number',
+            'autocomplete': 'tel-national',
+            'pattern': r'^\+1\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$',  # US number formats
+            'title': 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)',
+            'required': True,
+        }),
+        required=True
+    )
+
+    message = forms.CharField(
+        label="(OPTIONAL) Give us a few details about your event",
+        widget=forms.Textarea(attrs={
+            'placeholder': "It's a networking event with 50 people for 4 hours...",
+            'rows': 3,
+        }),
+        required=False
+    )
+
+    opt_in_text_messaging = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(),
+    )
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
+        if not re.match(r'^\+1\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
+            raise forms.ValidationError('Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)')
+        return phone_number
