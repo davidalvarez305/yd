@@ -1,6 +1,6 @@
 from django.views.generic import TemplateView, View
 from django.utils.timezone import now
-from django.http import HttpResponseServerError, HttpResponse
+from django.http import HttpResponseServerError, HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
@@ -212,3 +212,14 @@ class LogoutView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
         logout(request)
         return redirect(reverse('home'))
+
+def get_pop_up_modal(request):
+    return render(request, "pop_up.html")
+
+def get_error_modal(request):
+    err_message = request.GET.get('err', 'An error occurred')
+    context = {'Message': err_message}
+    return render(request, "error_banner.html", context)
+
+def get_opt_out_confirmation_modal(request):
+    return render(request, "opt_out_confirmation_modal.html")
