@@ -2,7 +2,12 @@ from django.views.generic import TemplateView, View
 from django.utils.timezone import now
 from django.conf import settings
 from django.http import HttpResponseServerError, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
+from website.communication.email import get_email_service
+
 from .forms import ContactForm, LoginForm, QuoteForm
 
 class BaseView(TemplateView):
@@ -183,9 +188,12 @@ class ContactView(BaseWebsiteView):
         
         if form.is_valid():
             try:
-                email_service = EmailService()
-                email_service.send_mail(form.cleaned_data)
-                
+                email_service = get_email_service()
+                email_service.send_email(
+                    to=form.cleaned_data["email"],
+                    subject="Contact Form Submission",
+                    body=form.cleaned_data["message"]
+                )
                 messages.success(request, "Contact form received successfully.")
                 return redirect('contact')
             except Exception as e:
