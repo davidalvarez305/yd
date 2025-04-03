@@ -16,7 +16,7 @@ if not SECRET_KEY:
 DEBUG = os.environ.get("PRODUCTION") != "1"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1").split(',')
-LOGIN_URL = "/admin/login/"  # Change this to your desired login URL
+LOGIN_URL = "/login"  # Change this to your desired login URL
 
 # Application definition
 INSTALLED_APPS = [
