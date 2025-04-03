@@ -10,6 +10,7 @@ from website.communication.email import get_email_service
 from website.website import settings
 
 from .forms import ContactForm, LoginForm, QuoteForm
+from .models import Lead
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
@@ -212,6 +213,35 @@ class LogoutView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
         logout(request)
         return redirect(reverse('home'))
+
+class QuoteView(BaseWebsiteView):
+    def post(self, request, *args, **kwargs):
+        form = QuoteForm(request.POST)
+
+        if form.is_valid():
+            try:
+                cleaned_phone_number = form.cleaned_data['phone_number']
+            
+                if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
+                    messages.error(request, "Failed to send the contact form.")
+                    return redirect(reverse('home'))
+
+                lead = Lead.objects.create(
+                    full_name=form.cleaned_data['full_name'],
+                    phone_number=cleaned_phone_number,
+                    message=form.cleaned_data.get('message'),
+                    opt_in_text_messaging=form.cleaned_data.get('opt_in_text_messaging'),
+                    created_at=now(),
+                )
+
+                messages.success(request, "Contact form received successfully.")
+                return redirect(reverse('home'))
+            except Exception as e:
+                messages.error(request, "Failed to create a quote.")
+                return redirect(reverse('home'))
+        else:
+            messages.error(request, "Invalid form data.")
+            return redirect(reverse('home'))
 
 def get_pop_up_modal(request):
     return render(request, "pop_up.html")
