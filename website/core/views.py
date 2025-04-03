@@ -173,13 +173,9 @@ class LoginView(BaseWebsiteView):
             else:
                 messages.error(request, "Invalid username or password.")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Invalid form submission.")
 
-        # If form is invalid, render the login page again with the form
-        return render(request, self.template_name, {
-            'page_title': self.page_title,
-            'form': form,
-        })
+        return render(request, self.template_name, { 'form': form })
 
 class ContactView(BaseWebsiteView):
     template_name = 'contact.html'
