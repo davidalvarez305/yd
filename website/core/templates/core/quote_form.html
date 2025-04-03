@@ -39,10 +39,27 @@
     </div>
 </div>
 
-<script>
+{% include 'opt_out_confirmation_modal.html' %}
+
+<script type="module">
+    import { ModalHelper } from '{% static /helpers/modal.js %}';
     const optIn = document.getElementById("opt_in_text_messaging");
 
-    
+    const modalHelper = new ModalHelper();
 
-    optIn.addEventListener("click", (e) => handleClickOptIn(e));
+    const optInModal = modalHelper.get("optinConfirmationModal");
+    optInModal.setOnClose = (event) => {
+        const buttonName = event.target.getAttribute('name');
+
+        switch (buttonName) {
+            case "confirm":
+                optIn = true;
+                break;
+            case "cancel":
+                optIn = false;
+                break;
+        }
+    };
+
+    optIn.addEventListener("click", () => optInModal.open());
 </script>
