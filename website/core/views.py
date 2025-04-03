@@ -1,12 +1,12 @@
 from django.views.generic import TemplateView, View
 from django.utils.timezone import now
-from django.conf import settings
 from django.http import HttpResponseServerError, HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
 from website.communication.email import get_email_service
+from website.website import settings
 
 from .forms import ContactForm, LoginForm, QuoteForm
 
@@ -183,6 +183,10 @@ class ContactView(BaseWebsiteView):
     template_name = 'contact.html'
     page_title = 'Contact - ' + settings.COMPANY_NAME
 
+    def get(self, request, *args, **kwargs):
+        form = ContactForm()
+        return render(request, self.template_name, { 'form': form })
+
     def post(self, request, *args, **kwargs):
         form = ContactForm(request.POST)
         
@@ -191,7 +195,7 @@ class ContactView(BaseWebsiteView):
                 email_service = get_email_service()
                 email_service.send_email(
                     to=form.cleaned_data["email"],
-                    subject="Contact Form Submission",
+                    subject="YD Cocktails: Contact Form Submission",
                     body=form.cleaned_data["message"]
                 )
                 messages.success(request, "Contact form received successfully.")
@@ -209,5 +213,4 @@ class ContactView(BaseWebsiteView):
 class LogoutView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
         logout(request)
-
         return redirect('/')
