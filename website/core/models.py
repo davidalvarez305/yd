@@ -1,4 +1,3 @@
-from datetime import timezone
 from django.db import models
 
 class Lead(models.Model):
@@ -6,7 +5,7 @@ class Lead(models.Model):
     full_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     opt_in_text_messaging = models.BooleanField(default=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField()
 
     # Nullable fields
     email = models.EmailField(null=True)
