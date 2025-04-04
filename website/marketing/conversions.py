@@ -78,16 +78,21 @@ class FacebookConversionService(ConversionService):
     def send_phone_conversion(self, payload):
         pass
 
-def initialize_facebook_conversion_service():
-    endpoint = f"https://graph.facebook.com/v20.0/{settings.FACEBOOK_DATASET_ID}/events?access_token={settings.FACEBOOK_ACCESS_TOKEN}"
-    return FacebookConversionService(
-        conversion_service_type=ConversionServiceType.FACEBOOK,
-        endpoint=endpoint
-    )
-
-def initialize_google_conversion_service():
-    endpoint = f"https://www.google-analytics.com/mp/collect?measurement_id={settings.GOOGLE_ANALYTICS_ID}&api_secret={settings.GOOGLE_ANALYTICS_API_KEY}"
-    return GoogleConversionService(
-        conversion_service_type=ConversionServiceType.GOOGLE,
-        endpoint=endpoint
-    )
+def initialize_conversion_service(conversion_service_type: ConversionServiceType):
+    """
+    Factory function that initializes the appropriate ConversionService based on the type.
+    """
+    if conversion_service_type == ConversionServiceType.FACEBOOK:
+        endpoint = f"https://graph.facebook.com/v20.0/{settings.FACEBOOK_DATASET_ID}/events?access_token={settings.FACEBOOK_ACCESS_TOKEN}"
+        return FacebookConversionService(
+            conversion_service_type=conversion_service_type,
+            endpoint=endpoint
+        )
+    elif conversion_service_type == ConversionServiceType.GOOGLE:
+        endpoint = f"https://www.google-analytics.com/mp/collect?measurement_id={settings.GOOGLE_ANALYTICS_ID}&api_secret={settings.GOOGLE_ANALYTICS_API_KEY}"
+        return GoogleConversionService(
+            conversion_service_type=conversion_service_type,
+            endpoint=endpoint
+        )
+    else:
+        raise ValueError(f"Unsupported conversion service type: {conversion_service_type}")
