@@ -26,3 +26,43 @@ class ConversionLog(models.Model):
         if isinstance(self.response, dict):
             self.response = json.dumps(self.response)
         super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'marketing_conversion_log'
+
+class CallTrackingNumber(models.Model):
+    GOOGLE = 1
+    FACEBOOK = 2
+    AD_PLATFORM_CHOICES = [
+        (GOOGLE, "Google"),
+        (FACEBOOK, "Facebook"),
+    ]
+
+    call_tracking_number_id = models.AutoField(primary_key=True)
+    platform_id = models.IntegerField(choices=AD_PLATFORM_CHOICES)
+    call_tracking_number = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.call_tracking_number
+
+    class Meta:
+        db_table = 'marketing_call_tracking_number'
+
+class CallTracking(models.Model):
+    call_tracking_id = models.AutoField(primary_key=True)
+    call_tracking_number = models.ForeignKey(
+        CallTrackingNumber,
+        on_delete=models.CASCADE,
+        db_column='call_tracking_number_id',
+        related_name='call_trackings'
+    )
+    date_assigned = models.DateTimeField()
+    date_expires = models.DateTimeField()
+    client_id = models.TextField()
+    click_id = models.TextField()
+
+    def __str__(self):
+        return str(self.call_tracking_number)
+
+    class Meta:
+        db_table = 'marketing_call_tracking'
