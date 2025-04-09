@@ -3,10 +3,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Lead
 from website.communication.models import PhoneCall
-from website.marketing.models import CallTracking, CallTrackingNumber
+from website.marketing.models import CallTracking
+from website.marketing.conversions import initialize_conversion_service, ConversionServiceType
 
 @receiver(post_save, sender=Lead)
-def handle_lead_save(sender, instance, created, **kwargs):
+def handle_lead_save(sender, instance, created, **kwargs) -> None:
     """
     This function is called when a lead record is saved.
     It checks if the call_from (lead phone number) and call_to (call tracking number) match in the phone call table.
@@ -15,23 +16,38 @@ def handle_lead_save(sender, instance, created, **kwargs):
     if created:
         try:
             # Step 1: Get the lead's phone number and the tracking phone number
-            lead_phone_number = sender.phone_number
-            tracking_phone_number = instance.call_tracking_number.call_tracking_number
-            call_tracking_date_created = instance.date_assigned
-            call_tracking_date_expires = instance.date_expires
+            lead_phone_number = instance.phone_number
 
-            # Step 2: Query the PhoneCall table for matching records
-            phone_call_match = PhoneCall.objects.filter(
-                call_from=lead_phone_number,
-                call_to=tracking_phone_number,
-                date_created__lte=call_tracking_date_expires,
-                date_created__gt=call_tracking_date_created
-            ).first()
-            
-            if phone_call_match:
-                # Step 3: Trigger the workflow (You can call a function here or perform some action)
-                trigger_workflow(phone_call_match)
-                # Assign google or facebook campaign attribution
-                # Report lead to google or facebook, where applicable
-        except Exception as e:
+            if not lead_phone_number:
+                return
+
+            # Step 2: Query the phone call table for any phone calls made by this number
+            phone_call = PhoneCall.objects.filter(call_from=lead_phone_number).first()
+
+            # Step 3: Check if phone call came BEFORE lead was created -- indicating that the person called before a quote submission
+            if not phone_call or phone_call.date_created > instance.created_at:
+                return
+
+            # Step 4: Identify instance
+            tracking_call = CallTracking.objects.filter(phone_number=phone_call.call_to).first()
+
+            if not tracking_call:
+                return
+
+            call_tracking_date_created = tracking_call.date_assigned
+            call_tracking_date_expires = tracking_call.date_expires
+
+            if phone_call.date_created > call_tracking_date_expires:
+                return
+
+            # Step 5: Trigger the workflow to assign google or facebook campaign attribution 
+            trigger_workflow(phone_call_match)
+
+            # Step 6: Report lead to google or facebook, where applicable
+            google = initialize_conversion_service(ConversionServiceType.GOOGLE)
+            facebook = initialize_conversion_service(ConversionServiceType.FACEBOOK)
+
+            google.send_phone_conversion(payload=payload)
+            facebook.send_phone_conversion(payload=payload)
+        except CallTracking.DoesNotExist as e:
             logger.error(f"Error processing CallTracking save: {str(e)}")
