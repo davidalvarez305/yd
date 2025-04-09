@@ -1,42 +1,72 @@
-class CallTrackingClass:
-    def __init__(self, click_id, platform_id, client_id, campaign_id):
-        self.click_id = click_id
-        self.platform_id = platform_id
-        self.client_id = client_id
-        self.campaign_id = campaign_id
+from django.utils import timezone
+from django.shortcuts import redirect
+from django.http import HttpResponseServerError
+from .models import CallTracking, CallTrackingNumber, LandingPage
+import random
+from .enums import MarketingParams
 
-    def get_tracking_number(self):
-        """
-        This method will return the tracking number based on the platform_id,
-        client_id, and campaign_id, ensuring that each unique combination gets
-        a unique number.
-        """
-        try:
-            call_tracking = CallTracking.objects.get(
-                platform_id=self.platform_id,
-                client_id=self.client_id,
-                campaign_id=self.campaign_id
-            )
-            return call_tracking.tracking_number
-        except CallTracking.DoesNotExist:
-            # Handle the case where no tracking number is found
-            return None  # or handle it differently, e.g., by generating a new number
+class CallTrackingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    def generate_new_tracking_number(self):
-        """
-        If no tracking number is found for the given parameters, you can generate
-        a new phone number for call tracking.
-        """
-        # Example logic to generate a new tracking number (you can customize this)
-        new_tracking_number = f"1-800-{self.platform_id}-{self.client_id}-{self.campaign_id}"
+    def __call__(self, request):
+        urls = LandingPage.objects.values_list('url', flat=True)
 
-        # Optionally, create and save this new tracking number in the database
-        new_call_tracking = CallTracking(
-            platform_id=self.platform_id,
-            client_id=self.client_id,
-            campaign_id=self.campaign_id,
-            tracking_number=new_tracking_number
-        )
-        new_call_tracking.save()
+        self.clean_up_expired_session(request)
 
-        return new_tracking_number
+        if not urls:
+            return HttpResponseServerError("No landing page URLs found")
+
+        if request.path in urls:
+            self.track_call(request)
+
+        response = self.get_response(request)
+        return response
+
+    def track_call(self, request):
+        # Step 1: Check for gclid or fbclid in the URL using Enum
+        gclid = request.GET.get(MarketingParams.GoogleURLClickID.value, None)
+        fbclid = request.GET.get(MarketingParams.FacebookURLClickID.value, None)
+
+        # Step 2: Determine the platform_id
+        platform_id = None
+        if gclid:
+            platform_id = CallTrackingNumber.GOOGLE
+        elif fbclid:
+            platform_id = CallTrackingNumber.FACEBOOK
+
+        # Step 3: Only proceed if a platform_id is found
+        if platform_id is not None:
+            client_id = None
+            if gclid:
+                client_id = request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
+
+            if not client_id:
+                client_id = request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
+
+            # Step 4: Assign the click_id
+            click_id = fbclid if fbclid else gclid
+
+            # Step 5: If client_id and click_id are available, save the data
+            if client_id and click_id:
+                phone_number = random.choice(CallTrackingNumber.objects.filter(platform_id=platform_id))
+
+                # Step 6: Store value in session
+                request.session[MarketingParams.CallTrackingNumberSessionValue.value] = phone_number.call_tracking_number
+
+                # Step 7: Create a new CallTracking record
+                call_tracking = CallTracking(
+                    call_tracking_number=phone_number,
+                    date_assigned=timezone.now(),
+                    date_expires=timezone.now() + timezone.timedelta(minutes=10),
+                    client_id=client_id,
+                    click_id=click_id
+                )
+                call_tracking.save()
+
+    def clean_up_expired_session(self, request):
+        session_data = request.session.get(MarketingParams.CallTrackingNumberSessionValue.value, None)
+        if session_data:
+            timestamp = session_data.get('timestamp', None)
+            if timestamp and timezone.now() - timestamp > timezone.timedelta(minutes=10):
+                del request.session[MarketingParams.CallTrackingNumberSessionValue.value]
