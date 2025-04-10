@@ -3,6 +3,7 @@ import json
 import requests
 from django.utils.timezone import now
 from website.website import settings
+from website.core.models import Lead
 from .models import ConversionLog
 from enum import Enum
 from dataclasses import dataclass
@@ -173,8 +174,19 @@ class GoogleConversionService(ConversionService):
     def get_endpoint(self) -> str:
         return f"https://www.google-analytics.com/mp/collect?measurement_id={settings.GOOGLE_ANALYTICS_ID}&api_secret={settings.GOOGLE_ANALYTICS_API_KEY}"
 
-def report_conversion(conversion_payload: ConversionPayload):
+def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
     """Directly create the correct service and report the conversion."""
+    conversion_payload = ConversionPayload(
+        conversion_event_type=conversion_event_type,  # Pass the event type here
+        platform_id=lead.marketing.platform_id,
+        campaign_id=lead.marketing.campaign.campaign_id,
+        click_id=lead.marketing.click_id,
+        client_id=lead.marketing.client_id,
+        external_id=lead.marketing.external_id,
+        phone_number=lead.phone_number,
+        email=lead.email,
+        full_name=lead.full_name
+    )
     conversion_service: ConversionService
     
     if conversion_payload.platform_id == ConversionServiceType.FACEBOOK:
