@@ -126,20 +126,35 @@ class ConversionService(ABC):
 
 class FacebookConversionService(ConversionService):
     def construct_payload(self) -> FacebookPayload:
+        user_data = FacebookUserData(
+            phone=self.hash_to_sha256(self.conversion_payload.phone_number),
+            email=self.hash_to_sha256(self.conversion_payload.email),
+            external_id=self.conversion_payload.external_id,
+        )
+        custom_data = FacebookCustomData(
+            value="100",
+            currency="USD"
+        )
         facebook_event_data = FacebookEventData(
             event_name=self.conversion_payload.conversion_event_type.value,
             event_time=int(now().timestamp()),
-            user_data=FacebookUserData(
-                phone=self.hash_to_sha256(self.conversion_payload.phone_number),
-                email=self.hash_to_sha256(self.conversion_payload.email),
-                external_id=self.conversion_payload.external_id
-            ),
-            custom_data=FacebookCustomData(
-                value="100",
-                currency="USD"
-            )
+            user_data=user_data,
+            custom_data=custom_data
         )
-        return FacebookPayload(data=[facebook_event_data])
+
+        if self.conversion_payload.lead_id:
+            user_data.lead_id = self.conversion_payload.lead_id
+            facebook_event_data.action_source = "system generated"
+            custom_data.lead_event_source = "YD Cocktails"
+            custom_data.event_source = "crm"
+        else:
+            user_data.fbp = self.conversion_payload.client_id
+            user_data.fbc = self.conversion_payload.client_id
+            facebook_event_data.action_source = "website"
+
+        data = [facebook_event_data]
+
+        return FacebookPayload(data=data)
 
     def get_endpoint(self) -> str:
         return f"https://graph.facebook.com/v20.0/{settings.FACEBOOK_DATASET_ID}/events?access_token={settings.FACEBOOK_ACCESS_TOKEN}"
