@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from .models import Lead
 from website.communication.models import PhoneCall
 from website.marketing.models import CallTracking
-from website.marketing.conversions import initialize_conversion_service, ConversionServiceType
+from website.marketing.conversions import report_conversion, ConversionPayload, ConversionEventType
 
 @receiver(post_save, sender=Lead)
 def handle_lead_save(sender, instance, created, **kwargs) -> None:
@@ -34,7 +34,6 @@ def handle_lead_save(sender, instance, created, **kwargs) -> None:
             if not tracking_call:
                 return
 
-            call_tracking_date_created = tracking_call.date_assigned
             call_tracking_date_expires = tracking_call.date_expires
 
             if phone_call.date_created > call_tracking_date_expires:
@@ -44,10 +43,18 @@ def handle_lead_save(sender, instance, created, **kwargs) -> None:
             trigger_workflow(phone_call_match)
 
             # Step 6: Report lead to google or facebook, where applicable
-            google = initialize_conversion_service(ConversionServiceType.GOOGLE)
-            facebook = initialize_conversion_service(ConversionServiceType.FACEBOOK)
+            conversion_payload = ConversionPayload(
+                conversion_event_type=ConversionEventType.WebsiteCall,
+                platform_id=instance.marketing.platform_id,
+                campaign_id=instance.marketing.campaign.campaign_id,
+                click_id=instance.marketing.click_id,
+                client_id=instance.marketing.client_id,
+                external_id=instance.marketing.external_id,
+                phone_number=instance.phone_number,
+                email=instance.email,
+                full_name=instance.full_name
+            )
 
-            google.send_phone_conversion(payload=payload)
-            facebook.send_phone_conversion(payload=payload)
+            report_conversion(conversion_payload=conversion_payload)
         except CallTracking.DoesNotExist as e:
             logger.error(f"Error processing CallTracking save: {str(e)}")
