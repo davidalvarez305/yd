@@ -15,14 +15,14 @@ class ConversionServiceType(Enum):
     FACEBOOK = 2
 
 class ConversionEventType(Enum):
-    FormSubmission = 1
-    LeadAd = 2
-    WebsiteCall = 3
-    EventBooking = 4
+    FormSubmission = "generate_lead"
+    LeadAd = "generate_lead"
+    WebsiteCall = "Website call"
+    EventBooking = "event"
 
 @dataclass
 class ConversionPayload:
-    conversion_event_type: Optional[str] = None
+    conversion_event_type: Optional[ConversionEventType] = None
     platform_id: Optional[ConversionServiceType] = None
     campaign_id: Optional[str] = None
     click_id: Optional[str] = None
@@ -80,41 +80,37 @@ class GooglePayload:
 class ConversionService(ABC):
     def __init__(self, conversion_payload: ConversionPayload):
         self.conversion_payload = conversion_payload
-    
+
     @abstractmethod
     def construct_payload(self) -> Union[GooglePayload, FacebookPayload]:
         pass
-    
+
     def send_conversion(self):
-        """Handles sending the conversion request and logging the result."""
-        payload = self.construct_payload()  # Construct the payload when sending the conversion
+        payload = self.construct_payload()
         endpoint = self.get_endpoint()
         self._send_request(endpoint, payload)
-    
+
     def get_endpoint(self) -> str:
-        """This method should be overridden by subclasses to return the correct endpoint."""
         raise NotImplementedError("Subclasses must implement this method to provide the endpoint.")
-    
+
     def _send_request(self, endpoint, payload):
-        """Send the conversion payload to the respective service's endpoint."""
         try:
-            response = requests.post(endpoint, json=payload.to_dict(), headers={"Content-Type": "application/json"})
+            response = requests.post(endpoint, json=payload.__dict__, headers={"Content-Type": "application/json"})
             self._log_conversion(payload, response)
         except requests.exceptions.RequestException as err:
             self._log_conversion(payload, None, error={"error": str(err)})
 
     def _log_conversion(self, payload, response=None, error=None):
-        """Log the conversion request and response to the database."""
         if not isinstance(payload, str):
-            payload = json.dumps(payload)
-        
+            payload = json.dumps(payload, default=lambda o: o.__dict__)
+
         if response:
             response_json = json.dumps(response.json())
             status_code = response.status_code
         else:
             response_json = json.dumps(error)
             status_code = 500
-        
+
         ConversionLog.objects.create(
             date_created=now(),
             endpoint=self.get_endpoint(),
@@ -124,7 +120,6 @@ class ConversionService(ABC):
         )
 
     def hash_to_sha256(self, value: str) -> str:
-        """Hash the input value using SHA-256."""
         if value is None:
             return ''
         return hashlib.sha256(value.encode('utf-8')).hexdigest()
@@ -132,7 +127,7 @@ class ConversionService(ABC):
 class FacebookConversionService(ConversionService):
     def construct_payload(self) -> FacebookPayload:
         facebook_event_data = FacebookEventData(
-            event_name=self.conversion_payload.conversion_event_type,
+            event_name=self.conversion_payload.conversion_event_type.value,
             event_time=int(now().timestamp()),
             user_data=FacebookUserData(
                 phone=self.hash_to_sha256(self.conversion_payload.phone_number),
@@ -157,7 +152,7 @@ class GoogleConversionService(ConversionService):
             currency="USD"
         )
         google_event = GoogleEventLead(
-            name="generate_lead",
+            name=self.conversion_payload.conversion_event_type.value,
             params=google_event_params
         )
         google_user_data = GoogleUserData(
@@ -175,9 +170,8 @@ class GoogleConversionService(ConversionService):
         return f"https://www.google-analytics.com/mp/collect?measurement_id={settings.GOOGLE_ANALYTICS_ID}&api_secret={settings.GOOGLE_ANALYTICS_API_KEY}"
 
 def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
-    """Directly create the correct service and report the conversion."""
     conversion_payload = ConversionPayload(
-        conversion_event_type=conversion_event_type,  # Pass the event type here
+        conversion_event_type=conversion_event_type,
         platform_id=lead.marketing.platform_id,
         campaign_id=lead.marketing.campaign.campaign_id,
         click_id=lead.marketing.click_id,
@@ -188,7 +182,7 @@ def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
         full_name=lead.full_name
     )
     conversion_service: ConversionService
-    
+
     if conversion_payload.platform_id == ConversionServiceType.FACEBOOK:
         conversion_service = FacebookConversionService(conversion_payload)
     elif conversion_payload.platform_id == ConversionServiceType.GOOGLE:
