@@ -7,7 +7,7 @@ from website.marketing.models import CallTracking
 from website.marketing.conversions import report_conversion, ConversionPayload, ConversionEventType
 
 @receiver(post_save, sender=Lead)
-def handle_lead_save(sender, instance, created, **kwargs) -> None:
+def handle_lead_save(sender, lead, created, **kwargs) -> None:
     """
     This function is called when a lead record is saved.
     It checks if the call_from (lead phone number) and call_to (call tracking number) match in the phone call table.
@@ -16,7 +16,7 @@ def handle_lead_save(sender, instance, created, **kwargs) -> None:
     if created:
         try:
             # Step 1: Get the lead's phone number and the tracking phone number
-            lead_phone_number = instance.phone_number
+            lead_phone_number = lead.phone_number
 
             if not lead_phone_number:
                 return
@@ -25,10 +25,10 @@ def handle_lead_save(sender, instance, created, **kwargs) -> None:
             phone_call = PhoneCall.objects.filter(call_from=lead_phone_number).first()
 
             # Step 3: Check if phone call came BEFORE lead was created -- indicating that the person called before a quote submission
-            if not phone_call or phone_call.date_created > instance.created_at:
+            if not phone_call or phone_call.date_created > lead.created_at:
                 return
 
-            # Step 4: Identify instance
+            # Step 4: Identify lead
             tracking_call = CallTracking.objects.filter(phone_number=phone_call.call_to).first()
 
             if not tracking_call:
@@ -43,18 +43,6 @@ def handle_lead_save(sender, instance, created, **kwargs) -> None:
             trigger_workflow(phone_call_match)
 
             # Step 6: Report lead to google or facebook, where applicable
-            conversion_payload = ConversionPayload(
-                conversion_event_type=ConversionEventType.WebsiteCall,
-                platform_id=instance.marketing.platform_id,
-                campaign_id=instance.marketing.campaign.campaign_id,
-                click_id=instance.marketing.click_id,
-                client_id=instance.marketing.client_id,
-                external_id=instance.marketing.external_id,
-                phone_number=instance.phone_number,
-                email=instance.email,
-                full_name=instance.full_name
-            )
-
-            report_conversion(conversion_payload=conversion_payload)
+            report_conversion(conversion_event_type=ConversionEventType.WebsiteCall, lead=lead)
         except CallTracking.DoesNotExist as e:
             logger.error(f"Error processing CallTracking save: {str(e)}")
