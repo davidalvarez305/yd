@@ -12,3 +12,13 @@ class MarketingParams(Enum):
 
     AdCampaign = 'ad_campaign'
     AdGroup = 'ad_group'
+
+class ConversionServiceType(Enum):
+    GOOGLE = 1
+    FACEBOOK = 2
+
+class ConversionEventType(Enum):
+    FormSubmission = "generate_lead"
+    LeadAd = "generate_lead"
+    WebsiteCall = "Website call"
+    EventBooking = "event"

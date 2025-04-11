@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponseServerError
 from .models import CallTracking, CallTrackingNumber, LandingPage
 import random
-from .enums import MarketingParams
+from .enums import MarketingParams, ConversionServiceType
 
 class CallTrackingMiddleware:
     def __init__(self, get_response):
@@ -29,7 +29,7 @@ class CallTrackingMiddleware:
         fbclid = request.GET.get(MarketingParams.FacebookURLClickID.value, None)
 
         # Step 2: Determine the platform_id
-        platform_id = None
+        platform_id: ConversionServiceType | None = None
         if gclid:
             platform_id = CallTrackingNumber.GOOGLE
         elif fbclid:

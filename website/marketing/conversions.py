@@ -9,19 +9,7 @@ from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Union
 from abc import ABC, abstractmethod
-
-
-class ConversionServiceType(Enum):
-    GOOGLE = 1
-    FACEBOOK = 2
-
-
-class ConversionEventType(Enum):
-    FormSubmission = "generate_lead"
-    LeadAd = "generate_lead"
-    WebsiteCall = "Website call"
-    EventBooking = "event"
-
+from .enums import ConversionServiceType, ConversionEventType
 
 @dataclass
 class ConversionPayload:
