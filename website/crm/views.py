@@ -1,7 +1,8 @@
 from django.utils.timezone import now
+from django.http import HttpResponseRedirect
 from django.views.generic import ListView
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 
@@ -33,6 +34,7 @@ class CRMBaseListView(CRMBaseView, ListView):
     """
     filter_form_class = None
     paginate_by = 10
+    context_object_name = None  # Default is None, which will use a pluralized model name
 
     def get_filter_form_class(self):
         """
@@ -64,6 +66,13 @@ class CRMBaseListView(CRMBaseView, ListView):
 
         return queryset
 
+    def get_template_names(self):
+        """
+        Dynamically assigns the template name based on the model name.
+        """
+        model_name = self.model._meta.model_name
+        return [f"{model_name}_list.html"]
+
     def get_context_data(self, **kwargs):
         """
         Overrides the get_context_data method to inject both CRM-specific data
@@ -71,6 +80,14 @@ class CRMBaseListView(CRMBaseView, ListView):
         """
         context = super().get_context_data(**kwargs)
 
+        # Set the default context object name to the plural version of the model name
+        if not self.context_object_name:
+            self.context_object_name = f"{self.model._meta.model_name}s"  # Pluralize model name
+
+        # Add the object list to context with the context name (either the default or custom)
+        context[self.context_object_name] = self.get_queryset()
+
+        # Inject the JavaScript files into the context for the view
         context['js_files'] = [
             'main.js',
             'pagination.js',
@@ -86,6 +103,13 @@ class CRMBaseCreateView(CRMBaseView, CreateView):
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
+    def get_template_names(self):
+        """
+        Dynamically assigns the template name based on the model name.
+        """
+        model_name = self.model._meta.model_name
+        return [f"{model_name}_form.html"]
+
 
 class CRMBaseUpdateView(CRMBaseView, UpdateView):
     success_url = None
@@ -93,9 +117,49 @@ class CRMBaseUpdateView(CRMBaseView, UpdateView):
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
+    def get_template_names(self):
+        """
+        Dynamically assigns the template name based on the model name.
+        """
+        model_name = self.model._meta.model_name
+        return [f"{model_name}_form.html"]
+
 
 class CRMBaseDeleteView(CRMBaseView, DeleteView):
     success_url = None
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+
+class CRMBaseDetailView(CRMBaseView, DetailView):
+    success_url = None
+
+    def get_success_url(self):
+        """
+        Returns the success URL after viewing the details. 
+        You can override this if you want to redirect to a custom URL.
+        Defaults to a model's list page.
+        """
+        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+
+    def get_template_names(self):
+        """
+        Dynamically assigns the template name based on the model name.
+        The template name will be: <model_name>_detail.html
+        """
+        model_name = self.model._meta.model_name
+        return [f"{model_name}_detail.html"]
+    
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context to the template. 
+        The object is added under `context_object_name`, either default or overridden.
+        """
+        context = super().get_context_data(**kwargs)
+
+        if not self.context_object_name:
+            self.context_object_name = self.model._meta.model_name.lower()
+
+        context[self.context_object_name] = self.get_object()
+
+        return context
