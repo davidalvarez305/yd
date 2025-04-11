@@ -5,7 +5,7 @@ from .conversions import ConversionServiceType
 from .models import Campaign, CallTrackingNumber
 from http import HTTPStatus
 
-class CallTrackingNumberForm(forms.ModelForm):
+class CallTrackingNumberForm(BaseForm):
     class Meta:
         model = CallTrackingNumber
         fields = ['platform_id', 'call_tracking_number', 'campaign']
