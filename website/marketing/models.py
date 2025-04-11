@@ -33,6 +33,11 @@ class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     platform_id = models.IntegerField(choices=AD_PLATFORMS)
     call_tracking_number = models.CharField(max_length=15)
+    campaign = models.ForeignKey(
+        Campaign,
+        on_delete=models.SET_NULL,
+        db_column='campaign_id'
+    )
 
     def __str__(self):
         return self.call_tracking_number

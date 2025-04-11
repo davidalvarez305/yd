@@ -1,5 +1,7 @@
 from django.utils.timezone import now
 from django.views.generic import ListView
+from django.urls import reverse_lazy
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 
@@ -78,6 +80,22 @@ class CRMBaseListView(CRMBaseView, ListView):
         
         return context
 
+class CRMBaseCreateView(CRMBaseView, CreateView):
+    success_url = None
 
-class IndexView(CRMBaseView):
-    template_name = "index.html"
+    def get_success_url(self):
+        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+
+
+class CRMBaseUpdateView(CRMBaseView, UpdateView):
+    success_url = None
+
+    def get_success_url(self):
+        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+
+
+class CRMBaseDeleteView(CRMBaseView, DeleteView):
+    success_url = None
+
+    def get_success_url(self):
+        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
