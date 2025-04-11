@@ -1,21 +1,20 @@
 from django.db import models
 import json
+from .enums import ConversionServiceType
 
-class ConversionLog(models.Model):
-    GOOGLE = 1
-    FACEBOOK = 2
-    SERVICE_TYPE_CHOICES = [
-        (GOOGLE, "Google"),
-        (FACEBOOK, "Facebook"),
+AD_PLATFORMS = [
+        (ConversionServiceType.GOOGLE.value, "Google"),
+        (ConversionServiceType.FACEBOOK.value, "Facebook"),
     ]
 
+class ConversionLog(models.Model):
     conversion_log_id = models.AutoField(primary_key=True)
     date_created = models.DateTimeField(auto_now_add=True)
     endpoint = models.URLField()
     payload = models.TextField()
     status_code = models.IntegerField()
     response = models.TextField(null=True)
-    conversion_service_type_id = models.IntegerField(choices=SERVICE_TYPE_CHOICES)
+    conversion_service_type_id = models.IntegerField(choices=AD_PLATFORMS)
 
     def __str__(self):
         return f"Conversion Log {self.conversion_log_id} - {self.date_created}"
@@ -31,15 +30,8 @@ class ConversionLog(models.Model):
         db_table = 'marketing_conversion_log'
 
 class CallTrackingNumber(models.Model):
-    GOOGLE = 1
-    FACEBOOK = 2
-    AD_PLATFORM_CHOICES = [
-        (GOOGLE, "Google"),
-        (FACEBOOK, "Facebook"),
-    ]
-
     call_tracking_number_id = models.AutoField(primary_key=True)
-    platform_id = models.IntegerField(choices=AD_PLATFORM_CHOICES)
+    platform_id = models.IntegerField(choices=AD_PLATFORMS)
     call_tracking_number = models.CharField(max_length=15)
 
     def __str__(self):
