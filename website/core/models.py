@@ -1,4 +1,41 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+
+class UserManager(BaseUserManager):
+    def create_user(self, username, password=None, **extra_fields):
+        if not username:
+            raise ValueError("Username is required")
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(username, password, **extra_fields)
+
+class User(AbstractBaseUser, PermissionsMixin):
+    user_id = models.AutoField(primary_key=True, db_column='user_id')
+    username = models.CharField(max_length=150, unique=True, db_column='username')
+    phone_number = models.CharField(max_length=20, blank=True, null=True, db_column='phone_number')
+    forward_phone_number = models.CharField(max_length=20, blank=True, null=True, db_column='forward_phone_number')
+    first_name = models.CharField(max_length=50, db_column='first_name')
+    last_name = models.CharField(max_length=50, db_column='last_name')
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+    objects = UserManager()
+
+    class Meta:
+        db_table = 'user'
+
+    def __str__(self):
+        return self.username
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
