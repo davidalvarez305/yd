@@ -2,8 +2,8 @@ import hashlib
 import json
 import requests
 from django.utils.timezone import now
-from website.website import settings
-from website.core.models import Lead
+from website import settings
+from core.models import Lead
 from .models import ConversionLog
 from enum import Enum
 from dataclasses import dataclass, asdict

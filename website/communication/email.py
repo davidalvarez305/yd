@@ -5,8 +5,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from email.mime.text import MIMEText
 
-from website.website import settings
-
+from website import settings
 
 class EmailService:
     def __init__(self, client):

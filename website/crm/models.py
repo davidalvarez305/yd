@@ -1,5 +1,5 @@
 from django.db import models
-from website.core.models import User, Lead
+from core.models import User, Lead, Quote
 
 class Event(models.Model):
     event_id = models.IntegerField(primary_key=True)
@@ -58,52 +58,6 @@ class CocktailIngredient(models.Model):
     class Meta:
         db_table = 'cocktail_ingredient'
         unique_together = ('cocktail_id', 'ingredient_id', 'unit_id')
-
-class Quote(models.Model):
-    quote_id = models.IntegerField(primary_key=True)
-    external_id = models.CharField(max_length=100)
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
-    guests = models.IntegerField()
-    hours = models.FloatField()
-    event_date = models.DateTimeField()
-
-    class Meta:
-        db_table = 'quote'
-
-class ServiceType(models.Model):
-    service_type_id = models.IntegerField(primary_key=True)
-    type = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'service_type'
-
-class UnitType(models.Model):
-    unit_type_id = models.IntegerField(primary_key=True)
-    type = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'unit_type'
-
-class Service(models.Model):
-    service_id = models.IntegerField(primary_key=True)
-    service_type = models.ForeignKey(ServiceType, related_name='service_type', db_column='service_type_id', on_delete=models.RESTRICT)
-    service = models.CharField(max_length=255)
-    suggested_price = models.FloatField(null=True)
-    guest_ratio = models.IntegerField(null=True)
-    unit_type = models.ForeignKey(UnitType, related_name='unit_type', db_column='unit_type_id', on_delete=models.RESTRICT)
-
-    class Meta:
-        db_table = 'service'
-
-class QuoteService(models.Model):
-    quote_service_id = models.IntegerField(primary_key=True)
-    service = models.ForeignKey(Service, related_name='service', db_column='service_id', on_delete=models.RESTRICT)
-    quote = models.ForeignKey(Quote, related_name='quote', db_column='quote_id', on_delete=models.RESTRICT)
-    units = models.FloatField()
-    price_per_unit = models.FloatField()
-
-    class Meta:
-        db_table = 'quote_service'
 
 class EventRole(models.Model):
     event_role_id = models.IntegerField(primary_key=True)

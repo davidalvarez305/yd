@@ -6,8 +6,8 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from website.communication.email import get_email_service
-from website.website import settings
+from communication.email import get_email_service
+from website import settings
 
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
