@@ -1,11 +1,69 @@
 from django.db import models
 import json
 from .enums import ConversionServiceType
+from core.models import Lead
 
 AD_PLATFORMS = [
-        (ConversionServiceType.GOOGLE.value, "Google"),
-        (ConversionServiceType.FACEBOOK.value, "Facebook"),
-    ]
+    (ConversionServiceType.GOOGLE.value, "Google"),
+    (ConversionServiceType.FACEBOOK.value, "Facebook"),
+]
+
+class InstantForm(models.Model):
+    instant_form_id = models.BigIntegerField()
+    name = models.CharField(max_length=255, null=True)
+
+class MarketingCampaign(models.Model):
+    marketing_campaign_id = models.BigIntegerField()
+    platform_id = models.IntegerField(choices=AD_PLATFORMS)
+
+    class Meta:
+        unique_together = ('marketing_campaign_id', 'platform_id')
+
+class MarketingGroup(models.Model):
+    group_id = models.BigIntegerField()
+    name = models.TextField()
+    marketing_campaign = models.ForeignKey(
+        MarketingCampaign,
+        on_delete=models.SET_NULL,
+        db_column='marketing_campaign_id'
+    )
+
+class MarketingAd(models.Model):
+    ad_id = models.BigIntegerField()
+    headline = models.TextField()
+    marketing_group = models.ForeignKey(
+        MarketingGroup,
+        on_delete=models.SET_NULL,
+        db_column='marketing_group_id'
+    )
+
+class LeadMarketing(models.Model):
+    lead_marketing_id = models.AutoField(primary_key=True)
+    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    source = models.CharField(max_length=255, null=True)
+    medium = models.CharField(max_length=255, null=True)
+    channel = models.CharField(max_length=255, null=True)
+    landing_page = models.TextField(null=True)
+    keyword = models.CharField(max_length=255, null=True)
+    referrer = models.TextField(null=True)
+    click_id = models.TextField(unique=True, null=True)
+    client_id = models.TextField(unique=True, null=True)
+    language = models.CharField(max_length=50, null=True)
+    button_clicked = models.CharField(max_length=255, null=True)
+    device_type = models.CharField(max_length=50, null=True)
+    ip = models.GenericIPAddressField(null=True)
+    external_id = models.TextField(unique=True, null=True)
+    instant_form_lead_id = models.BigIntegerField(null=True)
+    instant_form = models.ForeignKey(InstantForm, related_name='instant_form', db_column='instant_form_id', on_delete=models.SET_NULL)
+    marketing_campaign = models.ForeignKey(MarketingCampaign, related_name='marketing_campaign', db_column='marketing_campaign_id', on_delete=models.SET_NULL)
+    marketing_group = models.ForeignKey(MarketingGroup, related_name='marketing_group', db_column='marketing_group_id', on_delete=models.SET_NULL)
+    marketing_ad = models.ForeignKey(MarketingAd, related_name='marketing_ad', db_column='marketing_ad_id', on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f"Marketing info for Lead {self.lead_id}"
+
+    class Meta:
+        db_table = 'lead_marketing'
 
 class ConversionLog(models.Model):
     conversion_log_id = models.AutoField(primary_key=True)
@@ -27,23 +85,23 @@ class ConversionLog(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        db_table = 'marketing_conversion_log'
+        db_table = 'conversion_log'
 
 class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     platform_id = models.IntegerField(choices=AD_PLATFORMS)
     call_tracking_number = models.CharField(max_length=15)
-    campaign = models.ForeignKey(
-        Campaign,
+    marketing_campaign = models.ForeignKey(
+        MarketingCampaign,
         on_delete=models.SET_NULL,
-        db_column='campaign_id'
+        db_column='marketing_campaign_id'
     )
 
     def __str__(self):
         return self.call_tracking_number
 
     class Meta:
-        db_table = 'marketing_call_tracking_number'
+        db_table = 'call_tracking_number'
 
 class CallTracking(models.Model):
     call_tracking_id = models.AutoField(primary_key=True)
@@ -62,7 +120,7 @@ class CallTracking(models.Model):
         return str(self.call_tracking_number)
 
     class Meta:
-        db_table = 'marketing_call_tracking'
+        db_table = 'call_tracking'
 
 class LandingPage(models.Model):
     landing_page_id = models.AutoField(primary_key=True)

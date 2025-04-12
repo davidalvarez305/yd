@@ -21,7 +21,6 @@ LOGIN_URL = "/login"  # Change this to your desired login URL
 # Application definition
 INSTALLED_APPS = [
     'crm',
-    'core',
     'core.apps.CoreConfig',
     'communication',
     'marketing',
