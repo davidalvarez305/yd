@@ -30,7 +30,7 @@ class PhoneCall(models.Model):
     call_from = models.CharField(max_length=10)
     call_to = models.CharField(max_length=10)
     is_inbound = models.BooleanField(default=False)
-    recording_url = models.URLField(blank=True, null=True)
+    recording_url = models.TextField(null=True)
     status = models.CharField(max_length=50)
 
     class Meta:
@@ -46,11 +46,11 @@ class PhoneCall(models.Model):
 
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
-    phone_call = models.ForeignKey(PhoneCall, on_delete=models.CASCADE, related_name="transcriptions")
+    phone_call = models.ForeignKey(PhoneCall, on_delete=models.CASCADE, db_column='phone_call_id', related_name="transcriptions")
     external_id = models.CharField(max_length=255, unique=True)
     text = models.TextField()
-    audio_url = models.URLField()
-    text_url = models.URLField()
+    audio_url = models.TextField()
+    text_url = models.TextField()
 
     class Meta:
         db_table = "phone_call_transcription"
