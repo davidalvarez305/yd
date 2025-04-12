@@ -16,12 +16,12 @@ class UserManager(BaseUserManager):
         return self.create_user(username, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    user_id = models.AutoField(primary_key=True, db_column='user_id')
-    username = models.CharField(max_length=150, unique=True, db_column='username')
-    phone_number = models.CharField(max_length=20, blank=True, null=True, db_column='phone_number')
-    forward_phone_number = models.CharField(max_length=20, blank=True, null=True, db_column='forward_phone_number')
-    first_name = models.CharField(max_length=50, db_column='first_name')
-    last_name = models.CharField(max_length=50, db_column='last_name')
+    user_id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=150, unique=True)
+    phone_number = models.CharField(max_length=20, unique=True)
+    forward_phone_number = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -37,20 +37,29 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.username
 
+
+class LeadStatus(models.Model):
+    lead_status_id = models.IntegerField(primary_key=True)
+    status = models.CharField(max_length=100)
+
+class LeadInterest(models.Model):
+    lead_interest_id = models.IntegerField(primary_key=True)
+    interest = models.CharField(max_length=100)
+
+class NextAction(models.Model):
+    next_action_id = models.IntegerField(primary_key=True)
+    action = models.CharField(max_length=255)
+
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, unique=True)
     opt_in_text_messaging = models.BooleanField(default=True)
     created_at = models.DateTimeField()
-
-    # Nullable fields
-    email = models.EmailField(null=True)
+    email = models.EmailField(null=True, unique=True)
     message = models.TextField(null=True)
-
-    # Workflow fields
-    lead_interest_id = models.IntegerField()
-    lead_status_id = models.IntegerField()
+    lead_status = models.ForeignKey(LeadStatus, related_name='lead_status', db_column='lead_status_id', on_delete=models.SET_NULL)
+    lead_interest = models.ForeignKey(LeadInterest, related_name='lead_interest', db_column='lead_interest_id', on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.full_name
@@ -58,41 +67,37 @@ class Lead(models.Model):
     class Meta:
         db_table = 'lead'
 
+class LeadNextAction(models.Model):
+    lead_next_action_id = models.IntegerField(primary_key=True)
+    next_action = models.ForeignKey(NextAction, related_name='next_action', db_column='next_action_id', on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    action_date = models.DateTimeField()
+
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
-    lead = models.ForeignKey(Lead, related_name='marketing', on_delete=models.CASCADE)
-    source = models.CharField(max_length=255)
-    medium = models.CharField(max_length=255)
-    channel = models.CharField(max_length=255)
-    landing_page = models.URLField(null=True, blank=True)
-    longitude = models.CharField(max_length=50, null=True, blank=True)
-    latitude = models.CharField(max_length=50, null=True, blank=True)
-    keyword = models.CharField(max_length=255, null=True, blank=True)
-    referrer = models.URLField(null=True, blank=True)
-    click_id = models.CharField(max_length=255, null=True, blank=True)
-    campaign_id = models.BigIntegerField()
-    ad_campaign = models.CharField(max_length=255, null=True, blank=True)
-    ad_group_id = models.BigIntegerField()
-    ad_group_name = models.CharField(max_length=255, null=True, blank=True)
-    ad_set_id = models.BigIntegerField()
-    ad_set_name = models.CharField(max_length=255, null=True, blank=True)
-    ad_id = models.BigIntegerField()
-    ad_headline = models.BigIntegerField()
-    language = models.CharField(max_length=50, null=True, blank=True)
-    os = models.CharField(max_length=50, null=True, blank=True)
-    user_agent = models.CharField(max_length=255, null=True, blank=True)
-    button_clicked = models.CharField(max_length=255, null=True, blank=True)
-    device_type = models.CharField(max_length=50, null=True, blank=True)
-    ip = models.GenericIPAddressField(null=True, blank=True)
-    external_id = models.CharField(max_length=255, null=True, blank=True)
-    google_client_id = models.CharField(max_length=255, null=True, blank=True)
-    facebook_click_id = models.CharField(max_length=255, null=True, blank=True)
-    facebook_client_id = models.CharField(max_length=255, null=True, blank=True)
-    csrf_secret = models.CharField(max_length=255, null=True, blank=True)
-    instant_form_lead_id = models.BigIntegerField(null=True, blank=True)
-    instant_form_id = models.BigIntegerField(null=True, blank=True)
-    instant_form_name = models.CharField(max_length=255, null=True, blank=True)
-    referral_lead_id = models.IntegerField(null=True, blank=True)
+    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    source = models.CharField(max_length=255, null=True)
+    medium = models.CharField(max_length=255, null=True)
+    channel = models.CharField(max_length=255, null=True)
+    landing_page = models.URLField(null=True)
+    keyword = models.CharField(max_length=255, null=True)
+    referrer = models.URLField(null=True)
+    click_id = models.TextField(unique=True, null=True)
+    client_id = models.TextField(unique=True, null=True)
+    campaign_id = models.BigIntegerField(null=True)
+    ad_campaign = models.CharField(max_length=255, null=True)
+    ad_group_id = models.BigIntegerField(null=True)
+    ad_group_name = models.CharField(max_length=255, null=True)
+    ad_id = models.BigIntegerField(null=True)
+    ad_headline = models.TextField(null=True)
+    language = models.CharField(max_length=50, null=True)
+    button_clicked = models.CharField(max_length=255, null=True)
+    device_type = models.CharField(max_length=50, null=True)
+    ip = models.GenericIPAddressField(null=True)
+    external_id = models.TextField(unique=True, null=True)
+    instant_form_lead_id = models.BigIntegerField(null=True)
+    instant_form_id = models.BigIntegerField(null=True)
+    instant_form_name = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return f"Marketing info for Lead {self.lead_id}"
@@ -164,24 +169,6 @@ class Invoice(models.Model):
     invoice_type = models.ForeignKey(InvoiceType, related_name='invoice_type', db_column='invoice_type_id', on_delete=models.RESTRICT)
     url = models.URLField(max_length=255)
     stripe_invoice_id = models.CharField(max_length=100)
-
-class LeadStatus(models.Model):
-    lead_status_id = models.IntegerField(primary_key=True)
-    status = models.CharField(max_length=100)
-
-class LeadInterest(models.Model):
-    lead_interest_id = models.IntegerField(primary_key=True)
-    interest = models.CharField(max_length=100)
-
-class NextAction(models.Model):
-    next_action_id = models.IntegerField(primary_key=True)
-    action = models.CharField(max_length=255)
-
-class LeadNextAction(models.Model):
-    lead_next_action_id = models.IntegerField(primary_key=True)
-    next_action = models.ForeignKey(NextAction, related_name='next_action', db_column='next_action_id', on_delete=models.CASCADE)
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
-    action_date = models.DateTimeField()
 
 class ServiceType(models.Model):
     service_type_id = models.IntegerField(primary_key=True)
