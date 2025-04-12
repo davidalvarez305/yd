@@ -184,13 +184,13 @@ class InvoiceType(models.Model):
 
 class Invoice(models.Model):
     invoice_id = models.IntegerField(primary_key=True)
-    quote_id = models.IntegerField()
+    quote = models.ForeignKey(Quote, related_name='quote', db_column='quote_id', on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_paid = models.DateTimeField()
     due_date = models.DateTimeField()
     invoice_type = models.ForeignKey(InvoiceType, related_name='invoice_type', db_column='invoice_type_id', on_delete=models.RESTRICT)
     url = models.URLField(max_length=255)
-    stripe_invoice_id = models.CharField(max_length=100)
+    stripe_invoice_id = models.CharField(max_length=100, unique=True)
 
     class Meta:
         db_table = 'invoice'
@@ -213,8 +213,8 @@ class Service(models.Model):
     service_id = models.IntegerField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, related_name='service_type', db_column='service_type_id', on_delete=models.RESTRICT)
     service = models.CharField(max_length=255)
-    suggested_price = models.FloatField()
-    guest_ratio = models.IntegerField()
+    suggested_price = models.FloatField(null=True)
+    guest_ratio = models.IntegerField(null=True)
     unit_type = models.ForeignKey(UnitType, related_name='unit_type', db_column='unit_type_id', on_delete=models.RESTRICT)
 
     class Meta:
