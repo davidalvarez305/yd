@@ -80,9 +80,9 @@ class LeadMarketing(models.Model):
     source = models.CharField(max_length=255, null=True)
     medium = models.CharField(max_length=255, null=True)
     channel = models.CharField(max_length=255, null=True)
-    landing_page = models.URLField(null=True)
+    landing_page = models.TextField(null=True)
     keyword = models.CharField(max_length=255, null=True)
-    referrer = models.URLField(null=True)
+    referrer = models.TextField(null=True)
     click_id = models.TextField(unique=True, null=True)
     client_id = models.TextField(unique=True, null=True)
     campaign_id = models.BigIntegerField(null=True)
@@ -121,7 +121,7 @@ class Invoice(models.Model):
     date_paid = models.DateTimeField()
     due_date = models.DateTimeField()
     invoice_type = models.ForeignKey(InvoiceType, related_name='invoice_type', db_column='invoice_type_id', on_delete=models.RESTRICT)
-    url = models.URLField(max_length=255)
+    url = models.TextField(max_length=255)
     stripe_invoice_id = models.CharField(max_length=100, unique=True)
 
     class Meta:
