@@ -108,35 +108,50 @@ class LeadMarketing(models.Model):
 class Event(models.Model):
     event_id = models.IntegerField(primary_key=True)
     lead = models.ForeignKey(Lead, related_name='marketing', db_column='lead_id', on_delete=models.CASCADE)
-    street_address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=20)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    street_address = models.CharField(max_length=255, null=True)
+    city = models.CharField(max_length=100, null=True)
+    zip_code = models.CharField(max_length=20, null=True)
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True)
     date_created = models.DateTimeField()
     date_paid = models.DateTimeField()
     amount = models.FloatField()
-    tip = models.FloatField()
+    tip = models.FloatField(null=True)
     guests = models.IntegerField()
+
+    class Meta:
+        db_table = 'event'
 
 class Cocktail(models.Model):
     cocktail_id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'cocktail'
 
 class EventCocktail(models.Model):
     event_cocktail_id = models.IntegerField(primary_key=True)
     cocktail = models.ForeignKey(Cocktail, related_name='marketing', db_column='cocktail_id', on_delete=models.CASCADE)
     event = models.ForeignKey(Event, related_name='marketing', db_column='event_id', on_delete=models.CASCADE)
 
+    class Meta:
+        db_table = 'event_cocktail'
+
 class Ingredient(models.Model):
     ingredient_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=50)
 
+    class Meta:
+        db_table = 'ingredient'
+
 class Unit(models.Model):
     unit_id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = 'unit'
 
 class CocktailIngredient(models.Model):
     cocktail = models.ForeignKey(Cocktail, related_name='cocktail', db_column='cocktail_id', on_delete=models.CASCADE)
@@ -145,6 +160,7 @@ class CocktailIngredient(models.Model):
     amount = models.FloatField()
 
     class Meta:
+        db_table = 'cocktail_ingredient'
         unique_together = ('cocktail_id', 'ingredient_id', 'unit_id')
 
 class Quote(models.Model):
@@ -155,10 +171,16 @@ class Quote(models.Model):
     hours = models.FloatField()
     event_date = models.DateTimeField()
 
+    class Meta:
+        db_table = 'quote'
+
 class InvoiceType(models.Model):
     invoice_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
     amount_percentage = models.FloatField()
+
+    class Meta:
+        db_table = 'invoice_type'
 
 class Invoice(models.Model):
     invoice_id = models.IntegerField(primary_key=True)
@@ -170,13 +192,22 @@ class Invoice(models.Model):
     url = models.URLField(max_length=255)
     stripe_invoice_id = models.CharField(max_length=100)
 
+    class Meta:
+        db_table = 'invoice'
+
 class ServiceType(models.Model):
     service_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
 
+    class Meta:
+        db_table = 'service_type'
+
 class UnitType(models.Model):
     unit_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'unit_type'
 
 class Service(models.Model):
     service_id = models.IntegerField(primary_key=True)
@@ -186,12 +217,18 @@ class Service(models.Model):
     guest_ratio = models.IntegerField()
     unit_type = models.ForeignKey(UnitType, related_name='unit_type', db_column='unit_type_id', on_delete=models.RESTRICT)
 
+    class Meta:
+        db_table = 'service'
+
 class QuoteService(models.Model):
     quote_service_id = models.IntegerField(primary_key=True)
     service = models.ForeignKey(Service, related_name='service', db_column='service_id', on_delete=models.RESTRICT)
     quote = models.ForeignKey(Quote, related_name='quote', db_column='quote_id', on_delete=models.RESTRICT)
     units = models.FloatField()
     price_per_unit = models.FloatField()
+
+    class Meta:
+        db_table = 'quote_service'
 
 class LeadNote(models.Model):
     lead_note_id = models.IntegerField(primary_key=True)
@@ -200,9 +237,15 @@ class LeadNote(models.Model):
     user = models.ForeignKey(User, related_name='user', db_column='added_by_user_id', on_delete=models.SET_NULL)
     date_added = models.DateTimeField()
 
+    class Meta:
+        db_table = 'lead_note'
+
 class EventRole(models.Model):
     event_role_id = models.IntegerField(primary_key=True)
     role = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'event_role'
 
 class EventStaff(models.Model):
     event_staff_id = models.IntegerField(primary_key=True)
@@ -210,3 +253,6 @@ class EventStaff(models.Model):
     event = models.ForeignKey(Event, related_name='event', db_column='event_id', on_delete=models.SET_NULL)
     event_role = models.ForeignKey(EventRole, related_name='event_role', db_column='event_role_id', on_delete=models.SET_NULL)
     hourly_rate = models.FloatField()
+    
+    class Meta:
+        db_table = 'event_staff'
