@@ -24,8 +24,9 @@ class MarketingGroup(models.Model):
     name = models.TextField()
     marketing_campaign = models.ForeignKey(
         MarketingCampaign,
-        on_delete=models.SET_NULL,
-        db_column='marketing_campaign_id'
+        on_delete=models.CASCADE,
+        db_column='marketing_campaign_id',
+        related_name='marketing_groups'
     )
 
 class MarketingAd(models.Model):
@@ -33,13 +34,14 @@ class MarketingAd(models.Model):
     headline = models.TextField()
     marketing_group = models.ForeignKey(
         MarketingGroup,
-        on_delete=models.SET_NULL,
-        db_column='marketing_group_id'
+        on_delete=models.CASCADE,
+        db_column='marketing_group_id',
+        related_name='marketing_ads'
     )
 
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, related_name='lead_marketing', db_column='lead_id', on_delete=models.CASCADE)
     source = models.CharField(max_length=255, null=True)
     medium = models.CharField(max_length=255, null=True)
     channel = models.CharField(max_length=255, null=True)
@@ -54,10 +56,8 @@ class LeadMarketing(models.Model):
     ip = models.GenericIPAddressField(null=True)
     external_id = models.TextField(unique=True, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True)
-    instant_form = models.ForeignKey(InstantForm, related_name='instant_form', db_column='instant_form_id', on_delete=models.SET_NULL)
-    marketing_campaign = models.ForeignKey(MarketingCampaign, related_name='marketing_campaign', db_column='marketing_campaign_id', on_delete=models.SET_NULL)
-    marketing_group = models.ForeignKey(MarketingGroup, related_name='marketing_group', db_column='marketing_group_id', on_delete=models.SET_NULL)
-    marketing_ad = models.ForeignKey(MarketingAd, related_name='marketing_ad', db_column='marketing_ad_id', on_delete=models.SET_NULL)
+    instant_form = models.ForeignKey(InstantForm, null=True, related_name='lead_marketing', db_column='instant_form_id', on_delete=models.SET_NULL)
+    marketing_ad = models.ForeignKey(MarketingAd, null=True, related_name='lead_marketing', db_column='marketing_ad_id', on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"Marketing info for Lead {self.lead_id}"
@@ -94,7 +94,9 @@ class CallTrackingNumber(models.Model):
     marketing_campaign = models.ForeignKey(
         MarketingCampaign,
         on_delete=models.SET_NULL,
-        db_column='marketing_campaign_id'
+        db_column='marketing_campaign_id',
+        related_name='call_tracking_numbers',
+        null=True
     )
 
     def __str__(self):

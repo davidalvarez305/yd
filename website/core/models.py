@@ -22,12 +22,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     forward_phone_number = models.CharField(max_length=20, unique=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    events = models.ManyToManyField('crm.Event', related_name='staff', through='crm.EventStaff')
+
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number', 'forward_phone_number', 'username']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number', 'forward_phone_number']
 
     objects = UserManager()
 
@@ -58,8 +59,10 @@ class Lead(models.Model):
     created_at = models.DateTimeField()
     email = models.EmailField(null=True, unique=True)
     message = models.TextField(null=True)
-    lead_status = models.ForeignKey(LeadStatus, related_name='lead_status', db_column='lead_status_id', on_delete=models.SET_NULL)
-    lead_interest = models.ForeignKey(LeadInterest, related_name='lead_interest', db_column='lead_interest_id', on_delete=models.SET_NULL)
+    lead_status = models.ForeignKey(LeadStatus, related_name='stauses', null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
+    lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
+
+    actions = models.ManyToManyField('core.NextAction', related_name='actions', through='LeadNextAction')
 
     def __str__(self):
         return self.full_name
@@ -69,8 +72,8 @@ class Lead(models.Model):
 
 class LeadNextAction(models.Model):
     lead_next_action_id = models.IntegerField(primary_key=True)
-    next_action = models.ForeignKey(NextAction, related_name='next_action', db_column='next_action_id', on_delete=models.CASCADE)
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    next_action = models.ForeignKey(NextAction, db_column='next_action_id', on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, db_column='lead_id', on_delete=models.CASCADE)
     action_date = models.DateTimeField()
 
 class ServiceType(models.Model):
@@ -90,29 +93,31 @@ class UnitType(models.Model):
 class Quote(models.Model):
     quote_id = models.IntegerField(primary_key=True)
     external_id = models.CharField(max_length=100)
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, related_name='quotes', db_column='lead_id', on_delete=models.CASCADE)
     guests = models.IntegerField()
     hours = models.FloatField()
     event_date = models.DateTimeField()
+
+    services = models.ManyToManyField('core.Service', related_name='quote_services', through='QuoteService')
 
     class Meta:
         db_table = 'quote'
 
 class Service(models.Model):
     service_id = models.IntegerField(primary_key=True)
-    service_type = models.ForeignKey(ServiceType, related_name='service_type', db_column='service_type_id', on_delete=models.RESTRICT)
+    service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)
     service = models.CharField(max_length=255)
     suggested_price = models.FloatField(null=True)
     guest_ratio = models.IntegerField(null=True)
-    unit_type = models.ForeignKey(UnitType, related_name='unit_type', db_column='unit_type_id', on_delete=models.RESTRICT)
+    unit_type = models.ForeignKey(UnitType, db_column='unit_type_id', on_delete=models.RESTRICT)
 
     class Meta:
         db_table = 'service'
 
 class QuoteService(models.Model):
     quote_service_id = models.IntegerField(primary_key=True)
-    service = models.ForeignKey(Service, related_name='service', db_column='service_id', on_delete=models.RESTRICT)
-    quote = models.ForeignKey(Quote, related_name='quote', db_column='quote_id', on_delete=models.RESTRICT)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
+    quote = models.ForeignKey(Quote, related_name='quote_services', db_column='quote_id', on_delete=models.RESTRICT)
     units = models.FloatField()
     price_per_unit = models.FloatField()
 
@@ -129,11 +134,11 @@ class InvoiceType(models.Model):
 
 class Invoice(models.Model):
     invoice_id = models.IntegerField(primary_key=True)
-    quote = models.ForeignKey(Quote, related_name='quote', db_column='quote_id', on_delete=models.CASCADE)
+    quote = models.ForeignKey(Quote, related_name='invoices', db_column='quote_id', on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_paid = models.DateTimeField()
     due_date = models.DateTimeField()
-    invoice_type = models.ForeignKey(InvoiceType, related_name='invoice_type', db_column='invoice_type_id', on_delete=models.RESTRICT)
+    invoice_type = models.ForeignKey(InvoiceType, db_column='invoice_type_id', on_delete=models.RESTRICT)
     url = models.TextField(max_length=255)
     stripe_invoice_id = models.CharField(max_length=100, unique=True)
 
@@ -143,8 +148,8 @@ class Invoice(models.Model):
 class LeadNote(models.Model):
     lead_note_id = models.IntegerField(primary_key=True)
     note = models.TextField()
-    lead = models.ForeignKey(Lead, related_name='lead', db_column='lead_id', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='user', db_column='added_by_user_id', on_delete=models.SET_NULL)
+    lead = models.ForeignKey(Lead, related_name='notes', db_column='lead_id', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='notes', db_column='added_by_user_id', on_delete=models.CASCADE)
     date_added = models.DateTimeField()
 
     class Meta:

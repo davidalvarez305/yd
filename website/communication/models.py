@@ -46,7 +46,7 @@ class PhoneCall(models.Model):
 
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
-    phone_call = models.ForeignKey(PhoneCall, on_delete=models.CASCADE, db_column='phone_call_id', related_name="transcriptions")
+    phone_call = models.ForeignKey(PhoneCall, related_name='transcriptions', on_delete=models.CASCADE, db_column='phone_call_id')
     external_id = models.CharField(max_length=255, unique=True)
     text = models.TextField()
     audio_url = models.TextField()
