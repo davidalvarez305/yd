@@ -1,8 +1,9 @@
 from django import forms
 
-from website.core.forms import BaseForm
+from core.forms import BaseForm
+from marketing.enums import CONVERSION_SERVICE_CHOICES
 from .conversions import ConversionServiceType
-from .models import Campaign, CallTrackingNumber
+from .models import MarketingCampaign, CallTrackingNumber
 from http import HTTPStatus
 
 class CallTrackingNumberForm(BaseForm):
@@ -12,7 +13,7 @@ class CallTrackingNumberForm(BaseForm):
 
 class ConversionLogFilterForm(BaseForm):
     conversion_service_type = forms.ChoiceField(
-        choices=[(item[0], item[1]) for item in ConversionServiceType.choices],
+        choices=CONVERSION_SERVICE_CHOICES,
         required=False,
         label='Conversion Service'
     )
@@ -33,7 +34,7 @@ class CallTrackingFilterForm(BaseForm):
         label='Ad Platform',
     )
     campaign = forms.ModelChoiceField(
-        queryset=Campaign.objects.all(),
+        queryset=MarketingCampaign.objects.all(),
         required=False,
         empty_label='All',
         label='Campaign',

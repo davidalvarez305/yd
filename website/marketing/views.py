@@ -1,6 +1,6 @@
 from .models import ConversionLog, CallTrackingNumber
 from .forms import ConversionLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm
-from website.crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRMBaseCreateView, CRMBaseUpdateView
+from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRMBaseCreateView, CRMBaseUpdateView
 
 class ConversionLogListView(CRMBaseListView):
     template_name = "log_list.html"
