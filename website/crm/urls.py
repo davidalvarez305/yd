@@ -1,6 +1,6 @@
 from django.urls import path
 
-from website.marketing import views as marketing_views
+from marketing import views as marketing_views
 
 urlpatterns = [
     path('call-tracking/', marketing_views.CallTrackingNumberListView.as_view(), name='calltrackingnumber_list'),

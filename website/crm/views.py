@@ -1,13 +1,14 @@
 from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import DetailView
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 
-from website.website import settings
-from website.core.views import BaseView
+from website import settings
+from core.views import BaseView
 
 class CRMBaseView(LoginRequiredMixin, BaseView):
     def get_context_data(self, **kwargs):

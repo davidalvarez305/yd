@@ -112,6 +112,9 @@ AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",  # Cache files for 24 hours
 }
 
+# Env
+COMPANY_NAME = os.environ.get('COMPANY_NAME', '')
+
 # Files
 if DEBUG is not True:
     STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/static/"

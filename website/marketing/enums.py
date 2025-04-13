@@ -17,6 +17,8 @@ class ConversionServiceType(Enum):
     GOOGLE = 1
     FACEBOOK = 2
 
+CONVERSION_SERVICE_CHOICES = [(e.value, e.name.capitalize()) for e in ConversionServiceType]
+
 class ConversionEventType(Enum):
     FormSubmission = "generate_lead"
     LeadAd = "generate_lead"
