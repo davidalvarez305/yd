@@ -8,12 +8,6 @@ import typography from "@tailwindcss/typography";
 
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    '../website/**/templates/**/*.{html}',
-    '../website/crm/templates/crm/*.{html}',
-    '../website/core/templates/core/*.{html}',
-    '../website/marketing/templates/marketing/*.{html}'
-  ],
   darkMode: "class",
   theme: {
     extend: {
