@@ -155,24 +155,24 @@ DEFAULT_LEAD_VALUE = env.get("DEFAULT_LEAD_VALUE")
 # Files
 if DEBUG is not True:
     STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/static/"
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
 else:
     STATIC_URL = "/static/"
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
+
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
 
 # Storage Configuration
 if DEBUG:
     STORAGES = {
         "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",  # Local storage for default files
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",  # Local storage for static files
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
         "media": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",  # S3 storage for media files
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
                 "location": "media",
@@ -180,7 +180,6 @@ if DEBUG:
         },
     }
 else:
-    # Use S3 storage for all files when DEBUG is False
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
