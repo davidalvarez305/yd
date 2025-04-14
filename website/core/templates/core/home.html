@@ -2,5 +2,801 @@
 {% load static %}
 
 {% block content %}
-<h1>hi</h1>
+<!-- Hero Content -->
+    <!-- Hero -->
+    <div class="container relative mx-auto px-4 lg:px-8 xl:max-w-6xl">
+        <div class="grid grid-cols-1 items-center gap-16 text-center md:grid-cols-12 md:text-left">
+            <div class="md:col-span-7">
+                <div>
+                    <h1 class="mb-4 text-3xl font-black text-black dark:text-white">
+                        Blow Your Guests Away With
+                        <span class="text-primary-600 text-3xl dark:text-primary-500"> Delicious & Crafty </span>
+                        Cocktails
+                    </h1>
+                    {% if is_mobile %}
+                    <h2 class="text-lg/relaxed font-medium text-gray-700 pb-4 lg:text-xl/relaxed dark:text-gray-300">
+                        We offer multiple packages to fit all types of events & venues.<br>
+                        Let's talk to see what's best suited for you.
+                    </h2>
+                    {% endif %}
+                </div>
+                <div class="flex justify-start p-6">
+                    <ul class="space-y-2 text-sm lg:text-base">
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Rates</strong> Starting @ $70 / Hour</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Fully Insured</strong> Up To $1M</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Build</strong> Your Custom Menu</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One Quick Call</strong> For Quote</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Party Rentals</strong> Readily Available</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex flex-col gap-2 pb-12 pt-4">
+                    <button type="button" name="heroDesktopCTA"
+                        class="quoteButton inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-7 py-3.5 font-semibold leading-6 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                        <span>Generate A Zero Obligation Estimate for Your Event</span>
+                    </button>
+                    <a href="tel:{{ .PhoneNumber }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-7 py-3.5 font-semibold leading-6 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                            class="h-5 w-5 hi-micro hi-phone inline-block size-4">
+                            <path fill-rule="evenodd"
+                                d="m3.855 7.286 1.067-.534a1 1 0 0 0 .542-1.046l-.44-2.858A1 1 0 0 0 4.036 2H3a1 1 0 0 0-1 1v2c0 .709.082 1.4.238 2.062a9.012 9.012 0 0 0 6.7 6.7A9.024 9.024 0 0 0 11 14h2a1 1 0 0 0 1-1v-1.036a1 1 0 0 0-.848-.988l-2.858-.44a1 1 0 0 0-1.046.542l-.534 1.067a7.52 7.52 0 0 1-4.86-4.859Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="phoneNumber">{{ .PhoneNumber }}</span>
+                    </a>
+                </div>
+                <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+                    <div class="container mx-auto px-4 py-4 lg:max-w-3xl lg:px-4 lg:py-4">
+                        <div
+                            class="space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-8 dark:border-gray-700 dark:bg-gray-800/50">
+                            <div class="sm:flex sm:justify-start sm:items-center sm:gap-2">
+                                <div class="mb-3 flex items-center text-amber-500 sm:mb-0">
+                                    <svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                            d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h4 class="inline-block font-semibold">Proudly bringing the party to South Florida.</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="group relative flex items-center justify-center md:col-span-5 md:justify-end">
+                <div
+                    class="absolute inset-0 rotate-45 rounded-full bg-gradient-to-b from-sky-500 via-teal-500 to-purple-500 opacity-30 blur-3xl transition-transform duration-300 group-hover:scale-95">
+                </div>
+                <div
+                    class="relative w-full max-w-[320px] md:max-w-[500px] lg:max-w-[640px] origin-bottom rounded-2xl bg-white/50 p-2.5 shadow-xl shadow-teal-300/10 backdrop-blur-sm transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105 dark:bg-black/20">
+                    <img src="{{ yova_hero_image }}" width="800" height="1200" alt="Yova hero"
+                        class="w-full h-auto rounded-xl" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END Hero -->
+
+    {% if not is_mobile %}
+    <!-- Floating Desktop CTA -->
+    <div id="floatingHeader" class="fixed inset-x-0 bottom-0 z-60 flex justify-center p-2 sm:p-4" style="display: none;">
+        <div
+            class="container flex flex-col items-center justify-between gap-5 rounded-lg border border-transparent bg-gray-800 p-4 sm:flex-row sm:gap-8 sm:px-6 sm:py-5 xl:max-w-4xl dark:border-gray-700 dark:bg-gray-900 dark:shadow-lg">
+            <div>
+                <h4 class="mb-1 font-semibold text-white">{{ company_name }}</h4>
+                <p class="text-sm font-medium leading-relaxed text-gray-400">
+                    Don't wait any longer & book now to serve some delicious cocktails at your event.
+                </p>
+            </div>
+            <div class="flex w-full items-center justify-start gap-2 sm:w-auto sm:justify-end">
+                <button type="button" name="floatingDesktopCTA" data-modal-id="quoteModal"
+                    class="modalTrigger inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-3 py-2 text-sm font-semibold leading-5 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/90 active:border-primary-700 active:bg-primary-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="hi-outline hi-chat-bubble-left inline-block size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
+                    </svg>
+                    <span>Get Your Quote</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- END Floating Desktop CTA -->
+    {% endif %}
+<!-- END Hero -->
+
+<!-- Proof Section -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+        <div class="text-center">
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                What people are saying about us
+            </h2>
+            <h3 class="mx-auto mb-5 text-xl font-medium leading-relaxed text-gray-700 lg:w-2/3 dark:text-gray-300">
+                We want to make your event an absolute grant slam.
+            </h3>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-3">
+            <div
+                class="group relative flex flex-col items-stretch rounded-xl border border-gray-200 px-6 pb-6 pt-8 md:px-8 md:pb-8 dark:border-gray-700/75">
+                <blockquote class="relative flex grow flex-col">
+                    <p class="mb-5 grow text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-400">
+                        La mejor! ❤️
+                    </p>
+                    <footer class="flex flex-none items-center gap-4">
+                        <div>
+                            <div
+                                class="inline-flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500">
+                                ND
+                            </div>
+                        </div>
+                        <div>
+                            <div
+                                class="font-semibold text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">
+                                nicky_dominguezx3
+                            </div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                Through Instagram
+                            </p>
+                        </div>
+                    </footer>
+                </blockquote>
+            </div>
+            <div
+                class="group relative flex flex-col items-stretch rounded-xl border border-gray-200 px-6 pb-6 pt-8 md:px-8 md:pb-8 dark:border-gray-700/75">
+                <blockquote class="relative flex grow flex-col">
+                    <p class="mb-5 grow text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-400">
+                        Hi David! Happy new year! Wishing you many blessings of abundance this entire year! Thank you so
+                        much for serving at my party.
+                        You guys were amazing!!!! We'll def keep you posted for the next party!!!!
+                    </p>
+                    <footer class="flex flex-none items-center gap-4">
+                        <div>
+                            <div
+                                class="inline-flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500">
+                                SD
+                            </div>
+                        </div>
+                        <div>
+                            <div
+                                class="font-semibold text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">
+                                Sophia
+                            </div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                Through SMS
+                            </p>
+                        </div>
+                    </footer>
+                </blockquote>
+            </div>
+            <div
+                class="group relative flex flex-col items-stretch rounded-xl border border-gray-200 px-6 pb-6 pt-8 md:px-8 md:pb-8 dark:border-gray-700/75">
+                <blockquote class="relative flex grow flex-col">
+                    <p class="mb-5 grow text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-400">
+                        Thank you for the awesome service!
+                    </p>
+                    <footer class="flex flex-none items-center gap-4">
+                        <div>
+                            <div
+                                class="inline-flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500">
+                                SF
+                            </div>
+                        </div>
+                        <div>
+                            <div
+                                class="font-semibold text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">
+                                sofloridian
+                            </div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                Through Instagram
+                            </p>
+                        </div>
+                    </footer>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END Proof Section -->
+
+<!-- Heading -->
+<div class="text-center">
+    <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+        Choose From Our Most Popular Packages
+    </h2>
+    <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 lg:w-2/3 dark:text-gray-300">
+        See if our most common offerings fit your needs. If not, we'll be happy to work out a custom solution
+        over the phone.
+    </h3>
+</div>
+<!-- END Heading -->
+
+<!-- CTA Section -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto grid grid-cols-1 gap-16 px-4 py-8 lg:grid-cols-2 lg:px-8 lg:py-8 xl:max-w-7xl">
+        <div class="flex items-center text-center lg:text-left">
+            <div class="space-y-8">
+                <div>
+                    <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                        Basic Package aka...<br>
+                        <span
+                            class="underline text-center decoration-primary-500 decoration-4 underline-offset-4 dark:decoration-primary-400">
+                            Just The Bartender(s)
+                        </span>
+                    </h2>
+                    <h3 class="text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300">
+                        This package is best for those that already have everything set up & just need
+                        a pro to whip up some delicious cocktails for their guests.
+                    </h3>
+                </div>
+
+                <div class="flex justify-center text-left lg:justify-start">
+                    <ul class="space-y-5">
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One (1) Bartender Per 60 Guests</strong> to make sure your invitees are
+                                getting only the most delicious drinks (which can't be rushed!)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Six (6)</strong> cocktail selections to give you enough room to accomodate
+                                various tastes in the menu</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One (1)</strong> sleek & presentable portable bar which can be rented, if
+                                necessary</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One (1)</strong> 100-QT Cooler & One (1) 60-QT Cooler to make sure the ice
+                                stays nice & cold throughout the entire service</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col gap-4 items-center sm:items-center sm:justify-center sm:gap-3">
+                    <button name="basicPackageCTA"
+                        class="quoteButton w-full md:w-3/4 inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-6 py-3 font-semibold leading-6 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                        <span>Get Pricing!</span>
+                    </button>
+                    <div class="flex">
+                        <svg class="hi-solid hi-lock-closed inline-block size-5" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p>We'll never share your data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center lg:justify-end">
+            <div class="aspect-h-3 aspect-w-4 grow overflow-hidden rounded-lg bg-primary-100 dark:bg-primary-950">
+                <img src="{{ .YovaBasicPackage }}" loading="lazy" alt="Yova mid CTA" />
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CTA Section -->
+
+<!-- CTA Section -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto grid grid-cols-1 gap-16 px-4 py-8 lg:grid-cols-2 lg:px-8 lg:py-8 xl:max-w-7xl">
+        <div class="flex items-center text-center lg:text-left">
+            <div class="space-y-8">
+                <div>
+                    <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                        Most Popular Package aka...<br>
+                        <span
+                            class="underline text-center decoration-primary-500 decoration-4 underline-offset-4 dark:decoration-primary-400">
+                            Everything But The Alcohol
+                        </span>
+                    </h2>
+                    <h3 class="text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300">
+                        This package is for those that want to buy the stuff they prefer but want to leave the cocktail
+                        making ingredients up to the pros...here's what it includes:
+                    </h3>
+                </div>
+                <div class="flex justify-center text-left lg:justify-start">
+                    <ul class="space-y-5">
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Soft Drinks, Juices, Fruits, Garnishes & Mixers</strong> these are the primary
+                                ingredients that give flavor & life to your cocktails</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Cups, Napkins, Straws, & Decorations</strong> to serve & faciliate the
+                                enjoyment of the beverages</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One (1)</strong> sleek & presentable portable bar (which is included for
+                                $0!)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Ice, Ice Baby</strong> to keep your drinks cold & your glasses chilled</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col gap-4 items-center sm:items-center sm:justify-center sm:gap-3">
+                    <button name="mostPopularCTA"
+                        class="quoteButton w-full md:w-3/4 inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-6 py-3 font-semibold leading-6 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                        <span>Show Me Prices For This One!</span>
+                    </button>
+                    <div class="flex">
+                        <svg class="hi-solid hi-lock-closed inline-block size-5" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p>Your privacy is very important to us.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center lg:justify-end">
+            <div class="aspect-h-3 aspect-w-4 grow overflow-hidden rounded-lg bg-primary-100 dark:bg-primary-950">
+                <img src="{{ .YovaMostPopularPackage }}" loading="lazy" alt="Yova mid CTA" />
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CTA Section -->
+
+
+<!-- CTA Section -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto grid grid-cols-1 gap-16 px-4 py-8 lg:grid-cols-2 lg:px-8 lg:py-8 xl:max-w-7xl">
+        <div class="flex items-center text-center lg:text-left">
+            <div class="space-y-8">
+                <div>
+                    <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                        Full Open Bar Service aka...<br>
+                        <span
+                            class="underline text-center decoration-primary-500 decoration-4 underline-offset-4 dark:decoration-primary-400">
+                            All Done For You
+                        </span>
+                    </h2>
+                    <h3 class="text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300">
+                        This is the go to package for those that want the pros to handle everything down to the last
+                        detail so that their cocktails come out exceptional
+                    </h3>
+                </div>
+                <div class="flex justify-center text-left lg:justify-start">
+                    <ul class="space-y-5">
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>EVERYTHING</strong> in the previous two packages plus...</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Five (5) Spirits</strong> which can include things like vodka, tequila, rum,
+                                whiskey, gin, and/or any other spirit of your choice.</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>One (1)</strong> choice of beer and one (1) choice of wine or prosecco.</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>Up to 8</strong> cocktail selections (that's two more!!)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="hi-outline hi-check-circle inline-block size-6 text-primary-600 dark:text-primary-500"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><strong>The benefit</strong> of having us take care of everything & having one less
+                                thing on your mind.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col gap-4 items-center sm:items-center sm:justify-center sm:gap-3">
+                    <button name="fullOpenBarCTA"
+                        class="quoteButton w-full md:w-3/4 inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-6 py-3 font-semibold leading-6 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                        <span>Get Prices for Open Bar Service</span>
+                    </button>
+                    <div class="flex">
+                        <svg class="hi-solid hi-lock-closed inline-block size-5" fill="currentColor" viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p>We promise to never spam you.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center lg:justify-end">
+            <div class="aspect-h-3 aspect-w-4 grow overflow-hidden rounded-lg bg-primary-100 dark:bg-primary-950">
+                <img src="{{ .YovaOpenBarPackage }}" loading="lazy" alt="Yova mid CTA" />
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CTA Section -->
+
+<!-- Features -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                What's so unique about you?
+            </div>
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                How we set ourselves apart
+            </h2>
+            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                We strive to provide best-in-industry mobile bartending services.<br>
+                For us, it comes down to...<br>
+            </h3>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
+            {{ range .Features }}
+            <div class="flex items-center gap-3">
+                <div class="flex flex-none items-center justify-center text-emerald-500 dark:text-emerald-400">
+                    <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <h4 class="font-semibold">{{ . }}</h4>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+<!-- END Features -->
+
+<!-- FAQ -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                Your Questions Answered
+            </div>
+            <h2 class="text-4xl font-black text-black dark:text-white">
+                Frequently Asked Questions
+            </h2>
+        </div>
+
+        <div
+            class="mx-auto max-w-2xl divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 dark:divide-gray-700/50 dark:border-gray-700/50">
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">What types of events do you cater to?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    We specialize in weddings, corporate events, birthday parties, private events, festivals, and more.
+                    We can accommodate any occasion where drinks are part of the celebration!
+                </p>
+            </details>
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">Do you provide the alcohol or should I supply it?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    We can either provide the alcohol for you or work with what you supply. We’ll guide you on
+                    quantities and ensure the drinks are tailored to your preferences.
+                </p>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    Additionally, if anything special is needed for any custom drinks, we'll be sure to let you know.
+                </p>
+            </details>
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">What do you charge for your service?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    Our pricing varies depending on the event size, location, and duration. As well, we take into
+                    accounts if you need a portable bars, supplies, glass drinkware, and other variables that will
+                    affect the final quote.
+                </p>
+            </details>
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">Can you create a custom cocktail menu for my event?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    Absolutely! Our highly skilled bartenders can design a cocktail menu that matches your event theme
+                    or your personal tastes.
+                    We also have our signature cocktails that are sure to be hits at most events.
+                </p>
+            </details>
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">Can you serve non-alcoholic drinks?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    Absolutely, we can do mocktails as well as other soft drinks & juices if requested.
+                </p>
+            </details>
+            <details class="group">
+                <summary
+                    class="flex cursor-pointer list-none items-center justify-between px-3 py-4 hover:bg-gray-50 group-open:bg-gray-50 dark:hover:bg-gray-800/50 dark:group-open:bg-gray-800/50 [&::-webkit-details-marker]:hidden">
+                    <h4 class="text-left font-semibold">Is there a minimum number of guests required?</h4>
+                    <div class="opacity-50 group-open:rotate-180">
+                        <svg class="hi-mini hi-chevron-down inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </summary>
+                <p class="px-3 pb-6 pt-3 leading-7 text-gray-600 dark:text-gray-400">
+                    We tend to focus on events with more than 25 people, but some events have less than that and we're
+                    willing to work out a deal that is mutually beneficial.
+                </p>
+            </details>
+        </div>
+    </div>
+</div>
+<!-- END FAQ -->
+
+<!-- CTA Section -->
+<div class="dark">
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-100">
+        <div class="container mx-auto space-y-8 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
+            <div class="text-center">
+                <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                    Heard enough?
+                    <span class="text-primary-600 dark:text-primary-500">Get started today!</span>
+                </h2>
+                <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                    Work with a bartending service that doesn't conform to Miami Time.<br>
+                    We'll always be on time and prepared to provide a kick ass service for you and your guests.
+                </h3>
+            </div>
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
+                <button name="homePageLowerCTA"
+                    class="quoteButton w-full md:w-1/2 inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-6 py-3 font-semibold leading-6 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                    <span>Book Your Mobile Bartending Service</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CTA -->
+
+<!-- Team -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                Who we are
+            </div>
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                The people under the hood
+            </h2>
+            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                We're the ones burning the midnight oil to deliver premium bartending services.
+            </h3>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:gap-16">
+            <div>
+                <div class="group relative mb-8 p-4">
+                    <div
+                        class="absolute inset-0 skew-y-2 rounded-lg bg-primary-100 transition duration-150 ease-out group-hover:-rotate-2 dark:bg-primary-900/50">
+                    </div>
+                    <img src="{{ .MediaPath }}/yovana.jpg" class="relative rounded-lg shadow" alt="User Avatar"
+                        loading="lazy" />
+                </div>
+                <h4 class="mb-0.5 text-xl font-bold">Yovana</h4>
+                <p class="mb-3 font-medium text-gray-600 dark:text-gray-400">
+                    Owner
+                </p>
+                <p class="leading-relaxed text-gray-600 dark:text-gray-400">
+                    Yovana is an entrepreneur and passionate bartender.
+                    She enjoys going to the gym, creating content, traveling, and trying out new recipes for cocktails.
+                    When not coming up with ideas for new business ventures or lifting weights, she can be found
+                    whipping up a delicious michelada.
+                </p>
+            </div>
+            <div>
+                <div class="group relative mb-8 p-4">
+                    <div
+                        class="absolute inset-0 skew-y-2 rounded-lg bg-primary-100 transition duration-150 ease-out group-hover:-rotate-2 dark:bg-primary-900/50">
+                    </div>
+                    <img src="{{ .MediaPath }}/abba.jpg" class="relative rounded-lg shadow" alt="User Avatar"
+                        loading="lazy" />
+                </div>
+                <h4 class="mb-0.5 text-xl font-bold">Abba</h4>
+                <p class="mb-3 font-medium text-gray-600 dark:text-gray-400">
+                    Chief Barks Officer
+                </p>
+                <p class="leading-relaxed text-gray-600 dark:text-gray-400">
+                    Abba is an energetic and protective German shepherd.
+                    She enjoys patrolling backyards deep into the night, barking at things,
+                    barking at critters, barking at people, and chewing on things.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END Team -->
 {% endblock %}
