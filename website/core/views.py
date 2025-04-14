@@ -190,8 +190,7 @@ class QuoteView(BaseWebsiteView):
                 cleaned_phone_number = form.cleaned_data['phone_number']
             
                 if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-                    messages.error(request, "Failed to send the contact form.")
-                    return redirect(reverse('home'))
+                    return render(request=request, template_name='error_alert.html', context={ 'message': 'We always have this info saved.' }, status=400)
 
                 lead = Lead.objects.create(
                     full_name=form.cleaned_data['full_name'],
@@ -201,11 +200,10 @@ class QuoteView(BaseWebsiteView):
                     created_at=now(),
                 )
 
-                messages.success(request, "Contact form received successfully.")
-                return redirect(reverse('home'))
+                lead.save()
+
+                return render(request=request, template_name='success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
             except Exception as e:
-                messages.error(request, "Failed to create a quote.")
-                return redirect(reverse('home'))
+                return render(request=request, template_name='error_alert.html', context={ 'message': 'Internal server error.' }, status=500)
         else:
-            messages.error(request, "Invalid form data.")
-            return redirect(reverse('home'))
+            return render(request=request, template_name='error_alert.html', context={ 'message': 'Form fields incorrectly submitted.' }, status=400)

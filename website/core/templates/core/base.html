@@ -163,7 +163,7 @@
 						</div>
 						<div class="grow px-5">
 							<div class="p-5">
-								<form method="post" class="space-y-6" action="{% url 'quote' %}">
+								<form method="post" class="space-y-6" action="{% url 'quote' %}" hx-post="{% url 'quote' %}" hx-target="#alertModal" hx-swap="outerHTML" hx-on="htmx:afterSwap:handleReportConversion">
 									{% csrf_token %}
 									{{ form.as_p }}
 									<button type="submit"
@@ -221,6 +221,7 @@
 				</div>
 			</div>
 		</div>
+		<div id="alertModal"></div>
 		
 		<script>
 			const optIn = document.getElementById("opt_in_text_messaging");
@@ -312,6 +313,19 @@
     const modalHelper = new ModalHelper();
 
     modalHelper.register({ modalId: 'quoteModal' });
+</script>
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script>
+	function handleReportConversion() {
+		// Report Google Conversion
+		gtag("event", "{{ lead_generated_event_name }}", {
+			currency: "{{ default_currency }}",
+			value: parseFloat("{{ default_lead_value }}"),
+		});
+
+		// Report FB Conversion
+		fbq("track", "{{ lead_event_name }}", { external_id: "{{ external_id }}" });
+	}
 </script>
 <!-- END JS Scripts -->
 
