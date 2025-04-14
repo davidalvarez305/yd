@@ -12,7 +12,7 @@ from website import settings
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
 
-class BaseWebsiteView(TemplateView):
+class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
     meta_description = "Get a quote for mobile bartending services in Miami, FL."
 
@@ -27,7 +27,21 @@ class BaseWebsiteView(TemplateView):
             "current_year": now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
-            "external_id": self.request.session.get("external_id"),
+        })
+
+        return context
+
+
+class BaseWebsiteView(BaseView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        external_id = self.request.session.get("external_id")
+        # if external_id is None:
+            # return HttpResponseServerError("Error retrieving external ID.")
+
+        context.update({
+            "external_id": external_id,
             "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
             "google_ads_id": settings.GOOGLE_ADS_ID,
             "google_ads_call_conversion_label": settings.GOOGLE_ADS_CALL_CONVERSION_LABEL,
