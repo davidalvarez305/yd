@@ -1,5 +1,5 @@
 {% load static %}
-<div id="formModal" class="modalContainer" style="display: none;">
+<div id="quoteModal" class="modalContainer" style="display: none;">
     <div>
         <div tabindex="-1" role="dialog"
             class="fixed inset-0 z-90 overflow-y-auto overflow-x-hidden bg-gray-900/75 p-4 backdrop-blur-sm lg:p-8">
@@ -78,12 +78,11 @@
 </div>
 
 <script type="module">
-    import { ModalHelper } from '{% static /helpers/modal.js %}';
-    const optIn = document.getElementById("opt_in_text_messaging");
+    let modalId = "optinConfirmationModal";
 
-    const modalHelper = new ModalHelper();
+    modalHelper.register(modalId)
 
-    const optInModal = modalHelper.get("optinConfirmationModal");
+    const optInModal = modalHelper.get(modalId);
     optInModal.setOnClose = (event) => {
         const buttonName = event.target.getAttribute('name');
 
@@ -97,5 +96,5 @@
         }
     };
 
-    optIn.addEventListener("click", () => optInModal.open());
+    modalHelper.trigger("opt_in_text_messaging")
 </script>

@@ -112,6 +112,15 @@
         {% endfor %}
     {% endif %}
 {% endblock %}
+
+<script type="module">
+    import { ModalHelper } from "{% static 'js/modal.js' %}";
+    const modalHelper = new ModalHelper();
+
+    modalHelper.register({ modalId: 'quoteModal' });
+
+    modalHelper.trigger(document.querySelectorAll('.quoteButton'));
+</script>
 <!-- END JS Scripts -->
 
 </html>
