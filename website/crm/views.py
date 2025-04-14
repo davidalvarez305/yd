@@ -28,6 +28,12 @@ class CRMBaseView(LoginRequiredMixin, BaseView):
         user = get_object_or_404(User, user=self.request.user)
         context["crm_user_phone_number"] = user.phone_number
 
+        # Inject the JavaScript files into the context for the view
+        context['js_files'] = [
+            'js/nav.js',
+            'js/main.js'
+        ]
+
         return context
 
 class CRMBaseListView(CRMBaseView, ListView):
@@ -91,10 +97,10 @@ class CRMBaseListView(CRMBaseView, ListView):
         context[self.context_object_name] = self.get_queryset()
 
         # Inject the JavaScript files into the context for the view
-        context['js_files'] = [
-            'pagination.js',
-            'filter.js',
-            'modal.js'
+        context['js_files'] += [
+            'js/pagination.js',
+            'js/filter.js',
+            'js/modal.js'
         ]
         
         return context

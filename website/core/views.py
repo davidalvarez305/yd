@@ -12,7 +12,7 @@ from website import settings
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
 
-class BaseView(TemplateView):
+class BaseWebsiteView(TemplateView):
     page_title = settings.COMPANY_NAME
     meta_description = "Get a quote for mobile bartending services in Miami, FL."
 
@@ -27,21 +27,7 @@ class BaseView(TemplateView):
             "current_year": now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
-        })
-
-        return context
-
-
-class BaseWebsiteView(BaseView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        external_id = self.request.session.get("external_id")
-        # if external_id is None:
-            # return HttpResponseServerError("Error retrieving external ID.")
-
-        context.update({
-            "external_id": external_id,
+            "external_id": self.request.session.get("external_id"),
             "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
             "google_ads_id": settings.GOOGLE_ADS_ID,
             "google_ads_call_conversion_label": settings.GOOGLE_ADS_CALL_CONVERSION_LABEL,
@@ -56,6 +42,11 @@ class BaseWebsiteView(BaseView):
             "yova_open_bar_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_open_bar_package.jpeg",
             "is_mobile": self.request.user_agent.is_mobile if hasattr(self.request, 'user_agent') else False,
         })
+
+        context['js_files'] = [
+            'js/main.js',
+            'js/nav.js'
+        ]
 
         return context
 
