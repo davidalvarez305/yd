@@ -47,17 +47,19 @@ class ModalHelper {
         this.modals = [];
     }
 
-    register({ modalElement, closeButtonSelector, displayStyle, onClose }) {
-        if (!modalElement) {
-            console.warn("Attempted to register a modal without a modalElement.");
+    register({ modalId, closeButtonSelector, displayStyle, onClose }) {
+        if (!modalId) {
+            console.warn("Attempted to register a modal without a modal id.");
             return null;
         }
     
-        if (this.getModalById(modalElement.id)) {
-            console.warn(`Modal with ID ${modalElement.id} is already registered.`);
+        if (this.getModalById(modalId)) {
+            console.warn(`Modal with ID ${modalId} is already registered.`);
             return null;
         }
-    
+
+        const modalElement = document.getElementById(modalId);
+
         const modal = new Modal({
             modalElement,
             closeButtonSelector: closeButtonSelector ?? this.closeButtonSelector,
@@ -71,5 +73,35 @@ class ModalHelper {
 
     get(modalId) {
         return this.modals.find(m => m.modal?.id === modalId);
+    }
+
+    trigger(elements) {
+        if (!Array.isArray(elements)) {
+            elements = [elements];
+        }
+    
+        elements.forEach(element => {
+            const { modalId } = element.dataset;
+    
+            if (!modalId) {
+                console.error('Element missing data-modal-id attribute.');
+                return;
+            }
+    
+            element.addEventListener('click', () => {
+                const modal = this.get(modalId);
+    
+                if (!modal) {
+                    console.error(`Modal with ID '${modalId}' not found.`);
+                    return;
+                }
+    
+                try {
+                    modal.open();
+                } catch (error) {
+                    console.error(`Failed to open modal with ID '${modalId}':`, error);
+                }
+            });
+        });
     }
 }
