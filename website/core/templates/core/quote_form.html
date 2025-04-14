@@ -78,6 +78,7 @@
 </div>
 
 <script type="module">
+    const optIn = document.getElementById("opt_in_text_messaging");
     let modalId = "optinConfirmationModal";
 
     modalHelper.register(modalId)
@@ -96,5 +97,5 @@
         }
     };
 
-    modalHelper.trigger("opt_in_text_messaging")
+    optIn.addEventListener("click", () => optInModal.open());
 </script>
