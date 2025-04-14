@@ -24,7 +24,7 @@
 	<!-- End Google tag -->
 
 	<!-- Facebook Tag -->
-	<script nonce="{{ .Nonce }}">
+	<script>
 		!function (f, b, e, v, n, t, s) {
 			if (f.fbq) return; n = f.fbq = function () {
 				n.callMethod ?
@@ -68,16 +68,16 @@
     <link rel="canonical" href="{{ page_path }}" />
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
+    <link rel="shortcut icon" href="{% media 'favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% media 'favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% media 'favicon-16x16.png' %}">
 
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% media 'apple-touch-icon.png' %}">
 
     <!-- Android Chrome -->
-    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'android-chrome-192x192.png' %}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'android-chrome-512x512.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% media 'android-chrome-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% media 'android-chrome-512x512.png' %}">
 </head>
 
 <body>
@@ -163,7 +163,7 @@
 						</div>
 						<div class="grow px-5">
 							<div class="p-5">
-								<form method="post" class="space-y-6">
+								<form method="post" class="space-y-6" action="{% url 'quote' %}">
 									{% csrf_token %}
 									{{ form.as_p }}
 									<button type="submit"
@@ -222,7 +222,7 @@
 			</div>
 		</div>
 		
-		<script type="module">
+		<script>
 			const optIn = document.getElementById("opt_in_text_messaging");
 			let modalId = "optinConfirmationModal";
 		
@@ -243,21 +243,6 @@
 			};
 		
 			optIn.addEventListener("click", () => optInModal.open());
-		
-			let quoteButtons = document.querySelectorAll(".quoteButton");
-		
-			quoteButtons.forEach((button) => {
-				button.addEventListener("click", function () {
-					const formModal = document.getElementById("formModalContainer");
-					if (formModal) formModal.style.display = "";
-		
-					const buttonClicked = document.getElementById("button_clicked");
-					if (buttonClicked) buttonClicked.value = button.getAttribute("name");
-		
-					const popUp = document.getElementById("popUpModalOverlay");
-					if (popUp) popUp.style.display = "none";
-				});
-			});
 		</script>
 		<!-- END Quote Form -->
 

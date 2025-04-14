@@ -77,10 +77,10 @@ class ModalHelper {
         return this.modals.find(m => m.modal?.id === modalId);
     }
 
-    scanForTriggers(modalTriggerSelector) {
-        const triggerElements = document.querySelectorAll(modalTriggerSelector);
+    scanForTriggers(modalTrigger) {
+        const triggers = document.querySelectorAll(modalTrigger);
         
-        triggerElements.forEach(element => {
+        triggers.forEach(element => {
             const modalId = element.dataset.modalId;
 
             if (!modalId) return;
