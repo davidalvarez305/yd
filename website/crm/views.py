@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404
 
 from website import settings
 from core.views import BaseView
+from communication.models import Message
+from core.models import User
 
 class CRMBaseView(LoginRequiredMixin, BaseView):
     def get_context_data(self, **kwargs):
@@ -90,7 +92,6 @@ class CRMBaseListView(CRMBaseView, ListView):
 
         # Inject the JavaScript files into the context for the view
         context['js_files'] = [
-            'main.js',
             'pagination.js',
             'filter.js',
             'modal.js'
