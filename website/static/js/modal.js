@@ -39,12 +39,14 @@ class Modal {
 }
 
 class ModalHelper {
-    constructor({ modalSelector = '.modalContainer', closeButtonSelector = '.closeModal', displayStyle = '', onClose = null } = {}) {
+    constructor({ modalTrigger = '.modalTrigger', modalSelector = '.modalContainer', closeButtonSelector = '.closeModal', displayStyle = '', onClose = null } = {}) {
         this.modalSelector = modalSelector;
         this.closeButtonSelector = closeButtonSelector;
         this.displayStyle = displayStyle;
         this.globalOnClose = onClose;
         this.modals = [];
+        
+        this.scanForTriggers(modalTrigger);
     }
 
     register({ modalId, closeButtonSelector, displayStyle, onClose }) {
@@ -75,27 +77,22 @@ class ModalHelper {
         return this.modals.find(m => m.modal?.id === modalId);
     }
 
-    trigger(elements) {
-        if (!Array.isArray(elements)) {
-            elements = [elements];
-        }
-    
-        elements.forEach(element => {
-            const { modalId } = element.dataset;
-    
-            if (!modalId) {
-                console.error('Element missing data-modal-id attribute.');
-                return;
-            }
-    
+    scanForTriggers(modalTriggerSelector) {
+        const triggerElements = document.querySelectorAll(modalTriggerSelector);
+        
+        triggerElements.forEach(element => {
+            const modalId = element.dataset.modalId;
+
+            if (!modalId) return;
+
             element.addEventListener('click', () => {
                 const modal = this.get(modalId);
-    
+
                 if (!modal) {
                     console.error(`Modal with ID '${modalId}' not found.`);
                     return;
                 }
-    
+
                 try {
                     modal.open();
                 } catch (error) {
