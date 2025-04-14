@@ -58,8 +58,7 @@ class BaseWebsiteView(BaseView):
         })
 
         context['js_files'] = [
-            'js/main.js',
-            'js/nav.js'
+            'js/main.js'
         ]
 
         return context
@@ -71,7 +70,7 @@ class HomeView(BaseWebsiteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['js_files'] += 'js/phoneConversions.js'
+        context['js_files'] += ['js/phoneConversions.js', 'js/floatingHeader.js']
 
         context["features"] = [
             "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
