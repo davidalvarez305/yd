@@ -36,12 +36,10 @@ class BaseWebsiteView(BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # External ID check
         external_id = self.request.session.get("external_id")
-        if external_id is None:
-            return HttpResponseServerError("Error retrieving external ID.")
+        # if external_id is None:
+            # return HttpResponseServerError("Error retrieving external ID.")
 
-        # Add additional website-specific context
         context.update({
             "external_id": external_id,
             "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
@@ -62,7 +60,7 @@ class BaseWebsiteView(BaseView):
         return context
 
 class HomeView(BaseWebsiteView):
-    template_name = "home.html"
+    template_name = "core/home.html"
     page_title = f"Miami Mobile Bartending Services — {settings.COMPANY_NAME}"
     
     def get_context_data(self, **kwargs):

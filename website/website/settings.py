@@ -1,21 +1,20 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from .env import EnvConfig
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
+env = EnvConfig()
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET")
-if not SECRET_KEY:
-    raise ValueError("ERROR: The DJANGO_SECRET environment variable is not set!")
+SECRET_KEY = env.get("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("PRODUCTION") != "1"
+DEBUG = env.get("PRODUCTION") == "0"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1").split(',')
+ALLOWED_HOSTS = env.get("ALLOWED_HOSTS", "127.0.0.1").split(',')
 LOGIN_URL = "/login"  # Change this to your desired login URL
 
 # Application definition
@@ -40,7 +39,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'marketing.call_tracking.CallTrackingMiddleware',
+    # 'marketing.call_tracking.CallTrackingMiddleware',
 ]
 
 ROOT_URLCONF = 'website.urls'
@@ -99,11 +98,11 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # AWS
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
-AWS_S3_REGION_NAME = os.environ.get('AWS_REGION')
+AWS_ACCESS_KEY_ID = env.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env.get("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env.get("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_CUSTOM_DOMAIN = env.get("AWS_S3_CUSTOM_DOMAIN")
+AWS_S3_REGION_NAME = env.get('AWS_REGION')
 
 # AWS Custom Config
 AWS_QUERYSTRING_AUTH = False
@@ -113,7 +112,45 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 # Env
-COMPANY_NAME = os.environ.get('COMPANY_NAME', '')
+PRODUCTION = env.get("PRODUCTION")
+POSTGRES_HOST = env.get("POSTGRES_HOST")
+POSTGRES_PORT = env.get("POSTGRES_PORT")
+PGUSER = env.get("PGUSER")
+POSTGRES_PASSWORD = env.get("POSTGRES_PASSWORD")
+POSTGRES_DB = env.get("POSTGRES_DB")
+SERVER_PORT = env.get("SERVER_PORT")
+
+COMPANY_NAME = env.get("COMPANY_NAME")
+SITE_NAME = env.get("SITE_NAME")
+COMPANY_PHONE_NUMBER = env.get("COMPANY_PHONE_NUMBER")
+COMPANY_EMAIL = env.get("COMPANY_EMAIL")
+ROOT_DOMAIN = env.get("ROOT_DOMAIN")
+DOMAIN_HOST = env.get("DOMAIN_HOST")
+
+GOOGLE_ANALYTICS_API_KEY = env.get("GOOGLE_ANALYTICS_API_KEY")
+GOOGLE_ANALYTICS_ID = env.get("GOOGLE_ANALYTICS_ID")
+GOOGLE_ADS_ID = env.get("GOOGLE_ADS_ID")
+GOOGLE_ADS_CALL_CONVERSION_LABEL = env.get("GOOGLE_ADS_CALL_CONVERSION_LABEL")
+GOOGLE_REFRESH_TOKEN = env.get("GOOGLE_REFRESH_TOKEN")
+
+FACEBOOK_ACCESS_TOKEN = env.get("FACEBOOK_ACCESS_TOKEN")
+FACEBOOK_DATASET_ID = env.get("FACEBOOK_DATASET_ID")
+
+TWILIO_ACCOUNT_SID = env.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = env.get("TWILIO_AUTH_TOKEN")
+
+STRIPE_API_KEY = env.get("STRIPE_API_KEY")
+STRIPE_WEBHOOK_SECRET = env.get("STRIPE_WEBHOOK_SECRET")
+
+FACEBOOK_LEADS_SPREADSHEET_ID = env.get("FACEBOOK_LEADS_SPREADSHEET_ID")
+FACEBOOK_LEADS_SPREADSHEET_RANGE = env.get("FACEBOOK_LEADS_SPREADSHEET_RANGE")
+
+OPEN_AI_API_KEY = env.get("OPEN_AI_API_KEY")
+
+LEAD_EVENT_NAME = env.get("LEAD_EVENT_NAME")
+LEAD_GENERATED_EVENT_NAME = env.get("LEAD_GENERATED_EVENT_NAME")
+DEFAULT_CURRENCY = env.get("DEFAULT_CURRENCY")
+DEFAULT_LEAD_VALUE = env.get("DEFAULT_LEAD_VALUE")
 
 # Files
 if DEBUG is not True:
@@ -123,32 +160,48 @@ else:
     STATIC_URL = "/static/"
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-
-# Media should always be stored on S3, even in development
-MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
+    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
 
 # Storage Configuration
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",  # Local storage for default files
         },
-    },
-    "staticfiles": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",  # Local storage for static files
         },
-    },
-    "media": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            "location": "media",
+        "media": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",  # S3 storage for media files
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "location": "media",
+            },
         },
-    },
-}
+    }
+else:
+    # Use S3 storage for all files when DEBUG is False
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            },
+        },
+        "media": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "location": "media",
+            },
+        },
+    }
 
 # Ensure media is always stored on S3
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
