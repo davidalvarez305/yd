@@ -70,6 +70,9 @@ class HomeView(BaseWebsiteView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        context['js_files'] += 'js/phoneConversions.js'
+
         context["features"] = [
             "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
             "We'll always be early to setup & make sure everything that's necessary is ready for use.",
@@ -80,44 +83,6 @@ class HomeView(BaseWebsiteView):
             "We provide detailed & customized quotes so you know exactly what you're paying for.",
             "Your guests are our priority, ensuring an incredible service and experience.",
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
-        ]
-        return context
-
-class PlanningLPView(BaseWebsiteView):
-    template_name = "planning_lp.html"
-    page_title = f"Miami Party Planning Service — {settings.COMPANY_NAME}"
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["features"] = [
-            "We design custom event plans including themed décor, catering, and entertainment.",
-            "Our team arrives early to ensure everything is set up perfectly.",
-            "We uphold the highest service standards for a seamless guest experience.",
-            "We offer a list of vetted vendors to bring your vision to life.",
-            "Our staff can match your event’s theme for a cohesive atmosphere.",
-            "We cater to both small and large events efficiently.",
-            "We provide clear, transparent quotes with no hidden fees.",
-            "Your guests’ experience is our priority—we create unforgettable events.",
-            "Our team brings creativity and expertise to every event.",
-        ]
-        return context
-
-class StaffingLPView(BaseWebsiteView):
-    template_name = "staffing_lp.html"
-    page_title = f"Miami Event Staff for Hire — {settings.COMPANY_NAME}"
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["features"] = [
-            "We bring your event vision to life, whether it’s the vibe, the crew, or the full setup.",
-            "Our team arrives early to handle setup and ensure everything runs smoothly.",
-            "We provide top-tier service, making sure your guests feel taken care of.",
-            "We connect you with trusted vendors for food, décor, and entertainment.",
-            "Our staff can dress to match your event theme for a seamless look.",
-            "We can accommodate both small and large gatherings.",
-            "Our pricing is clear and upfront, ensuring no surprises.",
-            "Your guests’ experience is our top priority, ensuring an unforgettable event.",
-            "Our team consists of experienced professionals bringing creativity and expertise.",
         ]
         return context
 
@@ -245,11 +210,3 @@ class QuoteView(BaseWebsiteView):
         else:
             messages.error(request, "Invalid form data.")
             return redirect(reverse('home'))
-
-def get_pop_up_modal(request):
-    return render(request, "pop_up.html")
-
-def get_error_modal(request):
-    err_message = request.GET.get('err', 'An error occurred')
-    context = {'Message': err_message}
-    return render(request, "error_banner.html", context)
