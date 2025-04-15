@@ -148,14 +148,12 @@ class LoginView(BaseWebsiteView):
                 if request.user.is_superuser:
                     return redirect(reverse('crm_leads'))
 
-                # Normal user redirection
+                # Non-admin redirection
                 return redirect(reverse('home'))
             else:
-                self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
+                return self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
         else:
-            self.alert(request, "Invalid form submission.", AlertStatus.BAD_REQUEST)
-
-        return render(request, self.template_name, { 'form': form })
+            return self.alert(request, "Invalid form submission.", AlertStatus.BAD_REQUEST)
 
 class ContactView(BaseWebsiteView):
     template_name = 'contact.html'
@@ -196,12 +194,12 @@ class QuoteView(BaseWebsiteView):
                 cleaned_phone_number = form.cleaned_data['phone_number']
             
                 if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-                    return render(request=request, template_name='core/error_alert.html', context={ 'message': 'We always have this info saved.' }, status=400)
-
+                    return self.alert(request, "We already have this info saved", AlertStatus.BAD_REQUEST)
+                
                 form.save()
 
-                return render(request=request, template_name='core/success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
+                return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
             except Exception as e:
-                return render(request=request, template_name='core/error_alert.html', context={ 'message': 'Internal server error.' }, status=500)
+                return self.alert(request, "Internal server error", AlertStatus.INTERNAL_ERROR)
         else:
-            return render(request=request, template_name='core/error_alert.html', context={ 'message': 'Form fields incorrectly submitted.' }, status=400)
+            return self.alert(request, "Form fields incorrectly submitted.", AlertStatus.BAD_REQUEST)
