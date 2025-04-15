@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
+from core.templates.core.widgets import ToggleSwitchWidget
+
 class BaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,7 +39,7 @@ class BaseForm(forms.Form):
                     'class': 'peer sr-only'
                 })
             if field.label:
-                field.label = f'<label class="font-medium">{field.label}</label>'
+                field.widget.attrs['class'] = (field.widget.attrs.get('class', '') + ' font-medium').strip()
 
 class LoginForm(BaseForm):
     username = forms.CharField(
@@ -137,7 +139,10 @@ class QuoteForm(BaseForm):
     opt_in_text_messaging = forms.BooleanField(
         required=False,
         initial=True,
-        widget=forms.CheckboxInput(),
+        widget=ToggleSwitchWidget(attrs={
+            'class': 'peer sr-only',
+            'id': 'opt_in_text_messaging',
+        }),
     )
 
     def clean_phone_number(self):

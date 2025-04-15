@@ -8,6 +8,7 @@ from django.contrib import messages
 
 from communication.email import get_email_service
 from website import settings
+from core.templates.core.utils import is_mobile
 
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
@@ -27,6 +28,7 @@ class BaseView(TemplateView):
             "current_year": now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
+            "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
         })
 
         return context
@@ -57,7 +59,6 @@ class BaseWebsiteView(BaseView):
             "yova_most_popular_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_mid_cta.png",
             "yova_basic_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_basic_package.jpeg",
             "yova_open_bar_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_open_bar_package.jpeg",
-            "is_mobile": self.request.user_agent.is_mobile if hasattr(self.request, 'user_agent') else False,
         })
 
         context['js_files'] = [
@@ -193,7 +194,7 @@ class QuoteView(BaseWebsiteView):
                 cleaned_phone_number = form.cleaned_data['phone_number']
             
                 if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-                    return render(request=request, template_name='error_alert.html', context={ 'message': 'We always have this info saved.' }, status=400)
+                    return render(request=request, template_name='core/error_alert.html', context={ 'message': 'We always have this info saved.' }, status=400)
 
                 lead = Lead.objects.create(
                     full_name=form.cleaned_data['full_name'],
@@ -205,8 +206,8 @@ class QuoteView(BaseWebsiteView):
 
                 lead.save()
 
-                return render(request=request, template_name='success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
+                return render(request=request, template_name='core/success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
             except Exception as e:
-                return render(request=request, template_name='error_alert.html', context={ 'message': 'Internal server error.' }, status=500)
+                return render(request=request, template_name='core/error_alert.html', context={ 'message': 'Internal server error.' }, status=500)
         else:
-            return render(request=request, template_name='error_alert.html', context={ 'message': 'Form fields incorrectly submitted.' }, status=400)
+            return render(request=request, template_name='core/error_alert.html', context={ 'message': 'Form fields incorrectly submitted.' }, status=400)
