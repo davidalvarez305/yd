@@ -1,5 +1,5 @@
-from .models import ConversionLog, CallTrackingNumber
-from .forms import ConversionLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm
+from .models import ConversionLog, CallTrackingNumber, Visit
+from .forms import ConversionLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm, VisitForm, VisitFilterForm
 from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRMBaseCreateView, CRMBaseUpdateView
 
 class ConversionLogListView(CRMBaseListView):
@@ -23,3 +23,10 @@ class CallTrackingNumberDetailView(CRMBaseDetailView):
 
 class CallTrackingNumberDeleteView(CRMBaseDeleteView):
     model = CallTrackingNumber
+
+class VisitListView(CRMBaseListView):
+    model = Visit
+    filter_form_class = VisitFilterForm
+
+class VisitUpdateView(CRMBaseUpdateView):
+    form_class = VisitForm

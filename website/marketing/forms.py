@@ -1,17 +1,17 @@
 from django import forms
 
-from core.forms import BaseForm
+from core.forms import BaseForm, BaseModelForm
 from marketing.enums import CONVERSION_SERVICE_CHOICES
 from .conversions import ConversionServiceType
-from .models import MarketingCampaign, CallTrackingNumber
+from .models import MarketingCampaign, CallTrackingNumber, Visit
 from http import HTTPStatus
 
-class CallTrackingNumberForm(BaseForm):
+class CallTrackingNumberForm(BaseModelForm):
     class Meta:
         model = CallTrackingNumber
         fields = ['platform_id', 'call_tracking_number', 'marketing_campaign']
 
-class ConversionLogFilterForm(BaseForm):
+class ConversionLogFilterForm(BaseModelForm):
     conversion_service_type = forms.ChoiceField(
         choices=CONVERSION_SERVICE_CHOICES,
         required=False,
@@ -42,3 +42,8 @@ class CallTrackingFilterForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+class VisitForm(BaseModelForm):
+    class Meta:
+        model = Visit
+        fields = ['visit_id', 'session_duration']
