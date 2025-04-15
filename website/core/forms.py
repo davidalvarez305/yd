@@ -161,6 +161,7 @@ class QuoteForm(BaseForm):
         initial=True,
         widget=ToggleSwitchWidget(attrs={
             'id': 'opt_in_text_messaging',
+            'message': 'I consent to receiving text message notifications.',
         }),
     )
 
