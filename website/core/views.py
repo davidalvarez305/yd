@@ -6,13 +6,13 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from communication.email import get_email_service
 from website import settings
 
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .models import Lead
 from .enums import AlertStatus
+from communication.email import get_email_service
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
@@ -70,7 +70,8 @@ class BaseWebsiteView(BaseView):
         })
 
         context['js_files'] = [
-            'js/main.js'
+            'js/main.js',
+            'js/modal.js'
         ]
 
         return context
@@ -122,12 +123,10 @@ class LoginView(BaseWebsiteView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
-        context['form'] = LoginForm()
+        context['login_form'] = LoginForm()
 
-        # Check if the user is already logged in
         if request.user.is_authenticated:
             if request.request.user.is_superuser:
-                messages.info(request, "Already logged in.")
                 return redirect(reverse('crm_leads'))
 
         return render(request, self.template_name, context)
@@ -139,7 +138,6 @@ class LoginView(BaseWebsiteView):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
 
-            # Authenticate the user
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
@@ -148,7 +146,6 @@ class LoginView(BaseWebsiteView):
                 if request.user.is_superuser:
                     return redirect(reverse('crm_leads'))
 
-                # Non-admin redirection
                 return redirect(reverse('home'))
             else:
                 return self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
@@ -160,20 +157,14 @@ class ContactView(BaseWebsiteView):
     page_title = 'Contact - ' + settings.COMPANY_NAME
 
     def get(self, request, *args, **kwargs):
-        form = ContactForm()
-        return render(request, self.template_name, { 'form': form })
+        return render(request, self.template_name, { 'contact_form': ContactForm() })
 
     def post(self, request, *args, **kwargs):
         form = ContactForm(request.POST)
         
         if form.is_valid():
             try:
-                email_service = get_email_service()
-                email_service.send_email(
-                    to=form.cleaned_data["email"],
-                    subject="YD Cocktails: Contact Form Submission",
-                    body=form.cleaned_data["message"]
-                )
+                form.send_email(email_service=get_email_service())
                 return self.alert(request, "Contact form received successfully.", AlertStatus.SUCCESS)
             except Exception as e:
                 return self.alert(request, "Failed to send the contact form.", AlertStatus.BAD_REQUEST)

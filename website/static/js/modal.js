@@ -101,6 +101,10 @@ export class ModalHelper {
             });
         });
     }
+
+    closeActiveModals() {
+        this.modals.forEach(modal => modal.close());
+    }
 }
 
 window.ModalHelper = ModalHelper;

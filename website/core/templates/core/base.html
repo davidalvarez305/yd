@@ -290,9 +290,7 @@
 {% endblock %}
 
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-<script type="module">
-	import { ModalHelper } from "{% static 'js/modal.js' %}";
-
+<script>
     const modalHelper = new ModalHelper();
 	let quoteModalId = 'quoteModal';
 	let optinConfirmationModalId = 'optinConfirmationModal';
@@ -318,14 +316,15 @@
 
 	optIn.addEventListener("click", () => optInModal.open());
 
-	window.handleFormSubmitEnd = (event) => {
+	function handleFormSubmitEnd(event) {
 		// Close form modal
-		const modal = modalHelper.get(quoteModalId).close();
+		modalHelper.closeActiveModals();
 
 		if (!event.detail.successful) return;
 
 		// Report Google Conversion
 		gtag("event", "{{ lead_generated_event_name }}", {
+			userId: "{{ external_id }}",
 			currency: "{{ default_currency }}",
 			value: parseFloat("{{ default_lead_value }}"),
 		});

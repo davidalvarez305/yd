@@ -5,6 +5,8 @@ import re
 
 from core.widgets import ToggleSwitchWidget
 from core.models import Lead
+from communication.email import EmailService
+from website.settings import COMPANY_NAME
 
 class BaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -97,6 +99,12 @@ class ContactForm(BaseForm):
         required=True
     )
 
+    def send_email(self, email_service: EmailService):
+        email_service.send_email(
+            to=self.cleaned_data["email"],
+            subject= f"{COMPANY_NAME}: +  Contact Form Submission",
+            body=self.cleaned_data["message"]
+        )
 
 class LeadForm(forms.ModelForm):
     full_name = forms.CharField(
