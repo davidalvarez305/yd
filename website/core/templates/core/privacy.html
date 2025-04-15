@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                {{ company_name }}
+            </div>
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                Privacy Policy
+            </h2>
+            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                <p class="text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">
+                    Last Updated: 04/15/2025</p>
+            </h3>
+        </div>
+
+        <article class="prose prose-lg prose-primary mx-auto dark:prose-invert">
+            <p>
+                Thank you for choosing {{ company_name }}. We value your privacy and are committed to protecting your
+                personal information. This Privacy Policy outlines how we collect, use, and safeguard your data when you
+                use our services.
+            </p>
+            <h3>1. Information We Collect</h3>
+            <p><strong>Personal Information:</strong> When you interact with our vending machines or website, we may
+                collect personal information such as your name, email address, phone number, and payment information.
+            </p>
+            <p><strong>Usage Data:</strong> We collect information on how our website are accessed and used, including
+                the type of device used, IP address, browser type, and usage patterns.</p>
+            <p><strong>Transaction Data:</strong> We record details of transactions made through our vending machines,
+                including products purchased, transaction amounts, and timestamps.</p>
+            <h3>2. How We Use Your Information</h3>
+            <p><strong>To Provide Services:</strong> We use your information in order to provide specific marketing promotions.</p>
+            <p><strong>To Improve Our Services:</strong> We analyze usage data to enhance the performance and
+                functionality of our vending machines and website.</p>
+            <p><strong>To Communicate with You:</strong> We may use your contact information to send you updates, and information about our services.</p>
+            <p><strong>To Ensure Security:</strong> We use information to monitor and prevent fraudulent activities and
+                ensure the security of our systems and users.</p>
+            <h3>3. Sharing Your Information</h3>
+            <p>We do not sell or rent your personal information to third parties. However, we may share your data with:
+            </p>
+            <p><strong>Service Providers:</strong> Third-party companies that assist us in operating our services, such
+                as payment processors and technical support.</p>
+            <p><strong>Legal Compliance:</strong> When required by law or in response to valid requests by public
+                authorities.</p>
+
+            <h3>4. Data Security</h3>
+            <p>We implement industry-standard security measures to protect your personal information from unauthorized
+                access, disclosure, alteration, or destruction. Despite these measures, no data transmission over the
+                internet or electronic storage is completely secure, so we cannot guarantee absolute security.</p>
+
+            <h3>5. Your Rights</h3>
+            <p>You have the right to opt out of
+                receiving marketing communications from us. To exercise these rights, please <a href="/contact">contact us</a>.</p>
+
+            <h3>6. Cookies and Tracking Technologies</h3>
+            <p>Our website uses cookies and similar tracking technologies to enhance your experience. Cookies are small
+                data files stored on your device that help us understand your preferences and usage patterns. You can
+                manage your cookie preferences through your browser settings.</p>
+
+            <h3>7. Children's Privacy</h3>
+            <p>Our services are not intended for individuals under the age of 13. We do not knowingly collect personal
+                information from children. If you believe we have collected data from a child under 13, please contact
+                us to delete the information.</p>
+
+            <h3>8. Changes to This Privacy Policy</h3>
+            <p>We may update this Privacy Policy periodically to reflect changes in our practices or legal requirements.
+                We will notify you of any significant changes by posting the new policy on our website and updating the
+                effective date.</p>
+
+            <h3>9. Contact Us</h3>
+            <p>If you have any questions or concerns about this Privacy Policy, please <a href="/contact">contact us</a>.</p>
+        </article>
+    </div>
+</div>
+{% endblock %}
