@@ -140,7 +140,7 @@ class QuoteForm(BaseForm):
         widget=forms.TextInput(attrs={
             'placeholder': 'Phone Number',
             'autocomplete': 'tel-national',
-            'pattern': r'^\+1\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$',  # US number formats
+            'pattern': r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$',
             'title': 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)',
             'required': True,
         }),
