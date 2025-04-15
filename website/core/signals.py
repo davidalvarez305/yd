@@ -40,9 +40,9 @@ def handle_lead_save(sender, lead, created, **kwargs) -> None:
                 return
 
             # Step 5: Trigger the workflow to assign google or facebook campaign attribution 
-            trigger_workflow(phone_call_match)
+            # trigger_workflow(phone_call_match)
 
-            # Step 6: Report lead to google or facebook, where applicable
+            # Step 6: Report conversion
             report_conversion(conversion_event_type=ConversionEventType.WebsiteCall, lead=lead)
-        except CallTracking.DoesNotExist as e:
-            logger.error(f"Error processing CallTracking save: {str(e)}")
+        except Exception as e:
+            print(f"Error processing lead save: {str(e)}")
