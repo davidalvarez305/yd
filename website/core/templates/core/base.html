@@ -165,7 +165,7 @@
 						<div class="grow px-5">
 							<div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
 								<div class="grow p-5 md:px-16 md:py-6">
-									<form method="post" class="space-y-6 p-2 md:p-2" action="{% url 'quote' %}" hx-post="{% url 'quote' %}" hx-target="#alertModal" hx-swap="outerHTML" hx-on="htmx:afterSwap:handleFormSubmitEnd">
+									<form method="post" class="space-y-6 p-2 md:p-2" action="{% url 'quote' %}" hx-post="{% url 'quote' %}" hx-target="#alertModal" hx-swap="outerHTML" hx-on::after-request="handleFormSubmitEnd(event)">
 										{% csrf_token %}
 										{{ quote_form.as_div|safe }}
 										<button type="submit"
@@ -290,9 +290,9 @@
 {% endblock %}
 
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-
 <script type="module">
-    import { ModalHelper } from "{% static 'js/modal.js' %}";
+	import { ModalHelper } from "{% static 'js/modal.js' %}";
+
     const modalHelper = new ModalHelper();
 	let quoteModalId = 'quoteModal';
 	let optinConfirmationModalId = 'optinConfirmationModal';
@@ -317,10 +317,12 @@
 	};
 
 	optIn.addEventListener("click", () => optInModal.open());
-	
-	function handleFormSubmitEnd() {
+
+	window.handleFormSubmitEnd = (event) => {
 		// Close form modal
 		const modal = modalHelper.get(quoteModalId).close();
+
+		if (!event.detail.successful) return;
 
 		// Report Google Conversion
 		gtag("event", "{{ lead_generated_event_name }}", {
