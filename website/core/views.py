@@ -204,8 +204,6 @@ class QuoteView(BaseWebsiteView):
                     created_at=now(),
                 )
 
-                lead.save()
-
                 return render(request=request, template_name='core/success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
             except Exception as e:
                 return render(request=request, template_name='core/error_alert.html', context={ 'message': 'Internal server error.' }, status=500)
