@@ -4,12 +4,11 @@ from django.http import HttpResponseServerError, HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
 
 from website import settings
 
 from .utils import is_mobile, format_phone_number
-from .forms import ContactForm, LoginForm, LeadForm
+from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
 from .enums import AlertStatus
 from communication.email import get_email_service
@@ -50,7 +49,7 @@ class BaseWebsiteView(BaseView):
         # if external_id is None:
             # return HttpResponseServerError("Error retrieving external ID.")
         
-        form = LeadForm()
+        form = QuoteForm()
 
         context.update({
             "quote_form": form,
@@ -178,7 +177,7 @@ class LogoutView(BaseWebsiteView):
 
 class QuoteView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
-        form = LeadForm(request.POST)
+        form = QuoteForm(request.POST)
 
         if form.is_valid():
             try:

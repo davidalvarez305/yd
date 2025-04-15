@@ -105,7 +105,7 @@ class ContactForm(BaseForm):
             body=self.cleaned_data["message"]
         )
 
-class LeadForm(BaseModelForm):
+class QuoteForm(BaseModelForm):
     full_name = forms.CharField(
         max_length=100,
         label="Full Name*",
