@@ -8,7 +8,7 @@ from django.contrib import messages
 
 from communication.email import get_email_service
 from website import settings
-from core.templates.core.utils import is_mobile
+from core.utils import is_mobile, format_phone_number
 
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
@@ -24,7 +24,7 @@ class BaseView(TemplateView):
             "page_title": self.page_title,
             "meta_description": self.meta_description,
             "site_name": settings.SITE_NAME,
-            "phone_number": settings.COMPANY_PHONE_NUMBER,
+            "phone_number": format_phone_number(settings.COMPANY_PHONE_NUMBER),
             "current_year": now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",

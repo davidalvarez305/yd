@@ -78,3 +78,15 @@
   --typography-a-hover-opacity: 0.75;
   --typography-img-radius: 0.5rem;
 }
+
+@source inline("block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary");
+@source inline("focus:border-primary-500 focus:ring-primary-500/50 dark:focus:border-primary-500");
+@source inline("peer sr-only");
+@source inline("group relative inline-flex items-center gap-3");
+@source inline("hover:cursor-pointer h-7 w-12 flex-none rounded-full bg-gray-300 transition-all duration-150 ease-out");
+@source inline("before:absolute before:left-1 before:top-1 before:size-5 before:rounded-full before:bg-white before:transition-transform before:duration-150 before:ease-out before:content-['']");
+@source inline("peer-checked:bg-primary-500 peer-checked:before:translate-x-full");
+@source inline("peer-focus:ring peer-focus:ring-primary-500/50 peer-focus:ring-offset-2 peer-focus:ring-offset-white");
+@source inline("peer-disabled:cursor-not-allowed peer-disabled:opacity-75");
+@source inline("dark:bg-gray-700 dark:peer-checked:bg-primary-500 dark:peer-focus:ring-offset-gray-900");
+@source inline("font-medium");
