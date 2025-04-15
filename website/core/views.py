@@ -10,7 +10,7 @@ from communication.email import get_email_service
 from website import settings
 from core.utils import is_mobile, format_phone_number
 
-from .forms import ContactForm, LoginForm, QuoteForm
+from .forms import ContactForm, LoginForm, LeadForm
 from .models import Lead
 
 class BaseView(TemplateView):
@@ -42,7 +42,7 @@ class BaseWebsiteView(BaseView):
         # if external_id is None:
             # return HttpResponseServerError("Error retrieving external ID.")
         
-        form = QuoteForm()
+        form = LeadForm()
 
         context.update({
             "quote_form": form,
@@ -187,7 +187,7 @@ class LogoutView(BaseWebsiteView):
 
 class QuoteView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
-        form = QuoteForm(request.POST)
+        form = LeadForm(request.POST)
 
         if form.is_valid():
             try:
@@ -196,13 +196,7 @@ class QuoteView(BaseWebsiteView):
                 if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
                     return render(request=request, template_name='core/error_alert.html', context={ 'message': 'We always have this info saved.' }, status=400)
 
-                lead = Lead.objects.create(
-                    full_name=form.cleaned_data['full_name'],
-                    phone_number=cleaned_phone_number,
-                    message=form.cleaned_data.get('message'),
-                    opt_in_text_messaging=form.cleaned_data.get('opt_in_text_messaging'),
-                    created_at=now(),
-                )
+                form.save()
 
                 return render(request=request, template_name='core/success_alert.html', context={ 'message': 'Your request was successfully submitted!' }, status=200)
             except Exception as e:

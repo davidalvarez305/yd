@@ -5,7 +5,7 @@ import re
 
 from core.widgets import ToggleSwitchWidget
 
-class BaseForm(forms.Form):
+class BaseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -122,7 +122,7 @@ class ContactForm(BaseForm):
         required=True
     )
 
-class QuoteForm(BaseForm):
+class LeadForm(BaseForm):
     full_name = forms.CharField(
         max_length=100,
         label="Full Name*",

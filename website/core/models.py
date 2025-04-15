@@ -56,7 +56,7 @@ class Lead(models.Model):
     full_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15, unique=True)
     opt_in_text_messaging = models.BooleanField(default=True)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
     email = models.EmailField(null=True, unique=True)
     message = models.TextField(null=True)
     lead_status = models.ForeignKey(LeadStatus, related_name='stauses', null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
