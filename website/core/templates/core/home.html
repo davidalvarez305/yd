@@ -571,7 +571,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
-            {{ range .Features }}
+            {% for feature in features %}
             <div class="flex items-center gap-3">
                 <div class="flex flex-none items-center justify-center text-emerald-500 dark:text-emerald-400">
                     <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg"
@@ -581,9 +581,9 @@
                             clip-rule="evenodd" />
                     </svg>
                 </div>
-                <h4 class="font-semibold">{{ . }}</h4>
+                <h4 class="font-semibold">{{ feature }}</h4>
             </div>
-            {{ end }}
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -767,7 +767,7 @@
                     <div
                         class="absolute inset-0 skew-y-2 rounded-lg bg-primary-100 transition duration-150 ease-out group-hover:-rotate-2 dark:bg-primary-900/50">
                     </div>
-                    <img src="{% media 'yovana.jpg' %}" class="relative rounded-lg shadow" alt="User Avatar"
+                    <img src="{% static 'yovana.jpg' %}" class="relative rounded-lg shadow" alt="User Avatar"
                         loading="lazy" />
                 </div>
                 <h4 class="mb-0.5 text-xl font-bold">Yovana</h4>

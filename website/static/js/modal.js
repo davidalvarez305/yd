@@ -38,7 +38,7 @@ class Modal {
     }
 }
 
-class ModalHelper {
+export class ModalHelper {
     constructor({ modalTrigger = '.modalTrigger', modalSelector = '.modalContainer', closeButtonSelector = '.closeModal', displayStyle = '', onClose = null } = {}) {
         this.modalSelector = modalSelector;
         this.closeButtonSelector = closeButtonSelector;
@@ -55,7 +55,7 @@ class ModalHelper {
             return null;
         }
     
-        if (this.getModalById(modalId)) {
+        if (this.get(modalId)) {
             console.warn(`Modal with ID ${modalId} is already registered.`);
             return null;
         }
