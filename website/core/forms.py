@@ -13,24 +13,35 @@ class BaseForm(forms.Form):
         super().__init__(*args, **kwargs)
         
         for field_name, field in self.fields.items():
-            base_class = 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6'
             if isinstance(field.widget, forms.NumberInput):
                 field.widget.attrs.update({
-                    'class': f'{base_class} placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary'
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary'
                 })
-            elif isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
+            elif isinstance(field.widget, forms.TextInput):
                 field.widget.attrs.update({
-                    'class': f'{base_class} placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
+                })
+            elif isinstance(field.widget, forms.EmailInput):
+                field.widget.attrs.update({
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
+                })
+            elif isinstance(field.widget, forms.PasswordInput):
+                field.widget.attrs.update({
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
+                })
+            elif isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
                 })
             elif isinstance(field.widget, forms.Select):
                 field.widget.attrs.update({
-                    'class': f'{base_class} focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary'
+                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary'
                 })
             elif isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs.update({
                     'class': 'peer sr-only'
                 })
-            # Add 'font-medium' to all widgets that support labels
+
             field.widget.attrs['class'] = (field.widget.attrs.get('class', '') + ' font-medium').strip()
 
     def as_div(self):
