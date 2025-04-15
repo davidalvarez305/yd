@@ -9,7 +9,7 @@ from http import HTTPStatus
 class CallTrackingNumberForm(BaseForm):
     class Meta:
         model = CallTrackingNumber
-        fields = ['platform_id', 'call_tracking_number', 'campaign']
+        fields = ['platform_id', 'call_tracking_number', 'marketing_campaign']
 
 class ConversionLogFilterForm(BaseForm):
     conversion_service_type = forms.ChoiceField(

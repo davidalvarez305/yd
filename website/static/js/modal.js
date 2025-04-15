@@ -102,3 +102,5 @@ export class ModalHelper {
         });
     }
 }
+
+window.ModalHelper = ModalHelper;
