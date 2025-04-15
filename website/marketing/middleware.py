@@ -1,3 +1,5 @@
+import uuid
+from .models import Visit
 from django.utils import timezone
 from django.shortcuts import redirect
 from django.http import HttpResponseServerError
@@ -70,3 +72,29 @@ class CallTrackingMiddleware:
             timestamp = session_data.get('timestamp', None)
             if timestamp and timezone.now() - timestamp > timezone.timedelta(minutes=10):
                 del request.session[MarketingParams.CallTrackingNumberSessionValue.value]
+
+class VisitMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not request.user.is_authenticated:
+            referrer = request.META.get('HTTP_REFERER', None)
+            
+            url = request.build_absolute_uri()
+
+            external_id = request.session.get('external_id', None)
+            if not external_id:
+                external_id = str(uuid.uuid4())
+                request.session['external_id'] = external_id
+
+            visit = Visit.objects.create(
+                external_id=external_id,
+                referrer=referrer,
+                url=url
+            )
+
+            request.visit_id = visit.id
+
+        response = self.get_response(request)
+        return response
