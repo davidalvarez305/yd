@@ -39,8 +39,11 @@ class BaseWebsiteView(BaseView):
         external_id = self.request.session.get("external_id")
         # if external_id is None:
             # return HttpResponseServerError("Error retrieving external ID.")
+        
+        form = QuoteForm()
 
         context.update({
+            "quote_form": form,
             "external_id": external_id,
             "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
             "google_ads_id": settings.GOOGLE_ADS_ID,
@@ -70,7 +73,7 @@ class HomeView(BaseWebsiteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['js_files'] += ['js/phoneConversions.js', 'js/floatingHeader.js']
+        context['js_files'] += ['js/floatingHeader.js']
 
         context["features"] = [
             "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
