@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from core.models import User, Lead, Quote
 
 class Cocktail(models.Model):
@@ -16,8 +17,8 @@ class Event(models.Model):
     zip_code = models.CharField(max_length=20, null=True)
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True)
-    date_created = models.DateTimeField()
-    date_paid = models.DateTimeField()
+    date_created = models.DateTimeField(default=timezone.now)
+    date_paid = models.DateTimeField(default=timezone.now)
     amount = models.FloatField()
     tip = models.FloatField(null=True)
     guests = models.IntegerField()

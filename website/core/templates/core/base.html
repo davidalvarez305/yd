@@ -165,7 +165,7 @@
 						<div class="grow px-5">
 							<div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
 								<div class="grow p-5 md:px-16 md:py-6">
-									<form method="post" class="space-y-6 p-2 md:p-2" action="{% url 'quote' %}" hx-post="{% url 'quote' %}" hx-target="#alertModal" hx-swap="outerHTML" hx-on="htmx:afterSwap:handleReportConversion">
+									<form method="post" class="space-y-6 p-2 md:p-2" action="{% url 'quote' %}" hx-post="{% url 'quote' %}" hx-target="#alertModal" hx-swap="outerHTML" hx-on="htmx:afterSwap:handleFormSubmitEnd">
 										{% csrf_token %}
 										{{ quote_form.as_div|safe }}
 										<button type="submit"
@@ -293,13 +293,15 @@
 <script type="module">
     import { ModalHelper } from "{% static 'js/modal.js' %}";
     const modalHelper = new ModalHelper();
+	let quoteModalId = 'quoteModal';
+	let optinConfirmationModalId = 'optinConfirmationModal';
 
-    modalHelper.register({ modalId: 'quoteModal' });
-	modalHelper.register({ modalId: "optinConfirmationModal" });
+    modalHelper.register({ modalId: quoteModalId });
+	modalHelper.register({ modalId: optinConfirmationModalId });
 
 	const optIn = document.getElementById("opt_in_text_messaging");
 
-	const optInModal = modalHelper.get("optinConfirmationModal");
+	const optInModal = modalHelper.get(optinConfirmationModalId);
 	optInModal.setOnClose = (event) => {
 		const buttonName = event.target.getAttribute('name');
 
@@ -315,7 +317,10 @@
 
 	optIn.addEventListener("click", () => optInModal.open());
 	
-	function handleReportConversion() {
+	function handleFormSubmitEnd() {
+		// Close form modal
+		const modal = modalHelper.get(quoteModalId).close();
+
 		// Report Google Conversion
 		gtag("event", "{{ lead_generated_event_name }}", {
 			currency: "{{ default_currency }}",
