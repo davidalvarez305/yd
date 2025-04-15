@@ -8,28 +8,14 @@ from core.models import Lead
 from communication.email import EmailService
 from website.settings import COMPANY_NAME
 
-class BaseForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
+class StyledFormMixin:
+    def apply_styling(self):
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.NumberInput):
                 field.widget.attrs.update({
                     'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary'
                 })
-            elif isinstance(field.widget, forms.TextInput):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
-                })
-            elif isinstance(field.widget, forms.EmailInput):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
-                })
-            elif isinstance(field.widget, forms.PasswordInput):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
-                })
-            elif isinstance(field.widget, forms.Textarea):
+            elif isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
                 field.widget.attrs.update({
                     'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
                 })
@@ -45,22 +31,24 @@ class BaseForm(forms.Form):
             field.widget.attrs['class'] = (field.widget.attrs.get('class', '') + ' font-medium').strip()
 
     def as_div(self):
-        """
-        Return the form fields wrapped in divs with Tailwind CSS classes.
-        """
         form_html = ''
         for field_name, field in self.fields.items():
             field_id = field.widget.attrs.get('id', field_name)
             field_html = field.widget.render(field_name, field.initial)
 
-            if isinstance(field.widget, ToggleSwitchWidget):
-                label = ''
-            else:
-                label = f'<label for="{field_id}" class="font-medium">{field.label}</label>'
-
-            field_div = f'<div class="space-y-1">{label}{field_html}</div>'
-            form_html += field_div
+            label = '' if isinstance(field.widget, ToggleSwitchWidget) else f'<label for="{field_id}" class="font-medium">{field.label}</label>'
+            form_html += f'<div class="space-y-1">{label}{field_html}</div>'
         return form_html
+
+class BaseForm(StyledFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_styling()
+
+class BaseModelForm(StyledFormMixin, forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_styling()
 
 
 class LoginForm(BaseForm):
@@ -117,7 +105,7 @@ class ContactForm(BaseForm):
             body=self.cleaned_data["message"]
         )
 
-class LeadForm(forms.ModelForm):
+class LeadForm(BaseModelForm):
     full_name = forms.CharField(
         max_length=100,
         label="Full Name*",
