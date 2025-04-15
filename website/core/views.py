@@ -8,14 +8,22 @@ from django.contrib import messages
 
 from communication.email import get_email_service
 from website import settings
-from core.utils import is_mobile, format_phone_number
 
+from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .models import Lead
+from .enums import AlertStatus
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
     meta_description = "Get a quote for mobile bartending services in Miami, FL."
+
+    def alert(self, request, message, status: AlertStatus):
+        template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
+        
+        status_code = { AlertStatus.SUCCESS: 200, AlertStatus.BAD_REQUEST: 400, AlertStatus.INTERNAL_ERROR: 500 }.get(status, 500)
+
+        return render(request, template_name=template, context={'message': message}, status=status_code)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -143,9 +151,9 @@ class LoginView(BaseWebsiteView):
                 # Normal user redirection
                 return redirect(reverse('home'))
             else:
-                messages.error(request, "Invalid username or password.")
+                self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
         else:
-            messages.error(request, "Invalid form submission.")
+            self.alert(request, "Invalid form submission.", AlertStatus.BAD_REQUEST)
 
         return render(request, self.template_name, { 'form': form })
 
@@ -168,17 +176,11 @@ class ContactView(BaseWebsiteView):
                     subject="YD Cocktails: Contact Form Submission",
                     body=form.cleaned_data["message"]
                 )
-                messages.success(request, "Contact form received successfully.")
-                return redirect(reverse('contact'))
+                return self.alert(request, "Contact form received successfully.", AlertStatus.SUCCESS)
             except Exception as e:
-                messages.error(request, "Failed to send the contact form.")
-                return redirect(reverse('contact'))
+                return self.alert(request, "Failed to send the contact form.", AlertStatus.BAD_REQUEST)
         else:
-            messages.error(request, "Invalid form data.")
-            return render(request, self.template_name, {
-                'form': form,
-                'page_title': self.page_title,
-            })
+            return self.alert(request, "Invalid form data.", AlertStatus.BAD_REQUEST)
 
 class LogoutView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
