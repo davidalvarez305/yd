@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                {{ company_name }}
+            </div>
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                Terms and Conditions
+            </h2>
+            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                <p class="text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">
+                    Last Updated: 06/15/2024</p>
+            </h3>
+        </div>
+
+        <article class="prose prose-lg prose-primary mx-auto dark:prose-invert">
+            <p>Welcome to {{ company_name }}. These terms and conditions outline the rules and regulations for the use of our services.</p>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing and using our services, you accept and agree to be bound by these terms and conditions. If
+                you do not agree to these terms, you must not use our services.</p>
+
+            <h2>2. Use of Services</h2>
+            <p>Our services are intended for use by individuals and entities who can form legally binding contracts
+                under applicable law. By using our services, you represent and warrant that you are at least 18 years
+                old or have the necessary legal capacity to enter into this agreement.</p>
+
+            <h2>3. User Conduct</h2>
+            <p>When using our services, you agree to:</p>
+            <ul>
+                <li>Provide accurate and complete information about yourself as prompted by our quote process.</li>
+                <li>Maintain the security of your account and promptly notify us of any unauthorized use.</li>
+                <li>Comply with all applicable laws and regulations.</li>
+                <li>Refrain from using our services for any unlawful or prohibited activities.</li>
+            </ul>
+
+            <h2>4. Intellectual Property</h2>
+            <p>All content, trademarks, logos, and intellectual property related to our services are the property of
+                {{ company_name }} or its licensors. You may not use, reproduce, or distribute any content from our
+                services without our prior written permission.</p>
+
+            <h2>5. Termination</h2>
+            <p>We reserve the right to terminate or suspend your access to our services at any time, without notice, for
+                any reason, including but not limited to a breach of these terms and conditions.</p>
+
+            <h2>6. Disclaimer of Warranties</h2>
+            <p>Our services are provided "as is" and "as available" without any warranties, express or implied. We do
+                not guarantee that our services will be uninterrupted, error-free, or secure.</p>
+
+            <h2>7. Limitation of Liability</h2>
+            <p>In no event shall {{ company_name }} be liable for any indirect, incidental, special, consequential, or
+                punitive damages arising out of or in connection with your use of our services, even if we have been
+                advised of the possibility of such damages.</p>
+
+            <h2>8. Governing Law</h2>
+            <p>These terms and conditions are governed by and construed in accordance with the laws of the state of Florida, without regard to its conflict of law principles.</p>
+
+            <h2>9. Changes to Terms and Conditions</h2>
+            <p>We may update these terms and conditions from time to time to reflect changes in our practices or legal
+                requirements. We will notify you of any significant changes by posting the new terms on our website and
+                updating the effective date.</p>
+
+            <h2>10. Contact Us</h2>
+            <p>If you have any questions or concerns about these terms and conditions, please <a href="contact">contact us</a>.</p>
+        </article>
+    </div>
+</div>
+{% endblock %}
