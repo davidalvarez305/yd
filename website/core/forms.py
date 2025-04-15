@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
-from core.templates.core.widgets import ToggleSwitchWidget
+from core.widgets import ToggleSwitchWidget
 
 class BaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -40,6 +40,26 @@ class BaseForm(forms.Form):
                 })
             if field.label:
                 field.widget.attrs['class'] = (field.widget.attrs.get('class', '') + ' font-medium').strip()
+
+    def as_div(self):
+        """
+        Return the form fields wrapped in divs with Tailwind CSS classes.
+        """
+        form_html = ''
+        for field_name, field in self.fields.items():
+            field_id = field.widget.attrs.get('id', field_name)
+            
+            field_html = field.widget.render(field_name, field.initial)
+
+            # Skip external label if widget handles its own label
+            if isinstance(field.widget, ToggleSwitchWidget):
+                label = ''
+            else:
+                label = f'<label for="{field_id}" class="font-medium">{field.label}</label>'
+
+            field_div = f'<div class="space-y-1">{label}{field_html}</div>'
+            form_html += field_div
+        return form_html
 
 class LoginForm(BaseForm):
     username = forms.CharField(
@@ -140,13 +160,12 @@ class QuoteForm(BaseForm):
         required=False,
         initial=True,
         widget=ToggleSwitchWidget(attrs={
-            'class': 'peer sr-only',
             'id': 'opt_in_text_messaging',
         }),
     )
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
-        if not re.match(r'^\+1\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
-            raise forms.ValidationError('Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)')
+        if not re.match(r'^\+1\d{10}$|^\d{3}[-]?\d{3}[-]?\d{4}$|^\(\d{3}\) \d{3}[-]?\d{4}$', phone_number):
+            raise forms.ValidationError('Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)')
         return phone_number
