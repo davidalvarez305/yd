@@ -38,7 +38,7 @@ class Modal {
     }
 }
 
-export class ModalHelper {
+class ModalHelper {
     constructor({ modalTrigger = '.modalTrigger', modalSelector = '.modalContainer', closeButtonSelector = '.closeModal', displayStyle = '', onClose = null } = {}) {
         this.modalSelector = modalSelector;
         this.closeButtonSelector = closeButtonSelector;

@@ -99,11 +99,11 @@ class HomeView(BaseWebsiteView):
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
-    template_name = "privacy.html"
+    template_name = "core/privacy.html"
     page_title = "Privacy Policy — " + settings.COMPANY_NAME
 
 class TermsAndConditionsView(BaseWebsiteView):
-    template_name = "terms.html"
+    template_name = "core/terms.html"
     page_title = "Terms & Conditions — " + settings.COMPANY_NAME
 
 class RobotsTxtView(View):
@@ -118,7 +118,7 @@ class RobotsTxtView(View):
         return HttpResponse(robots_txt_content, content_type="text/plain")
 
 class LoginView(BaseWebsiteView):
-    template_name = "login.html"
+    template_name = "core/login.html"
     page_title = f"Login — {settings.COMPANY_NAME}"
 
     def get(self, request, *args, **kwargs):
@@ -138,22 +138,26 @@ class LoginView(BaseWebsiteView):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
 
-            user = authenticate(request, username=username, password=password)
+            try:
+                user = authenticate(request, username=username, password=password)
 
-            if user is not None:
-                login(request, user)
+                if user is not None:
+                    login(request, user)
 
-                if request.user.is_superuser:
-                    return redirect(reverse('crm_leads'))
+                    if request.user.is_superuser:
+                        return redirect(reverse('crm_leads'))
 
-                return redirect(reverse('home'))
-            else:
-                return self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
+                    return redirect(reverse('home'))
+
+                else:
+                    return self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
+            except BaseException as e:
+                return self.alert(request, "Internal server error.", AlertStatus.INTERNAL_ERROR)
         else:
             return self.alert(request, "Invalid form submission.", AlertStatus.BAD_REQUEST)
 
 class ContactView(BaseWebsiteView):
-    template_name = 'contact.html'
+    template_name = 'core/contact.html'
     page_title = 'Contact - ' + settings.COMPANY_NAME
 
     def get(self, request, *args, **kwargs):
