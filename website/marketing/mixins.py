@@ -2,7 +2,6 @@ import uuid
 import random
 
 from django.utils import timezone
-from django.http import HttpResponseServerError
 
 from .enums import MarketingParams
 from .models import Visit, LeadMarketing, LandingPage, CallTrackingNumber, CallTracking
@@ -13,10 +12,7 @@ class CallTrackingMixin:
 
         self.clean_up_expired_session(request)
 
-        if not urls:
-            return HttpResponseServerError("No landing page URLs found")
-
-        if request.path in urls:
+        if urls and request.path in urls:
             self.track_call(request)
 
         return super().dispatch(request, *args, **kwargs)
