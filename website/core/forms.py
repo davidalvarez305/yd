@@ -50,20 +50,24 @@ class BaseModelForm(StyledFormMixin, forms.ModelForm):
         self.apply_styling()
 
 
-class LoginForm(BaseModelForm):
+class LoginForm(BaseForm):
     username = forms.CharField(
+        label='Username',
         max_length=100,
         widget=forms.TextInput(attrs={
             'placeholder': 'Username...',
-            'required': True
+            'required': True,
+            'name': 'username',
         }),
         required=True
     )
     password = forms.CharField(
+        label='Password',
         max_length=100,
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Password...',
-            'required': True
+            'required': True,
+            'name': 'password',
         }),
         required=True
     )

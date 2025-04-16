@@ -127,7 +127,7 @@ class LoginView(BaseWebsiteView):
 
         if request.user.is_authenticated:
             if request.request.user.is_superuser:
-                return redirect(reverse('crm_leads'))
+                return redirect(reverse('lead_list'))
 
         return render(request, self.template_name, context)
 
@@ -145,7 +145,7 @@ class LoginView(BaseWebsiteView):
                     login(request, user)
 
                     if request.user.is_superuser:
-                        return redirect(reverse('crm_leads'))
+                        return redirect(reverse('lead_list'))
 
                     return redirect(reverse('home'))
 
