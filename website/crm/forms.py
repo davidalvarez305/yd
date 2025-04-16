@@ -2,7 +2,7 @@ from django import forms
 import re
 
 from core.models import Lead, LeadStatus, LeadInterest
-from core.forms import BaseModelForm, BaseForm
+from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -76,7 +76,7 @@ class LeadForm(BaseModelForm):
         model = Lead
         fields = ['full_name', 'phone_number', 'email', 'lead_status', 'lead_interest']
 
-class LeadFilterForm(BaseForm):
+class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={

@@ -1,6 +1,6 @@
 from django import forms
 
-from core.forms import BaseForm, BaseModelForm
+from core.forms import BaseForm, BaseModelForm, FilterFormMixin
 from core.models import Lead
 from marketing.enums import CONVERSION_SERVICE_CHOICES
 from .conversions import ConversionServiceType
@@ -12,7 +12,7 @@ class CallTrackingNumberForm(BaseModelForm):
         model = CallTrackingNumber
         fields = ['platform_id', 'call_tracking_number', 'marketing_campaign']
 
-class ConversionLogFilterForm(BaseForm):
+class ConversionLogFilterForm(FilterFormMixin, BaseForm):
     conversion_service_type = forms.ChoiceField(
         choices=CONVERSION_SERVICE_CHOICES,
         required=False,
@@ -49,7 +49,7 @@ class VisitForm(BaseModelForm):
         model = Visit
         fields = ['session_duration']
 
-class VisitFilterForm(forms.Form):
+class VisitFilterForm(FilterFormMixin, BaseForm):
     referrer = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
