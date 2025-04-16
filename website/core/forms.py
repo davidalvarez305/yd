@@ -1,10 +1,9 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
 from core.widgets import ToggleSwitchWidget
-from core.models import Lead
+from core.models import Lead, User
 from communication.email import EmailService
 from website.settings import COMPANY_NAME
 
@@ -51,7 +50,7 @@ class BaseModelForm(StyledFormMixin, forms.ModelForm):
         self.apply_styling()
 
 
-class LoginForm(BaseForm):
+class LoginForm(BaseModelForm):
     username = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
@@ -76,6 +75,10 @@ class LoginForm(BaseForm):
         except User.DoesNotExist:
             raise ValidationError("Username does not exist.")
         return username
+    
+    class Meta:
+        model = User
+        fields = ['username', 'password']
 
 
 class ContactForm(BaseForm):
