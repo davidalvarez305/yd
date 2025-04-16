@@ -62,7 +62,6 @@ class Lead(models.Model):
     message = models.TextField(null=True)
     lead_status = models.ForeignKey(LeadStatus, related_name='stauses', null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
     lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
-
     actions = models.ManyToManyField('core.NextAction', related_name='actions', through='LeadNextAction')
 
     def __str__(self):

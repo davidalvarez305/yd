@@ -6,13 +6,16 @@ from marketing.models import CallTracking, LeadMarketing
 from marketing.conversions import report_conversion, ConversionEventType
 
 @receiver(post_save, sender=Lead)
-def handle_lead_save(sender, lead, created, **kwargs) -> None:
+def handle_lead_save(sender, lead: Lead, created, **kwargs) -> None:
     """
     This function is called when a lead record is saved.
     It checks if the call_from (lead phone number) and call_to (call tracking number) match in the phone call table.
     If there's a match, it assigns campaign-level data associated with that call tracking number to the marketing table & reports conversion to appropriate ad platform.
     """
     if created:
+        if lead.lead_marketing.instant_form_lead_id:
+            return
+
         conversion_event_type = ConversionEventType.FormSubmission
         
         try:
