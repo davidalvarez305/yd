@@ -1,6 +1,7 @@
 from django.urls import path
 
 from marketing import views as marketing_views
+from . import views
 
 urlpatterns = [
     # Call Tracking
@@ -11,8 +12,8 @@ urlpatterns = [
     path('call-tracking/<int:pk>/delete/', marketing_views.CallTrackingNumberDeleteView.as_view(), name='calltrackingnumber_delete'),
     
     # Lead
-    path('lead/', marketing_views.LeadListView.as_view(), name='lead_list'),
-    path('lead/<int:pk>/', marketing_views.LeadDetailView.as_view(), name='lead_detail'),
-    path('lead/<int:pk>/edit/', marketing_views.LeadUpdateView.as_view(), name='lead_update'),
-    path('lead/<int:pk>/delete/', marketing_views.LeadDeleteView.as_view(), name='lead_delete'),
+    path('lead/', views.LeadListView.as_view(), name='lead_list'),
+    path('lead/<int:pk>/', views.LeadDetailView.as_view(), name='lead_detail'),
+    path('lead/<int:pk>/edit/', views.LeadUpdateView.as_view(), name='lead_update'),
+    path('lead/<int:pk>/delete/', views.LeadDeleteView.as_view(), name='lead_delete'),
 ]

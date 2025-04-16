@@ -324,7 +324,6 @@
 
 		// Report Google Conversion
 		gtag("event", "{{ lead_generated_event_name }}", {
-			userId: "{{ external_id }}",
 			currency: "{{ default_currency }}",
 			value: parseFloat("{{ default_lead_value }}"),
 		});
@@ -332,6 +331,21 @@
 		// Report FB Conversion
 		fbq("track", "{{ lead_event_name }}", { external_id: "{{ external_id }}" });
 	}
+</script>
+<script>
+	window.onload = function() {
+		var startTime = Date.now();
+		window.onbeforeunload = function() {
+			var endTime = Date.now();
+
+			const body = new FormData();
+			body.set('visit_id', "{{ visit_id }}");
+			body.set('session_duration', (endTime - startTime) / 1000);
+			body.set('csrfmiddlewaretoken', "{{ csrf_token }}");
+
+			fetch("{% url 'visit_update' pk=visit_id %}", { method: "POST", body: body });
+		};
+	};
 </script>
 <!-- END JS Scripts -->
 

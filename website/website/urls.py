@@ -6,9 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
-    path('crm', include('crm.urls')),
-    path('communication', include('communication.urls')),
-    path('marketing', include('marketing.urls')),
+    path('crm/', include('crm.urls')),
+    path('communication/', include('communication.urls')),
+    path('marketing/', include('marketing.urls')),
 ] 
 
 if settings.DEBUG:

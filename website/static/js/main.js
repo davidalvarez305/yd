@@ -16,22 +16,3 @@ function preserveQuerystring() {
 }
 
 document.addEventListener("DOMContentLoaded", () => preserveQuerystring());
-
-window.onload = function() {
-	var startTime = Date.now();
-
-	window.onbeforeunload = function() {
-		var endTime = Date.now();
-		var session_duration = (endTime - startTime) / 1000;
-
-		var visit_id = "{{ request.visit_id }}";
-
-		fetch("{% url 'visit_update' %}", {
-			method: "POST",
-			headers: {
-				"X-CSRFToken": "{{ csrf_token }}",
-			},
-			body: new FormData({ visit_id, session_duration })
-		});
-	};
-};

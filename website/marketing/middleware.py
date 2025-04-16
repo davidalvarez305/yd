@@ -1,5 +1,5 @@
 import uuid
-from .models import Visit
+from .models import Visit, LeadMarketing
 from django.utils import timezone
 from django.shortcuts import redirect
 from django.http import HttpResponseServerError
@@ -91,10 +91,11 @@ class VisitMiddleware:
             visit = Visit.objects.create(
                 external_id=external_id,
                 referrer=referrer,
-                url=url
+                url=url,
+                lead_marketing=LeadMarketing.objects.filter(external_id=external_id).first()
             )
 
-            request.visit_id = visit.id
+            request.session['visit_id'] = visit.visit_id
 
         response = self.get_response(request)
         return response
