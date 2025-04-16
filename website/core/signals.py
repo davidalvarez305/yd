@@ -3,8 +3,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Lead
 from communication.models import PhoneCall
-from marketing.models import CallTracking
-from marketing.conversions import report_conversion, ConversionPayload, ConversionEventType
+from marketing.models import CallTracking, LeadMarketing
+from marketing.conversions import report_conversion, ConversionEventType
 
 @receiver(post_save, sender=Lead)
 def handle_lead_save(sender, lead, created, **kwargs) -> None:
@@ -15,34 +15,27 @@ def handle_lead_save(sender, lead, created, **kwargs) -> None:
     """
     if created:
         try:
-            # Step 1: Get the lead's phone number and the tracking phone number
-            lead_phone_number = lead.phone_number
+            # Step 1: Query the phone call table for any phone calls made by this number
+            phone_call = PhoneCall.objects.filter(call_from=lead.phone_number, date_created__lt=lead.created_at).first()
 
-            if not lead_phone_number:
-                return
-
-            # Step 2: Query the phone call table for any phone calls made by this number
-            phone_call = PhoneCall.objects.filter(call_from=lead_phone_number).first()
-
-            # Step 3: Check if phone call came BEFORE lead was created -- indicating that the person called before a quote submission
-            if not phone_call or phone_call.date_created > lead.created_at:
-                return
-
-            # Step 4: Identify lead
+            # Step 2: Retrieve call tracking data
             tracking_call = CallTracking.objects.filter(phone_number=phone_call.call_to).first()
 
-            if not tracking_call:
-                return
+            # Step 3: Assign default conversion event type
+            conversion_event_type = ConversionEventType.FormSubmission
 
-            call_tracking_date_expires = tracking_call.date_expires
+            if tracking_call and (phone_call.date_created <= tracking_call.date_expires):
+                
+                # Step 4: Assign campaign data from tracking call
+                lead.lead_marketing = LeadMarketing(
+                    click_id=tracking_call.click_id,
+                    client_id=tracking_call.client_id,
+                    marketing_campaign=tracking_call.call_tracking_number.marketing_campaign,
+                )
 
-            if phone_call.date_created > call_tracking_date_expires:
-                return
-
-            # Step 5: Trigger the workflow to assign google or facebook campaign attribution 
-            # trigger_workflow(phone_call_match)
-
-            # Step 6: Report conversion
-            report_conversion(conversion_event_type=ConversionEventType.WebsiteCall, lead=lead)
+                # Step 5: Assign website call as event type
+                conversion_event_type = ConversionEventType.WebsiteCall
+            
+            report_conversion(conversion_event_type=conversion_event_type, lead=lead)
         except Exception as e:
             print(f"Error processing lead save: {str(e)}")

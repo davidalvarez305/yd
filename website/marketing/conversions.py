@@ -223,11 +223,11 @@ class GoogleConversionService(ConversionService):
 def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
     conversion_payload = ConversionPayload(
         conversion_event_type=conversion_event_type,
-        platform_id=lead.marketing.platform_id,
-        campaign_id=lead.marketing.campaign.campaign_id,
-        click_id=lead.marketing.click_id,
-        client_id=lead.marketing.client_id,
-        external_id=lead.marketing.external_id,
+        platform_id=lead.lead_marketing.marketing_campaign.platform_id,
+        campaign_id=lead.lead_marketing.marketing_campaign.campaign_id,
+        click_id=lead.lead_marketing.click_id,
+        client_id=lead.lead_marketing.client_id,
+        external_id=lead.lead_marketing.external_id,
         phone_number=lead.phone_number,
         email=lead.email,
         full_name=lead.full_name,
