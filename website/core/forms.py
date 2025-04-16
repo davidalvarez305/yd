@@ -39,6 +39,28 @@ class StyledFormMixin:
             form_html += f'<div class="space-y-1">{label}{field_html}</div>'
         return form_html
 
+class FilterFormMixin:
+    def apply_styling(self):
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
+                field.widget.attrs.update({
+                    'class': 'block w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm leading-6 placeholder-gray-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-primary-500'
+                })
+            elif isinstance(field.widget, (forms.Select, forms.ChoiceField)):
+                field.widget.attrs.update({
+                    'class': 'block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold leading-5 focus:border-blue-500 focus:ring focus:ring-blue-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-blue-500 sm:w-36'
+                })
+
+    def as_div(self):
+        form_html = ''
+        for field_name, field in self.fields.items():
+            field_id = field.widget.attrs.get('id', field_name)
+            field_html = field.widget.render(field_name, field.initial)
+
+            label = '' if isinstance(field.widget, ToggleSwitchWidget) else f'<label for="{field_id}" class="font-medium">{field.label}</label>'
+            form_html += f'<div class="space-y-1">{label}{field_html}</div>'
+        return form_html
+
 class BaseForm(StyledFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
