@@ -6,13 +6,17 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 
 from website import settings
+
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
+from marketing.models import LeadMarketing, MarketingCampaign
+from marketing.utils import MarketingHelper
+
+from communication.email import get_email_service
 
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
 from .enums import AlertStatus
-from communication.email import get_email_service
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
@@ -193,6 +197,30 @@ class QuoteView(BaseWebsiteView):
                     return self.alert(request, "We already have this info saved", AlertStatus.BAD_REQUEST)
                 
                 form.save()
+                
+                lead = Lead.objects.filter(phone_number=form.cleaned_data['phone_number'])
+                
+                helper = MarketingHelper(request)
+
+                marketing = LeadMarketing(
+                    lead=lead,
+                    marketing_campaign=helper.marketing_campaign,
+                    external_id=helper.external_id,
+                    referrer=helper.referrer,
+                    landing_page=helper.landing_page,
+                    user_agent=helper.user_agent,
+                    ip=helper.ip,
+                    button_clicked=form.cleaned_data['button_clicked'],
+                    medium=helper.medium,
+                    source=helper.source,
+                    channel=helper.channel,
+                    keyword=helper.keywords,
+                    click_id=helper.click_id,
+                    client_id=helper.client_id,
+                    button_clicked=form.cleaned_data.get('button_clicked')
+                )
+
+                marketing.save()
 
                 return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
             except Exception as e:
