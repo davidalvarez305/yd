@@ -4,6 +4,8 @@ from django.http import HttpRequest
 from .enums import ConversionServiceType, MarketingParams
 from .models import MarketingCampaign
 
+CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
+
 class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
@@ -63,15 +65,13 @@ class MarketingHelper:
         """
         Checks if the landing page has any paid marketing parameters (like gclid, fbclid, etc.).
         """
-        click_id_keys = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
-        return any(query_params.get(key) for key in click_id_keys)
+        return any(query_params.get(key) for key in CLICK_ID_KEYS)
 
     def get_click_id(self):
         """
         Retrieve the first valid click ID from the URL parameters.
         """
-        click_id_keys = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
-        for key in click_id_keys:
+        for key in CLICK_ID_KEYS:
             if self.query_params.get(key):
                 return self.query_params.get(key)
         return None

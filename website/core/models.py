@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
+from django.db.models import Q
+
+from communication.models import PhoneCall
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -66,6 +69,15 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+    def outbound_phone_calls(self):
+        PhoneCall.objects.filter(call_from=self.phone_number)
+    
+    def inbound_phone_calls(self):
+        PhoneCall.objects.filter(call_to=self.phone_number)
+
+    def phone_calls(self):
+        return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
 
     class Meta:
         db_table = 'lead'
