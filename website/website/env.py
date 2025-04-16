@@ -66,6 +66,7 @@ class EnvConfig:
         self.DEFAULT_LEAD_VALUE = '150.00'
         self.LEAD_EVENT_NAME = 'Lead'
         self.LEAD_GENERATED_EVENT_NAME = 'generate_lead'
+        self.ASSUMED_BASE_HOURS = 4.00
 
         for var in self.REQUIRED_VARS:
             value = os.environ.get(var)

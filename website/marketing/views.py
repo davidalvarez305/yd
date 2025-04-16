@@ -5,7 +5,7 @@ from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRM
 from django.views.generic.edit import UpdateView
 
 class ConversionLogListView(CRMBaseListView):
-    template_name = "log_list.html"
+    template_name = "marketing/conversionlog_list.html"
     model = ConversionLog
     context_object_name = "logs"
     filter_form_class = ConversionLogFilterForm

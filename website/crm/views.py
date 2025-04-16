@@ -26,9 +26,10 @@ class CRMBaseView(LoginRequiredMixin, BaseView):
         # Fetch unread messages count
         context["unread_messages"] = Message.objects.filter(is_read=False).count()
 
-        # Get user's phone number
+        """ # Get user's phone number
         user = get_object_or_404(User, user=self.request.user)
-        context["crm_user_phone_number"] = user.phone_number
+        print(user)
+        context["crm_user_phone_number"] = user.phone_number """
 
         # Inject the JavaScript files into the context for the view
         context['js_files'] = [
@@ -46,6 +47,11 @@ class CRMBaseListView(CRMBaseView, ListView):
     filter_form_class = None
     paginate_by = 10
     context_object_name = None  # Default is None, which will use a pluralized model name
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+        return self.render_to_response(context)
 
     def get_filter_form_class(self):
         """
@@ -74,15 +80,11 @@ class CRMBaseListView(CRMBaseView, ListView):
                         filters[field_name] = field_value
 
                 queryset = queryset.filter(**filters)
+        
+        if not queryset.query.order_by:
+            queryset = queryset.order_by('-date_created')
 
         return queryset
-
-    def get_template_names(self):
-        """
-        Dynamically assigns the template name based on the model name.
-        """
-        model_name = self.model._meta.model_name
-        return [f"{model_name}_list.html"]
 
     def get_context_data(self, **kwargs):
         """

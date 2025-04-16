@@ -12,7 +12,7 @@ class CallTrackingNumberForm(BaseModelForm):
         model = CallTrackingNumber
         fields = ['platform_id', 'call_tracking_number', 'marketing_campaign']
 
-class ConversionLogFilterForm(BaseModelForm):
+class ConversionLogFilterForm(BaseForm):
     conversion_service_type = forms.ChoiceField(
         choices=CONVERSION_SERVICE_CHOICES,
         required=False,
