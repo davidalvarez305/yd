@@ -5,7 +5,6 @@ from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRM
 from django.views.generic.edit import UpdateView
 
 class ConversionLogListView(CRMBaseListView):
-    template_name = "marketing/conversionlog_list.html"
     model = ConversionLog
     context_object_name = "logs"
     filter_form_class = ConversionLogFilterForm
@@ -15,9 +14,11 @@ class CallTrackingNumberListView(CRMBaseListView):
     filter_form_class = CallTrackingFilterForm
 
 class CallTrackingNumberCreateView(CRMBaseCreateView):
+    model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
 class CallTrackingNumberUpdateView(CRMBaseUpdateView):
+    model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
 class CallTrackingNumberDetailView(CRMBaseDetailView):
@@ -29,6 +30,11 @@ class CallTrackingNumberDeleteView(CRMBaseDeleteView):
 class VisitListView(CRMBaseListView):
     model = Visit
     filter_form_class = VisitFilterForm
+    context_object_name = "visits"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.order_by('-date_created')
 
 class VisitUpdateView(UpdateView):
     form_class = VisitForm

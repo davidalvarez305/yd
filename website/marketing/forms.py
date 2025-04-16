@@ -10,7 +10,7 @@ from http import HTTPStatus
 class CallTrackingNumberForm(BaseModelForm):
     class Meta:
         model = CallTrackingNumber
-        fields = ['platform_id', 'call_tracking_number', 'marketing_campaign']
+        fields = ['call_tracking_number', 'marketing_campaign']
 
 class ConversionLogFilterForm(FilterFormMixin, BaseForm):
     conversion_service_type = forms.ChoiceField(
@@ -51,6 +51,7 @@ class VisitForm(BaseModelForm):
 
 class VisitFilterForm(FilterFormMixin, BaseForm):
     referrer = forms.CharField(
+        label='Referrer',
         required=False,
         widget=forms.TextInput(attrs={
             'placeholder': 'Search by Referrer...',
@@ -60,6 +61,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
     )
 
     url = forms.CharField(
+        label='LP',
         required=False,
         widget=forms.TextInput(attrs={
             'placeholder': 'Search by URL...',
@@ -69,6 +71,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
     )
 
     date_from = forms.DateField(
+        label='Date From',
         required=False,
         widget=forms.DateInput(attrs={
             'placeholder': 'Start Date (YYYY-MM-DD)',
@@ -79,6 +82,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
     )
 
     date_to = forms.DateField(
+        label='Date To',
         required=False,
         widget=forms.DateInput(attrs={
             'placeholder': 'End Date (YYYY-MM-DD)',
@@ -87,25 +91,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
             'type': 'date',
         })
     )
-
-    session_duration_min = forms.FloatField(
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'placeholder': 'Min Duration (seconds)',
-            'id': 'session_duration_min',
-            'name': 'session_duration_min',
-        })
-    )
-
-    session_duration_max = forms.FloatField(
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'placeholder': 'Max Duration (seconds)',
-            'id': 'session_duration_max',
-            'name': 'session_duration_max',
-        })
-    )
-
+    
     lead = forms.ModelChoiceField(
         queryset=Lead.objects.all(),
         required=False,

@@ -14,99 +14,61 @@ from core.models import User, Lead
 from crm.forms import LeadForm, LeadFilterForm
 from crm.models import Lead
 
-class CRMBaseView(LoginRequiredMixin, BaseView):
+class CRMContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Additional CRM-specific context
         context.update({
             "assumed_base_hours_for_per_person_pricing": settings.ASSUMED_BASE_HOURS,
+            "unread_messages": Message.objects.filter(is_read=False).count(),
         })
-
-        # Fetch unread messages count
-        context["unread_messages"] = Message.objects.filter(is_read=False).count()
-
-        """ # Get user's phone number
-        user = get_object_or_404(User, user=self.request.user)
-        print(user)
-        context["crm_user_phone_number"] = user.phone_number """
-
-        # Inject the JavaScript files into the context for the view
-        context['js_files'] = [
-            'js/nav.js',
-            'js/main.js'
-        ]
-
+        context.setdefault('js_files', [])
+        context['js_files'] += ['js/nav.js', 'js/main.js']
         return context
 
-class CRMBaseListView(CRMBaseView, ListView):
-    """
-    A base list view class for CRM views. Automatically injects filters based on form.
-    This class can be extended for more complex filtering logic as needed.
-    """
+class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
     filter_form_class = None
     paginate_by = 10
-    context_object_name = None  # Default is None, which will use a pluralized model name
-
-    def get(self, request, *args, **kwargs):
-        self.object_list = self.get_queryset()
-        context = self.get_context_data()
-        return self.render_to_response(context)
+    context_object_name = None
 
     def get_filter_form_class(self):
-        """
-        Returns the filter form class. You can override this in specific views.
-        """
-        if self.filter_form_class:
-            return self.filter_form_class
-        return None
+        return self.filter_form_class
 
     def get_queryset(self):
-        """
-        Automatically applies filters based on the form.
-        You can override this method for more complex filtering logic.
-        """
-        queryset = super().get_queryset()
+        queryset = self.model.objects.all()
 
         filter_form_class = self.get_filter_form_class()
         if filter_form_class:
-            filter_form = filter_form_class(self.request.GET)
+            self.filter_form = filter_form_class(self.request.GET)
 
-            if filter_form.is_valid():
-                filters = {}
-
-                for field_name, field_value in filter_form.cleaned_data.items():
-                    if field_value:
-                        filters[field_name] = field_value
-
+            if self.filter_form.is_valid():
+                filters = {
+                    field_name: field_value
+                    for field_name, field_value in self.filter_form.cleaned_data.items()
+                    if field_value not in [None, '']
+                }
                 queryset = queryset.filter(**filters)
-        
+
         return queryset
 
     def get_context_data(self, **kwargs):
-        """
-        Overrides the get_context_data method to inject both CRM-specific data
-        and JavaScript files for all ListViews that inherit from this class.
-        """
         context = super().get_context_data(**kwargs)
 
-        # Set the default context object name to the plural version of the model name
         if not self.context_object_name:
-            self.context_object_name = f"{self.model._meta.model_name}s"  # Pluralize model name
+            self.context_object_name = f"{self.model._meta.model_name}s"
 
-        # Add the object list to context with the context name (either the default or custom)
-        context[self.context_object_name] = self.get_queryset()
+        context[self.context_object_name] = context.get('object_list')
 
-        # Inject the JavaScript files into the context for the view
-        context['js_files'] += [
-            'js/pagination.js',
-            'js/filter.js',
-            'js/modal.js'
-        ]
-        
+        context.setdefault('js_files', [])
+        context['js_files'] += ['js/pagination.js', 'js/filter.js', 'js/modal.js']
+
+        if hasattr(self, 'filter_form'):
+            context['form'] = self.filter_form
+        elif self.filter_form_class:
+            context['form'] = self.filter_form_class()
+
         return context
 
-class CRMBaseCreateView(CRMBaseView, CreateView):
+class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     success_url = None
 
     def get_success_url(self):
@@ -120,7 +82,7 @@ class CRMBaseCreateView(CRMBaseView, CreateView):
         return [f"{model_name}_form.html"]
 
 
-class CRMBaseUpdateView(CRMBaseView, UpdateView):
+class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
     success_url = None
 
     def get_success_url(self):
@@ -134,13 +96,13 @@ class CRMBaseUpdateView(CRMBaseView, UpdateView):
         return [f"{model_name}_form.html"]
 
 
-class CRMBaseDeleteView(CRMBaseView, DeleteView):
+class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
-class CRMBaseDetailView(CRMBaseView, DetailView):
+class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
 
     def get_success_url(self):

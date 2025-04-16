@@ -217,7 +217,6 @@ class QuoteView(BaseWebsiteView):
                     keyword=helper.keywords,
                     click_id=helper.click_id,
                     client_id=helper.client_id,
-                    button_clicked=form.cleaned_data.get('button_clicked')
                 )
 
                 marketing.save()

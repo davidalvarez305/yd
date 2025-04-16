@@ -71,7 +71,6 @@ class BaseModelForm(StyledFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.apply_styling()
 
-
 class LoginForm(BaseForm):
     username = forms.CharField(
         label='Username',
