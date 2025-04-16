@@ -47,7 +47,7 @@ class CallTrackingFilterForm(BaseForm):
 class VisitForm(BaseModelForm):
     class Meta:
         model = Visit
-        fields = ['visit_id', 'session_duration']
+        fields = ['session_duration']
 
 class VisitFilterForm(forms.Form):
     referrer = forms.CharField(
