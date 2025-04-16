@@ -81,9 +81,6 @@ class CRMBaseListView(CRMBaseView, ListView):
 
                 queryset = queryset.filter(**filters)
         
-        if not queryset.query.order_by:
-            queryset = queryset.order_by('-date_created')
-
         return queryset
 
     def get_context_data(self, **kwargs):

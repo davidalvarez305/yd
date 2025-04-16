@@ -61,6 +61,11 @@ class LeadMarketing(models.Model):
 
     def __str__(self):
         return f"Marketing info for Lead {self.lead_id}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        Visit.objects.filter(external_id=self.external_id).update(lead_marketing=self)
 
     class Meta:
         db_table = 'lead_marketing'
