@@ -335,6 +335,9 @@
 		fbq("track", "{{ lead_event_name }}", { external_id: "{{ external_id }}" });
 	}
 
+	const user = "{{ request.user.username|escapejs }}";
+	if (user) return; // Only track non-admin users
+
 	window.onload = function() {
 		var startTime = Date.now();
 		window.onbeforeunload = function() {

@@ -96,6 +96,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
         queryset=Lead.objects.all(),
         required=False,
         empty_label="Select Lead",
+        label='Lead',
         widget=forms.Select(attrs={
             'id': 'lead',
             'name': 'lead',
