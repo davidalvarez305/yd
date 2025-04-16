@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 
 from website import settings
+from marketing.mixins import VisitTrackingMixin
 
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
@@ -41,7 +42,7 @@ class BaseView(TemplateView):
         return context
 
 
-class BaseWebsiteView(BaseView):
+class BaseWebsiteView(VisitTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 

@@ -40,7 +40,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'marketing.middleware.CallTrackingMiddleware',
-    'marketing.middleware.VisitMiddleware',
 ]
 
 ROOT_URLCONF = 'website.urls'
