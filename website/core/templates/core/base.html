@@ -336,19 +336,20 @@
 	}
 
 	const user = "{{ request.user.username|escapejs }}";
-	if (user) return; // Only track non-admin users
 
-	window.onload = function() {
-		var startTime = Date.now();
-		window.onbeforeunload = function() {
-			var endTime = Date.now();
+	if (!user) {
+		window.onload = function() {
+			var startTime = Date.now();
+			window.onbeforeunload = function() {
+				var endTime = Date.now();
 
-			const body = new FormData();
-			body.set('visit_id', "{{ visit_id }}");
-			body.set('session_duration', (endTime - startTime) / 1000);
-			body.set('csrfmiddlewaretoken', "{{ csrf_token }}");
+				const body = new FormData();
+				body.set('visit_id', "{{ visit_id }}");
+				body.set('session_duration', (endTime - startTime) / 1000);
+				body.set('csrfmiddlewaretoken', "{{ csrf_token }}");
 
-			fetch("{% url 'visit_update' pk=visit_id %}", { method: "POST", body: body });
+				fetch("{% url 'visit_update' pk=visit_id %}", { method: "POST", body: body });
+			};
 		};
 	};
 </script>
