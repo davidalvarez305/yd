@@ -70,12 +70,6 @@ class Lead(models.Model):
     def __str__(self):
         return self.full_name
     
-    def outbound_phone_calls(self):
-        PhoneCall.objects.filter(call_from=self.phone_number)
-    
-    def inbound_phone_calls(self):
-        PhoneCall.objects.filter(call_to=self.phone_number)
-
     def phone_calls(self):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
 
