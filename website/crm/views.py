@@ -133,6 +133,7 @@ class LeadListView(CRMBaseListView):
         return queryset.exclude(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
 
 class LeadUpdateView(CRMBaseUpdateView):
+    model = Lead
     form_class = LeadForm
 
 class LeadDetailView(CRMBaseDetailView):

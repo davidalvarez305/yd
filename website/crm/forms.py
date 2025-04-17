@@ -30,14 +30,14 @@ class LeadForm(BaseModelForm):
     )
 
     email = forms.CharField(
-        max_length=15,
+        max_length=255,
         label="Email",
         widget=forms.EmailInput(attrs={
             'placeholder': 'Email',
             'autocomplete': 'email',
             'required': True
         }),
-        required=True
+        required=False
     )
 
     message = forms.CharField(
@@ -65,13 +65,12 @@ class LeadForm(BaseModelForm):
     )
 
     stripe_customer_id = forms.CharField(
-        max_length=15,
+        max_length=255,
         label="Stripe Customer ID",
         widget=forms.TextInput(attrs={
             'placeholder': 'Stripe Customer ID',
-            'required': True
         }),
-        required=True
+        required=False
     )
 
     def clean_phone_number(self):

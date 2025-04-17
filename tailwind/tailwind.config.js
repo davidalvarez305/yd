@@ -8,7 +8,10 @@ import typography from "@tailwindcss/typography";
 
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["../website/**/templates/**/*.html"],
+  content: [
+    "../website/**/templates/**/*.html",
+    "../website/**/*.py",
+  ],
   darkMode: "class",
   theme: {
     extend: {
