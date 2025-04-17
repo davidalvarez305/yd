@@ -59,9 +59,11 @@
                     <p class="font-medium">{{ lead.events.last.event_date|date:"Y-m-d" }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <form action="{% url 'lead_archive' pk=lead.lead_id %}">
+                    <p class="font-medium">{{ lead.lead_status.status }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <form action="{% url 'lead_archive' pk=lead.lead_id %}" method="post">
                         {% csrf_token %}
-                        <input name="lead_id" value="{{ lead.lead_id }}" method="POST" />
                         <button type="submit"
                             class="archiveLead inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"

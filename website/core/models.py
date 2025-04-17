@@ -47,9 +47,15 @@ class LeadStatus(models.Model):
     lead_status_id = models.IntegerField(primary_key=True)
     status = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.status
+
 class LeadInterest(models.Model):
     lead_interest_id = models.IntegerField(primary_key=True)
     interest = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.interest
 
 class NextAction(models.Model):
     next_action_id = models.IntegerField(primary_key=True)

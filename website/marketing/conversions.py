@@ -221,7 +221,8 @@ class GoogleConversionService(ConversionService):
 
 
 def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
-    conversion_payload = ConversionPayload(
+    try:
+        conversion_payload = ConversionPayload(
         conversion_event_type=conversion_event_type,
         platform_id=lead.lead_marketing.marketing_campaign.platform_id,
         campaign_id=lead.lead_marketing.marketing_campaign.campaign_id,
@@ -232,13 +233,15 @@ def report_conversion(conversion_event_type: ConversionEventType, lead: Lead):
         email=lead.email,
         full_name=lead.full_name,
         lead_id=str(lead.id)
-    )
+        )
 
-    if conversion_payload.platform_id == ConversionServiceType.FACEBOOK:
-        service = FacebookConversionService(conversion_payload)
-    elif conversion_payload.platform_id == ConversionServiceType.GOOGLE:
-        service = GoogleConversionService(conversion_payload)
-    else:
-        raise ValueError(f"Unsupported platform_id: {conversion_payload.platform_id}")
+        if conversion_payload.platform_id == ConversionServiceType.FACEBOOK:
+            service = FacebookConversionService(conversion_payload)
+        elif conversion_payload.platform_id == ConversionServiceType.GOOGLE:
+            service = GoogleConversionService(conversion_payload)
+        else:
+            raise ValueError(f"Unsupported platform_id: {conversion_payload.platform_id}")
 
-    service.send_conversion()
+        service.send_conversion()
+    except Exception as e:
+        print(e)
