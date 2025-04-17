@@ -24,52 +24,64 @@
             <tr>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">View</th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Name</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Date Created</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Phone Number</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Last Contact Date</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Event Date</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Archive</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Event Time</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Guests</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Amount Paid</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Address</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Delete</th>
             </tr>
         </thead>
         <tbody>
-            {% for lead in leads %}
+            {% for event in events %}
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                 <td class="p-3 text-center">
-                    <a href="{% url 'lead_detail' pk=lead.lead_id %}" target="_blank"
-                       class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                    <a href="{% url 'event_detail' pk=event.event_id %}" target="_blank"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                         View
                     </a>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.full_name }}</p>
+                    <p class="font-medium">{{ event.lead.full_name }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.created_at|date:"m/d/Y" }}</p>
+                    {% if event.start_time and event.end_time %}
+                        <p class="font-medium">
+                            {{ event.start_time|date:"m/d" }}: {{ event.start_time|date:"gA" }} - {{ event.end_time|date:"gA" }}
+                        </p>
+                    {% else %}
+                        <p class="text-gray-500 dark:text-gray-400"></p>
+                    {% endif %}
                 </td>
                 <td class="p-3 text-center text-gray-500 dark:text-gray-400">
-                    <a href="tel:{{ lead.phone_number }}"
-                       class="inline-flex items-center justify-center space-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300 focus:ring-opacity-25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600 dark:focus:ring-opacity-40 dark:active:border-gray-700">
-                        <span class="phoneNumber">{{ lead.phone_number }}</span>
-                    </a>
+                    <p class="font-medium">{{ event.guests }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.last_contact.date_created|date:"Y-m-d" }}</p>
+                    <p class="font-medium">{{ event.amount }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.events.last.event_date|date:"Y-m-d" }}</p>
+                    {% if event.street_address and event.city and event.zip_code %}
+                        {% with full_address=event.street_address|add:", "|add:event.city|add:", "|add:event.zip_code %}
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ full_address|urlencode }}"
+                               target="_blank"
+                               class="text-blue-600 hover:underline dark:text-blue-400">
+                                {{ full_address }}
+                            </a>
+                        {% endwith %}
+                    {% else %}
+                        <p class="text-gray-500 dark:text-gray-400"></p>
+                    {% endif %}
                 </td>
                 <td class="p-3 text-center">
-                    <form action="{% url 'lead_archive' pk=lead.lead_id %}" method="post">
+                    <form action="{% url 'event_delete' pk=event.event_id %}" method="post">
                         {% csrf_token %}
-                        <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
-                             class="hi-micro hi-x-circle inline-block size-4">
-                            <path fill-rule="evenodd"
-                                  d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06Z"
-                                  clip-rule="evenodd"/>
-                        </svg>
-                    </button>
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                                class="hi-micro hi-x-circle inline-block size-4">
+                                <path fill-rule="evenodd"
+                                    d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06Z"
+                                    clip-rule="evenodd"/>
+                            </svg>
+                        </button>
                     </form>
                 </td>
             </tr>
