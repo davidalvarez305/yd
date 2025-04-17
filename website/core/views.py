@@ -4,6 +4,7 @@ from django.http import HttpResponseServerError, HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
+from django.db import transaction
 
 from website import settings
 
@@ -189,17 +190,18 @@ class QuoteView(BaseWebsiteView):
     def post(self, request, *args, **kwargs):
         form = QuoteForm(request.POST)
 
-        if form.is_valid():
-            try:
-                cleaned_phone_number = form.cleaned_data['phone_number']
-            
-                if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-                    return self.alert(request, "We already have this info saved", AlertStatus.BAD_REQUEST)
-                
-                form.save()
-                
-                lead = Lead.objects.filter(phone_number=form.cleaned_data['phone_number'])
-                
+        if not form.is_valid():
+            return self.alert(request, "Form fields incorrectly submitted.", AlertStatus.BAD_REQUEST)
+
+        try:
+            cleaned_phone_number = form.cleaned_data['phone_number']
+
+            if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
+                return self.alert(request, "We already have this info saved", AlertStatus.BAD_REQUEST)
+
+            with transaction.atomic():
+                lead = form.save()
+
                 helper = MarketingHelper(request)
 
                 marketing = LeadMarketing(
@@ -210,7 +212,7 @@ class QuoteView(BaseWebsiteView):
                     landing_page=helper.landing_page,
                     user_agent=helper.user_agent,
                     ip=helper.ip,
-                    button_clicked=form.cleaned_data['button_clicked'],
+                    button_clicked=form.cleaned_data.get('button_clicked'),
                     medium=helper.medium,
                     source=helper.source,
                     channel=helper.channel,
@@ -221,8 +223,8 @@ class QuoteView(BaseWebsiteView):
 
                 marketing.save()
 
-                return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
-            except Exception as e:
-                return self.alert(request, "Internal server error", AlertStatus.INTERNAL_ERROR)
-        else:
-            return self.alert(request, "Form fields incorrectly submitted.", AlertStatus.BAD_REQUEST)
+            return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
+
+        except Exception as e:
+            print(f'Internal server error: {e}')
+            return self.alert(request, "Internal server error", AlertStatus.INTERNAL_ERROR)

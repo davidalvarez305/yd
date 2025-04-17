@@ -15,5 +15,5 @@ urlpatterns = [
     path('lead/', views.LeadListView.as_view(), name='lead_list'),
     path('lead/<int:pk>/', views.LeadDetailView.as_view(), name='lead_detail'),
     path('lead/<int:pk>/edit/', views.LeadUpdateView.as_view(), name='lead_update'),
-    path('lead/<int:pk>/delete/', views.LeadDeleteView.as_view(), name='lead_delete'),
+    path('lead/<int:pk>/archive/', views.LeadArchiveView.as_view(), name='lead_archive'),
 ]

@@ -3,17 +3,11 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404
-from django.db import connection
-from django.core.paginator import Paginator
 from django.shortcuts import redirect
 
-from urllib.parse import urlencode
-
 from website import settings
-from core.views import BaseView
 from communication.models import Message
-from core.models import User, Lead
+from core.models import LeadStatus, Lead
 from crm.forms import LeadForm, LeadFilterForm
 from crm.models import Lead
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -145,20 +139,24 @@ class LeadListView(CRMBaseListView):
     template_name = 'crm/lead_list.html'
     filter_form_class = LeadFilterForm
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.exclude(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
+
 class LeadUpdateView(CRMBaseUpdateView):
     form_class = LeadForm
 
 class LeadDetailView(CRMBaseDetailView):
     model = Lead
 
-class LeadDeleteView(CRMBaseDeleteView):
-    model = Lead
-
 class LeadArchiveView(CRMBaseUpdateView):
     model = Lead
+    fields = []
 
     def post(self, request, *args, **kwargs):
-        Lead.objects.update(status_id=ARCHIVED_LEAD_STATUS_ID)
+        self.object = self.get_object()
+        self.object.lead_status = LeadStatus.objects.get(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
+        self.object.save()
 
         query_params = request.GET.urlencode()
         redirect_url = f"{reverse('lead_list')}?{query_params}" if query_params else reverse('lead_list')

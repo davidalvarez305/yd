@@ -21,7 +21,7 @@ class MarketingCampaign(models.Model):
 
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
-    lead = models.ForeignKey(Lead, related_name='lead_marketing', db_column='lead_id', on_delete=models.CASCADE)
+    lead = models.OneToOneField(Lead, related_name='lead_marketing', db_column='lead_id', on_delete=models.CASCADE)
     source = models.CharField(max_length=255, null=True)
     medium = models.CharField(max_length=255, null=True)
     channel = models.CharField(max_length=255, null=True)
@@ -39,6 +39,9 @@ class LeadMarketing(models.Model):
 
     def __str__(self):
         return f"Marketing info for Lead {self.lead_id}"
+    
+    def is_instant_form_lead(self):
+        return self.instant_form_lead_id is not None
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
