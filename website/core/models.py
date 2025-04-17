@@ -72,6 +72,7 @@ class Lead(models.Model):
     lead_status = models.ForeignKey(LeadStatus, related_name='stauses', null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
     lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
     actions = models.ManyToManyField('core.NextAction', related_name='actions', through='LeadNextAction')
+    stripe_customer_id = models.CharField(max_length=255, unique=True, null=True)
 
     def __str__(self):
         return self.full_name

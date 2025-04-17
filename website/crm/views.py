@@ -87,14 +87,6 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
-    def get_template_names(self):
-        """
-        Dynamically assigns the template name based on the model name.
-        """
-        model_name = self.model._meta.model_name
-        return [f"{model_name}_form.html"]
-
-
 class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
 
@@ -103,6 +95,7 @@ class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
 
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
+    form_class = None
 
     def get_success_url(self):
         """
@@ -112,25 +105,21 @@ class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
         """
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
-    def get_template_names(self):
-        """
-        Dynamically assigns the template name based on the model name.
-        The template name will be: <model_name>_detail.html
-        """
-        model_name = self.model._meta.model_name
-        return [f"{model_name}_detail.html"]
-    
     def get_context_data(self, **kwargs):
         """
         Add additional context to the template. 
         The object is added under `context_object_name`, either default or overridden.
+        If a form_class is defined, include a form instance in context.
         """
         context = super().get_context_data(**kwargs)
 
         if not self.context_object_name:
             self.context_object_name = self.model._meta.model_name.lower()
 
-        context[self.context_object_name] = self.get_object()
+        obj = self.get_object()
+
+        if self.form_class:
+            context['form'] = self.form_class(instance=obj)
 
         return context
 
@@ -148,6 +137,8 @@ class LeadUpdateView(CRMBaseUpdateView):
 
 class LeadDetailView(CRMBaseDetailView):
     model = Lead
+    template_name = 'crm/lead_detail.html'
+    form_class = LeadForm
 
 class LeadArchiveView(CRMBaseUpdateView):
     model = Lead

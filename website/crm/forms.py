@@ -64,6 +64,16 @@ class LeadForm(BaseModelForm):
         widget=forms.Select(attrs={'placeholder': 'Select interest'})
     )
 
+    stripe_customer_id = forms.CharField(
+        max_length=15,
+        label="Stripe Customer ID",
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Stripe Customer ID',
+            'required': True
+        }),
+        required=True
+    )
+
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
         if not re.match(r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
@@ -74,7 +84,7 @@ class LeadForm(BaseModelForm):
 
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'email', 'lead_status', 'lead_interest']
+        fields = ['full_name', 'phone_number', 'email', 'lead_status', 'lead_interest', 'stripe_customer_id']
 
 class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
