@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.utils import timezone
 from django.db.models import Q
 
-from communication.models import PhoneCall
+from communication.models import Message, PhoneCall
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -72,7 +72,20 @@ class Lead(models.Model):
     
     def phone_calls(self):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
+    
+    def last_contact(self):
+        last_msg = Message.objects.filter(
+            Q(text_from=self.phone_number) | Q(text_to=self.phone_number)
+        ).order_by('-date_created').first()
 
+        last_call = PhoneCall.objects.filter(
+            Q(call_from=self.phone_number) | Q(call_to=self.phone_number)
+        ).order_by('-date_created').first()
+
+        if last_msg and last_call:
+            return last_msg if last_msg.date_created > last_call.date_created else last_call
+        return last_msg or last_call
+    
     class Meta:
         db_table = 'lead'
 

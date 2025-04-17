@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from core.models import User, Lead, Quote
+from core.models import User, Lead
 
 class Cocktail(models.Model):
     cocktail_id = models.IntegerField(primary_key=True)
