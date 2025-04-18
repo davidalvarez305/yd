@@ -1,4 +1,5 @@
 from django.db import models
+from core.models import Lead
 
 class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
@@ -22,6 +23,10 @@ class Message(models.Model):
     def __str__(self):
         return self.external_id
 
+    def get_lead(self) -> (Lead | None):
+        return Lead.objects.filter(phone_number=self.text_from).first() or Lead.objects.filter(phone_number=self.text_to).first()
+
+
 class PhoneCall(models.Model):
     phone_call_id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=255, unique=True)
@@ -40,6 +45,9 @@ class PhoneCall(models.Model):
         self.call_from = self.call_from[-10:]
         self.call_to = self.call_to[-10:]
         super().save(*args, **kwargs)
+    
+    def get_lead(self) -> (Lead | None):
+        return Lead.objects.filter(phone_number=self.call_from).first() or Lead.objects.filter(phone_number=self.call_to).first()
 
     def __str__(self):
         return self.external_id
