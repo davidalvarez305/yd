@@ -5,7 +5,7 @@
 <div class="flex flex-col my-6 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
     <div
         class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-        <button type="button" data-modal-id="createCocktailModal"
+        <button type="button" data-modal-id="formModal"
             class="modalTrigger inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
             Add Cocktail
         </button>
@@ -79,7 +79,7 @@
 </div>
 
 <!-- Quote Form -->
-<div id="createCocktailModal" class="modalContainer" style="display: none;">
+<div id="formModal" class="modalContainer" style="display: none;">
     <div>
         <div tabindex="-1" role="dialog"
             class="fixed inset-0 z-90 overflow-y-auto overflow-x-hidden bg-gray-900/75 p-4 backdrop-blur-sm lg:p-8">
@@ -123,7 +123,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const modalHelper = new ModalHelper();
-        modalHelper.register({ modalId: 'createCocktailModal' });
+        modalHelper.register({ modalId: 'formModal' });
     });
 </script>
 <!-- END Quote Form -->

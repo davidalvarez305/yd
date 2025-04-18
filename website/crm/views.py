@@ -8,9 +8,10 @@ from django.shortcuts import redirect
 
 from website import settings
 from communication.models import Message
-from core.models import LeadStatus, Lead
-from crm.forms import LeadForm, LeadFilterForm, CocktailForm
-from crm.models import Lead, Cocktail
+from core.models import LeadStatus, Lead, User, Service
+from core.forms import ServiceForm, UserForm
+from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm
+from crm.models import Lead, Cocktail, Event
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 from communication.models import Message
 
@@ -188,3 +189,63 @@ class CocktailDetailView(CRMBaseDetailView):
 class CocktailDeleteView(CRMBaseDeleteView):
     model = Cocktail
     form_class = CocktailForm
+    
+class ServiceListView(CRMBaseListView):
+    model = Service
+    create_form_class = ServiceForm
+
+class ServiceCreateView(CRMBaseCreateView):
+    model = Service
+    form_class = ServiceForm
+
+class ServiceUpdateView(CRMBaseUpdateView):
+    model = Service
+    form_class = ServiceForm
+
+class ServiceDetailView(CRMBaseDetailView):
+    model = Service
+    form_class = ServiceForm
+
+class ServiceDeleteView(CRMBaseDeleteView):
+    model = Service
+    form_class = ServiceForm
+    
+class UserListView(CRMBaseListView):
+    model = User
+    create_form_class = UserForm
+
+class UserCreateView(CRMBaseCreateView):
+    model = User
+    form_class = UserForm
+
+class UserUpdateView(CRMBaseUpdateView):
+    model = User
+    form_class = UserForm
+
+class UserDetailView(CRMBaseDetailView):
+    model = User
+    form_class = UserForm
+
+class UserDeleteView(CRMBaseDeleteView):
+    model = User
+    form_class = UserForm
+    
+class EventListView(CRMBaseListView):
+    model = Event
+    create_form_class = EventForm
+
+class EventCreateView(CRMBaseCreateView):
+    model = Event
+    form_class = EventForm
+
+class EventUpdateView(CRMBaseUpdateView):
+    model = Event
+    form_class = EventForm
+
+class EventDetailView(CRMBaseDetailView):
+    model = Event
+    form_class = EventForm
+
+class EventDeleteView(CRMBaseDeleteView):
+    model = Event
+    form_class = EventForm
