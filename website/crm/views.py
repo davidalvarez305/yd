@@ -1,3 +1,4 @@
+from django.http import HttpResponseNotAllowed
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
@@ -100,6 +101,11 @@ class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return redirect(self.get_success_url())
 
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
