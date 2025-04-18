@@ -16,4 +16,10 @@ urlpatterns = [
     path('lead/<int:pk>/', views.LeadDetailView.as_view(), name='lead_detail'),
     path('lead/<int:pk>/edit/', views.LeadUpdateView.as_view(), name='lead_update'),
     path('lead/<int:pk>/archive/', views.LeadArchiveView.as_view(), name='lead_archive'),
+    
+    # Cocktail
+    path('cocktail/', views.CocktailListView.as_view(), name='cocktail_list'),
+    path('cocktail/<int:pk>/', views.CocktailDetailView.as_view(), name='cocktail_detail'),
+    path('cocktail/<int:pk>/edit/', views.CocktailUpdateView.as_view(), name='cocktail_update'),
+    path('cocktail/<int:pk>/delete/', views.CocktailArchiveView.as_view(), name='cocktail_archive'),
 ]
