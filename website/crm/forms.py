@@ -3,6 +3,7 @@ import re
 
 from core.models import Lead, LeadStatus, LeadInterest
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
+from crm.models import Cocktail
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -114,3 +115,17 @@ class LeadFilterForm(FilterFormMixin, BaseForm):
             'name': 'lead_status_id',
         })
     )
+
+class CocktailForm(BaseModelForm):
+    name = forms.CharField(
+        max_length=255,
+        label="Name*",
+        widget=forms.TextInput(attrs={
+            'required': True
+        }),
+        required=True
+    )
+
+    class Meta:
+        model = Cocktail
+        fields = ['name']
