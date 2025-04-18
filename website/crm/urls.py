@@ -19,7 +19,8 @@ urlpatterns = [
     
     # Cocktail
     path('cocktail/', views.CocktailListView.as_view(), name='cocktail_list'),
+    path('cocktail/create/', views.CocktailCreateView.as_view(), name='cocktail_create'),
     path('cocktail/<int:pk>/', views.CocktailDetailView.as_view(), name='cocktail_detail'),
     path('cocktail/<int:pk>/edit/', views.CocktailUpdateView.as_view(), name='cocktail_update'),
-    path('cocktail/<int:pk>/delete/', views.CocktailArchiveView.as_view(), name='cocktail_archive'),
+    path('cocktail/<int:pk>/delete/', views.CocktailDeleteView.as_view(), name='cocktail_delete'),
 ]
