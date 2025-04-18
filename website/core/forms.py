@@ -251,51 +251,17 @@ class UserForm(BaseModelForm):
         required=True
     )
 
-    is_active = forms.BooleanField(
-        label="Is Active",
-        widget=forms.CheckboxInput(attrs={'name': 'is_active'}),
-        required=False
-    )
-
-    is_staff = forms.BooleanField(
-        label="Is Staff",
-        widget=forms.CheckboxInput(attrs={'name': 'is_staff'}),
-        required=False
-    )
-
-    password = forms.CharField(
-        label="Password*",
-        widget=forms.PasswordInput(attrs={'name': 'password', 'required': True}),
-        required=True
-    )
-
-    confirm_password = forms.CharField(
-        label="Confirm Password*",
-        widget=forms.PasswordInput(attrs={'name': 'confirm_password', 'required': True}),
-        required=True
-    )
-
     class Meta:
         model = User
         fields = [
             'username', 'first_name', 'last_name',
-            'phone_number', 'forward_phone_number',
-            'is_active', 'is_staff'
+            'phone_number', 'forward_phone_number'
         ]
 
     def clean(self):
         cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm = cleaned_data.get("confirm_password")
-
-        if password and confirm and password != confirm:
-            raise ValidationError("Passwords do not match.")
-
         return cleaned_data
 
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        if commit:
-            user.save()
+        user = super().save()
         return user

@@ -131,6 +131,16 @@ class CocktailForm(BaseModelForm):
         fields = ['name']
 
 class EventForm(BaseModelForm):
+    lead = forms.ModelChoiceField(
+        queryset=Lead.objects.all(),
+        required=True,
+        empty_label="Lead",
+        widget=forms.Select(attrs={
+            'id': 'lead',
+            'name': 'lead',
+        })
+    )
+
     start_time = forms.DateTimeField(
         label="Start Time*",
         widget=forms.DateTimeInput(attrs={
@@ -159,16 +169,6 @@ class EventForm(BaseModelForm):
             'type': 'datetime-local',
         }),
         required=True
-    )
-
-    lead = forms.ModelChoiceField(
-        queryset=Lead.objects.all(),
-        required=True,
-        empty_label="Lead",
-        widget=forms.Select(attrs={
-            'id': 'lead',
-            'name': 'lead',
-        })
     )
 
     street_address = forms.CharField(

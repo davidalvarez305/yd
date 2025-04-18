@@ -987,16 +987,16 @@ select{
   width: 4rem;
 }
 
+.w-32{
+  width: 8rem;
+}
+
 .w-5{
   width: 1.25rem;
 }
 
 .w-full{
   width: 100%;
-}
-
-.w-32{
-  width: 8rem;
 }
 
 .min-w-\[320px\]{
@@ -1697,6 +1697,11 @@ select{
   color: rgb(0 0 0 / var(--tw-text-opacity, 1));
 }
 
+.text-blue-600{
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
+}
+
 .text-emerald-50{
   --tw-text-opacity: 1;
   color: rgb(236 253 245 / var(--tw-text-opacity, 1));
@@ -1775,11 +1780,6 @@ select{
 .text-white{
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.text-blue-600{
-  --tw-text-opacity: 1;
-  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
 }
 
 .underline{
@@ -3189,6 +3189,11 @@ select{
   background-color: transparent;
 }
 
+.dark\:text-blue-400:is(.dark *){
+  --tw-text-opacity: 1;
+  color: rgb(96 165 250 / var(--tw-text-opacity, 1));
+}
+
 .dark\:text-emerald-400:is(.dark *){
   --tw-text-opacity: 1;
   color: rgb(52 211 153 / var(--tw-text-opacity, 1));
@@ -3251,11 +3256,6 @@ select{
 .dark\:text-white:is(.dark *){
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.dark\:text-blue-400:is(.dark *){
-  --tw-text-opacity: 1;
-  color: rgb(96 165 250 / var(--tw-text-opacity, 1));
 }
 
 .dark\:decoration-primary-400:is(.dark *){
