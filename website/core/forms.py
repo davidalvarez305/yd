@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 import re
 
 from core.widgets import ToggleSwitchWidget
-from core.models import Lead, User
+from core.models import Lead, Service, UnitType, User, ServiceType
 from communication.email import EmailService
 from website.settings import COMPANY_NAME
 
@@ -164,3 +164,138 @@ class QuoteForm(BaseModelForm):
     class Meta:
         model = Lead
         fields = ['full_name', 'phone_number', 'message', 'opt_in_text_messaging']
+
+
+
+class ServiceForm(BaseModelForm):
+    service_type = forms.ModelChoiceField(
+        queryset=ServiceType.objects.all(),
+        label="Service Type*",
+        widget=forms.Select(attrs={
+            'name': 'service_type',
+            'required': True
+        }),
+        required=True
+    )
+
+    service = forms.CharField(
+        max_length=255,
+        label="Service Name*",
+        widget=forms.TextInput(attrs={
+            'name': 'service',
+            'required': True
+        }),
+        required=True
+    )
+
+    suggested_price = forms.FloatField(
+        label="Suggested Price",
+        widget=forms.NumberInput(attrs={
+            'name': 'suggested_price',
+            'step': '0.01'
+        }),
+        required=False
+    )
+
+    guest_ratio = forms.IntegerField(
+        label="Guest Ratio",
+        widget=forms.NumberInput(attrs={
+            'name': 'guest_ratio',
+            'min': 1
+        }),
+        required=False
+    )
+
+    unit_type = forms.ModelChoiceField(
+        queryset=UnitType.objects.all(),
+        label="Unit Type*",
+        widget=forms.Select(attrs={
+            'name': 'unit_type',
+            'required': True
+        }),
+        required=True
+    )
+
+    class Meta:
+        model = Service
+        fields = ['service_type', 'service', 'suggested_price', 'guest_ratio', 'unit_type']
+
+class UserForm(BaseModelForm):
+    username = forms.CharField(
+        label="Username*",
+        widget=forms.TextInput(attrs={'name': 'username', 'required': True}),
+        required=True
+    )
+
+    first_name = forms.CharField(
+        label="First Name*",
+        widget=forms.TextInput(attrs={'name': 'first_name', 'required': True}),
+        required=True
+    )
+
+    last_name = forms.CharField(
+        label="Last Name*",
+        widget=forms.TextInput(attrs={'name': 'last_name', 'required': True}),
+        required=True
+    )
+
+    phone_number = forms.CharField(
+        label="Phone Number*",
+        widget=forms.TextInput(attrs={'name': 'phone_number', 'required': True}),
+        required=True
+    )
+
+    forward_phone_number = forms.CharField(
+        label="Forwarding Number*",
+        widget=forms.TextInput(attrs={'name': 'forward_phone_number', 'required': True}),
+        required=True
+    )
+
+    is_active = forms.BooleanField(
+        label="Is Active",
+        widget=forms.CheckboxInput(attrs={'name': 'is_active'}),
+        required=False
+    )
+
+    is_staff = forms.BooleanField(
+        label="Is Staff",
+        widget=forms.CheckboxInput(attrs={'name': 'is_staff'}),
+        required=False
+    )
+
+    password = forms.CharField(
+        label="Password*",
+        widget=forms.PasswordInput(attrs={'name': 'password', 'required': True}),
+        required=True
+    )
+
+    confirm_password = forms.CharField(
+        label="Confirm Password*",
+        widget=forms.PasswordInput(attrs={'name': 'confirm_password', 'required': True}),
+        required=True
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username', 'first_name', 'last_name',
+            'phone_number', 'forward_phone_number',
+            'is_active', 'is_staff'
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm = cleaned_data.get("confirm_password")
+
+        if password and confirm and password != confirm:
+            raise ValidationError("Passwords do not match.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user

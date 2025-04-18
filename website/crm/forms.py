@@ -3,7 +3,7 @@ import re
 
 from core.models import Lead, LeadStatus, LeadInterest
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
-from crm.models import Cocktail
+from crm.models import Cocktail, Event
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -129,3 +129,94 @@ class CocktailForm(BaseModelForm):
     class Meta:
         model = Cocktail
         fields = ['name']
+
+class EventForm(BaseModelForm):
+    start_time = forms.DateTimeField(
+        label="Start Time*",
+        widget=forms.DateTimeInput(attrs={
+            'required': True,
+            'name': 'start_time',
+            'type': 'datetime-local',
+        }),
+        required=True
+    )
+
+    end_time = forms.DateTimeField(
+        label="End Time*",
+        widget=forms.DateTimeInput(attrs={
+            'required': True,
+            'name': 'end_time',
+            'type': 'datetime-local',
+        }),
+        required=True
+    )
+
+    date_paid = forms.DateTimeField(
+        label="Date Paid*",
+        widget=forms.DateTimeInput(attrs={
+            'required': True,
+            'name': 'date_paid',
+            'type': 'datetime-local',
+        }),
+        required=True
+    )
+
+    lead = forms.ModelChoiceField(
+        queryset=Lead.objects.all(),
+        required=True,
+        empty_label="Lead",
+        widget=forms.Select(attrs={
+            'id': 'lead',
+            'name': 'lead',
+        })
+    )
+
+    street_address = forms.CharField(
+        max_length=255,
+        label="Street Address",
+        widget=forms.TextInput(attrs={'name': 'street_address'}),
+        required=False
+    )
+
+    city = forms.CharField(
+        max_length=100,
+        label="City",
+        widget=forms.TextInput(attrs={'name': 'city'}),
+        required=False
+    )
+
+    zip_code = forms.CharField(
+        max_length=20,
+        label="Zip Code",
+        widget=forms.TextInput(attrs={'name': 'zip_code'}),
+        required=False
+    )
+
+    amount = forms.FloatField(
+        label="Amount*",
+        widget=forms.NumberInput(attrs={
+            'required': True,
+            'name': 'amount',
+        }),
+        required=True
+    )
+
+    tip = forms.FloatField(
+        label="Tip",
+        widget=forms.NumberInput(attrs={'name': 'tip'}),
+        required=False
+    )
+
+    guests = forms.IntegerField(
+        label="Guests",
+        widget=forms.NumberInput(attrs={'name': 'guests'}),
+        required=True
+    )
+
+    class Meta:
+        model = Event
+        fields = [
+            'start_time', 'end_time', 'date_paid', 'lead',
+            'street_address', 'city', 'zip_code',
+            'amount', 'tip', 'guests'
+        ]
