@@ -193,6 +193,7 @@ class CocktailDeleteView(CRMBaseDeleteView):
 class ServiceListView(CRMBaseListView):
     model = Service
     create_form_class = ServiceForm
+    template_name = 'crm/service_list.html'
 
 class ServiceCreateView(CRMBaseCreateView):
     model = Service
@@ -213,6 +214,7 @@ class ServiceDeleteView(CRMBaseDeleteView):
 class UserListView(CRMBaseListView):
     model = User
     create_form_class = UserForm
+    template_name = 'crm/user_list.html'
 
 class UserCreateView(CRMBaseCreateView):
     model = User
