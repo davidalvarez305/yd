@@ -46,11 +46,11 @@
                         <p class="text-gray-500 dark:text-gray-400"></p>
                     {% endif %}
                 </td>
-                <td class="p-3 text-center text-gray-500 dark:text-gray-400">
+                <td class="p-3 text-center">
                     <p class="font-medium">{{ event.guests }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ event.amount }}</p>
+                    <p class="font-medium">${{ event.amount }}</p>
                 </td>
                 <td class="p-3 text-center">
                     {% if event.street_address and event.city and event.zip_code %}
