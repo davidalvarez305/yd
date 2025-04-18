@@ -40,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_table = 'user'
 
     def __str__(self):
-        return self.username
+        return self.first_name + " " + self.last_name
 
 
 class LeadStatus(models.Model):
@@ -60,6 +60,9 @@ class LeadInterest(models.Model):
 class NextAction(models.Model):
     next_action_id = models.IntegerField(primary_key=True)
     action = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.action
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
@@ -106,12 +109,18 @@ class ServiceType(models.Model):
     service_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.type
+
     class Meta:
         db_table = 'service_type'
 
 class UnitType(models.Model):
     unit_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.type
 
     class Meta:
         db_table = 'unit_type'
@@ -137,6 +146,9 @@ class Service(models.Model):
     guest_ratio = models.IntegerField(null=True)
     unit_type = models.ForeignKey(UnitType, db_column='unit_type_id', on_delete=models.RESTRICT)
 
+    def __str__(self):
+        return self.service
+
     class Meta:
         db_table = 'service'
 
@@ -147,6 +159,9 @@ class QuoteService(models.Model):
     units = models.FloatField()
     price_per_unit = models.FloatField()
 
+    def __str__(self):
+        return self.service
+
     class Meta:
         db_table = 'quote_service'
 
@@ -154,6 +169,9 @@ class InvoiceType(models.Model):
     invoice_type_id = models.IntegerField(primary_key=True)
     type = models.CharField(max_length=100)
     amount_percentage = models.FloatField()
+
+    def __str__(self):
+        return self.type
 
     class Meta:
         db_table = 'invoice_type'
@@ -177,6 +195,9 @@ class LeadNote(models.Model):
     lead = models.ForeignKey(Lead, related_name='notes', db_column='lead_id', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='notes', db_column='added_by_user_id', on_delete=models.CASCADE)
     date_added = models.DateTimeField()
+
+    def __str__(self):
+        return self.note
 
     class Meta:
         db_table = 'lead_note'
