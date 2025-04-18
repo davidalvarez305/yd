@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from website import settings
 from communication.models import Message
 from core.models import LeadStatus, Lead
-from crm.forms import LeadForm, LeadFilterForm, CocktailForm, CocktailFilterForm
+from crm.forms import LeadForm, LeadFilterForm, CocktailForm
 from crm.models import Lead, Cocktail
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 from communication.models import Message
@@ -157,7 +157,10 @@ class LeadArchiveView(CRMBaseUpdateView):
     
 class CocktailListView(CRMBaseListView):
     model = Cocktail
-    template_name = 'crm/cocktail_list.html'
+
+class CocktailCreateView(CRMBaseCreateView):
+    model = Cocktail
+    form_class = CocktailForm
 
 class CocktailUpdateView(CRMBaseUpdateView):
     model = Cocktail
@@ -165,7 +168,6 @@ class CocktailUpdateView(CRMBaseUpdateView):
 
 class CocktailDetailView(CRMBaseDetailView):
     model = Cocktail
-    template_name = 'crm/cocktail_detail.html'
     form_class = CocktailForm
 
 class CocktailDeleteView(CRMBaseDeleteView):
