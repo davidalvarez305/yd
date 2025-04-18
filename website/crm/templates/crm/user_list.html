@@ -7,7 +7,7 @@
         class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
         <button type="button" data-modal-id="formModal"
             class="modalTrigger inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
-            Add Event
+            Add User
         </button>
     </div>
 </div>
@@ -18,55 +18,27 @@
             <tr>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">View</th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Name</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Event Time</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Guests</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Amount Paid</th>
-                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Address</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Phone Number</th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Delete</th>
             </tr>
         </thead>
         <tbody>
-            {% for event in events %}
+            {% for user in users %}
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                 <td class="p-3 text-center">
-                    <a href="{% url 'event_detail' pk=event.event_id %}" target="_blank"
+                    <a href="{% url 'user_detail' pk=user.user_id %}" target="_blank"
                     class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                         View
                     </a>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ event.lead.full_name }}</p>
+                    <p class="font-medium">{{ user.first_name }} {{ user.last_name }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    {% if event.start_time and event.end_time %}
-                        <p class="font-medium">
-                            {{ event.start_time|date:"m/d" }}: {{ event.start_time|date:"gA" }} - {{ event.end_time|date:"gA" }}
-                        </p>
-                    {% else %}
-                        <p class="text-gray-500 dark:text-gray-400"></p>
-                    {% endif %}
-                </td>
-                <td class="p-3 text-center text-gray-500 dark:text-gray-400">
-                    <p class="font-medium">{{ event.guests }}</p>
+                    <p class="font-medium">{{ user.phone_number }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ event.amount }}</p>
-                </td>
-                <td class="p-3 text-center">
-                    {% if event.street_address and event.city and event.zip_code %}
-                        {% with full_address=event.street_address|add:", "|add:event.city|add:", "|add:event.zip_code %}
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ full_address|urlencode }}"
-                               target="_blank"
-                               class="text-blue-600 hover:underline dark:text-blue-400">
-                                {{ full_address }}
-                            </a>
-                        {% endwith %}
-                    {% else %}
-                        <p class="text-gray-500 dark:text-gray-400"></p>
-                    {% endif %}
-                </td>
-                <td class="p-3 text-center">
-                    <form action="{% url 'event_delete' pk=event.event_id %}" method="post">
+                    <form action="{% url 'user_delete' pk=user.user_id %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
@@ -109,7 +81,8 @@
     </div>
     <!-- END Pagination -->
 </div>
-<!-- Event Form -->
+
+<!-- User Form -->
 <div id="formModal" class="modalContainer" style="display: none;">
     <div>
         <div tabindex="-1" role="dialog"
@@ -118,7 +91,7 @@
                 class="mx-auto flex w-full sm:w-1/2 flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
                 <div class="flex items-center justify-between bg-gray-50 px-5 py-4 dark:bg-gray-700/50">
                     <h3 class="flex items-center gap-2 font-medium">
-                        <span>Add Event</span>
+                        <span>Add User</span>
                     </h3>
                     <div class="-my-4">
                         <button type="button"
@@ -130,7 +103,7 @@
                 <div class="grow px-5">
                     <div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
                         <div class="grow p-5 md:px-16 md:py-6">
-                            <form method="post" action="{% url 'event_create' %}" class="space-y-6 p-2 md:p-2">
+                            <form method="post" action="{% url 'user_create' %}" class="space-y-6 p-2 md:p-2">
                                 {% csrf_token %}
                                 {{ create_form.as_p }}
                                 <button type="submit"
@@ -157,5 +130,5 @@
         modalHelper.register({ modalId: 'formModal' });
     });
 </script>
-<!-- END Event Form -->
+<!-- END User Form -->
 {% endblock %}
