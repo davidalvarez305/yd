@@ -26,11 +26,15 @@ class CRMContextMixin:
 
 class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
     filter_form_class = None
+    create_form_class = None
     paginate_by = 10
     context_object_name = None
 
     def get_filter_form_class(self):
         return self.filter_form_class
+
+    def get_create_form_class(self):
+        return self.create_form_class
 
     def get_queryset(self):
         queryset = self.model.objects.all()
@@ -61,11 +65,15 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
         context['js_files'] += ['js/pagination.js', 'js/filter.js', 'js/modal.js']
 
         if hasattr(self, 'filter_form'):
-            context['form'] = self.filter_form
+            context['filter_form'] = self.filter_form
         elif self.filter_form_class:
-            context['form'] = self.filter_form_class()
+            context['filter_form'] = self.filter_form_class()
+
+        if self.create_form_class:
+            context['create_form'] = self.create_form_class()
 
         return context
+
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     success_url = None
@@ -157,6 +165,7 @@ class LeadArchiveView(CRMBaseUpdateView):
     
 class CocktailListView(CRMBaseListView):
     model = Cocktail
+    create_form_class = CocktailForm
 
 class CocktailCreateView(CRMBaseCreateView):
     model = Cocktail
