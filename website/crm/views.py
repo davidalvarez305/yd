@@ -206,6 +206,7 @@ class ServiceUpdateView(CRMBaseUpdateView):
 class ServiceDetailView(CRMBaseDetailView):
     model = Service
     form_class = ServiceForm
+    template_name = 'crm/service_detail.html'
 
 class ServiceDeleteView(CRMBaseDeleteView):
     model = Service
@@ -227,6 +228,7 @@ class UserUpdateView(CRMBaseUpdateView):
 class UserDetailView(CRMBaseDetailView):
     model = User
     form_class = UserForm
+    template_name = 'crm/user_detail.html'
 
 class UserDeleteView(CRMBaseDeleteView):
     model = User

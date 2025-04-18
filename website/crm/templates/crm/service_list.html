@@ -35,19 +35,19 @@
                     </a>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ service.suggested_price }}</p>
+                    <p class="font-medium">{{ service.service }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ service.suggested_price }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ service.guest_ratio }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ service.service_type.type }}</p>
+                    <p class="font-medium">{{ service.service_type }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ service.unit_type.type }}</p>
-                </td>
-                <td class="p-3 text-center">
-                    <p class="font-medium">{{ service.suggested_price }}</p>
+                    <p class="font-medium">{{ service.unit_type }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <form action="{% url 'service_delete' pk=service.service_id %}" method="post">
