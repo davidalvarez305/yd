@@ -16,6 +16,9 @@ urlpatterns = [
     path('lead/<int:pk>/', views.LeadDetailView.as_view(), name='lead_detail'),
     path('lead/<int:pk>/edit/', views.LeadUpdateView.as_view(), name='lead_update'),
     path('lead/<int:pk>/archive/', views.LeadArchiveView.as_view(), name='lead_archive'),
+
+    # Lead Marketing
+    path('lead-marketing/<int:pk>/edit/', views.LeadMarketingUpdateView.as_view(), name='lead_marketing_update'),
     
     # Cocktail
     path('cocktail/', views.CocktailListView.as_view(), name='cocktail_list'),

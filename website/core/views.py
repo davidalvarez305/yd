@@ -17,7 +17,7 @@ from communication.email import get_email_service
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .models import Lead
-from .enums import AlertStatus
+from .enums import AlertHTTPCodes, AlertStatus
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
@@ -26,7 +26,7 @@ class BaseView(TemplateView):
     def alert(self, request, message, status: AlertStatus):
         template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
         
-        status_code = { AlertStatus.SUCCESS: 200, AlertStatus.BAD_REQUEST: 400, AlertStatus.INTERNAL_ERROR: 500 }.get(status, 500)
+        status_code = AlertHTTPCodes.get_http_code(status)
 
         return render(request, template_name=template, context={'message': message}, status=status_code)
 
@@ -210,7 +210,6 @@ class QuoteView(BaseWebsiteView):
                     external_id=helper.external_id,
                     referrer=helper.referrer,
                     landing_page=helper.landing_page,
-                    user_agent=helper.user_agent,
                     ip=helper.ip,
                     button_clicked=form.cleaned_data.get('button_clicked'),
                     medium=helper.medium,

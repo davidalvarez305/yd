@@ -839,6 +839,11 @@ select{
   margin-bottom: -1rem;
 }
 
+.mx-3{
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
 .mx-auto{
   margin-left: auto;
   margin-right: auto;
@@ -852,6 +857,11 @@ select{
 .my-6{
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+.my-8{
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 .mb-0\.5{
@@ -949,6 +959,10 @@ select{
 .size-6{
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.h-0\.5{
+  height: 0.125rem;
 }
 
 .h-12{
@@ -1337,6 +1351,11 @@ select{
 
 .bg-gray-100\/75{
   background-color: rgb(243 244 246 / 0.75);
+}
+
+.bg-gray-200{
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gray-300{
@@ -3151,6 +3170,10 @@ select{
 
 .dark\:bg-gray-700\/50:is(.dark *){
   background-color: rgb(55 65 81 / 0.5);
+}
+
+.dark\:bg-gray-700\/75:is(.dark *){
+  background-color: rgb(55 65 81 / 0.75);
 }
 
 .dark\:bg-gray-800:is(.dark *){

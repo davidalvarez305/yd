@@ -18,7 +18,6 @@ class MarketingHelper:
 
         # Header variables
         self.referrer = request.META.get('HTTP_REFERER')
-        self.user_agent = request.META.get('HTTP_USER_AGENT')
         self.ip = request.META.get('REMOTE_ADDR')
 
         # Marketing variables

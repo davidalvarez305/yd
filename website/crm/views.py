@@ -4,14 +4,16 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 from website import settings
 from communication.models import Message
 from core.models import LeadStatus, Lead, User, Service
 from core.forms import ServiceForm, UserForm
-from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm
+from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
 from crm.models import Lead, Cocktail, Event
+from marketing.models import LeadMarketing
+from core.enums import AlertHTTPCodes, AlertStatus
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 from communication.models import Message
 
@@ -23,7 +25,7 @@ class CRMContextMixin:
             "unread_messages": Message.objects.filter(is_read=False).count(),
         })
         context.setdefault('js_files', [])
-        context['js_files'] += ['js/nav.js', 'js/main.js']
+        context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal.js']
         return context
 
 class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
@@ -64,7 +66,7 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
         context[self.context_object_name] = context.get('object_list')
 
         context.setdefault('js_files', [])
-        context['js_files'] += ['js/pagination.js', 'js/filter.js', 'js/modal.js']
+        context['js_files'] += ['js/pagination.js', 'js/filter.js']
 
         if hasattr(self, 'filter_form'):
             context['filter_form'] = self.filter_form
@@ -75,7 +77,6 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
             context['create_form'] = self.create_form_class()
 
         return context
-
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     success_url = None
@@ -96,6 +97,14 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+    
+    def alert(self, request, message, status: AlertStatus):
+        template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
+        
+        status_code = AlertHTTPCodes.get_http_code(status)
+
+        return render(request, template_name=template, context={'message': message}, status=status_code)
+
 
 class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
@@ -155,6 +164,34 @@ class LeadDetailView(CRMBaseDetailView):
     model = Lead
     template_name = 'crm/lead_detail.html'
     form_class = LeadForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        lead = self.object
+
+        context['lead_marketing_form'] = LeadMarketingForm(instance=LeadMarketing.objects.filter(lead=lead).first())
+
+        return context
+
+class LeadMarketingUpdateView(CRMBaseUpdateView):
+    model = LeadMarketing
+    form_class = LeadMarketingForm
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+
+        if form.is_valid():
+            try:
+                form.instance.lead = self.object.lead
+                form.save()
+                return self.alert(request, "Marketing info updated successfully.", AlertStatus.SUCCESS)
+            except Exception as e:
+                print(f"Unexpected error occurred: {e}")
+                return self.alert(request, "An unexpected error occurred. Please try again.", AlertStatus.INTERNAL_ERROR)
+        else:
+            return self.alert(request, "There was a problem updating the marketing info. Please check the form.", AlertStatus.BAD_REQUEST)
 
 class LeadArchiveView(CRMBaseUpdateView):
     model = Lead
