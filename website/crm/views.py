@@ -94,6 +94,7 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
 
 class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
     success_url = None
+    trigger_alert = True
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
@@ -105,6 +106,23 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
 
         return render(request, template_name=template, context={'message': message}, status=status_code)
 
+    def post(self, request, *args, **kwargs):
+        if not self.trigger_alert:
+            return super().post(request, *args, **kwargs)
+
+        self.object = self.get_object()
+        form = self.get_form()
+
+        if form.is_valid():
+            try:
+                form.instance.pk = self.object.pk
+                form.save()
+                return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
+            except Exception as e:
+                print(f'Error updateing: {e}')
+                return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR)
+        else:
+            return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST)
 
 class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
@@ -159,6 +177,7 @@ class LeadListView(CRMBaseListView):
 class LeadUpdateView(CRMBaseUpdateView):
     model = Lead
     form_class = LeadForm
+    trigger_alert = True
 
 class LeadDetailView(CRMBaseDetailView):
     model = Lead
