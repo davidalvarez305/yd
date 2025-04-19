@@ -21,6 +21,9 @@
     <meta name="twitter:description" content="{{ meta_description }}" />
     <meta name="twitter:url" content="{{ page_path }}" />
 
+	<!-- HTMX -->
+	<meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}' />
+
     <!-- CSS -->
     <link href="{% static 'styles/main.css' %}" rel="stylesheet" type="text/css">
 
@@ -282,6 +285,8 @@
             </div>
             <!-- END Page Section -->
         </main>
+
+		<div id="alertModal"></div>
         <!-- END Page Content -->
 
         {% include "crm/footer.html" %}
@@ -296,5 +301,9 @@
     {% endfor %}
 {% endif %}
 {% endblock %}
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script>
+    const modalHelper = new ModalHelper();
+</script>
 <!-- END JS Scripts -->
 </html>

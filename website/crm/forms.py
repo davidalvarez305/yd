@@ -4,6 +4,7 @@ import re
 from core.models import Lead, LeadStatus, LeadInterest
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from crm.models import Cocktail, Event
+from marketing.models import MarketingCampaign, LeadMarketing, InstantForm
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -48,7 +49,8 @@ class LeadForm(BaseModelForm):
             'rows': 3,
             'readonly': True
         }),
-        required=False
+        required=False,
+        disabled=True,
     )
 
     lead_status = forms.ModelChoiceField(
@@ -219,4 +221,135 @@ class EventForm(BaseModelForm):
             'start_time', 'end_time', 'date_paid', 'lead',
             'street_address', 'city', 'zip_code',
             'amount', 'tip', 'guests'
+        ]
+
+class LeadMarketingForm(BaseModelForm):
+    source = forms.CharField(
+        max_length=255,
+        label="Source",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., Google, Facebook'
+        })
+    )
+
+    medium = forms.CharField(
+        max_length=255,
+        label="Medium",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., CPC, email'
+        })
+    )
+
+    channel = forms.CharField(
+        max_length=255,
+        label="Channel",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., Paid, Organic, Social'
+        })
+    )
+
+    landing_page = forms.CharField(
+        label="Landing Page URL",
+        required=False,
+        widget=forms.Textarea(attrs={
+            'placeholder': 'https://example.com/landing-page',
+            'rows': 2
+        })
+    )
+
+    keyword = forms.CharField(
+        max_length=255,
+        label="Keyword",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., event catering nyc'
+        })
+    )
+
+    referrer = forms.CharField(
+        label="Referrer URL",
+        required=False,
+        widget=forms.Textarea(attrs={
+            'placeholder': 'https://google.com/search?q=...',
+            'rows': 2
+        })
+    )
+
+    click_id = forms.CharField(
+        label="Click ID",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'gclid, fbclid, etc.'
+        })
+    )
+
+    client_id = forms.CharField(
+        label="Client ID",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Google Analytics Client ID'
+        })
+    )
+
+    button_clicked = forms.CharField(
+        max_length=255,
+        label="Button Clicked",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., Get a Quote, Contact Us'
+        })
+    )
+
+    ip = forms.GenericIPAddressField(
+        label="IP Address",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g., 192.168.1.1'
+        })
+    )
+
+    external_id = forms.CharField(
+        label="External ID",
+        required=True,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'External visit or session ID',
+            'required': True
+        })
+    )
+
+    instant_form_lead_id = forms.IntegerField(
+        label="Instant Form Lead ID",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Meta lead form lead ID'
+        })
+    )
+
+    instant_form = forms.ModelChoiceField(
+        queryset=InstantForm.objects.all(),
+        required=False,
+        label="Instant Form",
+        widget=forms.Select(attrs={
+            'placeholder': 'Select Instant Form'
+        })
+    )
+
+    marketing_campaign = forms.ModelChoiceField(
+        queryset=MarketingCampaign.objects.all(),
+        required=False,
+        label="Marketing Campaign",
+        widget=forms.Select(attrs={
+            'placeholder': 'Select Campaign'
+        })
+    )
+
+    class Meta:
+        model = LeadMarketing
+        fields = [
+            'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
+            'click_id', 'client_id', 'button_clicked', 'ip', 'external_id',
+            'instant_form_lead_id', 'instant_form', 'marketing_campaign'
         ]
