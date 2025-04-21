@@ -12,7 +12,7 @@ from twilio.base.exceptions import TwilioRestException
 
 from communication.forms import MessageForm
 from core.models import Lead
-from website.settings import TWILIO_AUTH_TOKEN
+from website.settings import TWILIO_AUTH_TOKEN, TWILIO_ACCOUNT_SID
 
 from .enums import MessagingProvider
 from .models import Message, MessageMedia
@@ -32,9 +32,10 @@ class MessagingServiceInterface(ABC):
         pass
 
 class TwilioMessagingService(MessagingServiceInterface):
-    def __init__(self, auth_token: str):
+    def __init__(self, auth_token: str, account_sid: str):
         self.auth_token = auth_token
         self.validator = RequestValidator(self.auth_token)
+        self.account_sid = account_sid
 
     def handle_inbound_message(self, request) -> None:
         valid = self.validator.validate(
@@ -132,7 +133,7 @@ class MessagingService:
 
     def _get_service(self) -> MessagingServiceInterface:
         if self.provider == MessagingProvider.TWILIO:
-            return TwilioMessagingService(auth_token=TWILIO_AUTH_TOKEN)
+            return TwilioMessagingService(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
         raise ValueError(f"Unknown provider: {self.provider}")
 
     def handle_inbound_message(self, request: HttpRequest):
