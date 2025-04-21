@@ -90,10 +90,12 @@
                                     {% if message.media.is_image %}
                                         <img src="{{ message.media.url }}" class="w-full rounded-md mt-2">
                                     {% elif message.media.is_audio %}
-                                        <audio controls class="w-full mt-2">
-                                            <source src="{{ message.media.url }}" type="audio/mpeg">
-                                            Your browser does not support the audio element.
-                                        </audio>
+                                    <div class="mt-2">
+                                        <button class="audioToggle bg-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                                            data-audio="{{ message.media.url }}">
+                                            ▶️ Play Audio
+                                        </button>
+                                    </div>
                                     {% elif message.media.is_video %}
                                         <video controls class="w-full mt-2">
                                             <source src="{{ message.media.url }}" type="video/mp4">
@@ -230,3 +232,58 @@
     });
 </script>
 <!-- END Audio Recording Script -->
+
+<!-- Audio Playback -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+
+<script>
+    function handleAudioPlayback() {
+        let currentSound = null;
+        let currentButton = null;
+        let isPaused = false;
+
+        const audioToggleButtons = 'audioToggle';
+
+        audioToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (currentButton === button) {
+                    if (isPaused) {
+                        currentSound.play();
+                        button.textContent = '⏸️ Pause Audio';
+                        isPaused = false;
+                    } else {
+                        currentSound.pause();
+                        button.textContent = '▶️ Resume Audio';
+                        isPaused = true;
+                    }
+                } else {
+                    if (currentSound) {
+                        currentSound.stop();
+                        if (currentButton) {
+                            currentButton.textContent = '▶️ Play Audio';
+                        }
+                    }
+
+                    currentSound = new Howl({
+                        src: [button.dataset.audio],
+                        html5: true,
+                        onend: () => {
+                            button.textContent = '▶️ Play Audio';
+                            currentSound = null;
+                            currentButton = null;
+                            isPaused = false;
+                        }
+                    });
+
+                    currentSound.play();
+                    button.textContent = '⏸️ Pause Audio';
+                    currentButton = button;
+                    isPaused = false;
+                }
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => handleAudioPlayback());
+</script>
+<!-- END Audio Playback -->
