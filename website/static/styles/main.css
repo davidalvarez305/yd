@@ -1061,6 +1061,10 @@ select{
   flex: none;
 }
 
+.flex-grow{
+  flex-grow: 1;
+}
+
 .grow{
   flex-grow: 1;
 }
@@ -1150,6 +1154,10 @@ select{
 
 .gap-8{
   gap: 2rem;
+}
+
+.gap-1{
+  gap: 0.25rem;
 }
 
 .space-x-1 > :not([hidden]) ~ :not([hidden]){
@@ -1847,6 +1855,10 @@ select{
 
 .opacity-75{
   opacity: 0.75;
+}
+
+.opacity-25{
+  opacity: 0.25;
 }
 
 .shadow{
