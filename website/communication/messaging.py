@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
-from django.shortcuts import get_object_or_404
 import requests
 import uuid
 
+from django.shortcuts import get_object_or_404
+from django.http import HttpRequest
 from django.core.files.base import ContentFile
 
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 from communication.forms import MessageForm
 from core.models import Lead
@@ -18,11 +20,15 @@ from .utils import strip_country_code
 
 class MessagingServiceInterface(ABC):
     @abstractmethod
-    def handle_inbound_message(self, request):
+    def handle_inbound_message(self, request: HttpRequest) -> None:
         pass
 
     @abstractmethod
-    def handle_outbound_message(self, request):
+    def handle_outbound_message(self, request: HttpRequest) -> None:
+        pass
+
+    @abstractmethod
+    def _send_text_message(self, message: Message) -> None:
         pass
 
 class TwilioMessagingService(MessagingServiceInterface):
@@ -30,7 +36,7 @@ class TwilioMessagingService(MessagingServiceInterface):
         self.auth_token = auth_token
         self.validator = RequestValidator(self.auth_token)
 
-    def handle_inbound_message(self, request):
+    def handle_inbound_message(self, request) -> None:
         valid = self.validator.validate(
             request.build_absolute_uri(),
             request.POST,
@@ -68,32 +74,20 @@ class TwilioMessagingService(MessagingServiceInterface):
                     file_name = f"{uuid.uuid4()}.{extension}"
 
                     content_file = ContentFile(response.content)
-                    media = MessageMedia(
-                        message=message,
-                        content_type=content_type,
-                    )
+                    media = MessageMedia(message=message, content_type=content_type)
                     media.file.save(file_name, content_file)
                 else:
                     raise RuntimeError(f"Failed to fetch media from URL: {media_url}")
 
         return message
 
-    def handle_outbound_message(self, to: str, body: str):
-        return f"Twilio: Sent to {to}"
-    
-    def _send_text_message(self, request, lead_id) -> dict:
-        """
-        Sends a text message via Twilio and returns the message object as a dict.
-        """
-        client = Client(self.account_sid, self.auth_token)
-
-        form = MessageForm(request.POST)
-        if form.valid:
-            lead = get_object_or_404(Lead, pk=lead_id)
-
+    def handle_outbound_message(self, request: HttpRequest) -> None:
+        form = MessageForm(request.POST, request.FILES)
+        
+        if form.is_valid():
             message = form.save(commit=False)
             message.text_from = request.user.phone_number
-            message.text_to = lead.phone_number
+            message.text_to = form.cleaned_data.get("text_to")
             message.is_inbound = False
             message.is_read = True
             message.save()
@@ -105,18 +99,31 @@ class TwilioMessagingService(MessagingServiceInterface):
                 )
                 media.file.save(file.name, file)
 
+            self._send_text_message(message)
+        else:
+            raise Exception("Invalid form submitted.")
+    
+    def _send_text_message(self, message: Message) -> None:
+        """
+        Sends a text message via Twilio.
+        """
+        client = Client(self.account_sid, self.auth_token)
+
+        media_urls = [media.file.url for media in message.media.all()]
+
+        try:
             response = client.messages.create(
                 to=message.text_to,
                 from_=message.text_from,
                 body=message.message,
+                media_url=media_urls if media_urls else None
             )
 
-            if not response.status.code == 200:
-                raise Exception("Error sending outbound message.")
+            if not response.sid:
+                raise Exception("Twilio message SID not returned. Message may not have sent.")
 
-            return message
-        else:
-            raise Exception("Invalid form submitted.")
+        except TwilioRestException as e:
+            raise Exception(f"Twilio error: {e.msg}") from e
 
 class MessagingService:
     def __init__(self, provider: MessagingProvider):
@@ -128,8 +135,8 @@ class MessagingService:
             return TwilioMessagingService(auth_token=TWILIO_AUTH_TOKEN)
         raise ValueError(f"Unknown provider: {self.provider}")
 
-    def handle_inbound_message(self, request):
+    def handle_inbound_message(self, request: HttpRequest):
         return self.service.handle_inbound_message(request)
 
-    def handle_outbound_message(self, to: str, body: str):
-        return self.service.handle_outbound_message(to, body)
+    def handle_outbound_message(self, request: HttpRequest):
+        return self.service.handle_outbound_message(request)

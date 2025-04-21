@@ -16,6 +16,8 @@ class MessageForm(BaseModelForm):
         required=False
     )
 
+    text_to = forms.CharField(widget=forms.HiddenInput())
+
     class Meta:
         model = Message
         fields = ['message', 'message_media']
