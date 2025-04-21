@@ -118,13 +118,33 @@
 
     <!-- Chat Input -->
     <div class="bg-gray-50 px-5 py-4 text-sm text-gray-600 dark:bg-gray-700/50 dark:text-gray-400">
-        <form class="flex items-center gap-2" onsubmit="return false;">
+        <form method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+            {% csrf_token %}
             <div class="grow">
-                <label for="chat-input" class="sr-only">Chat Input</label>
-                <input type="text" id="chat-input" name="chat-input"
-                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm leading-5 placeholder-gray-500 focus:border-primary-500 focus:ring-3 focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500"
-                    placeholder="Type your message.." />
+                {{ form.as_p }}
+                <input type="hidden" name="text_to" value="{{ lead.phone_number }}" />
+    
+                <!-- Button group below input -->
+                <div class="mt-1 flex gap-2">
+                    <!-- Paper clip button -->
+                    <button type="button"
+                        class="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-paper-clip size-4">
+                            <path fill-rule="evenodd" d="M11.914 4.086a2 2 0 0 0-2.828 0l-5 5a2 2 0 1 0 2.828 2.828l.556-.555a.75.75 0 0 1 1.06 1.06l-.555.556a3.5 3.5 0 0 1-4.95-4.95l5-5a3.5 3.5 0 0 1 4.95 4.95l-1.972 1.972a2.125 2.125 0 0 1-3.006-3.005L9.97 4.97a.75.75 0 1 1 1.06 1.06L9.058 8.003a.625.625 0 0 0 .884.883l1.972-1.972a2 2 0 0 0 0-2.828Z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+    
+                    <!-- Microphone button -->
+                    <button type="button"
+                        class="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-microphone size-4">
+                            <path d="M8 1a2 2 0 0 0-2 2v4a2 2 0 1 0 4 0V3a2 2 0 0 0-2-2Z"/>
+                            <path d="M4.5 7A.75.75 0 0 0 3 7a5.001 5.001 0 0 0 4.25 4.944V13.5h-1.5a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-1.5v-1.556A5.001 5.001 0 0 0 13 7a.75.75 0 0 0-1.5 0 3.5 3.5 0 1 1-7 0Z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
+    
             <button type="submit"
                 class="inline-flex flex-none items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 font-semibold text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-xs focus:ring-3 focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                 Send
@@ -134,3 +154,79 @@
     <!-- END Chat Input -->
 </div>
 <!-- END Chat: In Card -->
+
+<!-- Audio Recording Script -->
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let timerInterval;
+    let secondsElapsed = 0;
+    
+    const startRecording = document.getElementById('startRecording');
+    const stopRecording = document.getElementById('stopRecording');
+    const timerDisplay = document.getElementById('audioTimer');
+    const audioRecorder = document.getElementById('audioRecorder');
+    const audioPreview = document.getElementById('audioPreview');
+    const messageMedia = document.getElementById('message_media');
+    
+    function formatTime(seconds) {
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+    
+    startRecording.addEventListener('click', async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("Audio recording not supported.");
+            return;
+        }
+    
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        secondsElapsed = 0;
+    
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+    
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const file = new File([audioBlob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
+    
+            const dataTransfer = new DataTransfer();
+            for (const file of messageMedia.files) {
+                dataTransfer.items.add(file);
+            }
+            dataTransfer.items.add(file);
+            messageMedia.files = dataTransfer.files;
+    
+            const audioURL = URL.createObjectURL(audioBlob);
+            audioPreview.innerHTML = `
+                <div class="mt-2 flex items-center gap-2">
+                    <audio controls src="${audioURL}" class="w-64"></audio>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Recording added</span>
+                </div>
+            `;
+    
+            audioRecorder.classList.add('hidden');
+        };
+    
+        mediaRecorder.start();
+        audioRecorder.classList.remove('hidden');
+        timerDisplay.textContent = "00:00";
+    
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            timerDisplay.textContent = formatTime(secondsElapsed);
+        }, 1000);
+    });
+    
+    stopRecording.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+            clearInterval(timerInterval);
+        }
+    });
+</script>
+<!-- END Audio Recording Script -->
