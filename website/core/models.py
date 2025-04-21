@@ -146,6 +146,9 @@ class Quote(models.Model):
     class Meta:
         db_table = 'quote'
 
+    def amount(self) -> float:
+        return sum(float(qs.units) * float(qs.price_per_unit) for qs in self.quote_services.all())
+
 class Service(models.Model):
     service_id = models.IntegerField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)

@@ -27,6 +27,7 @@ class Event(models.Model):
         through='EventCocktail',
         related_name='events'
     )
+    
     class Meta:
         db_table = 'event'
 
