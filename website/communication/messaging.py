@@ -12,7 +12,7 @@ from twilio.base.exceptions import TwilioRestException
 
 from communication.forms import MessageForm
 from core.models import Lead
-from website.settings import TWILIO_AUTH_TOKEN, TWILIO_ACCOUNT_SID
+from website.settings import TWILIO_AUTH_TOKEN, TWILIO_ACCOUNT_SID, DEBUG
 
 from .enums import MessagingProvider
 from .models import Message, MessageMedia
@@ -88,7 +88,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             raise Exception("Invalid form submitted.")
         
         message = form.save(commit=False)
-        message.text_from = "7869987121"
+        message.text_from = request.user.phone_number
         message.text_to = form.cleaned_data.get("text_to")
         message.is_inbound = False
         message.is_read = True
@@ -133,15 +133,21 @@ class TwilioMessagingService(MessagingServiceInterface):
             raise Exception(f"Twilio error: {e.msg}") from e
 
 class MessagingService:
-    def __init__(self, provider: MessagingProvider):
-        self.provider = provider
+    def __init__(self):
+        self.provider = self._get_provider()
         self.service = self._get_service()
+
+    def _get_provider(self) -> MessagingProvider:
+        if DEBUG:
+            return MessagingProvider.TWILIO
+        return MessagingProvider.TWILIO
 
     def _get_service(self) -> MessagingServiceInterface:
         if self.provider == MessagingProvider.TWILIO:
             client = Client(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
             validator = RequestValidator(TWILIO_AUTH_TOKEN)
             return TwilioMessagingService(client=client, validator=validator)
+        
         raise ValueError(f"Unknown provider: {self.provider}")
 
     def handle_inbound_message(self, request: HttpRequest):

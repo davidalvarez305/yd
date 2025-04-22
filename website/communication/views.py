@@ -6,7 +6,6 @@ from core.enums import AlertStatus
 from core.mixins import AlertMixin
 
 from .messaging import MessagingService
-from .enums import MessagingProvider
 from .models import Message
 from .forms import MessageForm
 
@@ -16,7 +15,7 @@ def handle_inbound_message(request: HttpRequest):
         return JsonResponse({'data': 'Only POST allowed'}, status=405)
 
     try:
-        service = MessagingService(provider=MessagingProvider.TWILIO)
+        service = MessagingService()
         service.handle_inbound_message(request)
         return JsonResponse({'data': 'ok'}, status=200)
     except Exception as e:
@@ -31,7 +30,7 @@ class MessageCreateView(CRMBaseCreateView, AlertMixin):
             return self.alert(request, "Only POST headers allowed.", AlertStatus.BAD_REQUEST)
 
         try:
-            service = MessagingService(provider=MessagingProvider.TWILIO)
+            service = MessagingService()
             service.handle_outbound_message(request)
             return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
         except Exception as e:
