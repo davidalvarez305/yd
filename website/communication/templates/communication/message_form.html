@@ -91,7 +91,7 @@
                                         <img src="{{ message.media.url }}" class="w-full rounded-md mt-2">
                                     {% elif message.media.is_audio %}
                                     <div class="mt-2">
-                                        <button class="audioToggle bg-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                                        <button class="audioMessage bg-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
                                             data-audio="{{ message.media.url }}">
                                             ▶️ Play Audio
                                         </button>
@@ -147,13 +147,36 @@
                     </button>
                     <!-- END Paper clip button -->
 
+                    <!-- Pause button -->
+                    <button type="button" id="stopRecording" class="hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-pause inline-block size-5">
+                            <path d="M4.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-1ZM10.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-1Z"/>
+                        </svg>
+                    </button>
+                    <!-- END Pause button -->
+
+                    <!-- Play button -->
+                     <button type="button" data-audio="play" class="playbackControls hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-play inline-block size-5">
+                            <path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/>
+                        </svg>
+                     </button>
+                    <!-- END Play button -->
+                    <!-- Play button -->
+                    <button type="button" data-audio="pause" class="playbackControls hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-play inline-block size-5">
+                            <path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/>
+                        </svg>
+                     </button>
+                    <!-- END Play button -->
+
                     <!-- File Counter -->
                     <span id="fileCount" class="text-sm text-gray-500"></span>
                     <!-- END File Counter -->
                 </div>
             </div>
     
-            <button type="submit"
+            <button type="submit" id="sendMessage" data-loading-class="animate-spin" data-loading-disable
                 class="inline-flex flex-none items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 font-semibold text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-xs focus:ring-3 focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                 Send
             </button>
@@ -169,11 +192,11 @@
     const fileCount = document.getElementById('fileCount');
     const messageMedia = document.getElementById('messageMedia');
 
-    function handleAttachFile() {
+    function handleFileAttachment() {
         if (messageMedia) messageMedia.click();
     }
 
-    fileAttachment.addEventListener('click', () => handleAttachFile());
+    fileAttachment.addEventListener('click', () => handleFileAttachment());
 
     fileAttachment.addEventListener('change', (e) => {
         const count = e.target.files.length;
@@ -202,8 +225,7 @@
     
     const startRecording = document.getElementById('startRecording');
     const stopRecording = document.getElementById('stopRecording');
-    const timerDisplay = document.getElementById('audioTimer');
-    const audioRecorder = document.getElementById('audioRecorder');
+    const audioTimer = document.getElementById('audioTimer');
     const audioPreview = document.getElementById('audioPreview');
     
     function formatTime(seconds) {
@@ -245,23 +267,22 @@
                     <span class="text-xs text-gray-500 dark:text-gray-400">Recording added</span>
                 </div>
             `;
-    
-            audioRecorder.classList.add('hidden');
         };
     
         mediaRecorder.start();
-        audioRecorder.classList.remove('hidden');
-        timerDisplay.textContent = "00:00";
+        audioTimer.textContent = "00:00";
+        stopRecording.classList.remove("hidden");
     
         timerInterval = setInterval(() => {
             secondsElapsed++;
-            timerDisplay.textContent = formatTime(secondsElapsed);
+            audioTimer.textContent = formatTime(secondsElapsed);
         }, 1000);
     });
     
     stopRecording.addEventListener('click', () => {
         if (mediaRecorder && mediaRecorder.state === "recording") {
             mediaRecorder.stop();
+            stopRecording.classList.add("hidden");
             clearInterval(timerInterval);
         }
     });
