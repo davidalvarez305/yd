@@ -32,10 +32,9 @@ class MessagingServiceInterface(ABC):
         pass
 
 class TwilioMessagingService(MessagingServiceInterface):
-    def __init__(self, auth_token: str, account_sid: str):
-        self.auth_token = auth_token
-        self.validator = RequestValidator(self.auth_token)
-        self.account_sid = account_sid
+    def __init__(self, client: Client, validator: RequestValidator):
+        self.client = client
+        self.validator = validator
 
     def handle_inbound_message(self, request) -> None:
         valid = self.validator.validate(
@@ -117,10 +116,8 @@ class TwilioMessagingService(MessagingServiceInterface):
             media.save()
 
     def _send_text_message(self, message: Message, media_urls: list[str] = None):
-        client = Client(self.account_sid, self.auth_token)
-
         try:
-            response = client.messages.create(
+            response = self.client.messages.create(
                 to=message.text_to,
                 from_=message.text_from,
                 body=message.text,
@@ -142,7 +139,9 @@ class MessagingService:
 
     def _get_service(self) -> MessagingServiceInterface:
         if self.provider == MessagingProvider.TWILIO:
-            return TwilioMessagingService(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
+            client = Client(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
+            validator = RequestValidator(TWILIO_AUTH_TOKEN)
+            return TwilioMessagingService(client=client, validator=validator)
         raise ValueError(f"Unknown provider: {self.provider}")
 
     def handle_inbound_message(self, request: HttpRequest):

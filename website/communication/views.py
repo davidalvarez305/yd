@@ -33,6 +33,6 @@ class MessageCreateView(CRMBaseCreateView, AlertMixin):
         try:
             service = MessagingService(provider=MessagingProvider.TWILIO)
             service.handle_outbound_message(request)
-            self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
+            return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
         except Exception as e:
             return self.alert(request, f'Unexpected error: {str(e)}', AlertStatus.INTERNAL_ERROR)

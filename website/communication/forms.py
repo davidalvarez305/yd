@@ -15,6 +15,7 @@ class MessageForm(BaseModelForm):
             'multiple': True,
             'style': 'display: none;',
             'id': 'messageMedia',
+            'accept': 'audio/*, image/*, video/*'
         }),
         required=False
     )
