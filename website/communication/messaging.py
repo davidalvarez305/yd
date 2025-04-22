@@ -100,21 +100,18 @@ class TwilioMessagingService(MessagingServiceInterface):
         temp_media = []
         for file in media_files:
             media = MessageMedia(
-                message=None,  # not saved yet
+                message=None,
                 content_type=file.content_type,
             )
-            media.file.save(file.name, file, save=False)  # don't commit to DB
+            media.file.save(file.name, file, save=False)
             media_urls.append(media.file.url)
             temp_media.append(media)
 
-        # Send message via Twilio with media URLs
         response = self._send_text_message(message, media_urls)
 
-        # Save message after successful send
         message.external_id = response.sid
         message.save()
 
-        # Now associate and save media to the message
         for media in temp_media:
             media.message = message
             media.save()
