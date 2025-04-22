@@ -1,7 +1,7 @@
 from django import forms
 
 from .models import Message
-from core.forms import BaseModelForm
+from core.forms import BaseModelForm, MultiFileField, MultiFileInput
 
 class MessageForm(BaseModelForm):
     message = forms.CharField(
@@ -10,9 +10,9 @@ class MessageForm(BaseModelForm):
         required=True
     )
 
-    message_media = forms.FileField(
+    message_media = MultiFileField(
         label="Media (optional)",
-        widget=forms.ClearableFileInput(attrs={'multiple': True}),
+        widget=MultiFileInput(attrs={'multiple': True}),
         required=False
     )
 

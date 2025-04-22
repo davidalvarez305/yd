@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.db.models import Q
 
 from communication.models import Message, PhoneCall
-from marketing.models import LeadMarketing, Visit
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -89,6 +88,7 @@ class Lead(models.Model):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number))
     
     def visits(self):
+        from marketing.models import Visit, LeadMarketing
         return Visit.objects.filter(lead_marketing=LeadMarketing.objects.filter(lead=self).first())
     
     def last_contact(self):

@@ -7,6 +7,18 @@ from core.models import Lead, Service, UnitType, User, ServiceType
 from communication.email import EmailService
 from website.settings import COMPANY_NAME
 
+class MultiFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
+class MultiFileField(forms.FileField):
+    widget = MultiFileInput
+
+    def clean(self, data, initial=None):
+        files = data.getlist(self.name)
+        if self.required and not files:
+            raise forms.ValidationError(self.error_messages['required'], code='required')
+        return files
+
 class StyledFormMixin:
     def apply_styling(self):
         for field_name, field in self.fields.items():
