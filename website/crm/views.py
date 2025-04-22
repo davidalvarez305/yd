@@ -8,6 +8,8 @@ from django.shortcuts import redirect, render
 
 from website import settings
 from communication.models import Message
+from communication.forms import MessageForm
+from communication.models import Message
 from core.models import LeadStatus, Lead, User, Service
 from core.forms import ServiceForm, UserForm
 from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
@@ -15,7 +17,6 @@ from crm.models import Lead, Cocktail, Event
 from marketing.models import LeadMarketing
 from core.enums import AlertHTTPCodes, AlertStatus
 from website.settings import ARCHIVED_LEAD_STATUS_ID
-from communication.models import Message
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -190,6 +191,7 @@ class LeadDetailView(CRMBaseDetailView):
         lead = self.object
 
         context['lead_marketing_form'] = LeadMarketingForm(instance=LeadMarketing.objects.filter(lead=lead).first())
+        context['message_form'] = MessageForm()
 
         return context
 

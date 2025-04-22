@@ -11,8 +11,11 @@ class MessageForm(BaseModelForm):
     )
 
     message_media = MultiFileField(
-        label="Media (optional)",
-        widget=MultiFileInput(attrs={'multiple': True}),
+        widget=MultiFileInput(attrs={
+            'multiple': True,
+            'style': 'display: none;',
+            'id': 'messageMedia',
+        }),
         required=False
     )
 
