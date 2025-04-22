@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import mimetypes
+import os
 import requests
 import uuid
 
@@ -94,11 +96,15 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         temp_media = []
         for file in media_files:
+            content_type = file.content_type
+            extension = mimetypes.guess_extension(content_type) or ".bin"
+            file_name = f"{uuid.uuid4()}{extension}"
+
             media = MessageMedia(
                 message=None,
                 content_type=file.content_type,
             )
-            media.file.save(file.name, file, save=False)
+            media.file.save(file_name, file, save=False)
             media_urls.append(media.file.url)
             temp_media.append(media)
 
