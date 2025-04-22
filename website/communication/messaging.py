@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-import mimetypes
-import os
 import requests
-import uuid
 
 from django.http import HttpRequest
 from django.core.files.base import ContentFile
@@ -14,7 +11,7 @@ from twilio.base.exceptions import TwilioRestException
 from .forms import MessageForm
 from .factory import MessagingServiceFactory
 from .models import Message, MessageMedia
-from .utils import strip_country_code
+from .utils import strip_country_code, create_generic_file_name
 
 class MessagingServiceInterface(ABC):
     @abstractmethod
@@ -68,8 +65,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             if media_url:
                 response = requests.get(media_url)
                 if response.status_code == 200:
-                    extension = content_type.split("/")[-1]
-                    file_name = f"{uuid.uuid4()}.{extension}"
+                    file_name = create_generic_file_name(content_type)
 
                     content_file = ContentFile(response.content)
                     media = MessageMedia(message=message, content_type=content_type)
@@ -96,9 +92,7 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         temp_media = []
         for file in media_files:
-            content_type = file.content_type
-            extension = mimetypes.guess_extension(content_type) or ".bin"
-            file_name = f"{uuid.uuid4()}{extension}"
+            file_name = create_generic_file_name(file.content_type)
 
             media = MessageMedia(
                 message=None,
