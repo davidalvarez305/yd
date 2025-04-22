@@ -87,9 +87,9 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         if not form.is_valid():
             raise Exception("Invalid form submitted.")
-
+        
         message = form.save(commit=False)
-        message.text_from = request.user.forward_phone_number
+        message.text_from = "7869987121"
         message.text_to = form.cleaned_data.get("text_to")
         message.is_inbound = False
         message.is_read = True
@@ -119,26 +119,20 @@ class TwilioMessagingService(MessagingServiceInterface):
             media.message = message
             media.save()
 
-    
-    def _send_text_message(self, message: Message):
-        """
-        Sends a text message via Twilio.
-        """
+    def _send_text_message(self, message: Message, media_urls: list[str] = None):
         client = Client(self.account_sid, self.auth_token)
-
-        media_urls = [media.file.url for media in message.media.all()]
 
         try:
             response = client.messages.create(
                 to=message.text_to,
                 from_=message.text_from,
-                body=message.message,
+                body=message.text,
                 media_url=media_urls if media_urls else None
             )
 
             if not response.sid:
-                raise Exception("Twilio message SID not returned. Message may not have sent.")
-            
+                raise Exception("Twilio message SID not returned.")
+
             return response
 
         except TwilioRestException as e:
