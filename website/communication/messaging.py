@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import requests
 import uuid
 
-from django.shortcuts import get_object_or_404
 from django.http import HttpRequest
 from django.core.files.base import ContentFile
 
@@ -10,11 +9,8 @@ from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-from communication.forms import MessageForm
-from core.models import Lead
-from website.settings import TWILIO_AUTH_TOKEN, TWILIO_ACCOUNT_SID, DEBUG
-
-from .enums import MessagingProvider
+from .forms import MessageForm
+from .factory import MessagingServiceFactory
 from .models import Message, MessageMedia
 from .utils import strip_country_code
 
@@ -134,21 +130,7 @@ class TwilioMessagingService(MessagingServiceInterface):
 
 class MessagingService:
     def __init__(self):
-        self.provider = self._get_provider()
-        self.service = self._get_service()
-
-    def _get_provider(self) -> MessagingProvider:
-        if DEBUG:
-            return MessagingProvider.TWILIO
-        return MessagingProvider.TWILIO
-
-    def _get_service(self) -> MessagingServiceInterface:
-        if self.provider == MessagingProvider.TWILIO:
-            client = Client(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
-            validator = RequestValidator(TWILIO_AUTH_TOKEN)
-            return TwilioMessagingService(client=client, validator=validator)
-        
-        raise ValueError(f"Unknown provider: {self.provider}")
+        self.service = MessagingServiceFactory.get_service()
 
     def handle_inbound_message(self, request: HttpRequest):
         return self.service.handle_inbound_message(request)
