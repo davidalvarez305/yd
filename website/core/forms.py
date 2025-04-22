@@ -14,7 +14,7 @@ class MultiFileField(forms.FileField):
     widget = MultiFileInput
 
     def clean(self, data, initial=None):
-        files = data.getlist(self.name)
+        files = data or []
         if self.required and not files:
             raise forms.ValidationError(self.error_messages['required'], code='required')
         return files

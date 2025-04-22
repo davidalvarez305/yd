@@ -16,6 +16,7 @@ from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMar
 from crm.models import Lead, Cocktail, Event
 from marketing.models import LeadMarketing
 from core.enums import AlertHTTPCodes, AlertStatus
+from core.mixins import AlertMixin
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
@@ -93,20 +94,13 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
         return [f"{model_name}_form.html"]
 
 
-class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, UpdateView):
+class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateView):
     success_url = None
     trigger_alert = True
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
     
-    def alert(self, request, message, status: AlertStatus):
-        template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
-        
-        status_code = AlertHTTPCodes.get_http_code(status)
-
-        return render(request, template_name=template, context={'message': message}, status=status_code)
-
     def post(self, request, *args, **kwargs):
         if not self.trigger_alert:
             return super().post(request, *args, **kwargs)

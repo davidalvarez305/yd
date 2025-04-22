@@ -84,27 +84,43 @@ class TwilioMessagingService(MessagingServiceInterface):
 
     def handle_outbound_message(self, request: HttpRequest) -> None:
         form = MessageForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.text_from = request.user.phone_number
-            message.text_to = form.cleaned_data.get("text_to")
-            message.is_inbound = False
-            message.is_read = True
-            message.save()
 
-            for file in form.cleaned_data.get('message_media', []):
-                media = MessageMedia(
-                    message=message,
-                    content_type=file.content_type,
-                )
-                media.file.save(file.name, file)
-
-            self._send_text_message(message)
-        else:
+        if not form.is_valid():
             raise Exception("Invalid form submitted.")
+
+        message = form.save(commit=False)
+        message.text_from = request.user.forward_phone_number
+        message.text_to = form.cleaned_data.get("text_to")
+        message.is_inbound = False
+        message.is_read = True
+
+        media_files = form.cleaned_data.get('message_media', [])
+        media_urls = []
+
+        temp_media = []
+        for file in media_files:
+            media = MessageMedia(
+                message=None,  # not saved yet
+                content_type=file.content_type,
+            )
+            media.file.save(file.name, file, save=False)  # don't commit to DB
+            media_urls.append(media.file.url)
+            temp_media.append(media)
+
+        # Send message via Twilio with media URLs
+        response = self._send_text_message(message, media_urls)
+
+        # Save message after successful send
+        message.external_id = response.sid
+        message.save()
+
+        # Now associate and save media to the message
+        for media in temp_media:
+            media.message = message
+            media.save()
+
     
-    def _send_text_message(self, message: Message) -> None:
+    def _send_text_message(self, message: Message):
         """
         Sends a text message via Twilio.
         """
@@ -122,6 +138,8 @@ class TwilioMessagingService(MessagingServiceInterface):
 
             if not response.sid:
                 raise Exception("Twilio message SID not returned. Message may not have sent.")
+            
+            return response
 
         except TwilioRestException as e:
             raise Exception(f"Twilio error: {e.msg}") from e
