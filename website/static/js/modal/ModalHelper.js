@@ -10,24 +10,41 @@ class ModalHelper {
     } = {}) {
         this.modalTrigger = modalTrigger;
         this.modalSelector = modalSelector;
-        this.closeButtonSelector = closeButtonSelector;
-        this.displayStyle = displayStyle;
+        this.defaultCloseButtonSelector = closeButtonSelector;
+        this.defaultDisplayStyle = displayStyle;
         this.globalOnClose = onClose;
 
         this.modals = new Map();   // modalId → Modal instance
         this.configs = new Map();  // modalId → modal config object
     }
 
-    register({ modalId, closeButtonSelector, displayStyle, onClose, closeOnOutsideClick = true }) {
-        if (!modalId) {
-            console.warn("Attempted to register a modal without a modal id.");
-            return null;
-        }
+    autoRegisterModals() {
+        const modalElements = document.querySelectorAll(this.modalSelector);
 
+        modalElements.forEach((element) => {
+            const modalId = element.id;
+            if (!modalId) {
+                console.warn("Modal element is missing an ID:", element);
+                return;
+            }
+
+            const config = {
+                modalId,
+                closeButtonSelector: element.dataset.closeButtonSelector || this.defaultCloseButtonSelector,
+                displayStyle: element.dataset.displayStyle || this.defaultDisplayStyle,
+                closeOnOutsideClick: element.dataset.closeOnOutsideClick !== 'false',
+                onClose: this.globalOnClose
+            };
+
+            this.register(config);
+        });
+    }
+
+    register({ modalId, closeButtonSelector, displayStyle, onClose, closeOnOutsideClick = true }) {
         const element = document.getElementById(modalId);
         if (!element) {
-            console.warn(`Modal element with ID ${modalId} not found in the DOM.`);
-            return null;
+            console.warn(`Modal element with ID ${modalId} not found.`);
+            return;
         }
 
         const modal = new Modal({
@@ -38,8 +55,8 @@ class ModalHelper {
         this.modals.set(modalId, modal);
 
         this.configs.set(modalId, {
-            closeButtonSelector: closeButtonSelector ?? this.closeButtonSelector,
-            displayStyle: displayStyle ?? this.displayStyle,
+            closeButtonSelector,
+            displayStyle,
             closeOnOutsideClick
         });
     }
@@ -105,13 +122,9 @@ class ModalHelper {
             return;
         }
 
-        try {
-            modal.modal.style.display = config.displayStyle ?? '';
-            this._addEventListeners(modalId);
-            modal.open();
-        } catch (error) {
-            console.error(`Failed to open modal with ID '${modalId}':`, error);
-        }
+        modal.modal.style.display = config.displayStyle ?? '';
+        this._addEventListeners(modalId);
+        modal.open();
     }
 
     _handleCloseModal(modalId) {
@@ -121,12 +134,8 @@ class ModalHelper {
             return;
         }
 
-        try {
-            this._removeEventListeners(modalId);
-            modal.close();
-        } catch (error) {
-            console.error(`Failed to close modal with ID '${modalId}':`, error);
-        }
+        this._removeEventListeners(modalId);
+        modal.close();
     }
 
     closeActiveModals() {
@@ -139,10 +148,11 @@ class ModalHelper {
 
 document.addEventListener("DOMContentLoaded", function () {
     window.modalHelper = new ModalHelper();
-
+    modalHelper.autoRegisterModals();
     modalHelper._scanForTriggers();
 });
 
 document.body.addEventListener('htmx:afterSwap', function () {
+    modalHelper.autoRegisterModals();
     modalHelper._scanForTriggers();
 });
