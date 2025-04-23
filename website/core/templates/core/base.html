@@ -320,7 +320,6 @@
 	optIn.addEventListener("click", () => optInModal.open());
 
 	function handleFormSubmitEnd(event) {
-		// Close form modal
 		modalHelper.closeActiveModals();
 
 		if (!event.detail.successful) return;
