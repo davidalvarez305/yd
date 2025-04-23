@@ -19,4 +19,12 @@ export default class Modal {
             this.onClose(event);
         }
     }
+
+    setOnClose(callback) {
+        if (typeof callback !== 'function') {
+            throw new Error("setOnClose requires a function as an argument.");
+        }
+
+        this.onClose = callback;
+    }
 }

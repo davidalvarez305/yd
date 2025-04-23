@@ -5,8 +5,7 @@ const OPEN_SELECTOR = '.openModal';
 const CLOSE_SELECTOR = '.closeModal';
 
 class ModalHelper {
-    constructor({ onClose = null } = {}) {
-        this.globalOnClose = onClose;
+    constructor() {
         this.modals = new Map();
         this._autoRegister();
         this._scanForTriggers();
@@ -21,10 +20,7 @@ class ModalHelper {
                 return;
             }
 
-            const modal = new Modal({
-                element,
-                onClose: this.globalOnClose,
-            });
+            const modal = new Modal({ element });
 
             this.modals.set(element.dataset.modalId, modal);
         });
