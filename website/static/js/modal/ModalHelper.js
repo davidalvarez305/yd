@@ -29,7 +29,7 @@ class ModalHelper {
     _scanForTriggers() {
         const triggers = document.querySelectorAll(OPEN_SELECTOR);
 
-        triggers.forEach(function(trigger) {
+        triggers.forEach((trigger) => {
             if (!trigger.dataset.modalId) return;
 
             trigger.addEventListener('click', () => this._handleOpenModal(trigger.dataset.modalId));
@@ -40,18 +40,8 @@ class ModalHelper {
         closeButtons.forEach((button) => {
             if (!button.dataset.modalId) return;
 
-            button.addEventListener('click', function(e) {
-                this._handleCloseModal(button.dataset.modalId, e);
-            });
-        });
-
-        document.addEventListener('click', (event) => {
-            this.modals.forEach((modal, modalId) => {
-                if (!modal.modal.contains(event.target)) {
-                    if (modal.modal.style.display !== 'none') {
-                        this._handleCloseModal(modalId, event);
-                    }
-                }
+            button.addEventListener('click', (event) => {
+                this._handleCloseModal(button.dataset.modalId, event);
             });
         });
     }

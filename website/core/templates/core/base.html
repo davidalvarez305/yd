@@ -294,25 +294,25 @@
 
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script>
-	let optinConfirmationModalId = 'optinConfirmationModal';
+	function handleConfirmationLogic() {
+		const optIn = document.getElementById("opt_in_text_messaging");
+		const optInModal = modalHelper.get('optinConfirmationModal');
 
-	const optIn = document.getElementById("opt_in_text_messaging");
+		optInModal.setOnClose = function(event) {
+			const buttonName = event.target.getAttribute('name');
 
-	const optInModal = modalHelper.get(optinConfirmationModalId);
-	optInModal.setOnClose = (event) => {
-		const buttonName = event.target.getAttribute('name');
+			switch (buttonName) {
+				case "confirm":
+					optIn.checked = true;
+					break;
+				case "cancel":
+					optIn.checked = false;
+					break;
+			}
+		};
 
-		switch (buttonName) {
-			case "confirm":
-				optIn.checked = true;
-				break;
-			case "cancel":
-				optIn.checked = false;
-				break;
-		}
-	};
-
-	optIn.addEventListener("click", () => optInModal.open());
+		optIn.addEventListener("click", () => optInModal.open());
+	}
 
 	function handleFormSubmitEnd(event) {
 		if (!event.detail.successful) return;
@@ -344,6 +344,8 @@
 			};
 		};
 	};
+
+	document.addEventListener("load", () => handleConfirmationLogic());
 </script>
 <!-- END JS Scripts -->
 
