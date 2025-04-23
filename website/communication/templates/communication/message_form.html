@@ -1,3 +1,4 @@
+{% load static %}
 <!-- Chat: In Card -->
 <div class="flex flex-col overflow-hidden rounded-xl bg-white shadow-xs dark:bg-gray-800 dark:text-gray-100">
     <!-- Chat Header -->
@@ -128,16 +129,6 @@
     
                 <!-- Button group below input -->
                 <div class="mt-1 flex gap-2">
-                    <!-- Microphone button -->
-                    <button type="button" id="startRecording"
-                        class="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-microphone size-5">
-                            <path d="M8 1a2 2 0 0 0-2 2v4a2 2 0 1 0 4 0V3a2 2 0 0 0-2-2Z"/>
-                            <path d="M4.5 7A.75.75 0 0 0 3 7a5.001 5.001 0 0 0 4.25 4.944V13.5h-1.5a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-1.5v-1.556A5.001 5.001 0 0 0 13 7a.75.75 0 0 0-1.5 0 3.5 3.5 0 1 1-7 0Z"/>
-                        </svg>
-                    </button>
-                    <!-- END Microphone button -->
-
                     <!-- Paper clip button -->
                     <button type="button" id="fileAttachment"
                         class="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700">
@@ -147,28 +138,30 @@
                     </button>
                     <!-- END Paper clip button -->
 
+                    <!-- Microphone button -->
+                        <button type="button"
+                        class="beginRecording rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-microphone size-5">
+                            <path d="M8 1a2 2 0 0 0-2 2v4a2 2 0 1 0 4 0V3a2 2 0 0 0-2-2Z"/>
+                            <path d="M4.5 7A.75.75 0 0 0 3 7a5.001 5.001 0 0 0 4.25 4.944V13.5h-1.5a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-1.5v-1.556A5.001 5.001 0 0 0 13 7a.75.75 0 0 0-1.5 0 3.5 3.5 0 1 1-7 0Z"/>
+                        </svg>
+                    </button>
+                    <!-- END Microphone button -->
+
                     <!-- Pause button -->
-                    <button type="button" id="stopRecording" class="hidden">
+                    <button type="button" class="pauseRecording">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-pause inline-block size-5">
                             <path d="M4.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-1ZM10.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-1Z"/>
                         </svg>
                     </button>
                     <!-- END Pause button -->
-
-                    <!-- Play button -->
-                     <button type="button" data-audio="play" class="playbackControls hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-play inline-block size-5">
-                            <path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/>
+                    <!-- Stop button -->
+                    <button type="button" class="stopRecording">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-stop inline-block size-5">
+                            <rect width="10" height="10" x="3" y="3" rx="1.5"/>
                         </svg>
                      </button>
-                    <!-- END Play button -->
-                    <!-- Play button -->
-                    <button type="button" data-audio="pause" class="playbackControls hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-play inline-block size-5">
-                            <path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/>
-                        </svg>
-                     </button>
-                    <!-- END Play button -->
+                    <!-- END Stop button -->
 
                     <!-- File Counter -->
                     <span id="fileCount" class="text-sm text-gray-500"></span>
@@ -216,130 +209,7 @@
 </script>
 <!-- END Image & Video Input -->
 
-<!-- Audio Recording Script -->
-<script>
-    let mediaRecorder;
-    let audioChunks = [];
-    let timerInterval;
-    let secondsElapsed = 0;
-    
-    const startRecording = document.getElementById('startRecording');
-    const stopRecording = document.getElementById('stopRecording');
-    const audioTimer = document.getElementById('audioTimer');
-    const audioPreview = document.getElementById('audioPreview');
-    
-    function formatTime(seconds) {
-        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-        const s = String(seconds % 60).padStart(2, '0');
-        return `${m}:${s}`;
-    }
-    
-    startRecording.addEventListener('click', async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Audio recording not supported.");
-            return;
-        }
-    
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        secondsElapsed = 0;
-    
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
-    
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const file = new File([audioBlob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
-    
-            const dataTransfer = new DataTransfer();
-            for (const file of messageMedia.files) {
-                dataTransfer.items.add(file);
-            }
-            dataTransfer.items.add(file);
-            messageMedia.files = dataTransfer.files;
-    
-            const audioURL = URL.createObjectURL(audioBlob);
-            audioPreview.innerHTML = `
-                <div class="mt-2 flex items-center gap-2">
-                    <audio controls src="${audioURL}" class="w-64"></audio>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Recording added</span>
-                </div>
-            `;
-        };
-    
-        mediaRecorder.start();
-        audioTimer.textContent = "00:00";
-        stopRecording.classList.remove("hidden");
-    
-        timerInterval = setInterval(() => {
-            secondsElapsed++;
-            audioTimer.textContent = formatTime(secondsElapsed);
-        }, 1000);
-    });
-    
-    stopRecording.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-            stopRecording.classList.add("hidden");
-            clearInterval(timerInterval);
-        }
-    });
-</script>
-<!-- END Audio Recording Script -->
-
-<!-- Audio Playback -->
+<!-- Audio Controls Script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-
-<script>
-    function handleAudioPlayback() {
-        let currentSound = null;
-        let currentButton = null;
-        let isPaused = false;
-
-        const audioToggleButtons = document.querySelectorAll('.audioToggle');
-
-        audioToggleButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                if (currentButton === button) {
-                    if (isPaused) {
-                        currentSound.play();
-                        button.textContent = '⏸️ Pause Audio';
-                        isPaused = false;
-                    } else {
-                        currentSound.pause();
-                        button.textContent = '▶️ Resume Audio';
-                        isPaused = true;
-                    }
-                } else {
-                    if (currentSound) {
-                        currentSound.stop();
-                        if (currentButton) {
-                            currentButton.textContent = '▶️ Play Audio';
-                        }
-                    }
-
-                    currentSound = new Howl({
-                        src: [button.dataset.audio],
-                        html5: true,
-                        onend: () => {
-                            button.textContent = '▶️ Play Audio';
-                            currentSound = null;
-                            currentButton = null;
-                            isPaused = false;
-                        }
-                    });
-
-                    currentSound.play();
-                    button.textContent = '⏸️ Pause Audio';
-                    currentButton = button;
-                    isPaused = false;
-                }
-            });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => handleAudioPlayback());
-</script>
-<!-- END Audio Playback -->
+<script type="module" src="{% static 'js/audio/Audio.js' %}"></script>
+<!-- END Audio Controls Script -->

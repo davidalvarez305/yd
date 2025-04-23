@@ -1,9 +1,9 @@
 export class AudioHandler {
     audioMessages = [];
 
-    constructor(mediaRecorder) {
+    constructor(mediaRecorder, recording) {
         this.mediaRecorder = mediaRecorder;
-        this.recording = null;
+        this.recording = recording;
         this.playbackRate = 1.0;
     }
 
@@ -24,7 +24,7 @@ export class AudioHandler {
     handleStopRecording(cb) {
         if (typeof cb !== "function") throw new Error("Callback must be of type function.");
 
-        if (!this.mediaRecorder || !this.recording) throw new Error("No MediaRecorder or Recording instance found.");
+        if (!this.mediaRecorder) throw new Error("No MediaRecorder instance found.");
 
         this.mediaRecorder.onstop = () => {
             this.recording.generateBlobAndFile();

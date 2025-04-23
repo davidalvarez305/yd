@@ -1,6 +1,8 @@
+import { AudioControls } from "./AudioControls.js";
 import { AudioHandler } from "./AudioHandler.js";
 import { AudioMessage } from "./AudioMessage.js";
-import { createAudioPlayerFactory } from "./audioPlayerFactory.js";
+import { createAudioPlayerFactory } from "./AudioPlayer.js";
+import { Recording } from "./Recording.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
     try {
@@ -10,7 +12,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const audioPlayer = createAudioPlayerFactory();
 
-        const audioHandler = new AudioHandler(mediaRecorder);
+        let recording = new Recording(audioPlayer);
+
+        const audioHandler = new AudioHandler(mediaRecorder, recording);
+
+        const audioControls = new AudioControls(audioHandler);
+
+        console.log('Scanning for control buttons...');
+        audioControls.scanAudioControlButtons();
 
         const audioMessages = document.querySelectorAll('.audioMessage');
         audioMessages.forEach(function (message) {

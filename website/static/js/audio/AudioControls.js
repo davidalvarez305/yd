@@ -6,7 +6,6 @@ import { AudioHandler } from "./AudioHandler.js";
 export class AudioControls {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
-        this._scanAudioControlButtons();
     }
 
     handlePlayAudio(btn) {
@@ -44,14 +43,19 @@ export class AudioControls {
     }
 
     handleStopRecording() {
-        this.audioHandler.handleStopRecording();
+        this.audioHandler.handleStopRecording(function(file) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+        
+            messageMedia.files = dataTransfer.files;
+        });
     }
 
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
     }
 
-    _scanAudioControlButtons() {
+    scanAudioControlButtons() {
         const buttonBindings = [
             ['.playAudio',       btn => this.handlePlayAudio(btn)],
             ['.pauseAudio',      btn => this.handlePauseAudio(btn)],
@@ -65,9 +69,11 @@ export class AudioControls {
 
         buttonBindings.forEach(([selector, handler]) => {
             const buttons = document.querySelectorAll(selector);
-            buttons.forEach(button =>
-                button.addEventListener("click", (e) => handler(e?.currentTarget ?? e))
-            );
+            buttons.forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    handler(event?.currentTarget ?? event);
+                });
+            });
         });
     }
 }
