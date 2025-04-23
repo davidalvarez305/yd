@@ -287,7 +287,7 @@
 {% block extra_scripts %}
     {% if js_files %}
         {% for js_file in js_files %}
-            <script src="{% static js_file %}"></script>
+            <script type="module" src="{% static js_file %}"></script>
         {% endfor %}
     {% endif %}
 {% endblock %}
