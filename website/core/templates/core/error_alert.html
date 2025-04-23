@@ -1,4 +1,4 @@
-<div id="alertModal">
+<div id="alertModal" data-modal-id="alertModal" class="modalContainer">
     <div class="fixed inset-x-0 top-0 z-60 m-2 sm:m-4">
         <div
             class="container mx-auto flex items-center justify-between rounded-lg bg-primary-700 p-4 shadow-lg xl:max-w-7xl">
@@ -14,7 +14,7 @@
                 </p>
             </div>
             <div class="ml-2 flex items-center">
-                <button type="button"
+                <button type="button" data-modal-id="alertModal"
                     class="closeModal inline-flex items-center justify-center rounded p-1 text-white opacity-75 hover:opacity-100 focus:outline-none focus:ring focus:ring-gray-500/25 active:opacity-75">
                     <svg class="hi-solid hi-x inline-block size-5" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
@@ -27,7 +27,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    if (modalHelper) modalHelper.register({ modalId: 'alertModal' });
-</script>
