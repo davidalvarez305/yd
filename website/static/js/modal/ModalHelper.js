@@ -1,17 +1,17 @@
 import Modal from "./Modal.js";
 
-const MODAL_SELECTOR = '.modalContainer';
+const MODAL_SELECTOR = '[data-modal]';
 const OPEN_SELECTOR = '.openModal';
 const CLOSE_SELECTOR = '.closeModal';
 
 class ModalHelper {
     constructor() {
         this.modals = new Map();
-        this._autoRegister();
-        this._scanForTriggers();
+        this._handleScanModals();
     }
 
-    _autoRegister() {
+    _handleScanModals() {
+        // Scan Modals
         const modals = document.querySelectorAll(MODAL_SELECTOR);
 
         modals.forEach((element) => {
@@ -24,9 +24,8 @@ class ModalHelper {
 
             this.modals.set(element.dataset.modalId, modal);
         });
-    }
 
-    _scanForTriggers() {
+        // Scan Triggers
         const triggers = document.querySelectorAll(OPEN_SELECTOR);
 
         triggers.forEach((trigger) => {
@@ -35,6 +34,7 @@ class ModalHelper {
             trigger.addEventListener('click', () => this._handleOpenModal(trigger.dataset.modalId));
         });
 
+        // Scan Close Buttons
         const closeButtons = document.querySelectorAll(CLOSE_SELECTOR);
 
         closeButtons.forEach((button) => {
@@ -81,8 +81,4 @@ class ModalHelper {
 
 document.addEventListener("DOMContentLoaded", () => {
     window.modalHelper = new ModalHelper();
-});
-
-document.body.addEventListener('htmx:afterSwap', () => {
-    window.modalHelper._scanForTriggers();
 });

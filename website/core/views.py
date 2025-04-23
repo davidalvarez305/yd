@@ -191,14 +191,10 @@ class QuoteView(BaseWebsiteView):
         form = QuoteForm(request.POST)
 
         if not form.is_valid():
-            return self.alert(request, "Form fields incorrectly submitted.", AlertStatus.BAD_REQUEST)
+            errors = '\n'.join([f"{', '.join(errors)}" for _, errors in form.errors.items()])
+            return self.alert(request, errors, AlertStatus.BAD_REQUEST)
 
         try:
-            cleaned_phone_number = form.cleaned_data['phone_number']
-
-            if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-                return self.alert(request, "We already have this info saved", AlertStatus.BAD_REQUEST)
-
             with transaction.atomic():
                 lead = form.save()
 

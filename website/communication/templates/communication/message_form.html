@@ -189,7 +189,8 @@
 
     fileAttachment.addEventListener('click', () => handleFileAttachment());
 
-    fileAttachment.addEventListener('change', (e) => {
+    messageMedia.addEventListener('change', (e) => {
+        console.log(e);
         const count = e.target.files.length;
 
         switch (count) {

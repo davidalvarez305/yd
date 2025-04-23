@@ -177,8 +177,6 @@ class QuoteForm(BaseModelForm):
         model = Lead
         fields = ['full_name', 'phone_number', 'message', 'opt_in_text_messaging']
 
-
-
 class ServiceForm(BaseModelForm):
     service_type = forms.ModelChoiceField(
         queryset=ServiceType.objects.all(),

@@ -1,4 +1,4 @@
-<div id="alertModal" data-modal-id="alertModal" class="modalContainer">
+<div id="alertModal" data-modal-id="alertModal" data-modal="alert">
     <div class="fixed inset-x-0 top-0 z-60 m-2 sm:m-4">
         <div
             class="container mx-auto flex items-center justify-between rounded-lg bg-primary-700 p-4 shadow-lg xl:max-w-7xl">
@@ -27,3 +27,9 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.body.addEventListener('htmx:afterSwap', function () {
+        window.modalHelper._handleScanModals();
+    });
+</script>
