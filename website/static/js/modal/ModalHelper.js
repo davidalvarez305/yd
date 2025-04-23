@@ -14,22 +14,18 @@ class ModalHelper {
         this.defaultDisplayStyle = displayStyle;
         this.globalOnClose = onClose;
 
-        this.modals = new Map();   // modalId → Modal instance
-        this.configs = new Map();  // modalId → modal config object
+        this.modals = new Map();
+        this.configs = new Map();
     }
 
     autoRegisterModals() {
         const modalElements = document.querySelectorAll(this.modalSelector);
 
         modalElements.forEach((element) => {
-            const modalId = element.id;
-            if (!modalId) {
-                console.warn("Modal element is missing an ID:", element);
-                return;
-            }
+            if (!element.dataset.modalId) return;
 
             const config = {
-                modalId,
+                modalId: element.dataset.modalId,
                 closeButtonSelector: element.dataset.closeButtonSelector || this.defaultCloseButtonSelector,
                 displayStyle: element.dataset.displayStyle || this.defaultDisplayStyle,
                 closeOnOutsideClick: element.dataset.closeOnOutsideClick !== 'false',
@@ -42,10 +38,7 @@ class ModalHelper {
 
     register({ modalId, closeButtonSelector, displayStyle, onClose, closeOnOutsideClick = true }) {
         const element = document.getElementById(modalId);
-        if (!element) {
-            console.warn(`Modal element with ID ${modalId} not found.`);
-            return;
-        }
+        if (!element) return;
 
         const modal = new Modal({
             element,
