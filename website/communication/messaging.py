@@ -9,9 +9,9 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
 from .forms import MessageForm
-from .factory import MessagingServiceFactory
 from .models import Message, MessageMedia
 from .utils import strip_country_code, create_generic_file_name
+from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DEBUG
 
 class MessagingServiceInterface(ABC):
     @abstractmethod
@@ -137,3 +137,20 @@ class MessagingService:
 
     def handle_outbound_message(self, request: HttpRequest):
         return self.service.handle_outbound_message(request)
+    
+class MessagingServiceFactory:
+    @staticmethod
+    def get_service() -> MessagingServiceInterface:
+        """
+        Returns the appropriate messaging service instance
+        based on the current environment.
+        """
+        if DEBUG:
+            return MessagingServiceFactory._create_twilio_service()
+        return MessagingServiceFactory._create_twilio_service()
+
+    @staticmethod
+    def _create_twilio_service() -> TwilioMessagingService:
+        client = Client(auth_token=TWILIO_AUTH_TOKEN, account_sid=TWILIO_ACCOUNT_SID)
+        validator = RequestValidator(TWILIO_AUTH_TOKEN)
+        return TwilioMessagingService(client=client, validator=validator)
