@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
 import requests
-import os
-import subprocess
-import tempfile
 
 from django.core.files import File
 from django.http import HttpRequest
@@ -11,10 +8,11 @@ from django.core.files.base import ContentFile
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
+from core.utils import create_generic_file_name
 
 from .forms import MessageForm
 from .models import Message, MessageMedia
-from .utils import strip_country_code, create_generic_file_name
+from .utils import strip_country_code
 from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DEBUG
 
 class MessagingServiceInterface(ABC):
