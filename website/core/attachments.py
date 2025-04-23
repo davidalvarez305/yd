@@ -33,7 +33,7 @@ class AttachmentServiceMixin:
                         file=processed_file.file,
                         field_name=key,
                         name=processed_file.name,
-                        content_type="audio/mpeg",  # converted format
+                        content_type="audio/mpeg",
                         size=processed_file.size,
                         charset=None
                     )
@@ -51,9 +51,9 @@ class AttachmentServiceMixin:
         return self._convert_audio_format(request_file, file_name, "webm", "mp3", target_dir)
 
     def _convert_audio_format(self, django_request_file, file_name: str, from_format: str, to_format: str, target_dir: str) -> File:
-        from_path = os.path.join(target_dir, file_name).replace("\\", "/")
+        from_path = os.path.join(target_dir, file_name)
         to_file_name = file_name.replace(f".{from_format}", f".{to_format}")
-        to_path = os.path.join(target_dir, to_file_name).replace("\\", "/")
+        to_path = os.path.join(target_dir, to_file_name)
 
         try:
             with open(from_path, "wb") as tmp_file:
