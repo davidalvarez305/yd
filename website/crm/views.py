@@ -27,7 +27,7 @@ class CRMContextMixin:
             "unread_messages": Message.objects.filter(is_read=False).count(),
         })
         context.setdefault('js_files', [])
-        context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal.js']
+        context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal/ModalHelper.js']
         return context
 
 class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):

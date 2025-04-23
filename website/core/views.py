@@ -78,7 +78,7 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
 
         context['js_files'] = [
             'js/main.js',
-            'js/modal.js'
+            'js/modal/ModalHelper.js'
         ]
 
         return context

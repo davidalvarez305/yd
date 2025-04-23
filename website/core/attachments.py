@@ -67,7 +67,7 @@ class AttachmentServiceMixin:
                 return File(converted_file, name=to_file_name)
 
         except Exception as e:
-            raise AttachmentProcessingError(f"Pydub conversion failed: {str(e)}") from e
+            raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
         finally:
             if os.path.exists(from_path):
