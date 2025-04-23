@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const audioControls = new AudioControls(audioHandler);
 
-        console.log('Scanning for control buttons...');
         audioControls.scanAudioControlButtons();
 
         const audioMessages = document.querySelectorAll('.audioMessage');

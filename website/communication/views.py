@@ -4,6 +4,7 @@ from django.http import JsonResponse, HttpRequest
 from crm.views import CRMBaseCreateView
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
+from core.attachments import AttachmentServiceMixin
 
 from .messaging import MessagingService
 from .models import Message
@@ -21,7 +22,7 @@ def handle_inbound_message(request: HttpRequest):
     except Exception as e:
         return JsonResponse({'data': f'Unexpected error: {str(e)}'}, status=500)
 
-class MessageCreateView(CRMBaseCreateView, AlertMixin):
+class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
     model = Message
     form_class = MessageForm
 

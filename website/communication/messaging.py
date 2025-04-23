@@ -86,7 +86,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             raise Exception("Invalid form submitted.")
         
         message = form.save(commit=False)
-        message.text_from = "7869987121"
+        message.text_from = request.user.phone_number
         message.text_to = form.cleaned_data.get("text_to")
         message.is_inbound = False
         message.is_read = True
@@ -95,76 +95,22 @@ class TwilioMessagingService(MessagingServiceInterface):
         media_urls = []
         temp_media = []
 
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
         for file in media_files:
-            file_name = create_generic_file_name(file.content_type)
             content_type = file.content_type
 
-            if content_type == "audio/webm":
-                try:
-                    webm_path = os.path.join(base_dir, f"audio_files/{file_name}").replace("\\", "/")
-                    os.makedirs(os.path.dirname(webm_path), exist_ok=True)
+            media = MessageMedia(
+                message=None,
+                content_type=content_type,
+            )
+            media.file.save(file.name, file, save=False)
+            media_urls.append(media.file.url)
+            temp_media.append(media)
 
-                    with open(webm_path, "wb") as tmp_webm:
-                        for chunk in file.chunks():
-                            tmp_webm.write(chunk)
-
-                    mp3_path = webm_path.replace(".webm", ".mp3")
-                    print(webm_path)
-                    print(mp3_path)
-
-                    try:
-                        command = f'ffmpeg -y -i "{webm_path}" -codec:a libmp3lame -qscale:a 2 "{mp3_path}"'
-                        process = subprocess.run(
-                            command,
-                            shell=True,
-                            check=True,
-                            stderr=subprocess.PIPE,
-                            stdout=subprocess.PIPE
-                        )
-                    except subprocess.CalledProcessError as e:
-                        print("FFmpeg failed with error:")
-                        print(e.stderr.decode())
-                        raise
-
-                    with open(mp3_path, "rb") as mp3_file:
-                        django_file = File(mp3_file)
-                        mp3_file_name = os.path.basename(mp3_path)
-
-                        media = MessageMedia(
-                            message=None,
-                            content_type="audio/mpeg",
-                        )
-                        media.file.save(mp3_file_name, django_file, save=False)
-                        media_urls.append(media.file.url)
-                        temp_media.append(media)
-
-                finally:
-                    pass
-                    """ # Clean up the webm and mp3 files
-                    if os.path.exists(webm_path):
-                        os.remove(webm_path)
-                    if os.path.exists(mp3_path):
-                        os.remove(mp3_path) """
-
-            else:
-                media = MessageMedia(
-                    message=None,
-                    content_type=content_type,
-                )
-                media.file.save(file_name, file, save=False)
-                media_urls.append(media.file.url)
-                temp_media.append(media)
-
-        # Send the message with the media
         response = self._send_text_message(message, media_urls)
 
-        # Save the message with external ID
         message.external_id = response.sid
         message.save()
 
-        # Save media associations
         for media in temp_media:
             media.message = message
             media.save()

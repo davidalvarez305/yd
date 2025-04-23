@@ -164,6 +164,7 @@ else:
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
+UPLOADS_URL = os.path.join(BASE_DIR, "uploads")
 
 # Storage Configuration
 if DEBUG:
