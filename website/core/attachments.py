@@ -1,4 +1,6 @@
 import os
+import mimetypes
+
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils.datastructures import MultiValueDict
@@ -25,7 +27,7 @@ class AttachmentServiceMixin:
             for request_file in file_list:
                 content_type = request_file.content_type
 
-                if content_type == "audio/webm":
+                if content_type.startswith("audio/"):
                     file_name = create_generic_file_name(content_type=content_type)
                     processed_file = self._handle_attachment(request_file, file_name, content_type, upload_root)
 
@@ -48,11 +50,12 @@ class AttachmentServiceMixin:
         target_dir = os.path.join(upload_root, sub_dir)
         os.makedirs(target_dir, exist_ok=True)
 
-        return self._convert_audio_format(request_file, file_name, "webm", "mp3", target_dir)
+        return self._convert_audio_format(request_file, file_name, "mp3", target_dir)
 
-    def _convert_audio_format(self, django_request_file, file_name: str, from_format: str, to_format: str, target_dir: str) -> File:
+    def _convert_audio_format(self, django_request_file, file_name: str, to_format: str, target_dir: str) -> File:
         from_path = os.path.join(target_dir, file_name)
-        to_file_name = file_name.replace(f".{from_format}", f".{to_format}")
+        original_extension = os.path.splitext(from_path)[1].lstrip(".")
+        to_file_name = file_name.replace(original_extension, to_format)
         to_path = os.path.join(target_dir, to_file_name)
 
         try:
@@ -60,7 +63,7 @@ class AttachmentServiceMixin:
                 for chunk in django_request_file.chunks():
                     tmp_file.write(chunk)
 
-            audio = AudioSegment.from_file(from_path, format=from_format)
+            audio = AudioSegment.from_file(from_path, format=original_extension)
             audio.export(to_path, format=to_format, bitrate="192k")
 
             with open(to_path, "rb") as converted_file:
@@ -69,11 +72,11 @@ class AttachmentServiceMixin:
         except Exception as e:
             raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
-        finally:
+        """ finally:
             if os.path.exists(from_path):
                 os.remove(from_path)
             if os.path.exists(to_path):
-                os.remove(to_path)
+                os.remove(to_path) """
 
     def _get_sub_dir(self, content_type: str) -> str:
         main_type = content_type.split("/")[0]
