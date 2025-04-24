@@ -35,4 +35,4 @@ class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
             service.handle_outbound_message(request)
             return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
         except Exception as e:
-            return self.alert(request, f'Unexpected error: {str(e)}', AlertStatus.INTERNAL_ERROR)
+            return self.alert(request, f'{str(e)}', AlertStatus.INTERNAL_ERROR)

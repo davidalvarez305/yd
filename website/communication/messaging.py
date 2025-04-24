@@ -81,7 +81,7 @@ class TwilioMessagingService(MessagingServiceInterface):
         form = MessageForm(request.POST, request.FILES)
 
         if not form.is_valid():
-            raise Exception("Invalid form submitted.")
+            raise Exception(form.errors.as_text())
         
         message = form.save(commit=False)
         message.text_from = request.user.phone_number
@@ -89,20 +89,21 @@ class TwilioMessagingService(MessagingServiceInterface):
         message.is_inbound = False
         message.is_read = True
 
-        media_files = form.cleaned_data.get('message_media', [])
         media_urls = []
         temp_media = []
 
-        for file in media_files:
-            content_type = file.content_type
+        media_files = form.cleaned_data.get('message_media') or []
+        if media_files:
+            for file in media_files:
+                content_type = file.content_type
 
-            media = MessageMedia(
-                message=None,
-                content_type=content_type,
-            )
-            media.file.save(file.name, file, save=False)
-            media_urls.append(media.file.url)
-            temp_media.append(media)
+                media = MessageMedia(
+                    message=None,
+                    content_type=content_type,
+                )
+                media.file.save(file.name, file, save=False)
+                media_urls.append(media.file.url)
+                temp_media.append(media)
 
         response = self._send_text_message(message, media_urls)
 
@@ -128,7 +129,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             return response
 
         except TwilioRestException as e:
-            raise Exception(f"Twilio error: {e.msg}") from e
+            raise Exception(e.msg) from e
 
 class MessagingService:
     def __init__(self):
