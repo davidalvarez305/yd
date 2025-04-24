@@ -1,3 +1,4 @@
+from io import BytesIO
 import os
 import mimetypes
 
@@ -56,27 +57,25 @@ class AttachmentServiceMixin:
         from_path = os.path.join(target_dir, file_name)
         original_extension = os.path.splitext(from_path)[1].lstrip(".")
         to_file_name = file_name.replace(original_extension, to_format)
-        to_path = os.path.join(target_dir, to_file_name)
 
         try:
             with open(from_path, "wb") as tmp_file:
                 for chunk in django_request_file.chunks():
                     tmp_file.write(chunk)
 
-            audio = AudioSegment.from_file(from_path, format=original_extension)
-            audio.export(to_path, format=to_format, bitrate="192k")
+            audio = AudioSegment.from_file(from_path)
+            buffer = BytesIO()
+            audio.export(buffer, format=to_format, bitrate="192k")
+            buffer.seek(0)
 
-            with open(to_path, "rb") as converted_file:
-                return File(converted_file, name=to_file_name)
+            return File(buffer, name=to_file_name)
 
         except Exception as e:
             raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
-        """ finally:
+        finally:
             if os.path.exists(from_path):
                 os.remove(from_path)
-            if os.path.exists(to_path):
-                os.remove(to_path) """
 
     def _get_sub_dir(self, content_type: str) -> str:
         main_type = content_type.split("/")[0]
