@@ -1,0 +1,87 @@
+<!-- Chat Messages -->
+<div id="leadChatMessages" class="flex max-h-96 grow flex-col gap-4 overflow-y-auto p-6">
+    {% for message in lead.messages.all %}
+        {% if message.is_inbound %}
+            <!-- Lead Message -->
+            <div class="flex gap-2">
+                <div class="flex flex-none items-end pb-6">
+                    <img src="{{ message.sender.avatar_url }}"
+                        class="aspect-square size-8 rounded-full object-cover" />
+                </div>
+                <div class="grow">
+                    <div class="flex flex-col items-start">
+                        <div class="relative max-w-full rounded-2xl rounded-bl-none bg-gray-100 px-3 py-2.5 text-sm sm:max-w-[80%] dark:bg-gray-700/50">
+                            <p>{{ message.text }}</p>
+                            {% if message.media.all %}
+                                {% for media in message.media.all %}
+                                    {% if media.is_image %}
+                                        <img src="{{ media.file.url }}" alt="Image" class="w-full rounded-md mt-2">
+                                    {% elif media.is_audio %}
+                                        <audio controls class="w-full mt-2">
+                                            <source src="{{ media.file.url }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    {% elif media.is_video %}
+                                        <video controls class="w-full mt-2">
+                                            <source src="{{ media.file.url }}" type="video/mp4">
+                                            Your browser does not support the video element.
+                                        </video>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="flex h-6 items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            <span>{{ message.date_created|date:"h:i A" }}</span>
+                            <span class="opacity-50">•</span>
+                            {% if message.is_read %}
+                                <span class="text-primary-700 dark:text-primary-400">Read</span>
+                            {% else %}
+                                <span>{{ message.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END Lead Message -->
+        {% else %}
+            <!-- User Message -->
+            <div class="flex flex-row-reverse gap-2">
+                <div class="flex flex-none items-end pb-6">
+                    <img src="{{ message.sender.avatar_url }}"
+                        class="aspect-square size-8 rounded-full object-cover" />
+                </div>
+                <div class="grow">
+                    <div class="flex flex-col items-end">
+                        <div class="relative max-w-full rounded-2xl rounded-br-none bg-primary-700 px-3 py-2.5 text-sm text-white sm:max-w-[80%]">
+                            <p>{{ message.text }}</p>
+                            {% if message.media.all %}
+                                {% for media in message.media.all %}
+                                    {% if media.is_image %}
+                                        <img src="{{ media.file.url }}" alt="Image" class="w-full rounded-md mt-2">
+                                    {% elif media.is_audio %}
+                                        <audio controls class="w-full mt-2">
+                                            <source src="{{ media.file.url }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    {% elif media.is_video %}
+                                        <video controls class="w-full mt-2">
+                                            <source src="{{ media.file.url }}" type="video/mp4">
+                                            Your browser does not support the video element.
+                                        </video>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="flex h-6 items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            <span>{{ message.date_created|date:"h:i A" }}</span>
+                            <span class="opacity-50">•</span>
+                            <span>{{ message.status }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END User Message -->
+        {% endif %}
+    {% endfor %}
+</div>
+<!-- END Chat Messages -->

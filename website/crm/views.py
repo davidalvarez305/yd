@@ -185,7 +185,11 @@ class LeadDetailView(CRMBaseDetailView):
         lead = self.object
 
         context['lead_marketing_form'] = LeadMarketingForm(instance=LeadMarketing.objects.filter(lead=lead).first())
-        context['message_form'] = MessageForm()
+        
+        context['chat_form'] = MessageForm(initial={
+            'text_to': lead.phone_number,
+            'text_from': self.request.user.phone_number,
+        })
 
         return context
 

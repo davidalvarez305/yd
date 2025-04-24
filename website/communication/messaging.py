@@ -21,7 +21,7 @@ class MessagingServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def handle_outbound_message(self, request: HttpRequest) -> None:
+    def handle_outbound_message(self, form: MessageForm) -> None:
         pass
 
     @abstractmethod
@@ -77,14 +77,9 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         return message
 
-    def handle_outbound_message(self, request: HttpRequest) -> None:
-        form = MessageForm(request.POST, request.FILES)
-
-        if not form.is_valid():
-            raise Exception(form.errors.as_text())
-        
+    def handle_outbound_message(self, form: MessageForm) -> None:
         message = form.save(commit=False)
-        message.text_from = request.user.phone_number
+        message.text_from = form.cleaned_data.get("text_from")
         message.text_to = form.cleaned_data.get("text_to")
         message.is_inbound = False
         message.is_read = True
@@ -138,8 +133,8 @@ class MessagingService:
     def handle_inbound_message(self, request: HttpRequest):
         return self.service.handle_inbound_message(request)
 
-    def handle_outbound_message(self, request: HttpRequest):
-        return self.service.handle_outbound_message(request)
+    def handle_outbound_message(self, form: MessageForm):
+        return self.service.handle_outbound_message(form)
     
 class MessagingServiceFactory:
     @staticmethod

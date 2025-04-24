@@ -85,7 +85,7 @@ class Lead(models.Model):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
     
     def messages(self):
-        return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number))
+        return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('created_at')
     
     def visits(self):
         from marketing.models import Visit, LeadMarketing

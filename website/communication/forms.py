@@ -21,6 +21,7 @@ class MessageForm(BaseModelForm):
     )
 
     text_to = forms.CharField(widget=forms.HiddenInput())
+    text_from = forms.CharField(widget=forms.HiddenInput())
 
     def clean(self):
         cleaned_data = super().clean()
@@ -34,4 +35,4 @@ class MessageForm(BaseModelForm):
 
     class Meta:
         model = Message
-        fields = ['text', 'message_media']
+        fields = ['text', 'message_media', 'text_to', 'text_from']

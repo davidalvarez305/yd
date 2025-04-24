@@ -1,11 +1,23 @@
+
 import { AudioHandler } from "./AudioHandler.js";
 
 /**
-* @param {AudioHandler} audioHandler
-*/
+ * @param {AudioHandler} audioHandler
+ */
 export class AudioControls {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
+
+        this.pauseBtn = document.querySelector(".pauseRecording");
+        this.resumeBtn = document.querySelector(".resumeRecording");
+        this.stopBtn = document.querySelector(".stopRecording");
+    }
+
+    toggleRecordingControls(show) {
+        [this.pauseBtn, this.resumeBtn, this.stopBtn].forEach(btn => {
+            if (!btn) return;
+            btn.classList.toggle("hidden", !show);
+        });
     }
 
     handlePlayAudio(btn) {
@@ -36,23 +48,29 @@ export class AudioControls {
 
     handleBeginRecording() {
         this.audioHandler.handleBeginRecording();
+        this.toggleRecordingControls(true);
     }
 
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording();
     }
 
-    handleStopRecording() {
-        this.audioHandler.handleStopRecording(function(file) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-        
-            messageMedia.files = dataTransfer.files;
-        });
-    }
-
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
+    }
+
+    handleStopRecording() {
+        this.audioHandler.handleStopRecording(file => {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+
+            const messageMedia = document.getElementById("messageMedia");
+            if (messageMedia) {
+                messageMedia.files = dataTransfer.files;
+            }
+        });
+
+        this.toggleRecordingControls(false);
     }
 
     scanAudioControlButtons() {
@@ -69,9 +87,9 @@ export class AudioControls {
 
         buttonBindings.forEach(([selector, handler]) => {
             const buttons = document.querySelectorAll(selector);
-            buttons.forEach(function (button) {
-                button.addEventListener("click", function (event) {
-                    handler(event?.currentTarget ?? event);
+            buttons.forEach(button => {
+                button.addEventListener("click", event => {
+                    handler(event.currentTarget ?? event);
                 });
             });
         });
