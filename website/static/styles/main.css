@@ -2966,11 +2966,6 @@ select{
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 }
 
-.hover\:bg-gray-300:hover{
-  --tw-bg-opacity: 1;
-  background-color: rgb(209 213 219 / var(--tw-bg-opacity, 1));
-}
-
 .hover\:bg-gray-50:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(249 250 251 / var(--tw-bg-opacity, 1));
@@ -3283,11 +3278,6 @@ select{
   background-color: rgb(0 0 0 / 0.2);
 }
 
-.dark\:bg-gray-600:is(.dark *){
-  --tw-bg-opacity: 1;
-  background-color: rgb(75 85 99 / var(--tw-bg-opacity, 1));
-}
-
 .dark\:bg-gray-700:is(.dark *){
   --tw-bg-opacity: 1;
   background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
@@ -3433,11 +3423,6 @@ select{
 .dark\:hover\:border-gray-600:hover:is(.dark *){
   --tw-border-opacity: 1;
   border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
-}
-
-.dark\:hover\:bg-gray-500:hover:is(.dark *){
-  --tw-bg-opacity: 1;
-  background-color: rgb(107 114 128 / var(--tw-bg-opacity, 1));
 }
 
 .dark\:hover\:bg-gray-600:hover:is(.dark *){
