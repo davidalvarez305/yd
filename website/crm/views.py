@@ -85,6 +85,7 @@ class CRMTableView(CRMBaseListView):
     context_object_name = "table"
     table_class = None
     create_url = None
+    show_add_button = True
 
     def get_create_url(self):
         if self.create_url:
@@ -97,6 +98,7 @@ class CRMTableView(CRMBaseListView):
         table = self.table_class(self.object_list, request=self.request)
         context["table"] = table
         context['create_url'] = self.get_create_url()
+        context['show_add_button'] = self.show_add_button 
         return context
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
