@@ -159,6 +159,14 @@ class QuoteForm(BaseModelForm):
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
+
+        qs = Lead.objects.filter(phone_number=phone_number)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError('Someone has already submitted a request from this phone number.')
+
         if not re.match(r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
             raise forms.ValidationError(
                 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
