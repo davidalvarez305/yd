@@ -1,0 +1,51 @@
+{% extends 'crm/base.html' %}
+
+{% block content %}
+<div class="flex flex-col my-6 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
+    <div
+        class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+        <a href="{% url create_url %}"
+            class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+            Add
+        </a>
+    </div>
+</div>
+
+<div class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    {{ table.as_html }}
+
+    <!-- Pagination -->
+    <div class="grow border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+        <nav class="flex justify-between items-center">
+            <!-- Previous Page Link -->
+            <a href="?page={{ page_obj.previous_page_number }}" 
+               {% if not page_obj.has_previous %}class="disabled" {% endif %}
+               class="pagination-link inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                <!-- Left Arrow SVG -->
+                <svg class="hi-mini hi-chevron-left -mx-1.5 inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                          d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                          clip-rule="evenodd"/>
+                </svg>
+                <!-- END Left Arrow SVG -->
+            </a>
+    
+            <!-- Next Page Link -->
+            <a href="?page={{ page_obj.next_page_number }}" 
+               {% if not page_obj.has_next %}class="disabled" {% endif %}
+               class="pagination-link inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                <!-- Right Arrow SVG -->
+                <svg class="hi-mini hi-chevron-right -mx-1.5 inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                          clip-rule="evenodd"/>
+                </svg>
+                <!-- END Right Arrow SVG -->
+            </a>
+        </nav>
+    </div>
+    <!-- END Pagination -->
+</div>
+{% endblock %}

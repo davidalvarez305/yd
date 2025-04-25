@@ -81,27 +81,22 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
         return context
 
 class CRMTableView(CRMBaseListView):
-    model = None
-    template_name = 'crm/base_table.html'
-    paginate_by = 10
+    template_name = "crm/table_view.html"
+    context_object_name = "table"
+    table_class = None
+    create_url = None
 
-    delete_url = None
-    detail_url = None
+    def get_create_url(self):
+        if self.create_url:
+            return self.create_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_create"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        columns = [field.name.lower() for field in self.model._meta.fields]
-
-        rows = []
-        for obj in context[self.context_object_name]:
-            rows.append([getattr(obj, field) for field in columns])
-
-        context['columns'] = columns
-        context['rows'] = rows
-        context['delete_url'] = self.delete_url
-        context['detail_url'] = self.detail_url
-
+        table = self.table_class(self.object_list, request=self.request)
+        context["table"] = table
+        context['create_url'] = self.get_create_url()
         return context
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
