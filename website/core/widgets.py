@@ -62,3 +62,27 @@ class DeleteButtonWidget:
             "request": request,
         }
         return mark_safe(render_to_string("components/delete_button_cell.html", context))
+
+class ViewButtonWidget:
+    def __init__(self, detail_url_name, pk=0):
+        """
+        :param detail_url_name: Django URL name (string).
+        :param pk: Either the index (int) or key (str) to extract the PK from the row.
+        """
+        self.detail_url_name = detail_url_name
+        self.pk = pk
+
+    def get_pk(self, row):
+        if isinstance(self.pk, int):
+            return row[self.pk]
+        elif isinstance(self.pk, str):
+            return row.get(self.pk)
+        raise ValueError(f"pk must be an int (for tuple row) or str (for dict row), got {type(self.pk).__name__} with row={row}")
+
+    def render(self, row, request=None):
+        context = {
+            "pk": self.get_pk(row),
+            "detail_url_name": self.detail_url_name,
+            "request": request,
+        }
+        return mark_safe(render_to_string("components/view_button_widget.html", context))
