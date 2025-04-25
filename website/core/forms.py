@@ -152,7 +152,7 @@ class QuoteForm(BaseModelForm):
         widget=ToggleSwitchWidget(attrs={
             'id': 'opt_in_text_messaging',
             'message': 'I consent to receiving text message notifications.',
-            'data-modal-id': 'quoteModal',
+            'data-modal-id': 'optinConfirmationModal',
             'class': 'openModal',
         }),
     )

@@ -298,8 +298,8 @@
 		const optIn = document.getElementById("opt_in_text_messaging");
 		const optInModal = modalHelper.get('optinConfirmationModal');
 
-		optInModal.setOnClose = (event) => {
-			const buttonName = event.target.getAttribute('name');
+		optInModal.setOnClose(event => {
+			const buttonName = event?.target?.getAttribute('name');
 
 			switch (buttonName) {
 				case "confirm":
@@ -309,7 +309,7 @@
 					optIn.checked = false;
 					break;
 			}
-		};
+		});
 
 		optIn.addEventListener("click", () => optInModal.open());
 	}
@@ -348,7 +348,7 @@
 		};
 	};
 
-	document.addEventListener("load", () => handleConfirmationLogic());
+	window.addEventListener("load", () => handleConfirmationLogic());
 </script>
 <!-- END JS Scripts -->
 
