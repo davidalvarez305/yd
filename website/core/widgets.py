@@ -1,6 +1,8 @@
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
 
+# Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
     def __init__(self, attrs=None):
         default_attrs = {
@@ -36,3 +38,27 @@ class ToggleSwitchWidget(CheckboxInput):
         If value is True, the checkbox is checked; otherwise, it is unchecked.
         """
         return value is True or value == 'on'
+    
+class DeleteButtonWidget:
+    def __init__(self, delete_url_name, pk=0):
+        """
+        :param delete_url_name: Django URL name (string).
+        :param pk: Either the index (int) or key (str) to extract the PK from the row.
+        """
+        self.delete_url_name = delete_url_name
+        self.pk = pk
+
+    def get_pk(self, row):
+        if isinstance(self.pk, int):
+            return row[self.pk]
+        elif isinstance(self.pk, str):
+            return row.get(self.pk)
+        raise ValueError("pk must be an int (for tuple row) or str (for dict row)")
+
+    def render(self, row, request=None):
+        context = {
+            "pk": self.get_pk(row),
+            "delete_url_name": self.delete_url_name,
+            "request": request,
+        }
+        return mark_safe(render_to_string("components/delete_button_cell.html", context))

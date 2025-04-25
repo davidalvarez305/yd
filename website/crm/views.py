@@ -80,6 +80,30 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
 
         return context
 
+class CRMTableView(CRMBaseListView):
+    model = None
+    template_name = 'crm/base_table.html'
+    paginate_by = 10
+
+    delete_url = None
+    detail_url = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        columns = [field.name.lower() for field in self.model._meta.fields]
+
+        rows = []
+        for obj in context[self.context_object_name]:
+            rows.append([getattr(obj, field) for field in columns])
+
+        context['columns'] = columns
+        context['rows'] = rows
+        context['delete_url'] = self.delete_url
+        context['detail_url'] = self.detail_url
+
+        return context
+
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     success_url = None
 
@@ -229,6 +253,12 @@ class LeadArchiveView(CRMBaseUpdateView):
 class CocktailListView(CRMBaseListView):
     model = Cocktail
     create_form_class = CocktailForm
+
+class CocktailListView(CRMTableView):
+    model = Cocktail
+    create_form_class = CocktailForm
+    delete_url = 'cocktail_delete'
+    detail_url = 'cocktail_detail'
 
 class CocktailCreateView(CRMBaseCreateView):
     model = Cocktail
