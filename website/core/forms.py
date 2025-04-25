@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 import re
 
+from core.utils import add_form_field_class
 from core.widgets import ToggleSwitchWidget
 from core.models import Lead, Service, UnitType, User, ServiceType
 from communication.email import EmailService
@@ -22,36 +23,25 @@ class MultiFileField(forms.FileField):
 class StyledFormMixin:
     def apply_styling(self):
         for field_name, field in self.fields.items():
-            if isinstance(field.widget, forms.NumberInput):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary'
-                })
-            elif isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500'
-                })
-            elif isinstance(field.widget, forms.Select):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary'
-                })
-            elif isinstance(field.widget, forms.CheckboxInput):
-                field.widget.attrs.update({
-                    'class': 'peer sr-only'
-                })
-
-            field.widget.attrs['class'] = (field.widget.attrs.get('class', '') + ' font-medium').strip()
+            widget = field.widget
+            if isinstance(widget, forms.NumberInput):
+                add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary')
+            elif isinstance(widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
+                add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 placeholder-gray-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-primary-500')
+            elif isinstance(widget, forms.Select):
+                add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary')
+            elif isinstance(widget, forms.CheckboxInput):
+                add_form_field_class(widget, 'peer sr-only')
+            add_form_field_class(widget, 'font-medium')
 
 class FilterFormMixin:
     def apply_styling(self):
         for field_name, field in self.fields.items():
-            if isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm leading-6 placeholder-gray-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-primary-500'
-                })
-            elif isinstance(field.widget, (forms.Select, forms.ChoiceField)):
-                field.widget.attrs.update({
-                    'class': 'block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold leading-5 focus:border-blue-500 focus:ring focus:ring-blue-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-blue-500 sm:w-36'
-                })
+            widget = field.widget
+            if isinstance(widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.Textarea)):
+                add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm leading-6 placeholder-gray-400 focus:border-primary-500 focus:ring-3 focus:ring-primary-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-primary-500')
+            elif isinstance(widget, (forms.Select, forms.ChoiceField)):
+                add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold leading-5 focus:border-blue-500 focus:ring focus:ring-blue-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-blue-500 sm:w-36')
 
 class BaseForm(StyledFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
@@ -161,7 +151,9 @@ class QuoteForm(BaseModelForm):
         initial=True,
         widget=ToggleSwitchWidget(attrs={
             'id': 'opt_in_text_messaging',
-            'message': 'I consent to receiving text message notifications.'
+            'message': 'I consent to receiving text message notifications.',
+            'data-modal-id': 'quoteModal',
+            'class': 'openModal',
         }),
     )
 

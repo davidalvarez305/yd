@@ -298,7 +298,7 @@
 		const optIn = document.getElementById("opt_in_text_messaging");
 		const optInModal = modalHelper.get('optinConfirmationModal');
 
-		optInModal.setOnClose = function(event) {
+		optInModal.setOnClose = (event) => {
 			const buttonName = event.target.getAttribute('name');
 
 			switch (buttonName) {

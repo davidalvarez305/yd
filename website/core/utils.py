@@ -31,3 +31,8 @@ def create_generic_file_name(content_type: str) -> str:
         extension = mimetypes.guess_extension(content_type) or ".bin"
     
     return f"{uuid.uuid4()}{extension}"
+
+def add_form_field_class(widget, new_classes):
+    existing = widget.attrs.get('class', '')
+    all_classes = set(existing.split() + new_classes.split())
+    widget.attrs['class'] = ' '.join(sorted(all_classes))
