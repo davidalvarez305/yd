@@ -15,8 +15,10 @@ from core.forms import ServiceForm, UserForm
 from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
 from crm.models import Lead, Cocktail, Event
 from marketing.models import LeadMarketing
-from core.enums import AlertHTTPCodes, AlertStatus
+from core.enums import AlertStatus
 from core.mixins import AlertMixin
+from crm.tables import CocktailTable
+from core.widgets import DeleteButtonWidget, ViewButtonWidget
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
@@ -81,10 +83,12 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
         return context
 
 class CRMTableView(CRMBaseListView):
-    template_name = "crm/table_view.html"
+    template_name = "crm/base_table.html"
     context_object_name = "table"
     table_class = None
     create_url = None
+    detail_url = None
+    delete_url = None
     show_add_button = True
 
     def get_create_url(self):
@@ -93,12 +97,42 @@ class CRMTableView(CRMBaseListView):
         model_name = self.model._meta.model_name
         return f"{model_name}_create"
 
+    def get_detail_url(self):
+        if self.detail_url:
+            return self.detail_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_detail"
+
+    def get_delete_url(self):
+        if self.delete_url:
+            return self.delete_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_delete"
+
+    def configure_table_widgets(self, table):
+        """
+        Loop through fields and inject default URL names into widgets that support them.
+        """
+        for field in table.get_fields():
+            widget = getattr(field, "cell_widget", None)
+
+            if isinstance(widget, ViewButtonWidget) and widget.detail_url_name is None:
+                widget.detail_url_name = self.get_detail_url()
+
+            if isinstance(widget, DeleteButtonWidget) and widget.delete_url_name is None:
+                widget.delete_url_name = self.get_delete_url()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table = self.table_class(self.object_list, request=self.request)
+
+        table = self.table_class(self.object_list)
+        self.configure_table_widgets(table)
+
         context["table"] = table
-        context['create_url'] = self.get_create_url()
-        context['show_add_button'] = self.show_add_button 
+        context["create_url"] = self.get_create_url()
+        context["detail_url"] = self.get_detail_url()
+        context["delete_url"] = self.get_delete_url()
+        context["show_add_button"] = self.show_add_button
         return context
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
@@ -247,15 +281,13 @@ class LeadArchiveView(CRMBaseUpdateView):
 
         return redirect(redirect_url)
     
-class CocktailListView(CRMBaseListView):
+""" class CocktailListView(CRMBaseListView):
     model = Cocktail
-    create_form_class = CocktailForm
+    create_form_class = CocktailForm """
 
 class CocktailListView(CRMTableView):
     model = Cocktail
-    create_form_class = CocktailForm
-    delete_url = 'cocktail_delete'
-    detail_url = 'cocktail_detail'
+    table_class = CocktailTable
 
 class CocktailCreateView(CRMBaseCreateView):
     model = Cocktail

@@ -22,7 +22,6 @@ class TableField:
         self.header_widget = header_widget or TableHeaderWidget(self.label)
         self.cell_widget = cell_widget or TableCellWidget()
 
-
 class DeclarativeTableMeta(type):
     def __new__(cls, name, bases, attrs):
         declared_fields = {
@@ -62,9 +61,23 @@ class Table(metaclass=DeclarativeTableMeta):
         for row in self.data:
             row_html = ""
             for field in self.get_fields():
-                value = getattr(row, field.name, '') if hasattr(row, field.name) else row.get(field.name, '')
-                row_html += field.cell_widget.render(value)
+                if isinstance(row, dict):
+                    value = row.get(field.name, '')
+                else:
+                    value = getattr(row, field.name, '')
+
+                if hasattr(field.cell_widget, 'render'):
+                    try:
+                        cell_html = field.cell_widget.render(value=value, row=row)
+                    except TypeError:
+                        cell_html = field.cell_widget.render(value)
+                else:
+                    cell_html = str(value)
+
+                row_html += cell_html
+
             rows_html += f'<tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">{row_html}</tr>'
+
         return mark_safe(rows_html)
 
     def render(self):
