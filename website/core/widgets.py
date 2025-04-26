@@ -2,6 +2,8 @@ from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 
+from core.tables import ModelTableWidget
+
 # Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
     def __init__(self, attrs=None):
@@ -39,10 +41,19 @@ class ToggleSwitchWidget(CheckboxInput):
         """
         return value is True or value == 'on'
     
-class ViewButtonWidget:
+class ViewButtonWidget(ModelTableWidget):
     def __init__(self, detail_url_name=None, pk=0):
+        super().__init__()
         self.detail_url_name = detail_url_name
         self.pk = pk
+
+    def get_detail_url(self):
+        if self.detail_url_name:
+            return self.detail_url_name
+        if not self.model:
+            raise ValueError("Model not set on ViewButtonWidget.")
+        model_name = self.model._meta.model_name
+        return f"{model_name}_detail"
 
     def get_pk(self, row):
         if isinstance(self.pk, int):
@@ -52,19 +63,16 @@ class ViewButtonWidget:
         else:
             return getattr(row, self.pk, None)
 
-    def render(self, value=None, row=None, detail_url_name=None):
-        url_name = detail_url_name or self.detail_url_name
-        if not url_name:
-            raise ValueError("detail_url_name must be provided")
+    def render(self, value=None, row=None):
         context = {
             "pk": self.get_pk(row),
-            "detail_url_name": url_name,
+            "detail_url_name": self.get_detail_url(),
         }
         return mark_safe(render_to_string("components/view_button_widget.html", context))
 
-
-class DeleteButtonWidget:
+class DeleteButtonWidget(ModelTableWidget):
     def __init__(self, delete_url_name=None, pk=0):
+        super().__init__()
         self.delete_url_name = delete_url_name
         self.pk = pk
 
@@ -76,12 +84,17 @@ class DeleteButtonWidget:
         else:
             return getattr(row, self.pk, None)
 
-    def render(self, value=None, row=None, delete_url_name=None):
-        url_name = delete_url_name or self.delete_url_name
-        if not url_name:
-            raise ValueError("delete_url_name must be provided")
+    def get_delete_url(self):
+        if self.delete_url_name:
+            return self.delete_url_name
+        if not self.model:
+            raise ValueError("Model not set on DeleteButtonWidget.")
+        model_name = self.model._meta.model_name
+        return f"{model_name}_delete"
+
+    def render(self, value=None, row=None):
         context = {
             "pk": self.get_pk(row),
-            "delete_url_name": url_name,
+            "delete_url_name": self.get_delete_url(),
         }
         return mark_safe(render_to_string("components/delete_button_widget.html", context))

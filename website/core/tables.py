@@ -1,6 +1,10 @@
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+class ModelTableWidget:
+    def __init__(self):
+        self.model = None
+
 class TableCellWidget:
     def render(self, value):
         return format_html('<td class="p-3 text-center">{}</td>', value)
@@ -49,6 +53,12 @@ class DeclarativeTableMeta(type):
 class Table(metaclass=DeclarativeTableMeta):
     def __init__(self, data=None):
         self.data = data or []
+        self.model = getattr(self.Meta, "model", None)
+
+        for field in self.get_fields():
+            widget = getattr(field, "cell_widget", None)
+            if isinstance(widget, ModelTableWidget):
+                widget.model = self.model
 
     def get_fields(self):
         return list(self._declared_fields.values())

@@ -97,41 +97,13 @@ class CRMTableView(CRMBaseListView):
         model_name = self.model._meta.model_name
         return f"{model_name}_create"
 
-    def get_detail_url(self):
-        if self.detail_url:
-            return self.detail_url
-        model_name = self.model._meta.model_name
-        return f"{model_name}_detail"
-
-    def get_delete_url(self):
-        if self.delete_url:
-            return self.delete_url
-        model_name = self.model._meta.model_name
-        return f"{model_name}_delete"
-
-    def configure_table_widgets(self, table):
-        """
-        Loop through fields and inject default URL names into widgets that support them.
-        """
-        for field in table.get_fields():
-            widget = getattr(field, "cell_widget", None)
-
-            if isinstance(widget, ViewButtonWidget) and widget.detail_url_name is None:
-                widget.detail_url_name = self.get_detail_url()
-
-            if isinstance(widget, DeleteButtonWidget) and widget.delete_url_name is None:
-                widget.delete_url_name = self.get_delete_url()
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         table = self.table_class(self.object_list)
-        self.configure_table_widgets(table)
 
         context["table"] = table
         context["create_url"] = self.get_create_url()
-        context["detail_url"] = self.get_detail_url()
-        context["delete_url"] = self.get_delete_url()
         context["show_add_button"] = self.show_add_button
         return context
 
