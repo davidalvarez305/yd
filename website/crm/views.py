@@ -118,7 +118,7 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
         Dynamically assigns the template name based on the model name.
         """
         model_name = self.model._meta.model_name
-        return [f"{model_name}_form.html"]
+        return [f"crm/{model_name}_form.html"]
 
 
 class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateView):
