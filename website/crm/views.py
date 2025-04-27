@@ -120,18 +120,14 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
         model_name = self.model._meta.model_name
         return [f"crm/{model_name}_form.html"]
 
-
 class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateView):
     success_url = None
-    trigger_alert = True
+    trigger_alert = False
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
     
     def post(self, request, *args, **kwargs):
-        if not self.trigger_alert:
-            return super().post(request, *args, **kwargs)
-
         self.object = self.get_object()
         form = self.get_form()
 
@@ -139,9 +135,13 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateV
             try:
                 form.instance.pk = self.object.pk
                 form.save()
+
+                if not self.trigger_alert:
+                    return redirect(self.get_success_url())
+
                 return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
             except Exception as e:
-                print(f'Error updateing: {e}')
+                print(f'Error updating: {e}')
                 return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR)
         else:
             return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST)
@@ -187,6 +187,31 @@ class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
 
         return context
 
+class CRMTemplateDetailView(CRMBaseDetailView):
+    template_name = "crm/base_detail.html"
+    context_object_name = "object"
+    update_url = None
+    pk = None
+
+    def get_update_url(self):
+        if self.update_url:
+            return self.update_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_update"
+
+    def get_pk(self):
+        if hasattr(self, "pk") and self.pk is not None:
+            return self.pk
+        if hasattr(self, "object") and self.object is not None:
+            return getattr(self.object, self.object._meta.pk.name)
+        raise ValueError("Cannot determine PK: neither pk nor object is set.")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["update_url"] = self.get_update_url()
+        context["pk"] = self.get_pk()
+        return context
+    
 class LeadListView(CRMBaseListView):
     model = Lead
     template_name = 'crm/lead_list.html'
@@ -253,10 +278,6 @@ class LeadArchiveView(CRMBaseUpdateView):
 
         return redirect(redirect_url)
     
-""" class CocktailListView(CRMBaseListView):
-    model = Cocktail
-    create_form_class = CocktailForm """
-
 class CocktailListView(CRMTableView):
     model = Cocktail
     table_class = CocktailTable
@@ -269,7 +290,7 @@ class CocktailUpdateView(CRMBaseUpdateView):
     model = Cocktail
     form_class = CocktailForm
 
-class CocktailDetailView(CRMBaseDetailView):
+class CocktailDetailView(CRMTemplateDetailView):
     model = Cocktail
     form_class = CocktailForm
 

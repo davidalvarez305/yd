@@ -8,6 +8,9 @@ class Cocktail(models.Model):
 
     class Meta:
         db_table = 'cocktail'
+    
+    def __str__(self):
+        return self.name
 
 class Event(models.Model):
     event_id = models.IntegerField(primary_key=True)
