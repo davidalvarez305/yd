@@ -1,5 +1,5 @@
 from core.tables import Table, TableField
-from crm.models import Cocktail
+from crm.models import Cocktail, Event
 from core.models import Service
 from core.widgets import DeleteButtonWidget, ViewButtonWidget
 
@@ -24,3 +24,11 @@ class ServiceTable(Table):
 
     class Meta:
         model = Service
+
+class EventTable(Table):
+    view = TableField(name='View', cell_widget=ViewButtonWidget(pk="event_id"))
+    event = TableField(name='name', label='Event')
+    delete = TableField(name='Delete', cell_widget=DeleteButtonWidget(pk="event_id"))
+
+    class Meta:
+        model = Event
