@@ -82,45 +82,6 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
 
         return context
 
-class CRMTableView(CRMBaseListView):
-    template_name = "crm/base_table.html"
-    context_object_name = "table"
-    table_class = None
-    create_url = None
-    detail_url = None
-    delete_url = None
-    show_add_button = True
-
-    def get_create_url(self):
-        if self.create_url:
-            return self.create_url
-        model_name = self.model._meta.model_name
-        return f"{model_name}_create"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        table = self.table_class(self.object_list)
-        table.request = self.request
-
-        context["table"] = table
-        context["create_url"] = self.get_create_url()
-        context["show_add_button"] = self.show_add_button
-        return context
-
-class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
-    success_url = None
-
-    def get_success_url(self):
-        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
-
-    def get_template_names(self):
-        """
-        Dynamically assigns the template name based on the model name.
-        """
-        model_name = self.model._meta.model_name
-        return [f"crm/{model_name}_form.html"]
-
 class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateView):
     success_url = None
     trigger_alert = False
@@ -158,6 +119,19 @@ class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
         self.object.delete()
         return redirect(self.get_success_url())
 
+class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
+    success_url = None
+
+    def get_success_url(self):
+        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+
+    def get_template_names(self):
+        """
+        Dynamically assigns the template name based on the model name.
+        """
+        model_name = self.model._meta.model_name
+        return [f"crm/{model_name}_form.html"]
+
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
     form_class = None
@@ -188,7 +162,7 @@ class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
 
         return context
 
-class CRMTemplateDetailView(CRMBaseDetailView):
+class CRMDetailTemplateView(CRMBaseDetailView):
     template_name = "crm/base_detail.html"
     context_object_name = "object"
     update_url = None
@@ -212,7 +186,53 @@ class CRMTemplateDetailView(CRMBaseDetailView):
         context["update_url"] = self.get_update_url()
         context["pk"] = self.get_pk()
         return context
+
+class CRMCreateTemplateView(CRMBaseCreateView):
+    template_name = None
+    create_url = None
+
+    def get_template_names(self):
+        if self.template_name:
+            return [self.template_name]
+        return ["crm/base_create.html"]
+
+    def get_create_url(self):
+        if self.create_url:
+            return self.create_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_create"
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["create_url"] = self.get_create_url()
+        return context
+
+class CRMTableView(CRMBaseListView):
+    template_name = "crm/base_table.html"
+    context_object_name = "table"
+    table_class = None
+    create_url = None
+    detail_url = None
+    delete_url = None
+    show_add_button = True
+
+    def get_create_url(self):
+        if self.create_url:
+            return self.create_url
+        model_name = self.model._meta.model_name
+        return f"{model_name}_create"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        table = self.table_class(self.object_list)
+        table.request = self.request
+
+        context["table"] = table
+        context["create_url"] = self.get_create_url()
+        context["show_add_button"] = self.show_add_button
+        return context
+
 class LeadListView(CRMBaseListView):
     model = Lead
     template_name = 'crm/lead_list.html'
@@ -283,7 +303,7 @@ class CocktailListView(CRMTableView):
     model = Cocktail
     table_class = CocktailTable
 
-class CocktailCreateView(CRMBaseCreateView):
+class CocktailCreateView(CRMCreateTemplateView):
     model = Cocktail
     form_class = CocktailForm
 
@@ -291,7 +311,7 @@ class CocktailUpdateView(CRMBaseUpdateView):
     model = Cocktail
     form_class = CocktailForm
 
-class CocktailDetailView(CRMTemplateDetailView):
+class CocktailDetailView(CRMDetailTemplateView):
     model = Cocktail
     form_class = CocktailForm
 
