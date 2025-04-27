@@ -78,7 +78,7 @@ class Table(metaclass=DeclarativeTableMeta):
 
                 if hasattr(field.cell_widget, 'render'):
                     try:
-                        cell_html = field.cell_widget.render(value=value, row=row)
+                        cell_html = field.cell_widget.render(value=value, row=row, request=self.request)
                     except TypeError:
                         cell_html = field.cell_widget.render(value)
                 else:

@@ -1,6 +1,7 @@
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
+from django.template.context_processors import csrf
 
 from core.tables import ModelTableWidget
 
@@ -63,7 +64,7 @@ class ViewButtonWidget(ModelTableWidget):
         else:
             return getattr(row, self.pk, None)
 
-    def render(self, value=None, row=None):
+    def render(self, value=None, row=None, request=None):
         context = {
             "pk": self.get_pk(row),
             "detail_url_name": self.get_detail_url(),
@@ -92,9 +93,11 @@ class DeleteButtonWidget(ModelTableWidget):
         model_name = self.model._meta.model_name
         return f"{model_name}_delete"
 
-    def render(self, value=None, row=None):
+    def render(self, value=None, row=None, request=None):
         context = {
             "pk": self.get_pk(row),
             "delete_url_name": self.get_delete_url(),
         }
+        if request:
+            context.update(csrf(request))
         return mark_safe(render_to_string("components/delete_button_widget.html", context))

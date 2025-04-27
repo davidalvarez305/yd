@@ -101,6 +101,7 @@ class CRMTableView(CRMBaseListView):
         context = super().get_context_data(**kwargs)
 
         table = self.table_class(self.object_list)
+        table.request = self.request
 
         context["table"] = table
         context["create_url"] = self.get_create_url()
