@@ -6,15 +6,17 @@ class ModelTableWidget:
         self.model = None
 
 class TableCellWidget:
-    def __init__(self, value=None, value_func=None):
-        self.value = value
-        self.value_func = value_func
+    def __init__(self, data=None):
+        self.data = data or {}
 
     def get_value(self, obj):
-        if self.value_func:
-            return self.value_func(obj)
-        elif self.value:
-            attrs = self.value.split(".")
+        value_func = self.data.get("value_func")
+        value = self.data.get("value")
+
+        if value_func:
+            return value_func(obj)
+        elif value:
+            attrs = value.split(".")
             for attr in attrs:
                 obj = getattr(obj, attr, None)
                 if obj is None:
@@ -37,11 +39,11 @@ class TableHeaderWidget:
         )
 
 class TableField:
-    def __init__(self, name, label=None, header_widget=None, cell_widget=None, value=None, value_func=None):
+    def __init__(self, name, label=None, header_widget=None, cell_widget=None):
         self.name = name
         self.label = label or name.replace("_", " ").title()
         self.header_widget = header_widget or TableHeaderWidget(self.label)
-        self.cell_widget = cell_widget or TableCellWidget(value=value, value_func=value_func)
+        self.cell_widget = cell_widget or TableCellWidget()
 
 class DeclarativeTableMeta(type):
     def __new__(cls, name, bases, attrs):
