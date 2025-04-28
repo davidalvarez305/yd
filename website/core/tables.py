@@ -3,8 +3,33 @@ from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.template.context_processors import csrf
 
-from core.utils import deep_getattr
+from .utils import deep_getattr
+from .widgets import DeleteButton, ViewButton
 
+# Example Use
+""" 
+class CocktailTable(Table):
+    class Meta:
+        model = Cocktail
+        fields = ['name']
+
+CocktailTable = Table.from_model(Cocktail, exclude=["created_at", "updated_at"])
+
+cell_widget=TableField(
+    name="delete",
+    header_widget=TableHeaderWidget("Delete"),
+    cell_widget=TemplateCellWidget(
+        template="components/delete_button_widget.html",
+        context={
+            "pk": "{id}",
+            "delete_url_name": "cocktail_delete"
+        },
+        data={"csrf": True}
+    )
+))
+
+ViewButton(pk="cocktail_id", url="cocktail_detail")
+"""
 
 class TableCellWidget:
     def __init__(self, data=None):
@@ -80,6 +105,15 @@ class TableField:
 
     def build_default_cell_widget(self):
         return TableCellWidget(data={"value": self.name})
+    
+    @classmethod
+    def from_model_field(cls, field_obj):
+        """
+        Creates a TableField from a Django model field automatically.
+        """
+        name = field_obj.name
+        label = getattr(field_obj, "verbose_name", name).title()
+        return cls(name=name, label=label)
 
 class DeclarativeTableMeta(type):
     def __new__(cls, name, bases, attrs):
@@ -87,16 +121,6 @@ class DeclarativeTableMeta(type):
             key: value for key, value in attrs.items()
             if isinstance(value, TableField)
         }
-
-        for field_name, field_obj in declared_fields.items():
-            if not field_obj.name:
-                field_obj.name = field_name
-                if not field_obj.label:
-                    field_obj.label = field_name.replace("_", " ").title()
-
-                field_obj.header_widget = field_obj.header_widget or TableHeaderWidget(field_obj.label)
-                
-                field_obj.cell_widget = field_obj.cell_widget or field_obj.build_default_cell_widget()
 
         new_class = super().__new__(cls, name, bases, attrs)
 
@@ -108,6 +132,20 @@ class DeclarativeTableMeta(type):
         model = getattr(meta, 'model', None)
         include_fields = getattr(meta, 'fields', None)
         exclude_fields = getattr(meta, 'exclude', [])
+        extra_fields = getattr(meta, 'extra_fields', [])
+
+        prefix = f"{model.__name__.lower()}_"
+        pk = getattr(meta, 'pk', prefix + "id")
+        detail_url = getattr(meta, 'detail_url', prefix + "detail")
+        delete_url = getattr(meta, 'delete_url', prefix + "delete")
+
+        _declared_fields = {}
+
+        if "view" in extra_fields:
+            _declared_fields["view"] = TableField(
+                name="View",
+                cell_widget=ViewButton(pk=pk, url=detail_url)
+            )
 
         if model:
             if include_fields:
@@ -119,11 +157,17 @@ class DeclarativeTableMeta(type):
                 if field_name in exclude_fields:
                     continue
                 if field_name not in declared_fields:
-                    field_obj = model._meta.get_field(field_name)
-                    label = getattr(field_obj, 'verbose_name', field_name).title()
-                    declared_fields[field_name] = TableField(name=field_name, label=label)
+                    _declared_fields[field_name] = TableField(name=field_name)
+                else:
+                    _declared_fields[field_name] = declared_fields[field_name]
 
-        new_class._declared_fields = declared_fields
+        if "delete" in extra_fields:
+            _declared_fields["delete"] = TableField(
+                name="Delete",
+                cell_widget=DeleteButton(pk=pk, url=delete_url)
+            )
+
+        new_class._declared_fields = _declared_fields
         return new_class
 
 class Table(metaclass=DeclarativeTableMeta):
@@ -171,3 +215,26 @@ class Table(metaclass=DeclarativeTableMeta):
             self.render_header(),
             self.render_rows()
         )
+    
+    @classmethod
+    def from_model(cls, model, fields=None, exclude=None):
+        _declared_fields = {}
+
+        if fields is None:
+            fields = [f.name for f in model._meta.get_fields() if f.concrete and not f.auto_created]
+
+        for field_name in fields:
+            if exclude and field_name in exclude:
+                continue
+            field_obj = model._meta.get_field(field_name)
+            _declared_fields[field_name] = TableField.from_model_field(field_obj)
+
+        table_class = type(
+            f"{model.__name__}Table",
+            (cls,),
+            {
+                "_declared_fields": _declared_fields,
+                "Meta": type("Meta", (), {"model": model}),
+            }
+        )
+        return table_class
