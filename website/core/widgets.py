@@ -1,9 +1,8 @@
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
-from django.template.loader import render_to_string
-from django.template.context_processors import csrf
 
-from core.tables import ModelTableWidget
+from .tables import ModelTableWidget
+from .utils import deep_getattr
 
 # Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
@@ -41,63 +40,22 @@ class ToggleSwitchWidget(CheckboxInput):
         If value is True, the checkbox is checked; otherwise, it is unchecked.
         """
         return value is True or value == 'on'
-    
-class ViewButtonWidget(ModelTableWidget):
-    def __init__(self, detail_url_name=None, pk=0):
-        super().__init__()
-        self.detail_url_name = detail_url_name
-        self.pk = pk
 
-    def get_detail_url(self):
-        if self.detail_url_name:
-            return self.detail_url_name
-        if not self.model:
-            raise ValueError("Model not set on ViewButtonWidget.")
-        model_name = self.model._meta.model_name
-        return f"{model_name}_detail"
-
-    def get_pk(self, row):
-        if isinstance(self.pk, int):
-            return row[self.pk]
-        elif isinstance(row, dict):
-            return row.get(self.pk)
-        else:
-            return getattr(row, self.pk, None)
-
-    def render(self, value=None, row=None, request=None):
-        context = {
-            "pk": self.get_pk(row),
-            "detail_url_name": self.get_detail_url(),
+def ViewButton(pk="id", url=None):
+    return TemplateCellWidget(
+        template="components/view_button_widget.html",
+        context={
+            "pk": f"{{{pk}}}",
+            "view_lookup_name": url
         }
-        return mark_safe(render_to_string("components/view_button_widget.html", context))
+    )
 
-class DeleteButtonWidget(ModelTableWidget):
-    def __init__(self, delete_url_name=None, pk=0):
-        super().__init__()
-        self.delete_url_name = delete_url_name
-        self.pk = pk
-
-    def get_pk(self, row):
-        if isinstance(self.pk, int):
-            return row[self.pk]
-        elif isinstance(row, dict):
-            return row.get(self.pk)
-        else:
-            return getattr(row, self.pk, None)
-
-    def get_delete_url(self):
-        if self.delete_url_name:
-            return self.delete_url_name
-        if not self.model:
-            raise ValueError("Model not set on DeleteButtonWidget.")
-        model_name = self.model._meta.model_name
-        return f"{model_name}_delete"
-
-    def render(self, value=None, row=None, request=None):
-        context = {
-            "pk": self.get_pk(row),
-            "delete_url_name": self.get_delete_url(),
-        }
-        if request:
-            context.update(csrf(request))
-        return mark_safe(render_to_string("components/delete_button_widget.html", context))
+def DeleteButton(pk="id", url=None):
+    return TemplateCellWidget(
+        template="components/delete_button_widget.html",
+        context={
+            "pk": f"{{{pk}}}",
+            "view_lookup_name": url
+        },
+        data={"csrf": True}
+    )

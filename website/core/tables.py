@@ -1,11 +1,10 @@
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
+from django.template.context_processors import csrf
 
 from core.utils import deep_getattr
 
-class ModelTableWidget:
-    def __init__(self):
-        self.model = None
 
 class TableCellWidget:
     def __init__(self, data=None):
@@ -34,6 +33,34 @@ class TableCellWidget:
         attrs = self.get_attrs(row)
         return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
 
+class TemplateCellWidget:
+    def __init__(self, template=None, context=None, data=None):
+        super().__init__()
+        self.template = template
+        self.context = context or {}
+        self.data = data or {}
+
+    def resolve_context(self, row):
+        final_context = {}
+        for key, value in self.context.items():
+            if isinstance(value, str) and "{" in value and "}" in value:
+                import re
+                matches = re.findall(r"{(.*?)}", value)
+                for match in matches:
+                    nested_value = deep_getattr(row, match)
+                    if nested_value is not None:
+                        value = value.replace(f"{{{match}}}", str(nested_value))
+            final_context[key] = value
+        return final_context
+
+    def render(self, value=None, row=None, request=None):
+        context = self.resolve_context(row)
+
+        if request and self.data.get("csrf", False):
+            context.update(csrf(request))
+
+        return mark_safe(render_to_string(self.template, context))
+
 class TableHeaderWidget:
     def __init__(self, label):
         self.label = label
@@ -45,7 +72,7 @@ class TableHeaderWidget:
         )
 
 class TableField:
-    def __init__(self, name, label=None, header_widget=None, cell_widget=None):
+    def __init__(self, name=None, label=None, header_widget=None, cell_widget=None):
         self.name = name
         self.label = label or name.replace("_", " ").title()
         self.header_widget = header_widget or TableHeaderWidget(self.label)
@@ -61,31 +88,48 @@ class DeclarativeTableMeta(type):
             if isinstance(value, TableField)
         }
 
+        for field_name, field_obj in declared_fields.items():
+            if not field_obj.name:
+                field_obj.name = field_name
+                if not field_obj.label:
+                    field_obj.label = field_name.replace("_", " ").title()
+
+                field_obj.header_widget = field_obj.header_widget or TableHeaderWidget(field_obj.label)
+                
+                field_obj.cell_widget = field_obj.cell_widget or field_obj.build_default_cell_widget()
+
         new_class = super().__new__(cls, name, bases, attrs)
 
         meta = attrs.get('Meta', None)
+        if not meta:
+            new_class._declared_fields = declared_fields
+            return new_class
+
         model = getattr(meta, 'model', None)
         include_fields = getattr(meta, 'fields', None)
+        exclude_fields = getattr(meta, 'exclude', [])
 
-        if model and include_fields:
-            for field_name in include_fields:
+        if model:
+            if include_fields:
+                field_names = include_fields
+            else:
+                field_names = [f.name for f in model._meta.get_fields() if f.concrete and not f.auto_created]
+
+            for field_name in field_names:
+                if field_name in exclude_fields:
+                    continue
                 if field_name not in declared_fields:
                     field_obj = model._meta.get_field(field_name)
-                    label = field_obj.verbose_name.title()
+                    label = getattr(field_obj, 'verbose_name', field_name).title()
                     declared_fields[field_name] = TableField(name=field_name, label=label)
 
         new_class._declared_fields = declared_fields
         return new_class
 
 class Table(metaclass=DeclarativeTableMeta):
-    def __init__(self, data=None):
+    def __init__(self, data=None, request=None):
         self.data = data or []
-        self.model = getattr(self.Meta, "model", None)
-
-        for field in self.get_fields():
-            widget = getattr(field, "cell_widget", None)
-            if isinstance(widget, ModelTableWidget):
-                widget.model = self.model
+        self.request = request
 
     def get_fields(self):
         return list(self._declared_fields.values())
@@ -105,9 +149,7 @@ class Table(metaclass=DeclarativeTableMeta):
                         cell_html = field.cell_widget.render(row)
                 else:
                     cell_html = str(row)
-
                 row_html += cell_html
-
             rows_html += f'<tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">{row_html}</tr>'
 
         return mark_safe(rows_html)
