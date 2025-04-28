@@ -6,7 +6,24 @@ class ModelTableWidget:
         self.model = None
 
 class TableCellWidget:
-    def render(self, value):
+    def __init__(self, value=None, value_func=None):
+        self.value = value
+        self.value_func = value_func
+
+    def get_value(self, obj):
+        if self.value_func:
+            return self.value_func(obj)
+        elif self.value:
+            attrs = self.value.split(".")
+            for attr in attrs:
+                obj = getattr(obj, attr, None)
+                if obj is None:
+                    break
+            return obj
+        return None
+
+    def render(self, row, **kwargs):
+        value = self.get_value(row)
         return format_html('<td class="p-3 text-center">{}</td>', value)
 
 class TableHeaderWidget:
@@ -20,11 +37,11 @@ class TableHeaderWidget:
         )
 
 class TableField:
-    def __init__(self, name, label=None, header_widget=None, cell_widget=None):
+    def __init__(self, name, label=None, header_widget=None, cell_widget=None, value=None, value_func=None):
         self.name = name
         self.label = label or name.replace("_", " ").title()
         self.header_widget = header_widget or TableHeaderWidget(self.label)
-        self.cell_widget = cell_widget or TableCellWidget()
+        self.cell_widget = cell_widget or TableCellWidget(value=value, value_func=value_func)
 
 class DeclarativeTableMeta(type):
     def __new__(cls, name, bases, attrs):
@@ -49,7 +66,6 @@ class DeclarativeTableMeta(type):
         new_class._declared_fields = declared_fields
         return new_class
 
-
 class Table(metaclass=DeclarativeTableMeta):
     def __init__(self, data=None):
         self.data = data or []
@@ -71,18 +87,13 @@ class Table(metaclass=DeclarativeTableMeta):
         for row in self.data:
             row_html = ""
             for field in self.get_fields():
-                if isinstance(row, dict):
-                    value = row.get(field.name, '')
-                else:
-                    value = getattr(row, field.name, '')
-
                 if hasattr(field.cell_widget, 'render'):
                     try:
-                        cell_html = field.cell_widget.render(value=value, row=row, request=self.request)
+                        cell_html = field.cell_widget.render(row=row, request=self.request)
                     except TypeError:
-                        cell_html = field.cell_widget.render(value)
+                        cell_html = field.cell_widget.render(row)
                 else:
-                    cell_html = str(value)
+                    cell_html = str(row)
 
                 row_html += cell_html
 
