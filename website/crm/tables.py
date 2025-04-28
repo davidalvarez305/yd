@@ -4,10 +4,24 @@ from core.models import Service
 from core.widgets import DeleteButtonWidget, ViewButtonWidget
 
 # Example Use
-""" class CocktailTable(Table):
+""" 
+class CocktailTable(Table):
     class Meta:
         model = Cocktail
-        fields = ['name'] """
+        fields = ['name']
+        
+name = TableField(
+    name="name",
+    cell_widget=TableCellWidget(data={
+        "value": "name",
+        "attrs": {
+            "hx-get": "/cocktails/{{ row.id }}/edit/",
+            "hx-trigger": "click",
+            "hx-target": "#modal",
+        }
+    })
+)        
+"""
 
 class CocktailTable(Table):
     view = TableField(name='View', cell_widget=ViewButtonWidget(pk="cocktail_id"))

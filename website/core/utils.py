@@ -36,3 +36,13 @@ def add_form_field_class(widget, new_classes):
     existing = widget.attrs.get('class', '')
     all_classes = set(existing.split() + new_classes.split())
     widget.attrs['class'] = ' '.join(sorted(all_classes))
+
+def deep_getattr(obj, path):
+    attrs = path.split(".")
+    for attr in attrs:
+        obj = getattr(obj, attr, None)
+        if callable(obj):
+            obj = obj()
+        if obj is None:
+            break
+    return obj

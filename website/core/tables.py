@@ -1,6 +1,8 @@
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from core.utils import deep_getattr
+
 class ModelTableWidget:
     def __init__(self):
         self.model = None
@@ -10,23 +12,27 @@ class TableCellWidget:
         self.data = data or {}
 
     def get_value(self, obj):
-        value_func = self.data.get("value_func")
         value = self.data.get("value")
-
-        if value_func:
-            return value_func(obj)
-        elif value:
-            attrs = value.split(".")
-            for attr in attrs:
-                obj = getattr(obj, attr, None)
-                if obj is None:
-                    break
-            return obj
+        if value:
+            return deep_getattr(obj, value)
         return None
+
+    def get_attrs(self, row=None):
+        attrs = self.data.get("attrs", {})
+        parts = []
+        for key, value in attrs.items():
+            if isinstance(value, str) and row:
+                try:
+                    value = value.format(**row.__dict__)
+                except Exception:
+                    pass
+            parts.append(f'{key}="{value}"')
+        return " ".join(parts)
 
     def render(self, row, **kwargs):
         value = self.get_value(row)
-        return format_html('<td class="p-3 text-center">{}</td>', value)
+        attrs = self.get_attrs(row)
+        return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
 
 class TableHeaderWidget:
     def __init__(self, label):
@@ -43,7 +49,10 @@ class TableField:
         self.name = name
         self.label = label or name.replace("_", " ").title()
         self.header_widget = header_widget or TableHeaderWidget(self.label)
-        self.cell_widget = cell_widget or TableCellWidget()
+        self.cell_widget = cell_widget or self.build_default_cell_widget()
+
+    def build_default_cell_widget(self):
+        return TableCellWidget(data={"value": self.name})
 
 class DeclarativeTableMeta(type):
     def __new__(cls, name, bases, attrs):
