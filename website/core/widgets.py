@@ -1,8 +1,7 @@
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
 
-from .tables import ModelTableWidget
-from .utils import deep_getattr
+from .tables import TemplateCellWidget
 
 # Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
