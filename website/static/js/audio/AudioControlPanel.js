@@ -1,7 +1,7 @@
 import { AudioControlButton } from "./AudioControlButton.js";
 import { AudioControlContainer } from "./AudioControlContainer.js";
 
-export class AudioControls {
+export class AudioControlPanel {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
 
