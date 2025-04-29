@@ -7,7 +7,6 @@ export class AudioControlPanel {
 
         this.beginRecordingButton = new AudioControlButton(document.querySelector(".beginRecording"));
         this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
-        this.resumeRecordingButton = new AudioControlButton(document.querySelector(".resumeRecording"));
         this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
 
         this.playPreviewBtn = document.querySelector(".playPreview");
@@ -17,7 +16,7 @@ export class AudioControlPanel {
     }
 
     _toggleRecordingControls(show) {
-        [this.pauseRecordingButton, this.resumeRecordingButton, this.stopRecordingButton].forEach(btn => {
+        [this.pauseRecordingButton, this.stopRecordingButton].forEach(btn => {
             if (!btn.element) return;
             show ? btn.show() : btn.hide();
         });
@@ -98,16 +97,28 @@ export class AudioControlPanel {
             });
         });
 
-        this.beginRecordingButton.onClick(() => this.handleBeginRecording());
+        this.beginRecordingButton.onClick(() => this._handleStartOrResumeRecording());
         this.pauseRecordingButton.onClick(() => this.handlePauseRecording());
-        this.resumeRecordingButton.onClick(() => this.handleResumeRecording());
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
     }
 
     _applyHighlight(activeButton) {
-        [this.beginRecordingButton, this.pauseRecordingButton, this.resumeRecordingButton].forEach(btn => {
+        [this.beginRecordingButton, this.pauseRecordingButton].forEach(btn => {
             if (!btn) return;
             btn === activeButton ? btn.highlight() : btn.removeHighlight();
         });
     }
+
+    _handleStartOrResumeRecording() {
+        const state = this.audioHandler.getRecorderState();
+    
+        if (state === "paused") {
+            this.handleResumeRecording();
+        } else if (state === "inactive") {
+            this.handleBeginRecording();
+        } else {
+            throw new Error(`Unexpected media recorder state: ${state}`);
+        }
+    }
+    
 }

@@ -72,4 +72,8 @@ export class AudioHandler {
     registerAudioMessage(audioMessage) {
         this.audioMessages.push(audioMessage);
     }
+
+    getRecorderState() {
+        return this.mediaRecorder?.state || 'inactive';
+    }
 }

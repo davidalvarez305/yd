@@ -1515,6 +1515,11 @@ select{
   background-color: rgb(255 255 255 / 0.5);
 }
 
+.bg-primary{
+  --tw-bg-opacity: 1;
+  background-color: rgb(154 33 103 / var(--tw-bg-opacity, 1));
+}
+
 .bg-gradient-to-b{
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
@@ -2994,6 +2999,10 @@ select{
 .hover\:bg-primary-600:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(108 23 72 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-primary\/90:hover{
+  background-color: rgb(154 33 103 / 0.9);
 }
 
 .hover\:text-\[\#405de6\]:hover{
