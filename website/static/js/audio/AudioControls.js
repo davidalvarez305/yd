@@ -49,32 +49,30 @@ export class AudioControls {
     handleBeginRecording() {
         this.audioHandler.handleBeginRecording();
         this.toggleRecordingControls(true);
-        this._handleShowIsRecording(true);
+        this._highlightRecordingButton(this.beginBtn, true);
     }
-
+    
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording();
-        this._handleShowIsRecording(false);
+        this._highlightRecordingButton(this.pauseBtn, true);
     }
-
+    
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
-        this._handleShowIsRecording(true);
+        this._highlightRecordingButton(this.beginBtn, true);
     }
-
+    
     handleStopRecording() {
         this.audioHandler.handleStopRecording(file => {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
-
             const messageMedia = document.getElementById("messageMedia");
             if (messageMedia) {
                 messageMedia.files = dataTransfer.files;
             }
         });
-
         this.toggleRecordingControls(false);
-        this._handleShowIsRecording(false);
+        this._highlightRecordingButton(null, false);
     }
 
     scanAudioControlButtons() {
@@ -107,11 +105,15 @@ export class AudioControls {
         }
     }
 
-    _handleShowIsRecording(show) {
-        if (!this.beginBtn) return;
-        const svg = this.beginBtn.querySelector("svg");
-        if (svg) {
-            svg.classList.toggle("text-primary", show);
-        }
+    _highlightRecordingButton(activeBtn, isActive) {
+        const buttons = [this.beginBtn, this.pauseBtn, this.resumeBtn];
+        
+        buttons.forEach(btn => {
+            if (!btn) return;
+            const svg = btn.querySelector("svg");
+            if (svg) {
+                svg.classList.toggle("text-primary-700", btn === activeBtn && isActive);
+            }
+        });
     }
 }
