@@ -13,6 +13,13 @@ class CocktailTable(Table):
 
 CocktailTable = Table.from_model(Cocktail, exclude=["created_at", "updated_at"])
 
+full_name = TableField(
+    label='Full Name',
+    cell_widget=TableCellWidget(
+        data={'value': lambda row: f"{row.first_name} {row.last_name}"}
+    )
+)
+
 cell_widget=TableField(
     name="delete",
     header_widget=TableHeaderWidget("Delete"),
