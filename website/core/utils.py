@@ -1,6 +1,7 @@
 import re
 import uuid
 import mimetypes
+from django.db import models
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -37,12 +38,12 @@ def add_form_field_class(widget, new_classes):
     all_classes = set(existing.split() + new_classes.split())
     widget.attrs['class'] = ' '.join(sorted(all_classes))
 
-def deep_getattr(obj, path):
-    attrs = path.split(".")
-    for attr in attrs:
-        obj = getattr(obj, attr, None)
-        if callable(obj):
-            obj = obj()
-        if obj is None:
-            break
+def deep_getattr(obj, attr, default=None):
+    try:
+        for part in attr.split("."):
+            obj = getattr(obj, part)
+            if callable(obj) and not isinstance(obj, (models.Manager, models.QuerySet)):
+                obj = obj()
+    except AttributeError:
+        return default
     return obj

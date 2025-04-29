@@ -17,8 +17,7 @@ from crm.models import Lead, Cocktail, Event
 from marketing.models import LeadMarketing
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, ServiceTable, EventTable
-from core.widgets import DeleteButtonWidget, ViewButtonWidget
+from crm.tables import CocktailTable, ServiceTable, EventTable, UserTable
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
@@ -339,12 +338,11 @@ class ServiceDeleteView(CRMBaseDeleteView):
     model = Service
     form_class = ServiceForm
     
-class UserListView(CRMBaseListView):
+class UserListView(CRMTableView):
     model = User
-    create_form_class = UserForm
-    template_name = 'crm/user_list.html'
+    table_class = UserTable
 
-class UserCreateView(CRMBaseCreateView):
+class UserCreateView(CRMCreateTemplateView):
     model = User
     form_class = UserForm
 
@@ -352,10 +350,9 @@ class UserUpdateView(CRMBaseUpdateView):
     model = User
     form_class = UserForm
 
-class UserDetailView(CRMBaseDetailView):
+class UserDetailView(CRMDetailTemplateView):
     model = User
     form_class = UserForm
-    template_name = 'crm/user_detail.html'
 
 class UserDeleteView(CRMBaseDeleteView):
     model = User

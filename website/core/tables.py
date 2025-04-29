@@ -1,10 +1,8 @@
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.template.loader import render_to_string
-from django.template.context_processors import csrf
 
+from .widgets import DeleteButton, TableCellWidget, TableHeaderWidget, ViewButton
 from .utils import deep_getattr
-from .widgets import DeleteButton, ViewButton
 
 # Example Use
 """ 
@@ -31,77 +29,32 @@ cell_widget=TableField(
 ViewButton(pk="cocktail_id", url="cocktail_detail")
 """
 
-class TableCellWidget:
-    def __init__(self, data=None):
-        self.data = data or {}
-
-    def get_value(self, obj):
-        value = self.data.get("value")
-        if value:
-            return deep_getattr(obj, value)
-        return None
-
-    def get_attrs(self, row=None):
-        attrs = self.data.get("attrs", {})
-        parts = []
-        for key, value in attrs.items():
-            if isinstance(value, str) and row:
-                try:
-                    value = value.format(**row.__dict__)
-                except Exception:
-                    pass
-            parts.append(f'{key}="{value}"')
-        return " ".join(parts)
-
-    def render(self, row, **kwargs):
-        value = self.get_value(row)
-        attrs = self.get_attrs(row)
-        return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
-
-class TemplateCellWidget:
-    def __init__(self, template=None, context=None, data=None):
-        super().__init__()
-        self.template = template
-        self.context = context or {}
-        self.data = data or {}
-
-    def resolve_context(self, row):
-        final_context = {}
-        for key, value in self.context.items():
-            if isinstance(value, str) and "{" in value and "}" in value:
-                import re
-                matches = re.findall(r"{(.*?)}", value)
-                for match in matches:
-                    nested_value = deep_getattr(row, match)
-                    if nested_value is not None:
-                        value = value.replace(f"{{{match}}}", str(nested_value))
-            final_context[key] = value
-        return final_context
-
-    def render(self, value=None, row=None, request=None):
-        context = self.resolve_context(row)
-
-        if request and self.data.get("csrf", False):
-            context.update(csrf(request))
-
-        return mark_safe(render_to_string(self.template, context))
-
-class TableHeaderWidget:
-    def __init__(self, label):
-        self.label = label
-
-    def render(self):
-        return format_html(
-            '<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">{}</th>',
-            self.label.title()
-        )
-
 class TableField:
     def __init__(self, name=None, label=None, header_widget=None, cell_widget=None):
         self.name = name
-        self.label = label or name.replace("_", " ").title()
-        self.header_widget = header_widget or TableHeaderWidget(self.label)
-        self.cell_widget = cell_widget or self.build_default_cell_widget()
+        self._label = label
+        self._header_widget = header_widget
+        self._cell_widget = cell_widget
+
+    @property
+    def label(self):
+        if self._label:
+            return self._label
+        if self.name:
+            return self.name.replace("_", " ").title()
+        return ""
+
+    @property
+    def header_widget(self):
+        if self._header_widget:
+            return self._header_widget
+        return TableHeaderWidget(self.label)
+
+    @property
+    def cell_widget(self):
+        if self._cell_widget:
+            return self._cell_widget
+        return self.build_default_cell_widget()
 
     def build_default_cell_widget(self):
         return TableCellWidget(data={"value": self.name})
@@ -160,6 +113,10 @@ class DeclarativeTableMeta(type):
                     _declared_fields[field_name] = TableField(name=field_name)
                 else:
                     _declared_fields[field_name] = declared_fields[field_name]
+
+        for key, field in declared_fields.items():
+            if key not in _declared_fields:
+                _declared_fields[key] = field
 
         if "delete" in extra_fields:
             _declared_fields["delete"] = TableField(

@@ -1,7 +1,10 @@
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
+from django.utils.html import format_html
+from django.template.context_processors import csrf
 
-from .tables import TemplateCellWidget
+from .utils import deep_getattr
 
 # Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
@@ -39,6 +42,81 @@ class ToggleSwitchWidget(CheckboxInput):
         If value is True, the checkbox is checked; otherwise, it is unchecked.
         """
         return value is True or value == 'on'
+
+class TableCellWidget:
+    def __init__(self, data=None):
+        self.data = data or {}
+
+    def get_value(self, obj):
+        value = self.data.get("value")
+        if value:
+            if callable(value):
+                return value(obj)
+            return deep_getattr(obj, value)
+        return None
+
+    def get_attrs(self, row=None):
+        attrs = self.data.get("attrs", {})
+        parts = []
+        for key, value in attrs.items():
+            if isinstance(value, str) and row:
+                try:
+                    value = value.format(**row.__dict__)
+                except Exception:
+                    pass
+            parts.append(f'{key}="{value}"')
+        return " ".join(parts)
+
+    def render(self, row, **kwargs):
+        value = self.get_value(row)
+        attrs = self.get_attrs(row)
+        return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
+
+class TemplateCellWidget:
+    def __init__(self, template=None, context=None, data=None):
+        super().__init__()
+        self.template = template
+        self.context = context or {}
+        self.data = data or {}
+
+    def resolve_context(self, row):
+        final_context = {}
+        for key, value in self.context.items():
+            if isinstance(value, str) and "{" in value and "}" in value:
+                import re
+                matches = re.findall(r"{(.*?)}", value)
+                for match in matches:
+                    nested_value = deep_getattr(row, match)
+                    if nested_value is not None:
+                        value = value.replace(f"{{{match}}}", str(nested_value))
+            final_context[key] = value
+        return final_context
+
+    def render(self, value=None, row=None, request=None):
+        context = self.resolve_context(row)
+
+        if request and self.data.get("csrf", False):
+            context.update(csrf(request))
+
+        return mark_safe(render_to_string(self.template, context))
+
+class TableHeaderWidget:
+    def __init__(self, label):
+        self.label = label
+
+    def render(self):
+        return format_html(
+            '<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">{}</th>',
+            self.label.title()
+        )
+
+class PriceCellWidget(TableCellWidget):
+    def render(self, value=None, row=None, request=None):
+        if value is None:
+            value = getattr(row, self.data.get("value"), None)
+        if value is not None:
+            return format_html(f"<td>${value:.2f}</td>")
+        return "<td>$0.00</td>"
 
 def ViewButton(pk="id", url=None):
     return TemplateCellWidget(
