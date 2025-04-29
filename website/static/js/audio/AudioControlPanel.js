@@ -11,6 +11,8 @@ export class AudioControlPanel {
         this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
 
         this.playPreviewBtn = document.querySelector(".playPreview");
+        this.pausePreviewBtn = document.querySelector(".pausePreview");
+        this.stopPreviewBtn = document.querySelector(".stopPreview");
         this.audioPreviewContainer = new AudioControlContainer(document.querySelector(".audioPreviewContainer"));
     }
 
