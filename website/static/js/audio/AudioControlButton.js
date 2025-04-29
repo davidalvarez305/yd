@@ -1,21 +1,12 @@
+import { AudioControl } from "./AudioControl.js";
+
 const HIGHLIGHT_CLASS = 'text-red-700';
-const HIDDEN_CLASS = 'hidden';
 
-export class AudioControlButton {
+export class AudioControlButton extends AudioControl {
     constructor(element) {
-        if (!element) throw new Error("AudioControlButton received an invalid or missing element.");
-        this.element = element;
-
+        super(element);
         this.svg = this.element.querySelector("svg");
         if (!this.svg) throw new Error("SVG icon not found in audio control button.");
-    }
-
-    show() {
-        this.element.classList.remove(HIDDEN_CLASS);
-    }
-
-    hide() {
-        this.element.classList.add(HIDDEN_CLASS);
     }
 
     highlight() {

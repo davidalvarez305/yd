@@ -1,5 +1,5 @@
-import { AudioHandler } from "./AudioHandler.js";
 import { AudioControlButton } from "./AudioControlButton.js";
+import { AudioControlContainer } from "./AudioControlContainer.js";
 
 export class AudioControls {
     constructor(audioHandler) {
@@ -11,10 +11,10 @@ export class AudioControls {
         this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
 
         this.playPreviewBtn = document.querySelector(".playPreview");
-        this.audioPreviewContainer = document.querySelector(".audioPreviewContainer");
+        this.audioPreviewContainer = new AudioControlContainer(document.querySelector(".audioPreviewContainer"));
     }
 
-    toggleRecordingControls(show) {
+    _toggleRecordingControls(show) {
         [this.pauseRecordingButton, this.resumeRecordingButton, this.stopRecordingButton].forEach(btn => {
             if (!btn.element) return;
             show ? btn.show() : btn.hide();
@@ -49,20 +49,20 @@ export class AudioControls {
 
     handleBeginRecording() {
         this.audioHandler.handleBeginRecording();
-        this.toggleRecordingControls(true);
-        this._highlightRecordingButton(this.beginRecordingButton);
+        this._toggleRecordingControls(true);
+        this._applyHighlight(this.beginRecordingButton);
     }
 
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording();
-        this.audioPreviewContainer?.classList.remove("hidden");
-        this._highlightRecordingButton(this.pauseRecordingButton);
+        this.audioPreviewContainer.show();
+        this._applyHighlight(this.pauseRecordingButton);
     }
 
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
-        this.audioPreviewContainer?.classList.add("hidden");
-        this._highlightRecordingButton(this.beginRecordingButton);
+        this.audioPreviewContainer.hide();
+        this._applyHighlight(this.beginRecordingButton);
     }
 
     handleStopRecording() {
@@ -74,8 +74,10 @@ export class AudioControls {
                 messageMedia.files = dataTransfer.files;
             }
         });
-        this.toggleRecordingControls(false);
-        this._highlightRecordingButton(null);
+
+        this.audioPreviewContainer.hide();
+        this._toggleRecordingControls(false);
+        this._applyHighlight(null);
     }
 
     scanAudioControlButtons() {
@@ -100,7 +102,7 @@ export class AudioControls {
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
     }
 
-    _highlightRecordingButton(activeButton) {
+    _applyHighlight(activeButton) {
         [this.beginRecordingButton, this.pauseRecordingButton, this.resumeRecordingButton].forEach(btn => {
             if (!btn) return;
             btn === activeButton ? btn.highlight() : btn.removeHighlight();
