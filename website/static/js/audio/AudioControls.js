@@ -1,4 +1,3 @@
-
 import { AudioHandler } from "./AudioHandler.js";
 
 /**
@@ -8,6 +7,7 @@ export class AudioControls {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
 
+        this.beginBtn = document.querySelector(".beginRecording");
         this.pauseBtn = document.querySelector(".pauseRecording");
         this.resumeBtn = document.querySelector(".resumeRecording");
         this.stopBtn = document.querySelector(".stopRecording");
@@ -49,14 +49,17 @@ export class AudioControls {
     handleBeginRecording() {
         this.audioHandler.handleBeginRecording();
         this.toggleRecordingControls(true);
+        this._handleShowIsRecording(true);
     }
 
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording();
+        this._handleShowIsRecording(false);
     }
 
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
+        this._handleShowIsRecording(true);
     }
 
     handleStopRecording() {
@@ -71,6 +74,7 @@ export class AudioControls {
         });
 
         this.toggleRecordingControls(false);
+        this._handleShowIsRecording(false);
     }
 
     scanAudioControlButtons() {
@@ -79,19 +83,35 @@ export class AudioControls {
             ['.pauseAudio',      btn => this.handlePauseAudio(btn)],
             ['.stopAudio',       btn => this.handleStopAudio(btn)],
             ['.adjustAudioRate', btn => this.handleAdjustAudioRate(btn)],
-            ['.beginRecording',  () => this.handleBeginRecording()],
-            ['.pauseRecording',  () => this.handlePauseRecording()],
-            ['.stopRecording',   () => this.handleStopRecording()],
-            ['.resumeRecording', () => this.handleResumeRecording()],
         ];
 
         buttonBindings.forEach(([selector, handler]) => {
-            const buttons = document.querySelectorAll(selector);
-            buttons.forEach(button => {
+            document.querySelectorAll(selector).forEach(button => {
                 button.addEventListener("click", event => {
-                    handler(event.currentTarget ?? event);
+                    handler(event.currentTarget);
                 });
             });
         });
+
+        if (this.beginBtn) {
+            this.beginBtn.addEventListener("click", () => this.handleBeginRecording());
+        }
+        if (this.pauseBtn) {
+            this.pauseBtn.addEventListener("click", () => this.handlePauseRecording());
+        }
+        if (this.resumeBtn) {
+            this.resumeBtn.addEventListener("click", () => this.handleResumeRecording());
+        }
+        if (this.stopBtn) {
+            this.stopBtn.addEventListener("click", () => this.handleStopRecording());
+        }
+    }
+
+    _handleShowIsRecording(show) {
+        if (!this.beginBtn) return;
+        const svg = this.beginBtn.querySelector("svg");
+        if (svg) {
+            svg.classList.toggle("text-primary", show);
+        }
     }
 }
