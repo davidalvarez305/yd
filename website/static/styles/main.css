@@ -1117,6 +1117,11 @@ select{
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.translate-x-0{
+  --tw-translate-x: 0px;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .rotate-45{
   --tw-rotate: 45deg;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -1405,6 +1410,11 @@ select{
   border-color: rgb(31 41 55 / var(--tw-border-opacity, 1));
 }
 
+.border-primary-100{
+  --tw-border-opacity: 1;
+  border-color: rgb(227 123 183 / var(--tw-border-opacity, 1));
+}
+
 .border-primary-200{
   --tw-border-opacity: 1;
   border-color: rgb(220 90 165 / var(--tw-border-opacity, 1));
@@ -1479,6 +1489,11 @@ select{
 .bg-primary-100{
   --tw-bg-opacity: 1;
   background-color: rgb(227 123 183 / var(--tw-bg-opacity, 1));
+}
+
+.bg-primary-50{
+  --tw-bg-opacity: 1;
+  background-color: rgb(230 140 192 / var(--tw-bg-opacity, 1));
 }
 
 .bg-primary-700{
@@ -1821,11 +1836,6 @@ select{
   color: rgb(0 0 0 / var(--tw-text-opacity, 1));
 }
 
-.text-blue-600{
-  --tw-text-opacity: 1;
-  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
-}
-
 .text-emerald-50{
   --tw-text-opacity: 1;
   color: rgb(236 253 245 / var(--tw-text-opacity, 1));
@@ -1894,6 +1904,11 @@ select{
 .text-primary-700{
   --tw-text-opacity: 1;
   color: rgb(62 13 41 / var(--tw-text-opacity, 1));
+}
+
+.text-red-700{
+  --tw-text-opacity: 1;
+  color: rgb(185 28 28 / var(--tw-text-opacity, 1));
 }
 
 .text-rose-500{
@@ -3026,10 +3041,6 @@ select{
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
-.hover\:underline:hover{
-  text-decoration-line: underline;
-}
-
 .hover\:opacity-100:hover{
   opacity: 1;
 }
@@ -3329,11 +3340,6 @@ select{
 
 .dark\:bg-transparent:is(.dark *){
   background-color: transparent;
-}
-
-.dark\:text-blue-400:is(.dark *){
-  --tw-text-opacity: 1;
-  color: rgb(96 165 250 / var(--tw-text-opacity, 1));
 }
 
 .dark\:text-emerald-400:is(.dark *){

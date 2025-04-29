@@ -112,7 +112,7 @@ export class AudioControls {
             if (!btn) return;
             const svg = btn.querySelector("svg");
             if (svg) {
-                svg.classList.toggle("text-primary-700", btn === activeBtn && isActive);
+                svg.classList.toggle("text-red-700", btn === activeBtn && isActive);
             }
         });
     }

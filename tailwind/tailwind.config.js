@@ -11,6 +11,7 @@ export default {
   content: [
     "../website/**/templates/**/*.html",
     "../website/**/*.py",
+    "../website/static/js/**/*.js",
   ],
   darkMode: "class",
   theme: {
