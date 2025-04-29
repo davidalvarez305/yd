@@ -2,6 +2,7 @@ export class AudioMessage {
     constructor(src, audioPlayer) {
         this.src = src;
         this.audioPlayer = audioPlayer;
+        this.isPlaying = false;
     }
 
     play() {

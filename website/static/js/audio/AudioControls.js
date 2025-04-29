@@ -1,22 +1,23 @@
 import { AudioHandler } from "./AudioHandler.js";
+import { AudioControlButton } from "./AudioControlButton.js";
 
-/**
- * @param {AudioHandler} audioHandler
- */
 export class AudioControls {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
 
-        this.beginBtn = document.querySelector(".beginRecording");
-        this.pauseBtn = document.querySelector(".pauseRecording");
-        this.resumeBtn = document.querySelector(".resumeRecording");
-        this.stopBtn = document.querySelector(".stopRecording");
+        this.beginRecordingButton = new AudioControlButton(document.querySelector(".beginRecording"));
+        this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
+        this.resumeRecordingButton = new AudioControlButton(document.querySelector(".resumeRecording"));
+        this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
+
+        this.playPreviewBtn = document.querySelector(".playPreview");
+        this.audioPreviewContainer = document.querySelector(".audioPreviewContainer");
     }
 
     toggleRecordingControls(show) {
-        [this.pauseBtn, this.resumeBtn, this.stopBtn].forEach(btn => {
-            if (!btn) return;
-            btn.classList.toggle("hidden", !show);
+        [this.pauseRecordingButton, this.resumeRecordingButton, this.stopRecordingButton].forEach(btn => {
+            if (!btn.element) return;
+            show ? btn.show() : btn.hide();
         });
     }
 
@@ -49,19 +50,21 @@ export class AudioControls {
     handleBeginRecording() {
         this.audioHandler.handleBeginRecording();
         this.toggleRecordingControls(true);
-        this._highlightRecordingButton(this.beginBtn, true);
+        this._highlightRecordingButton(this.beginRecordingButton);
     }
-    
+
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording();
-        this._highlightRecordingButton(this.pauseBtn, true);
+        this.audioPreviewContainer?.classList.remove("hidden");
+        this._highlightRecordingButton(this.pauseRecordingButton);
     }
-    
+
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
-        this._highlightRecordingButton(this.beginBtn, true);
+        this.audioPreviewContainer?.classList.add("hidden");
+        this._highlightRecordingButton(this.beginRecordingButton);
     }
-    
+
     handleStopRecording() {
         this.audioHandler.handleStopRecording(file => {
             const dataTransfer = new DataTransfer();
@@ -72,7 +75,7 @@ export class AudioControls {
             }
         });
         this.toggleRecordingControls(false);
-        this._highlightRecordingButton(null, false);
+        this._highlightRecordingButton(null);
     }
 
     scanAudioControlButtons() {
@@ -91,29 +94,16 @@ export class AudioControls {
             });
         });
 
-        if (this.beginBtn) {
-            this.beginBtn.addEventListener("click", () => this.handleBeginRecording());
-        }
-        if (this.pauseBtn) {
-            this.pauseBtn.addEventListener("click", () => this.handlePauseRecording());
-        }
-        if (this.resumeBtn) {
-            this.resumeBtn.addEventListener("click", () => this.handleResumeRecording());
-        }
-        if (this.stopBtn) {
-            this.stopBtn.addEventListener("click", () => this.handleStopRecording());
-        }
+        this.beginRecordingButton.onClick(() => this.handleBeginRecording());
+        this.pauseRecordingButton.onClick(() => this.handlePauseRecording());
+        this.resumeRecordingButton.onClick(() => this.handleResumeRecording());
+        this.stopRecordingButton.onClick(() => this.handleStopRecording());
     }
 
-    _highlightRecordingButton(activeBtn, isActive) {
-        const buttons = [this.beginBtn, this.pauseBtn, this.resumeBtn];
-        
-        buttons.forEach(btn => {
+    _highlightRecordingButton(activeButton) {
+        [this.beginRecordingButton, this.pauseRecordingButton, this.resumeRecordingButton].forEach(btn => {
             if (!btn) return;
-            const svg = btn.querySelector("svg");
-            if (svg) {
-                svg.classList.toggle("text-red-700", btn === activeBtn && isActive);
-            }
+            btn === activeButton ? btn.highlight() : btn.removeHighlight();
         });
     }
 }
