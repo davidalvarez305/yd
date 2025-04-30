@@ -17,27 +17,17 @@ export class AudioHandler {
         };
     }
 
-    // === Recording Controls ===
-
     handleBeginRecording() {
-        this.mediaRecorder.start();
+        this.mediaRecorder.start(1000);
     }
 
     handlePauseRecording(callback) {
         if (this.mediaRecorder.state === "recording") {
             this.mediaRecorder.pause();
         }
-
-        this.mediaRecorder.addEventListener("dataavailable", (event) => {
-            if (!event.data || event.data.size === 0) return;
-
-            this.recording.addChunk(event.data);
-            this.recording.generateBlobAndFile();
-            const previewUrl = this.recording.generatePreview();
-            callback(previewUrl);
-        }, { once: true });
-
-        this.mediaRecorder.requestData();
+    
+        let blob = this.recording.pause();
+        callback(blob);
     }
 
     handleResumeRecording() {
@@ -49,14 +39,14 @@ export class AudioHandler {
     handleStopRecording(callback) {
         if (typeof callback !== "function") throw new Error("Callback must be a function.");
         if (!this.mediaRecorder) throw new Error("No MediaRecorder instance available.");
-
+    
         this.mediaRecorder.onstop = () => {
-            this.recording.generateBlobAndFile();
-            callback(this.recording.file);
+            let file = this.recording.stop();
+            callback(file);
             this.recording.reset();
             this._createNewMediaRecorder();
         };
-
+    
         this.mediaRecorder.stop();
     }
 
@@ -68,8 +58,6 @@ export class AudioHandler {
     getRecorderState() {
         return this.mediaRecorder?.state || 'inactive';
     }
-
-    // === Audio Message Playback ===
 
     playMessage(index) {
         const message = this.audioMessages.at(index);

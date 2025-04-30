@@ -5,6 +5,7 @@ import { AudioMessage } from "./AudioMessage.js";
 export class AudioControlPanel {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
+        this.preview = null;
 
         this.beginRecordingButton = new AudioControlButton(document.querySelector(".beginRecording"));
         this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
@@ -60,16 +61,19 @@ export class AudioControlPanel {
     }
 
     handlePauseRecording() {
-        this.audioHandler.handlePauseRecording(function onPauseRecording(src) {
+        this.audioHandler.handlePauseRecording(blob => {
+            this.preview = URL.createObjectURL(blob);
             let audioRecordingPreview = document.querySelector(".audioRecordingPreview");
-            if (audioRecordingPreview) audioRecordingPreview.src = src;
+            if (audioRecordingPreview) audioRecordingPreview.src = this.preview;
         });
         this.audioPreviewContainer.show();
         this._applyHighlight(this.pauseRecordingButton);
     }
-
+    
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
+        if (this.preview) URL.revokeObjectURL(this.preview);
+        this.preview = null;
         this.audioPreviewContainer.hide();
         this._applyHighlight(this.beginRecordingButton);
     }
@@ -83,8 +87,7 @@ export class AudioControlPanel {
             if (messageMedia) {
                 messageMedia.files = dataTransfer.files;
     
-                const event = new Event("change", { bubbles: true });
-                messageMedia.dispatchEvent(event);
+                messageMedia.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
     
@@ -97,7 +100,6 @@ export class AudioControlPanel {
     }
 
     scanAudioElements() {
-        // Control Buttons
         const buttonBindings = [
             ['.playAudio',       btn => this.handlePlayAudio(btn)],
             ['.pauseAudio',      btn => this.handlePauseAudio(btn)],
@@ -118,7 +120,6 @@ export class AudioControlPanel {
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
         this.deleteRecordingButton.onClick(() => this.handleDeleteRecording());
 
-        // Audio Messages
         const audioMessages = document.querySelectorAll('.audioMessage');
         audioMessages.forEach(function handleMessage(message) {
             if (!message.dataset.src) return;

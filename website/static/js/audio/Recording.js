@@ -4,38 +4,32 @@ export class Recording extends AudioMessage {
     constructor(audioPlayer) {
         super(null, audioPlayer);
         this.audioChunks = [];
-        this.audioBlob = null;
-        this.file = null;
     }
 
     addChunk(chunk) {
         this.audioChunks.push(chunk);
     }
 
-    reset() {
-        this.audioChunks = [];
-        this.audioBlob = null;
-        this.file = null;
+    pause() {
+        const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+
+        return blob;
     }
 
-    generateBlobAndFile() {
-        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-        this.file = new File(
-            [this.audioBlob],
+    stop() {
+        const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        const file = new File(
+            [blob],
             `recording-${Date.now()}.webm`,
             { type: 'audio/webm' }
         );
+
+        this.audioChunks = [];
+
+        return file;
     }
 
-    generatePreview() {
-        if (!this.audioBlob) this.generateBlobAndFile();
-
-        return URL.createObjectURL(this.audioBlob);
-    }
-
-    getFile() {
-        if (!this.file) this.generateBlobAndFile();
-
-        return this.file;
+    reset() {
+        this.audioChunks = [];
     }
 }
