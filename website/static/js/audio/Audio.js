@@ -18,18 +18,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const audioControlPanel = new AudioControlPanel(audioHandler);
 
-        audioControlPanel.scanAudioControlButtons();
-
-        const audioMessages = document.querySelectorAll('.audioMessage');
-        audioMessages.forEach(function (message) {
-            if (!message.dataset.src) {
-                console.error('Missing audio src for audio message');
-                return;
-            }
-
-            const audio = new AudioMessage(message.dataset.src, audioPlayer);
-            audioHandler.registerAudioMessage(audio);
-        });
+        audioControlPanel.scanAudioElements();
 
     } catch (error) {
         console.error("Could not initialize audio recording:", error);

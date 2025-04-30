@@ -1,73 +1,78 @@
 export class AudioHandler {
     audioMessages = [];
+    playbackRate = 1.0;
 
     constructor(mediaRecorder, recording) {
-        this.mediaRecorder = mediaRecorder;
+        this.originalStream = mediaRecorder.stream;
         this.recording = recording;
-        this.playbackRate = 1.0;
-
-        this._initRecorder();
+        this._createNewMediaRecorder();
     }
 
-    _handleOnDataAvailable = (event) => {
-        this.recording.addChunk(event.data);
-    };
-
-    _initRecorder() {
-        this.mediaRecorder.ondataavailable = this._handleOnDataAvailable;
+    _createNewMediaRecorder() {
+        this.mediaRecorder = new MediaRecorder(this.originalStream);
+        this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+                this.recording.addChunk(event.data);
+            }
+        };
     }
+
+    // === Recording Controls ===
 
     handleBeginRecording() {
         this.mediaRecorder.start();
-    }
-
-    handleDeleteRecording() {
-        this.recording.reset();
-
-        this.mediaRecorder = new MediaRecorder(this.mediaRecorder.stream);
-        this._initRecorder();
     }
 
     handlePauseRecording(callback) {
         if (this.mediaRecorder.state === "recording") {
             this.mediaRecorder.pause();
         }
-    
-        this.mediaRecorder.addEventListener("dataavailable", event => {
+
+        this.mediaRecorder.addEventListener("dataavailable", (event) => {
             if (!event.data || event.data.size === 0) return;
 
-            this.recording.audioChunks.push(event.data);
+            this.recording.addChunk(event.data);
             this.recording.generateBlobAndFile();
             const previewUrl = this.recording.generatePreview();
-
             callback(previewUrl);
-        },
-        { once: true });
+        }, { once: true });
 
         this.mediaRecorder.requestData();
     }
 
     handleResumeRecording() {
-        if (this.mediaRecorder.state === "paused") this.mediaRecorder.resume();
+        if (this.mediaRecorder.state === "paused") {
+            this.mediaRecorder.resume();
+        }
     }
 
     handleStopRecording(callback) {
-        if (typeof callback !== "function") throw new Error("Callback must be of type function.");
-
-        if (!this.mediaRecorder) throw new Error("No MediaRecorder instance found.");
+        if (typeof callback !== "function") throw new Error("Callback must be a function.");
+        if (!this.mediaRecorder) throw new Error("No MediaRecorder instance available.");
 
         this.mediaRecorder.onstop = () => {
             this.recording.generateBlobAndFile();
             callback(this.recording.file);
+            this._createNewMediaRecorder(); // recreate after stopping
         };
 
         this.recording.reset();
         this.mediaRecorder.stop();
     }
 
+    handleDeleteRecording() {
+        this.recording.reset();
+        this._createNewMediaRecorder();
+    }
+
+    getRecorderState() {
+        return this.mediaRecorder?.state || 'inactive';
+    }
+
+    // === Audio Message Playback ===
+
     playMessage(index) {
         const message = this.audioMessages.at(index);
-
         if (!message) return;
 
         message.adjustRate(this.playbackRate);
@@ -75,19 +80,18 @@ export class AudioHandler {
     }
 
     handlePauseAudio(index) {
-        const message = this.audioMessages.at(index);
-        if (message) message.pause();
+        this.audioMessages.at(index)?.pause();
     }
 
     handleStopAudio(index) {
-        const message = this.audioMessages.at(index);
-        if (message) message.stop();
+        this.audioMessages.at(index)?.stop();
     }
 
     handleAdjustAudioRate(index, rate) {
-        const message = this.audioMessages.at(index);
+        if (rate < 0) return;
 
-        if (!message || rate < 0) return;
+        const message = this.audioMessages.at(index);
+        if (!message) return;
 
         this.playbackRate = rate;
         message.adjustRate(rate);
@@ -95,9 +99,5 @@ export class AudioHandler {
 
     registerAudioMessage(audioMessage) {
         this.audioMessages.push(audioMessage);
-    }
-
-    getRecorderState() {
-        return this.mediaRecorder?.state || 'inactive';
     }
 }

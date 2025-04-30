@@ -1,5 +1,6 @@
 import { AudioControlButton } from "./AudioControlButton.js";
 import { AudioControlContainer } from "./AudioControlContainer.js";
+import { AudioMessage } from "./AudioMessage.js";
 
 export class AudioControlPanel {
     constructor(audioHandler) {
@@ -91,7 +92,8 @@ export class AudioControlPanel {
         this._resetControlPanel();
     }
 
-    scanAudioControlButtons() {
+    scanAudioElements() {
+        // Control Buttons
         const buttonBindings = [
             ['.playAudio',       btn => this.handlePlayAudio(btn)],
             ['.pauseAudio',      btn => this.handlePauseAudio(btn)],
@@ -111,6 +113,15 @@ export class AudioControlPanel {
         this.pauseRecordingButton.onClick(() => this.handlePauseRecording());
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
         this.deleteRecordingButton.onClick(() => this.handleDeleteRecording());
+
+        // Audio Messages
+        const audioMessages = document.querySelectorAll('.audioMessage');
+        audioMessages.forEach(function handleMessage(message) {
+            if (!message.dataset.src) return;
+
+            const audio = new AudioMessage(message.dataset.src, audioPlayer);
+            this.audioHandler.registerAudioMessage(audio);
+        });
     }
 
     _applyHighlight(activeButton) {
