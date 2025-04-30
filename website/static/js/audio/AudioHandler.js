@@ -36,16 +36,17 @@ export class AudioHandler {
         if (this.mediaRecorder.state === "paused") this.mediaRecorder.resume();
     }
 
-    handleStopRecording(cb) {
-        if (typeof cb !== "function") throw new Error("Callback must be of type function.");
+    handleStopRecording(callback) {
+        if (typeof callback !== "function") throw new Error("Callback must be of type function.");
 
         if (!this.mediaRecorder) throw new Error("No MediaRecorder instance found.");
 
         this.mediaRecorder.onstop = () => {
             this.recording.generateBlobAndFile();
-            cb(this.recording.file);
+            callback(this.recording.file);
         };
 
+        this.recording.reset();
         this.mediaRecorder.stop();
     }
 

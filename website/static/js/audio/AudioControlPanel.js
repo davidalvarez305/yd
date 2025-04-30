@@ -76,7 +76,6 @@ export class AudioControlPanel {
             }
         });
 
-        this.audioHandler.recording.reset();
         this.audioPreviewContainer.hide();
         this._toggleRecordingControls(false);
         this._applyHighlight(null);
