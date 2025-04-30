@@ -16,7 +16,6 @@ export class Recording extends AudioMessage {
         this.audioChunks = [];
         this.audioBlob = null;
         this.file = null;
-        this.src = null;
     }
 
     generateBlobAndFile() {
@@ -31,9 +30,7 @@ export class Recording extends AudioMessage {
     generatePreview() {
         if (!this.audioBlob) this.generateBlobAndFile();
 
-        const url = URL.createObjectURL(this.audioBlob);
-        this.src = url;
-        return this;
+        return URL.createObjectURL(this.audioBlob);
     }
 
     getFile() {

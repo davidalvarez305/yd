@@ -13,8 +13,23 @@ export class AudioHandler {
         this.mediaRecorder.start();
     }
 
-    handlePauseRecording() {
-        if (this.mediaRecorder.state === "recording") this.mediaRecorder.pause();
+    handlePauseRecording(callback) {
+        if (this.mediaRecorder.state === "recording") {
+            this.mediaRecorder.pause();
+        }
+    
+        this.mediaRecorder.addEventListener("dataavailable", event => {
+            if (!event.data || event.data.size === 0) return;
+
+            this.recording.audioChunks.push(event.data);
+            this.recording.generateBlobAndFile();
+            const previewUrl = this.recording.generatePreview();
+
+            callback(previewUrl);
+        },
+        { once: true });
+
+        this.mediaRecorder.requestData();
     }
 
     handleResumeRecording() {
@@ -32,13 +47,6 @@ export class AudioHandler {
         };
 
         this.mediaRecorder.stop();
-    }
-
-    handlePreviewRecording() {
-        if (!this.recording) return;
-
-        const audioMessage = this.recording.generatePreview();
-        this.registerAudioMessage(audioMessage);
     }
 
     playMessage(index) {

@@ -86,24 +86,18 @@
                     <!-- END Stop button -->
 
                     <!-- Recording Preview -->
-                    <div class="audioPreviewContainer hidden mt-2">
-                        <audio controls class="audioPreview w-full"></audio>
-                        <button type="button"
-                            class="playPreview mt-1 px-3 py-1 text-sm rounded-md bg-primary text-white hover:bg-primary/90">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-play inline-block size-5">
-                                <path d="M3 3.732a1.5 1.5 0 0 1 2.305-1.265l6.706 4.267a1.5 1.5 0 0 1 0 2.531l-6.706 4.268A1.5 1.5 0 0 1 3 12.267V3.732Z"/>
+                    <div class="audioPreviewContainer flex flex-row gap-2">
+                        <audio controls class="audioRecordingPreview w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"></audio>
+
+                        <!-- Delete button -->
+                        <button type="button" class="deleteRecording">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-trash inline-block size-5">
+                                <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd"/>
                             </svg>
                         </button>
+                        <!-- Delete button -->
                     </div>
                     <!-- END Recording Preview -->
-
-                    <!-- Delete button -->
-                    <button type="button" class="deleteRecording hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-trash inline-block size-5">
-                            <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <!-- Delete button -->
 
                     <!-- File Counter -->
                     <span id="fileCount" class="text-sm text-gray-500"></span>

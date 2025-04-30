@@ -9,9 +9,6 @@ export class AudioControlPanel {
         this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
         this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
 
-        this.playPreviewBtn = document.querySelector(".playPreview");
-        this.pausePreviewBtn = document.querySelector(".pausePreview");
-        this.stopPreviewBtn = document.querySelector(".stopPreview");
         this.audioPreviewContainer = new AudioControlContainer(document.querySelector(".audioPreviewContainer"));
     }
 
@@ -55,7 +52,10 @@ export class AudioControlPanel {
     }
 
     handlePauseRecording() {
-        this.audioHandler.handlePauseRecording();
+        this.audioHandler.handlePauseRecording(function onPauseRecording(src) {
+            let audioRecordingPreview = document.querySelector(".audioRecordingPreview");
+            if (audioRecordingPreview) audioRecordingPreview.src = src;
+        });
         this.audioPreviewContainer.show();
         this._applyHighlight(this.pauseRecordingButton);
     }

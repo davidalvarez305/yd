@@ -85,9 +85,9 @@ export class HowlerAudioPlayer extends AudioPlayerInterface {
 }
 
 export function createAudioPlayerFactory() {
-    if (typeof window.Howl === 'function') {
+    /* if (typeof window.Howl === 'function') {
         return new HowlerAudioPlayer();
-    }
+    } */
 
     return new DefaultAudioPlayer();
 }
