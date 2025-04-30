@@ -17,7 +17,7 @@
                                     {% if media.is_image %}
                                         <img src="{{ media.file.url }}" alt="Image" class="w-auto max-w-full max-h-60 rounded-md mt-2 object-contain" />
                                     {% elif media.is_audio %}
-                                        <audio controls class="w-full mt-2">
+                                        <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
                                             <source src="{{ media.file.url }}" type="audio/mpeg">
                                             Your browser does not support the audio element.
                                         </audio>
@@ -59,7 +59,7 @@
                                     {% if media.is_image %}
                                     <img src="{{ media.file.url }}" alt="Image" class="w-auto max-w-full max-h-60 rounded-md mt-2 object-contain" />
                                     {% elif media.is_audio %}
-                                        <audio controls class="w-full mt-2">
+                                        <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
                                             <source src="{{ media.file.url }}" type="audio/mpeg">
                                             Your browser does not support the audio element.
                                         </audio>
