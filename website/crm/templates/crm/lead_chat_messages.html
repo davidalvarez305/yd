@@ -15,7 +15,7 @@
                             {% if message.media.all %}
                                 {% for media in message.media.all %}
                                     {% if media.is_image %}
-                                        <img src="{{ media.file.url }}" alt="Image" class="w-full rounded-md mt-2">
+                                        <img src="{{ media.file.url }}" alt="Image" class="w-auto max-w-full max-h-60 rounded-md mt-2 object-contain" />
                                     {% elif media.is_audio %}
                                         <audio controls class="w-full mt-2">
                                             <source src="{{ media.file.url }}" type="audio/mpeg">
@@ -57,7 +57,7 @@
                             {% if message.media.all %}
                                 {% for media in message.media.all %}
                                     {% if media.is_image %}
-                                        <img src="{{ media.file.url }}" alt="Image" class="w-full rounded-md mt-2">
+                                    <img src="{{ media.file.url }}" alt="Image" class="w-auto max-w-full max-h-60 rounded-md mt-2 object-contain" />
                                     {% elif media.is_audio %}
                                         <audio controls class="w-full mt-2">
                                             <source src="{{ media.file.url }}" type="audio/mpeg">
