@@ -1,15 +1,23 @@
-export class AudioHandler {
-    audioMessages = [];
-    playbackRate = 1.0;
+import { Recording } from "./Recording.js";
 
-    constructor(mediaRecorder, recording) {
-        this.originalStream = mediaRecorder.stream;
-        this.recording = recording;
-        this._createNewMediaRecorder();
+export class AudioHandler {
+    constructor() {
+        this.recording = new Recording();
+        this.mediaRecorder = null;
+        this.stream = null;
     }
 
-    _createNewMediaRecorder() {
-        this.mediaRecorder = new MediaRecorder(this.originalStream);
+    async init() {
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this._createMediaRecorder();
+        } catch (error) {
+            console.error("Error accessing audio stream:", error);
+        }
+    }
+
+    _createMediaRecorder() {
+        this.mediaRecorder = new MediaRecorder(this.stream);
         this.mediaRecorder.ondataavailable = (event) => {
             if (event.data && event.data.size > 0) {
                 this.recording.addChunk(event.data);
@@ -25,8 +33,8 @@ export class AudioHandler {
         if (this.mediaRecorder.state === "recording") {
             this.mediaRecorder.pause();
         }
-    
-        let blob = this.recording.pause();
+
+        const blob = this.recording.pause();
         callback(blob);
     }
 
@@ -37,55 +45,24 @@ export class AudioHandler {
     }
 
     handleStopRecording(callback) {
-        if (typeof callback !== "function") throw new Error("Callback must be a function.");
         if (!this.mediaRecorder) throw new Error("No MediaRecorder instance available.");
-    
+
         this.mediaRecorder.onstop = () => {
-            let file = this.recording.stop();
+            const file = this.recording.stop();
             callback(file);
             this.recording.reset();
-            this._createNewMediaRecorder();
+            this._createMediaRecorder();
         };
-    
+
         this.mediaRecorder.stop();
     }
 
     handleDeleteRecording() {
         this.recording.reset();
-        this._createNewMediaRecorder();
+        this._createMediaRecorder();
     }
 
     getRecorderState() {
         return this.mediaRecorder?.state || 'inactive';
-    }
-
-    playMessage(index) {
-        const message = this.audioMessages.at(index);
-        if (!message) return;
-
-        message.adjustRate(this.playbackRate);
-        message.play();
-    }
-
-    handlePauseAudio(index) {
-        this.audioMessages.at(index)?.pause();
-    }
-
-    handleStopAudio(index) {
-        this.audioMessages.at(index)?.stop();
-    }
-
-    handleAdjustAudioRate(index, rate) {
-        if (rate < 0) return;
-
-        const message = this.audioMessages.at(index);
-        if (!message) return;
-
-        this.playbackRate = rate;
-        message.adjustRate(rate);
-    }
-
-    registerAudioMessage(audioMessage) {
-        this.audioMessages.push(audioMessage);
     }
 }

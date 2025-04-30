@@ -1,8 +1,5 @@
-import { AudioMessage } from './AudioMessage.js';
-
-export class Recording extends AudioMessage {
-    constructor(audioPlayer) {
-        super(null, audioPlayer);
+export class Recording {
+    constructor() {
         this.audioChunks = [];
     }
 

@@ -1,57 +1,34 @@
-import { AudioControlButton } from "./AudioControlButton.js";
-import { AudioControlContainer } from "./AudioControlContainer.js";
-import { AudioMessage } from "./AudioMessage.js";
+import { withAudioControl } from "./withAudioControl.js";
 
 export class AudioControlPanel {
     constructor(audioHandler) {
         this.audioHandler = audioHandler;
         this.preview = null;
+        this.audioTrackList = [];
 
-        this.beginRecordingButton = new AudioControlButton(document.querySelector(".beginRecording"));
-        this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
-        this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
-        this.deleteRecordingButton = new AudioControlButton(document.querySelector(".deleteRecording"));
-
-        this.audioPreviewContainer = new AudioControlContainer(document.querySelector(".audioPreviewContainer"));
+        this.beginRecordingButton = withAudioControl(document.querySelector(".beginRecording"));
+        this.pauseRecordingButton = withAudioControl(document.querySelector(".pauseRecording"));
+        this.stopRecordingButton = withAudioControl(document.querySelector(".stopRecording"));
+        this.deleteRecordingButton = withAudioControl(document.querySelector(".deleteRecording"));
+        this.audioPreviewContainer = withAudioControl(document.querySelector(".audioPreviewContainer"));
     }
 
     _toggleRecordingControls(show) {
         [this.pauseRecordingButton, this.stopRecordingButton].forEach(btn => {
-            if (!btn.element) return;
+            if (!btn?.element) return;
             show ? btn.show() : btn.hide();
         });
     }
 
     _resetControlPanel() {
+        if (this.preview) {
+            URL.revokeObjectURL(this.preview);
+            this.preview = null;
+        }
+
         this.audioPreviewContainer.hide();
         this._toggleRecordingControls(false);
         this._applyHighlight(null);
-    }
-
-    handlePlayAudio(btn) {
-        const src = btn.dataset.src;
-        if (!src) throw new Error('Message missing "data-src" attribute.');
-        this.audioHandler.playMessage(src);
-    }
-
-    handlePauseAudio(btn) {
-        const src = btn.dataset.src;
-        if (!src) throw new Error('Message missing "data-src" attribute.');
-        this.audioHandler.handlePauseAudio(src);
-    }
-
-    handleStopAudio(btn) {
-        const src = btn.dataset.src;
-        if (!src) throw new Error('Message missing "data-src" attribute.');
-        this.audioHandler.handleStopAudio(src);
-    }
-
-    handleAdjustAudioRate(btn) {
-        const src = btn.dataset.src;
-        const rate = parseFloat(btn.dataset.rate || "1.0");
-        if (!src) throw new Error('Message missing "data-src" attribute.');
-        if (isNaN(rate)) throw new Error('Invalid or missing "data-rate" attribute.');
-        this.audioHandler.handleAdjustAudioRate(src, rate);
     }
 
     handleBeginRecording() {
@@ -62,18 +39,25 @@ export class AudioControlPanel {
 
     handlePauseRecording() {
         this.audioHandler.handlePauseRecording(blob => {
+            if (this.preview) URL.revokeObjectURL(this.preview);
             this.preview = URL.createObjectURL(blob);
-            let audioRecordingPreview = document.querySelector(".audioRecordingPreview");
-            if (audioRecordingPreview) audioRecordingPreview.src = this.preview;
+
+            const previewEl = document.querySelector(".audioRecordingPreview");
+            if (previewEl) previewEl.src = this.preview;
         });
+
         this.audioPreviewContainer.show();
         this._applyHighlight(this.pauseRecordingButton);
     }
     
     handleResumeRecording() {
         this.audioHandler.handleResumeRecording();
-        if (this.preview) URL.revokeObjectURL(this.preview);
-        this.preview = null;
+
+        if (this.preview) {
+            URL.revokeObjectURL(this.preview);
+            this.preview = null;
+        }
+
         this.audioPreviewContainer.hide();
         this._applyHighlight(this.beginRecordingButton);
     }
@@ -82,15 +66,14 @@ export class AudioControlPanel {
         this.audioHandler.handleStopRecording(file => {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
-    
+
             const messageMedia = document.getElementById("messageMedia");
             if (messageMedia) {
                 messageMedia.files = dataTransfer.files;
-    
                 messageMedia.dispatchEvent(new Event("change", { bubbles: true }));
             }
         });
-    
+
         this._resetControlPanel();
     }
 
@@ -100,45 +83,40 @@ export class AudioControlPanel {
     }
 
     scanAudioElements() {
-        const buttonBindings = [
-            ['.playAudio',       btn => this.handlePlayAudio(btn)],
-            ['.pauseAudio',      btn => this.handlePauseAudio(btn)],
-            ['.stopAudio',       btn => this.handleStopAudio(btn)],
-            ['.adjustAudioRate', btn => this.handleAdjustAudioRate(btn)],
-        ];
+        const messages = document.querySelectorAll('.audioMessage');
+        messages.forEach(message => {
+            if (!message || !(message instanceof HTMLAudioElement)) return;
 
-        buttonBindings.forEach(([selector, handler]) => {
-            document.querySelectorAll(selector).forEach(button => {
-                button.addEventListener("click", event => {
-                    handler(event.currentTarget);
-                });
-            });
+            this.audioTrackList.push(message);
         });
+
+        this._setupTrackAutoplay();
 
         this.beginRecordingButton.onClick(() => this._handleStartOrResumeRecording());
         this.pauseRecordingButton.onClick(() => this.handlePauseRecording());
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
         this.deleteRecordingButton.onClick(() => this.handleDeleteRecording());
+    }
 
-        const audioMessages = document.querySelectorAll('.audioMessage');
-        audioMessages.forEach(function handleMessage(message) {
-            if (!message.dataset.src) return;
-
-            const audio = new AudioMessage(message.dataset.src, audioPlayer);
-            this.audioHandler.registerAudioMessage(audio);
+    _setupTrackAutoplay() {
+        this.audioTrackList.forEach((audio, index) => {
+            audio.addEventListener("ended", () => {
+                const next = this.audioTrackList[index + 1];
+                if (next) next.play();
+            });
         });
     }
 
     _applyHighlight(activeButton) {
         [this.beginRecordingButton, this.pauseRecordingButton].forEach(btn => {
-            if (!btn) return;
+            if (!btn?.element) return;
             btn === activeButton ? btn.highlight() : btn.removeHighlight();
         });
     }
 
     _handleStartOrResumeRecording() {
         const state = this.audioHandler.getRecorderState();
-    
+
         if (state === "paused") {
             this.handleResumeRecording();
         } else if (state === "inactive") {
@@ -147,5 +125,4 @@ export class AudioControlPanel {
             throw new Error(`Unexpected media recorder state: ${state}`);
         }
     }
-    
 }
