@@ -78,12 +78,16 @@ export class AudioControlPanel {
         this.audioHandler.handleStopRecording(file => {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
+    
             const messageMedia = document.getElementById("messageMedia");
             if (messageMedia) {
                 messageMedia.files = dataTransfer.files;
+    
+                const event = new Event("change", { bubbles: true });
+                messageMedia.dispatchEvent(event);
             }
         });
-
+    
         this._resetControlPanel();
     }
 
