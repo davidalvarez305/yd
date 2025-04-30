@@ -8,6 +8,7 @@ export class AudioControlPanel {
         this.beginRecordingButton = new AudioControlButton(document.querySelector(".beginRecording"));
         this.pauseRecordingButton = new AudioControlButton(document.querySelector(".pauseRecording"));
         this.stopRecordingButton = new AudioControlButton(document.querySelector(".stopRecording"));
+        this.deleteRecordingButton = new AudioControlButton(document.querySelector(".deleteRecording"));
 
         this.audioPreviewContainer = new AudioControlContainer(document.querySelector(".audioPreviewContainer"));
     }
@@ -17,6 +18,12 @@ export class AudioControlPanel {
             if (!btn.element) return;
             show ? btn.show() : btn.hide();
         });
+    }
+
+    _resetControlPanel() {
+        this.audioPreviewContainer.hide();
+        this._toggleRecordingControls(false);
+        this._applyHighlight(null);
     }
 
     handlePlayAudio(btn) {
@@ -76,9 +83,12 @@ export class AudioControlPanel {
             }
         });
 
-        this.audioPreviewContainer.hide();
-        this._toggleRecordingControls(false);
-        this._applyHighlight(null);
+        this._resetControlPanel();
+    }
+
+    handleDeleteRecording() {
+        this.audioHandler.handleDeleteRecording();
+        this._resetControlPanel();
     }
 
     scanAudioControlButtons() {
@@ -100,6 +110,7 @@ export class AudioControlPanel {
         this.beginRecordingButton.onClick(() => this._handleStartOrResumeRecording());
         this.pauseRecordingButton.onClick(() => this.handlePauseRecording());
         this.stopRecordingButton.onClick(() => this.handleStopRecording());
+        this.deleteRecordingButton.onClick(() => this.handleDeleteRecording());
     }
 
     _applyHighlight(activeButton) {

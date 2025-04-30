@@ -5,12 +5,27 @@ export class AudioHandler {
         this.mediaRecorder = mediaRecorder;
         this.recording = recording;
         this.playbackRate = 1.0;
+
+        this._initRecorder();
+    }
+
+    _handleOnDataAvailable = (event) => {
+        this.recording.addChunk(event.data);
+    };
+
+    _initRecorder() {
+        this.mediaRecorder.ondataavailable = this._handleOnDataAvailable;
     }
 
     handleBeginRecording() {
-        this.mediaRecorder.ondataavailable = (event) => this.recording.addChunk(event.data);
-
         this.mediaRecorder.start();
+    }
+
+    handleDeleteRecording() {
+        this.recording.reset();
+
+        this.mediaRecorder = new MediaRecorder(this.mediaRecorder.stream);
+        this._initRecorder();
     }
 
     handlePauseRecording(callback) {
