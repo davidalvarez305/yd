@@ -132,7 +132,7 @@ class LoginView(BaseWebsiteView):
         context['login_form'] = LoginForm()
 
         if request.user.is_authenticated:
-            if request.request.user.is_superuser:
+            if request.user.is_superuser:
                 return redirect(reverse('lead_list'))
 
         return render(request, self.template_name, context)
