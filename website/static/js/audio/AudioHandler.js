@@ -53,7 +53,7 @@ export class AudioHandler {
         this.mediaRecorder.onstop = () => {
             this.recording.generateBlobAndFile();
             callback(this.recording.file);
-            this._createNewMediaRecorder(); // recreate after stopping
+            this._createNewMediaRecorder();
         };
 
         this.recording.reset();
