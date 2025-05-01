@@ -145,3 +145,29 @@ def handle_call_status_callback(request):
             return HttpResponse(f"<Response><Error>{str(e)}</Error></Response>", content_type="application/xml", status=500)
 
     return HttpResponse("<Response><Error>Invalid request method</Error></Response>", content_type="application/xml", status=405)
+
+@csrf_exempt
+def handle_call_recording_callback(request):
+    if request.method != "POST":
+        return HttpResponse("<Response><Error>Only POST requests are allowed</Error></Response>", content_type="application/xml", status=405)
+
+    call_sid = request.POST.get("CallSid")
+    recording_sid = request.POST.get("RecordingSid")
+
+    if not call_sid or not recording_sid:
+        return HttpResponse("<Response><Error>Missing CallSid or RecordingSid</Error></Response>", content_type="application/xml", status=400)
+
+    recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
+
+    try:
+        phone_call = PhoneCall.objects.get(call_sid=call_sid)
+        phone_call.recording_url = recording_url
+        phone_call.save()
+
+        return HttpResponse("<Response></Response>", content_type="application/xml", status=200)
+
+    except PhoneCall.DoesNotExist:
+        return HttpResponse("<Response><Error>Phone call not found</Error></Response>", content_type="application/xml", status=404)
+
+    except Exception as e:
+        return HttpResponse(f"<Response><Error>{str(e)}</Error></Response>", content_type="application/xml", status=500)
