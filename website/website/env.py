@@ -17,6 +17,7 @@ class EnvConfig:
 
         # Server
         "SERVER_PORT",
+        "ALLOWED_HOSTS",
 
         # Company
         "COMPANY_NAME",

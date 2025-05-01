@@ -47,4 +47,18 @@ urlpatterns = [
     path('event/<int:pk>/', views.EventDetailView.as_view(), name='event_detail'),
     path('event/<int:pk>/edit/', views.EventUpdateView.as_view(), name='event_update'),
     path('event/<int:pk>/delete/', views.EventDeleteView.as_view(), name='event_delete'),
+    
+    # Message
+    path('message/', views.MessageListView.as_view(), name='message_list'),
+    path('message/create/', views.MessageCreateView.as_view(), name='message_create'),
+    path('message/<int:pk>/', views.MessageDetailView.as_view(), name='message_detail'),
+    path('message/<int:pk>/edit/', views.MessageUpdateView.as_view(), name='message_update'),
+    path('message/<int:pk>/delete/', views.MessageDeleteView.as_view(), name='message_delete'),
+    
+    # Phone Call
+    path('phone-call/', views.PhoneCallListView.as_view(), name='phonecall_list'),
+    path('phone-call/create/', views.PhoneCallCreateView.as_view(), name='phonecall_create'),
+    path('phone-call/<int:pk>/', views.PhoneCallDetailView.as_view(), name='phonecall_detail'),
+    path('phone-call/<int:pk>/edit/', views.PhoneCallUpdateView.as_view(), name='phonecall_update'),
+    path('phone-call/<int:pk>/delete/', views.PhoneCallDeleteView.as_view(), name='phonecall_delete'),
 ]

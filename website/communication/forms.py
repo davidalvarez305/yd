@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Message
+from .models import Message, PhoneCall
 from core.forms import BaseModelForm, MultiFileField, MultiFileInput
 
 class MessageForm(BaseModelForm):
@@ -36,3 +36,8 @@ class MessageForm(BaseModelForm):
     class Meta:
         model = Message
         fields = ['text', 'message_media', 'text_to', 'text_from']
+
+class PhoneCallForm(forms.ModelForm):
+    class Meta:
+        model = PhoneCall
+        fields = '__all__'

@@ -7,8 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 
 from website import settings
-from communication.models import Message
-from communication.forms import MessageForm
+from communication.models import Message, PhoneCall
+from communication.forms import MessageForm, PhoneCallForm
 from communication.models import Message
 from core.models import LeadStatus, Lead, User, Service
 from core.forms import ServiceForm, UserForm
@@ -18,6 +18,7 @@ from marketing.models import LeadMarketing
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailTable, ServiceTable, EventTable, UserTable
+from core.tables import Table
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
@@ -377,3 +378,43 @@ class EventDetailView(CRMDetailTemplateView):
 class EventDeleteView(CRMBaseDeleteView):
     model = Event
     form_class = EventForm
+
+class MessageListView(CRMTableView):
+    model = Message
+    table_class = Table.from_model(Message, exclude=["external_id", "message_id"])
+
+class MessageDetailView(CRMDetailTemplateView):
+    model = Message
+    form_class = MessageForm
+
+class MessageDeleteView(CRMBaseDeleteView):
+    model = Message
+    form_class = MessageForm
+
+class MessageCreateView(CRMCreateTemplateView):
+    model = Message
+    form_class = MessageForm
+
+class MessageUpdateView(CRMBaseUpdateView):
+    model = Message
+    form_class = MessageForm
+
+class PhoneCallListView(CRMTableView):
+    model = PhoneCall
+    table_class = Table.from_model(PhoneCall, exclude=["external_id", "PhoneCall_id"])
+
+class PhoneCallDetailView(CRMDetailTemplateView):
+    model = PhoneCall
+    form_class = PhoneCallForm
+
+class PhoneCallDeleteView(CRMBaseDeleteView):
+    model = PhoneCall
+    form_class = PhoneCallForm
+
+class PhoneCallCreateView(CRMCreateTemplateView):
+    model = PhoneCall
+    form_class = PhoneCallForm
+
+class PhoneCallUpdateView(CRMBaseUpdateView):
+    model = PhoneCall
+    form_class = PhoneCallForm

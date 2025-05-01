@@ -14,7 +14,8 @@ SECRET_KEY = env.get("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get("PRODUCTION") == "0"
 
-ALLOWED_HOSTS = env.get("ALLOWED_HOSTS", "127.0.0.1").split(',')
+ALLOWED_HOSTS = env.get("ALLOWED_HOSTS", "127.0.0.1").split(', ')
+print(ALLOWED_HOSTS)
 LOGIN_URL = "/login"  # Change this to your desired login URL
 
 # Application definition
