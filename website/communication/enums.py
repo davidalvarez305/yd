@@ -1,9 +1,10 @@
 from enum import Enum
+from website import settings
 
 class MessagingProvider(Enum):
     TWILIO = "twilio"
 
-class TwillWebhookEvents(Enum):
+class TwilioWebhookEvents(Enum):
     COMPLETED = "completed"
     NO_ANSWER = "no-answer"
     BUSY = "busy"
@@ -13,11 +14,13 @@ class TwillWebhookEvents(Enum):
     def all(cls):
         return [e.value for e in cls]
 
+class TwilioWebhookCallbacks(Enum):
+    INBOUND = "/communication/calls/inbound"
+    STATUS = "/communication/calls/status"
+    OUTBOUND = "/communication/calls/outbound"
+    RECORDING = "/communication/calls/recording"
+
     @classmethod
-    def callback_handlers(cls):
-        return {
-            cls.COMPLETED.value: "/communication/calls/completed/",
-            cls.NO_ANSWER.value: "/communication/calls/no-answer/",
-            cls.BUSY.value: "/communication/calls/busy/",
-            cls.FAILED.value: "/communication/calls/failed/",
-        }
+    def get_full_url(cls, endpoint):
+        base_url = settings.ROOT_DOMAIN
+        return base_url + endpoint

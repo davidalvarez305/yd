@@ -2,7 +2,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError, JsonResponse, HttpRequest
 from django.shortcuts import render
 from django.utils.timezone import now
+
 from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.twiml.messaging_response import MessagingResponse
 
 from crm.views import CRMBaseCreateView
 from core.enums import AlertStatus
@@ -11,22 +13,31 @@ from core.attachments import AttachmentServiceMixin
 from core.models import Lead, User
 from website import settings
 
+from .enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 from .utils import strip_country_code
 from .messaging import MessagingService
 from .models import Message, PhoneCall
 from .forms import MessageForm
 
 @csrf_exempt
-def handle_inbound_message(request: HttpRequest):
+def handle_inbound_message(request):
     if request.method != "POST":
-        return JsonResponse({'data': 'Only POST allowed'}, status=405)
+        response = MessagingResponse()
+        response.message('Only POST allowed')
+        return HttpResponse(str(response), content_type="application/xml", status=405)
 
     try:
         service = MessagingService()
         service.handle_inbound_message(request)
-        return JsonResponse({'data': 'ok'}, status=200)
+        
+        response = MessagingResponse()
+        response.message('Message received successfully!')
+        return HttpResponse(str(response), content_type="application/xml", status=200)
+
     except Exception as e:
-        return JsonResponse({'data': f'Unexpected error: {str(e)}'}, status=500)
+        response = MessagingResponse()
+        response.message(f"Unexpected error: {str(e)}")
+        return HttpResponse(str(response), content_type="application/xml", status=500)
 
 class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
     model = Message
@@ -78,14 +89,14 @@ def handle_inbound_call(request: HttpRequest):
             raise ValueError("No matching phone number")
         forward_number = forward.phone_number
 
-        recording_callback_url = f"{settings.ROOT_DOMAIN}{settings.TWILIO_RECORDING_CALLBACK_WEBHOOK}"
-        action_url = f"{settings.ROOT_DOMAIN}{settings.TWILIO_CALLBACK_WEBHOOK}"
+        recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.INBOUND.value)
+        action_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
 
         response = VoiceResponse()
         dial = Dial(
             record="true",
             recording_status_callback=recording_callback_url,
-            recording_status_callback_event="completed",
+            recording_status_callback_event=TwilioWebhookEvents.all(),
             action=action_url
         )
         dial.number(forward_number)
@@ -109,3 +120,28 @@ def handle_inbound_call(request: HttpRequest):
         response.say(f"Server error: {e}")
         print(f"Server error: {e}")
         return HttpResponse(str(response), content_type="application/xml", status=500)
+
+@csrf_exempt
+def handle_call_status_callback(request):
+    if request.method == 'POST':
+        dial_call_status = request.POST.get("DialCallStatus")
+        call_sid = request.POST.get("CallSid")
+        dial_call_duration = request.POST.get("DialCallDuration", "0")
+
+        try:
+            phone_call = PhoneCall.objects.get(call_sid=call_sid)
+
+            phone_call.call_duration = int(dial_call_duration)
+            phone_call.status = dial_call_status
+
+            phone_call.save()
+
+            return HttpResponse("<Response></Response>", content_type="application/xml", status=200)
+
+        except PhoneCall.DoesNotExist:
+            return HttpResponse("<Response><Error>Phone call not found</Error></Response>", content_type="application/xml", status=404)
+
+        except Exception as e:
+            return HttpResponse(f"<Response><Error>{str(e)}</Error></Response>", content_type="application/xml", status=500)
+
+    return HttpResponse("<Response><Error>Invalid request method</Error></Response>", content_type="application/xml", status=405)
