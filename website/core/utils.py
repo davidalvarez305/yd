@@ -2,6 +2,7 @@ import re
 import uuid
 import mimetypes
 from django.db import models
+import requests
 
 def format_phone_number(phone_number):
     if phone_number is None:
