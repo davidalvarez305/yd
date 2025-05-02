@@ -9,10 +9,12 @@ from django.utils.timezone import now
 from django.core.files import File
 
 from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.rest import Client
 
-from core.models import User
+from core.models import Lead, User
 from core.utils import cleanup_dir_files
 from website import settings
+from core.agent import AIAgent
 
 from .transcription import TranscriptionService, TranscriptionServiceFactory
 from .enums import TwilioWebhookCallbacks, TwilioWebhookEvents
@@ -30,15 +32,17 @@ class CallingServiceInterface(ABC):
 
     @abstractmethod
     def handle_call_recording_callback(
-        self, request: HttpRequest, transcription_service: TranscriptionService
+        self, request: HttpRequest, transcription_service: TranscriptionService, ai_agent: AIAgent
     ) -> HttpResponse:
         pass
 
 class TwilioCallingService(CallingServiceInterface):
-    def __init__(self, account_sid: str, auth_token: str, transcription_service: TranscriptionService):
+    def __init__(self, account_sid: str, auth_token: str, transcription_service: TranscriptionService, ai_agent: AIAgent):
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.transcription_service = transcription_service
+        self.ai_agent = ai_agent
+        self.client = Client(account_sid, auth_token)
 
     def handle_inbound_call(self, request: HttpRequest) -> HttpResponse:
         if request.method != "POST":
@@ -139,8 +143,16 @@ class TwilioCallingService(CallingServiceInterface):
             self.transcription_service.transcribe_audio(transcription=transcription)
 
             recording_sid = self._extract_recording_sid(phone_call.recording_url)
-            TwilioService.delete_recording(recording_sid)
-            TranscriptionService.summarize(phone_call, transcript_text)
+            self._delete_call_recording(recording_sid)
+
+            user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
+            user = User.objects.filter(phone_number=user_phone).first()
+
+            lead_phone = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
+            lead = Lead.objects.filter(phone_number=lead_phone).first()
+
+            if lead is not None:
+                self.ai_agent.summarize(lead.lead_id, user.user_id, transcription.text)
 
             cleanup_dir_files(settings.UPLOADS_URL)
 
@@ -174,7 +186,7 @@ class TwilioCallingService(CallingServiceInterface):
         except Exception as e:
             raise Exception(f"Failed to save file locally: {e}")
     
-    def _extract_recording_sid(recording_url: str) -> str:
+    def _extract_recording_sid(self, recording_url: str) -> str:
         """
         Extracts the recording SID from a Twilio recording URL.
 
@@ -186,6 +198,13 @@ class TwilioCallingService(CallingServiceInterface):
         if not match:
             raise ValueError(f"Could not extract recording SID from URL: {recording_url}")
         return match.group(1)
+    
+    def _delete_call_recording(self, recording_sid: str) -> None:
+        try:
+            self.client.recordings(recording_sid).delete()
+            print("Recording deleted successfully")
+        except BaseException as e:
+            raise RuntimeError(f"Failed to delete recording: {e}")
 
 class CallingServiceFactory:
     @staticmethod
@@ -197,10 +216,12 @@ class CallingServiceFactory:
     @staticmethod
     def _create_twilio_service() -> TwilioCallingService:
         transcription_service = TranscriptionServiceFactory.get_service()
+        ai_agent = AIAgent.get_service()
         return TwilioCallingService(
             account_sid=settings.TWILIO_ACCOUNT_SID,
             auth_token=settings.TWILIO_AUTH_TOKEN,
             transcription_service=transcription_service,
+            ai_agent=ai_agent,
         )
 
 class CallingService(CallingServiceInterface):
