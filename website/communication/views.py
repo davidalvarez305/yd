@@ -1,8 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest
 from django.shortcuts import render
-
-from twilio.twiml.messaging_response import MessagingResponse
 
 from crm.views import CRMBaseCreateView
 from core.enums import AlertStatus
