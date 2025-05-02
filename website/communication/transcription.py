@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
+import json
 
+from django.http import HttpRequest, HttpResponse
 import requests
 import boto3
 import time
-import uuid
 
 from website import settings
 from .models import PhoneCallTranscription
 
-class TranscriptionService(ABC):
+class TranscriptionServiceInterface(ABC):
     @abstractmethod
     def transcribe_audio(self, uri: str) -> dict:
         """Transcribe from given uri and return dict."""
@@ -47,7 +48,10 @@ class AWSTranscriptionService:
         if not transcript_url:
             raise Exception("Transcript URL not found in response.")
 
-        full_json = requests.get(transcript_url).json()
+        response = requests.get(transcript_url)
+        response.raise_for_status()
+        full_json = response.json()
+
         raw_results = full_json.get("results", {})
 
         transcript_text = raw_results.get("transcripts", [{}])[0].get("transcript", "")
@@ -59,6 +63,30 @@ class AWSTranscriptionService:
             "speaker_labels": raw_results.get("speaker_labels", {}),
         }
 
-        transcription.job = job
+        transcription.job = json.dumps(job)
         transcription.text = transcript_text
         transcription.save()
+
+class TranscriptionServiceFactory:
+    @staticmethod
+    def get_service() -> AWSTranscriptionService:
+        if settings.DEBUG:
+            return TranscriptionServiceFactory._create_aws_transcription_service()
+        return TranscriptionServiceFactory._create_aws_transcription_service()
+
+    @staticmethod
+    def _create_aws_transcription_service() -> AWSTranscriptionService:
+        return AWSTranscriptionService(bucket_name=settings.AWS_STORAGE_BUCKET_NAME)
+
+class TranscriptionService(TranscriptionServiceInterface):
+    def __init__(self):
+        self.service = TranscriptionServiceFactory.get_service()
+
+    def handle_inbound_call(self, request: HttpRequest) -> HttpResponse:
+        return self.service.handle_inbound_call(request)
+
+    def handle_call_status(self, request: HttpRequest) -> HttpResponse:
+        return self.service.handle_call_status(request)
+
+    def handle_call_recording_callback(self, request: HttpRequest) -> HttpResponse:
+        return self.service.handle_call_recording_callback(request)

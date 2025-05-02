@@ -1,9 +1,6 @@
-import os
-import uuid
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
-from django.core.files import File
 
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -12,34 +9,15 @@ from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from core.attachments import AttachmentServiceMixin
 from core.models import Lead
-from core.utils import download_file_from_url
-from website import settings
-from website.communication.calling import CallingService
 
-from .transcription import TranscriptionService
+from .calling import CallingService
 from .messaging import MessagingService
-from .models import Message, PhoneCallTranscription
+from .models import Message
 from .forms import MessageForm
 
 @csrf_exempt
-def handle_inbound_message(request):
-    if request.method != "POST":
-        response = MessagingResponse()
-        response.message('Only POST allowed')
-        return HttpResponse(str(response), content_type="application/xml", status=405)
-
-    try:
-        service = MessagingService()
-        service.handle_inbound_message(request)
-        
-        response = MessagingResponse()
-        response.message('Message received successfully!')
-        return HttpResponse(str(response), content_type="application/xml", status=200)
-
-    except Exception as e:
-        response = MessagingResponse()
-        response.message(f"Unexpected error: {str(e)}")
-        return HttpResponse(str(response), content_type="application/xml", status=500)
+def handle_inbound_message(request: HttpRequest):
+    return MessagingService().handle_inbound_message(request)
 
 class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
     model = Message

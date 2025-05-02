@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 import requests
 
-from django.core.files import File
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.core.files.base import ContentFile
 
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
+from twilio.twiml.messaging_response import MessagingResponse
+
 from core.utils import create_generic_file_name
 
 from .forms import MessageForm
@@ -33,7 +34,12 @@ class TwilioMessagingService(MessagingServiceInterface):
         self.client = client
         self.validator = validator
 
-    def handle_inbound_message(self, request) -> None:
+    def handle_inbound_message(self, request: HttpRequest) -> HttpResponse:
+        if request.method != "POST":
+            response = MessagingResponse()
+            response.message("Only POST allowed")
+            return HttpResponse(str(response), content_type="application/xml", status=405)
+
         valid = self.validator.validate(
             request.build_absolute_uri(),
             request.POST,
@@ -41,41 +47,53 @@ class TwilioMessagingService(MessagingServiceInterface):
         )
 
         if not valid:
-            raise ValueError("Invalid Twilio signature.")
+            response = MessagingResponse()
+            response.message("Invalid Twilio signature.")
+            return HttpResponse(str(response), content_type="application/xml", status=403)
 
-        message_sid = request.POST.get("MessageSid")
-        text_from = strip_country_code(request.POST.get("From"))
-        text_to = strip_country_code(request.POST.get("To"))
-        body = request.POST.get("Body", "")
-        num_media = int(request.POST.get("NumMedia", 0))
-        sms_status = request.POST.get("SmsStatus")
+        try:
+            message_sid = request.POST.get("MessageSid")
+            text_from = strip_country_code(request.POST.get("From"))
+            text_to = strip_country_code(request.POST.get("To"))
+            body = request.POST.get("Body", "")
+            num_media = int(request.POST.get("NumMedia", 0))
+            sms_status = request.POST.get("SmsStatus")
 
-        message = Message.objects.create(
-            external_id=message_sid,
-            text=body,
-            text_from=text_from,
-            text_to=text_to,
-            is_inbound=True,
-            status=sms_status,
-            is_read=False,
-        )
+            message = Message.objects.create(
+                external_id=message_sid,
+                text=body,
+                text_from=text_from,
+                text_to=text_to,
+                is_inbound=True,
+                status=sms_status,
+                is_read=False,
+            )
 
-        for i in range(num_media):
-            media_url = request.POST.get(f"MediaUrl{i}")
-            content_type = request.POST.get(f"MediaContentType{i}")
+            for i in range(num_media):
+                media_url = request.POST.get(f"MediaUrl{i}")
+                content_type = request.POST.get(f"MediaContentType{i}")
 
-            if media_url:
-                response = requests.get(media_url)
-                if response.status_code == 200:
-                    file_name = create_generic_file_name(content_type)
+                if media_url:
+                    response = requests.get(media_url)
+                    if response.status_code == 200:
+                        file_name = create_generic_file_name(content_type)
+                        content_file = ContentFile(response.content)
+                        media = MessageMedia(message=message, content_type=content_type)
+                        media.file.save(file_name, content_file)
+                    else:
+                        response = MessagingResponse()
+                        response.message(f"Failed to download media: {media_url}")
+                        return HttpResponse(str(response), content_type="application/xml", status=502)
 
-                    content_file = ContentFile(response.content)
-                    media = MessageMedia(message=message, content_type=content_type)
-                    media.file.save(file_name, content_file)
-                else:
-                    raise RuntimeError(f"Failed to fetch media from URL: {media_url}")
+            response = MessagingResponse()
+            response.message("Message received successfully.")
+            return HttpResponse(str(response), content_type="application/xml", status=200)
 
-        return message
+        except Exception as e:
+            print(f"Unexpected error in handle_inbound_message: {e}")
+            response = MessagingResponse()
+            response.message("Unexpected error occurred.")
+            return HttpResponse(str(response), content_type="application/xml", status=500)
 
     def handle_outbound_message(self, form: MessageForm) -> None:
         message = form.save(commit=False)

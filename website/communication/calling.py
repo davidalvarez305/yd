@@ -12,6 +12,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from core.models import User
 from website import settings
 
+from .transcription import TranscriptionService, TranscriptionServiceFactory
 from .enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 from .utils import strip_country_code
 from .models import PhoneCall, PhoneCallTranscription
@@ -27,12 +28,12 @@ class CallingServiceInterface(ABC):
 
     @abstractmethod
     def handle_call_recording_callback(
-        self, request: HttpRequest, transcription_service: TranscriptionServiceInterface
+        self, request: HttpRequest, transcription_service: TranscriptionService
     ) -> HttpResponse:
         pass
 
 class TwilioCallingService(CallingServiceInterface):
-    def __init__(self, account_sid: str, auth_token: str, transcription_service: TranscriptionServiceInterface):
+    def __init__(self, account_sid: str, auth_token: str, transcription_service: TranscriptionService):
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.transcription_service = transcription_service
