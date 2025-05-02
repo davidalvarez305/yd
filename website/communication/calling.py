@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import requests
 from abc import ABC, abstractmethod
@@ -10,6 +11,7 @@ from django.core.files import File
 from twilio.twiml.voice_response import VoiceResponse, Dial
 
 from core.models import User
+from core.utils import cleanup_dir_files
 from website import settings
 
 from .transcription import TranscriptionService, TranscriptionServiceFactory
@@ -136,11 +138,11 @@ class TwilioCallingService(CallingServiceInterface):
 
             self.transcription_service.transcribe_audio(transcription=transcription)
 
-            recording_sid = TwilioService.extract_recording_sid(phone_call.recording_url)
+            recording_sid = self._extract_recording_sid(phone_call.recording_url)
             TwilioService.delete_recording(recording_sid)
             TranscriptionService.summarize(phone_call, transcript_text)
 
-            AttachmentService.cleanup_local_files(settings.UPLOADS_URL)
+            cleanup_dir_files(settings.UPLOADS_URL)
 
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
@@ -171,7 +173,19 @@ class TwilioCallingService(CallingServiceInterface):
             print(f"File downloaded successfully: {local_file_path}")
         except Exception as e:
             raise Exception(f"Failed to save file locally: {e}")
+    
+    def _extract_recording_sid(recording_url: str) -> str:
+        """
+        Extracts the recording SID from a Twilio recording URL.
 
+        Example:
+        https://api.twilio.com/2010-04-01/Accounts/ACxxx/Recordings/RE1234567890abcdef.mp3
+        -> returns: RE1234567890abcdef
+        """
+        match = re.search(r'/Recordings/([A-Z0-9]+)\.mp3', recording_url)
+        if not match:
+            raise ValueError(f"Could not extract recording SID from URL: {recording_url}")
+        return match.group(1)
 
 class CallingServiceFactory:
     @staticmethod

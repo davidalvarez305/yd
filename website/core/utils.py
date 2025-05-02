@@ -1,8 +1,8 @@
 import re
 import uuid
 import mimetypes
+from pathlib import Path
 from django.db import models
-import requests
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -48,3 +48,11 @@ def deep_getattr(obj, attr, default=None):
     except AttributeError:
         return default
     return obj
+
+
+def cleanup_dir_files(dir_path):
+    directory = Path(dir_path)
+
+    for file in directory.iterdir():
+        if file.is_file():
+            file.unlink()
