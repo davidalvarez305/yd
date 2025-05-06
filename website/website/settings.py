@@ -224,3 +224,18 @@ AUTH_USER_MODEL = 'core.User'
 
 # Communication Services
 MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+CALLING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+TRANSCRIPTION_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+AI_AGENT_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+
+# Marketing Services
+CONVERSION_SERVICES = {
+        "google": {
+            "BACKEND": "core.marketing.google.GoogleAnalyticsConversionService",
+            "OPTIONS": {
+                "google_analytics_id": GOOGLE_ANALYTICS_ID,
+                "google_analytics_api_key": GOOGLE_ANALYTICS_API_KEY,
+            },
+        }
+    }

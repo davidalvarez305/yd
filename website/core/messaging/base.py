@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class MessagingService(ABC):
+class MessagingServiceInterface(ABC):
     @abstractmethod
     def handle_inbound_message(self, request):
         pass
