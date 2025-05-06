@@ -6,16 +6,15 @@ from crm.views import CRMBaseCreateView
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from core.attachments import AttachmentServiceMixin
-from core.models import Lead
+from core.models import Lead, Message
+from core.messaging import messaging_service
 
 from .calling import CallingService
-from .messaging import MessagingService
-from .models import Message
 from .forms import MessageForm
 
 @csrf_exempt
 def handle_inbound_message(request: HttpRequest):
-    return MessagingService().handle_inbound_message(request)
+    return messaging_service.handle_inbound_message(request)
 
 class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
     model = Message
@@ -31,8 +30,7 @@ class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
             return self.alert(request, form.errors.as_text(), AlertStatus.BAD_REQUEST)
 
         try:
-            service = MessagingService()
-            service.handle_outbound_message(form)
+            messaging_service.handle_outbound_message(form)
 
             lead = Lead.objects.filter(phone_number=form.cleaned_data.get('text_to')).first()
 

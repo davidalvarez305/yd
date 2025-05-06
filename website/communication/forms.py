@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Message, PhoneCall
+from core.models import Message, PhoneCall
 from core.forms import BaseModelForm, MultiFileField, MultiFileInput
 
 class MessageForm(BaseModelForm):

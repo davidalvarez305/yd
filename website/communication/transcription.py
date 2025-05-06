@@ -7,7 +7,7 @@ import boto3
 import time
 
 from website import settings
-from .models import PhoneCallTranscription
+from core.models import PhoneCallTranscription
 
 class TranscriptionServiceInterface(ABC):
     @abstractmethod

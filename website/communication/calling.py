@@ -18,8 +18,8 @@ from core.agent import AIAgent
 
 from .transcription import TranscriptionService, TranscriptionServiceFactory
 from .enums import TwilioWebhookCallbacks, TwilioWebhookEvents
-from .utils import strip_country_code
-from .models import PhoneCall, PhoneCallTranscription
+from core.messaging.utils import strip_country_code
+from core.models import PhoneCall, PhoneCallTranscription
 
 class CallingServiceInterface(ABC):
     @abstractmethod
@@ -100,6 +100,46 @@ class TwilioCallingService(CallingServiceInterface):
         except Exception as e:
             print(f"Server error: {e}")
             response.say("An unexpected error occurred.")
+            return HttpResponse(str(response), content_type="application/xml", status=500)
+        
+    def handle_inbound_call_end(self, request: HttpRequest) -> HttpResponse:
+        response = VoiceResponse()
+
+        if request.method != "POST":
+            response.say("Only POST requests are allowed")
+            return HttpResponse(str(response), content_type="application/xml", status=405)
+
+        call_sid = request.POST.get("CallSid")
+        dial_status = request.POST.get("DialCallStatus")
+        dial_duration = request.POST.get("DialCallDuration", "0")
+
+        if not call_sid:
+            response.say("Missing CallSid")
+            return HttpResponse(str(response), content_type="application/xml", status=400)
+
+        try:
+            phone_call = PhoneCall.objects.get(external_id=call_sid)
+
+            phone_call.call_duration = int(dial_duration)
+            phone_call.status = dial_status
+            phone_call.save()
+
+            # Missed Call Text Back
+            MISSED_STATUSES = {"busy", "failed", "no-answer"}
+            if phone_call.is_inbound and dial_status in MISSED_STATUSES:
+                print("Initiate missed inbound call text")
+            elif not phone_call.is_inbound and dial_status in MISSED_STATUSES:
+                print("Initiate missed outbound call text")
+
+            return HttpResponse(str(response), content_type="application/xml", status=200)
+
+        except PhoneCall.DoesNotExist:
+            response.say("Phone call not found")
+            return HttpResponse(str(response), content_type="application/xml", status=404)
+
+        except Exception as e:
+            response.say("Internal server error")
+            print(f"Error during inbound call end: {e}")
             return HttpResponse(str(response), content_type="application/xml", status=500)
 
     def handle_call_recording_callback(self, request: HttpRequest) -> HttpResponse:

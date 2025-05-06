@@ -7,9 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 
 from website import settings
-from communication.models import Message, PhoneCall
+from core.models import Message, PhoneCall, Message
 from communication.forms import MessageForm, PhoneCallForm
-from communication.models import Message
 from core.models import LeadStatus, Lead, User, Service
 from core.forms import ServiceForm, UserForm
 from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm

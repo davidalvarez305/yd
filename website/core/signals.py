@@ -1,7 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Lead
-from communication.models import PhoneCall
+from .models import Lead, PhoneCall
 from marketing.models import CallTracking, LeadMarketing
 from marketing.conversions import report_conversion, ConversionEventType
 

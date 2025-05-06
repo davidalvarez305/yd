@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import requests
 
 from django.http import HttpRequest, HttpResponse
@@ -10,29 +9,18 @@ from twilio.base.exceptions import TwilioRestException
 from twilio.twiml.messaging_response import MessagingResponse
 
 from core.utils import create_generic_file_name
+from core.models import Message, MessageMedia
 
-from .forms import MessageForm
-from .models import Message, MessageMedia
+from communication.forms import MessageForm
+
+from .base import MessagingServiceInterface
 from .utils import strip_country_code
-from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DEBUG
-
-class MessagingServiceInterface(ABC):
-    @abstractmethod
-    def handle_inbound_message(self, request: HttpRequest) -> None:
-        pass
-
-    @abstractmethod
-    def handle_outbound_message(self, form: MessageForm) -> None:
-        pass
-
-    @abstractmethod
-    def _send_text_message(self, message: Message) -> None:
-        pass
+from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
 
 class TwilioMessagingService(MessagingServiceInterface):
-    def __init__(self, client: Client, validator: RequestValidator):
-        self.client = client
-        self.validator = validator
+    def __init__(self):
+        self.client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        self.validator = RequestValidator(TWILIO_AUTH_TOKEN)
 
     def handle_inbound_message(self, request: HttpRequest) -> HttpResponse:
         if request.method != "POST":
@@ -143,30 +131,3 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         except TwilioRestException as e:
             raise Exception(e.msg) from e
-
-class MessagingService:
-    def __init__(self):
-        self.service = MessagingServiceFactory.get_service()
-
-    def handle_inbound_message(self, request: HttpRequest):
-        return self.service.handle_inbound_message(request)
-
-    def handle_outbound_message(self, form: MessageForm):
-        return self.service.handle_outbound_message(form)
-    
-class MessagingServiceFactory:
-    @staticmethod
-    def get_service() -> MessagingServiceInterface:
-        """
-        Returns the appropriate messaging service instance
-        based on the current environment.
-        """
-        if DEBUG:
-            return MessagingServiceFactory._create_twilio_service()
-        return MessagingServiceFactory._create_twilio_service()
-
-    @staticmethod
-    def _create_twilio_service() -> TwilioMessagingService:
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        validator = RequestValidator(TWILIO_AUTH_TOKEN)
-        return TwilioMessagingService(client=client, validator=validator)

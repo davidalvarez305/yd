@@ -221,3 +221,6 @@ GOOGLE_API_SCOPES = [
 
 # User
 AUTH_USER_MODEL = 'core.User'
+
+# Communication Services
+MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
