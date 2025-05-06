@@ -13,10 +13,8 @@ from twilio.rest import Client
 from core.models import Lead, User
 from core.utils import cleanup_dir_files
 from website import settings
-from core.agent import AIAgent
 from .base import CallingServiceInterface
 
-from communication.transcription import TranscriptionService, TranscriptionServiceFactory
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 from core.messaging.utils import strip_country_code
 from core.models import PhoneCall, PhoneCallTranscription
