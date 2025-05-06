@@ -11,7 +11,7 @@ class AWSTranscriptionService:
     def __init__(self):
         self.client = boto3.client("transcribe")
         self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        self.output_prefix = "uploads/jobs/"
+        self.output_prefix = settings.TRANSCRIPTION_STORAGE_PREFIX
 
     def transcribe_audio(self, transcription: PhoneCallTranscription) -> dict:
         self.client.start_transcription_job(

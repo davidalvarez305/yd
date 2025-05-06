@@ -224,10 +224,12 @@ AUTH_USER_MODEL = 'core.User'
 
 # Communication Services
 MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
-CALLING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
-EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
-TRANSCRIPTION_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
-AI_AGENT_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+CALLING_SERVICE = 'core.calling.twilio.TwilioCallingService'
+AI_AGENT_SERVICE = 'core.ai.openai.OpenAIAgentService'
+# EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+
+TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
+TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
 
 # Marketing Services
 CONVERSION_SERVICES = {

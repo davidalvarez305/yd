@@ -8,8 +8,7 @@ from core.mixins import AlertMixin
 from core.attachments import AttachmentServiceMixin
 from core.models import Lead, Message
 from core.messaging import messaging_service
-
-from .calling import CallingService
+from core.calling import calling_service
 from .forms import MessageForm
 
 @csrf_exempt
@@ -40,12 +39,12 @@ class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
 
 @csrf_exempt
 def handle_inbound_call(request: HttpRequest):
-    return CallingService().handle_inbound_call(request)
+    return calling_service.handle_inbound_call(request)
 
 @csrf_exempt
 def handle_call_status_callback(request: HttpRequest):
-    return CallingService().handle_call_status(request)
+    return calling_service.handle_call_status(request)
 
 @csrf_exempt
 def handle_call_recording_callback(request: HttpRequest):
-    return CallingService().handle_call_recording_callback(request)
+    return calling_service.handle_call_recording_callback(request)
