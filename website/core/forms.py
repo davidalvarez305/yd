@@ -5,7 +5,7 @@ import re
 from core.utils import add_form_field_class
 from core.widgets import ToggleSwitchWidget
 from core.models import Lead, Service, UnitType, User, ServiceType
-from communication.email import EmailService
+from core.email import email_service
 from website.settings import COMPANY_NAME
 
 class MultiFileInput(forms.FileInput):
@@ -108,11 +108,11 @@ class ContactForm(BaseForm):
         required=True
     )
 
-    def send_email(self, email_service: EmailService):
+    def send_email(self):
         email_service.send_email(
-            to=self.cleaned_data["email"],
+            to=self.cleaned_data.get('email'),
             subject= f"{COMPANY_NAME}: +  Contact Form Submission",
-            body=self.cleaned_data["message"]
+            body=self.cleaned_data.get('message')
         )
 
 class QuoteForm(BaseModelForm):

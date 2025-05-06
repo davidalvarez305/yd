@@ -174,7 +174,7 @@ class ContactView(BaseWebsiteView):
         
         if form.is_valid():
             try:
-                form.send_email(email_service=get_email_service())
+                form.send_email()
                 return self.alert(request, "Contact form received successfully.", AlertStatus.SUCCESS)
             except Exception as e:
                 return self.alert(request, "Failed to send the contact form.", AlertStatus.BAD_REQUEST)
