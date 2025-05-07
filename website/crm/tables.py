@@ -1,6 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from crm.models import Cocktail, Event
-from core.models import Service, User
+from core.models import Service, User, Cocktail, Event
 from core.widgets import PriceCellWidget
 from django.contrib.auth.models import AbstractUser
 

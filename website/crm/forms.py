@@ -3,8 +3,7 @@ import re
 
 from core.models import Lead, LeadStatus, LeadInterest
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
-from crm.models import Cocktail, Event
-from core.models import MarketingCampaign, LeadMarketing, InstantForm
+from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(

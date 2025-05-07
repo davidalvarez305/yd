@@ -9,10 +9,9 @@ from django.shortcuts import redirect, render
 from website import settings
 from core.models import Message, PhoneCall, Message
 from communication.forms import MessageForm, PhoneCallForm
-from core.models import LeadStatus, Lead, User, Service
+from core.models import LeadStatus, Lead, User, Service, Cocktail, Event
 from core.forms import ServiceForm, UserForm
 from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
-from crm.models import Lead, Cocktail, Event
 from marketing.models import LeadMarketing
 from core.enums import AlertStatus
 from core.mixins import AlertMixin

@@ -4,8 +4,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 from django.db.models import Q
-from marketing.enums import ConversionServiceType
 from django.utils.timezone import now
+
+from marketing.enums import ConversionServiceType
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -32,7 +33,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    events = models.ManyToManyField('crm.Event', related_name='staff', through='crm.EventStaff')
+    events = models.ManyToManyField('Event', related_name='staff', through='EventStaff')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number', 'forward_phone_number']
@@ -450,3 +451,61 @@ class LandingPage(models.Model):
 
     class Meta:
         db_table = 'landing_page'
+
+class Cocktail(models.Model):
+    cocktail_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'cocktail'
+    
+    def __str__(self):
+        return self.name
+
+class Event(models.Model):
+    event_id = models.IntegerField(primary_key=True)
+    lead = models.ForeignKey(Lead, related_name='events', db_column='lead_id', on_delete=models.CASCADE)
+    street_address = models.CharField(max_length=255, null=True)
+    city = models.CharField(max_length=100, null=True)
+    zip_code = models.CharField(max_length=20, null=True)
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_paid = models.DateTimeField(default=timezone.now)
+    amount = models.FloatField()
+    tip = models.FloatField(null=True)
+    guests = models.IntegerField()
+    cocktails = models.ManyToManyField(
+        Cocktail,
+        through='EventCocktail',
+        related_name='events'
+    )
+    
+    class Meta:
+        db_table = 'event'
+
+class EventCocktail(models.Model):
+    event_cocktail_id = models.IntegerField(primary_key=True)
+    cocktail = models.ForeignKey(Cocktail, db_column='cocktail_id', on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, db_column='event_id', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'event_cocktail'
+        unique_together = ('cocktail', 'event')
+
+class EventRole(models.Model):
+    event_role_id = models.IntegerField(primary_key=True)
+    role = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'event_role'
+
+class EventStaff(models.Model):
+    event_staff_id = models.IntegerField(primary_key=True)
+    user = models.ForeignKey(User,db_column='user_id', on_delete=models.RESTRICT)
+    event = models.ForeignKey(Event, db_column='event_id', on_delete=models.CASCADE)
+    event_role = models.ForeignKey(EventRole, db_column='event_role_id', on_delete=models.RESTRICT)
+    hourly_rate = models.FloatField()
+    
+    class Meta:
+        db_table = 'event_staff'
