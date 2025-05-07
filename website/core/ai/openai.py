@@ -58,3 +58,20 @@ class OpenAIAgentService(AIAgentServiceInterface):
 
         except Exception as e:
             raise RuntimeError(f"Failed to summarize phone call: {e}")
+    
+    def generate_response(self, prompt: str) -> str:
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that helps answer client queries."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1000,
+                temperature=0.7,
+            )
+
+            return response.choices[0].message.content.strip()
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to summarize phone call: {e}")

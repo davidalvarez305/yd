@@ -18,6 +18,7 @@ from .base import CallingServiceInterface
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 from core.messaging.utils import strip_country_code
 from core.models import PhoneCall, PhoneCallTranscription
+from core.messaging import messaging_service
 
 class TwilioCallingService(CallingServiceInterface):
     def __init__(self, account_sid, auth_token, transcription_service, ai_agent):
@@ -108,21 +109,42 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.save()
 
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
+
             if phone_call.is_inbound and dial_status in MISSED_STATUSES:
-                print("Initiate missed inbound call text")
+                lead_phone_number = phone_call.call_from
+
+                outbound_calls = PhoneCall.objects.filter(call_to=lead_phone_number).count()
+                inbound_calls = PhoneCall.objects.filter(call_from=lead_phone_number).count()
+                is_first_call = inbound_calls + outbound_calls == 1
+
+                if is_first_call:
+                    prompt = (
+                        "A new lead just called but we missed it. "
+                        "Send a friendly text saying we're sorry we missed their call "
+                        "and that someone will be in touch shortly."
+                        "Here's an example: "
+                        "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
+                    )
+
+                    try:
+                        message = self.ai_agent.generate_response(prompt=prompt)
+                    except Exception as e:
+                        message = "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
+
+                    messaging_service.send_text_message(
+                        to_number=phone_call.call_from,
+                        from_number=phone_call.call_to,
+                        message=message
+                    )
+
             elif not phone_call.is_inbound and dial_status in MISSED_STATUSES:
                 print("Initiate missed outbound call text")
 
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except PhoneCall.DoesNotExist:
-            response.say("Phone call not found")
+            response.say("Call not found")
             return HttpResponse(str(response), content_type="application/xml", status=404)
-
-        except Exception as e:
-            response.say("Internal server error")
-            print(f"Error during inbound call end: {e}")
-            return HttpResponse(str(response), content_type="application/xml", status=500)
 
     def handle_call_recording_callback(self, request) -> HttpResponse:
         response = VoiceResponse()

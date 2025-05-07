@@ -8,3 +8,10 @@ class AIAgentServiceInterface(ABC):
         and persist it as a lead note in the database.
         """
         pass
+
+    @abstractmethod
+    def generate_response(self, prompt: str) -> str:
+        """
+        Given a prompt, generate the appropriate response to the client's message / inquiry.
+        """
+        pass
