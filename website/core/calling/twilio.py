@@ -116,61 +116,77 @@ class TwilioCallingService(CallingServiceInterface):
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
             if phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
+                user = User.objects.filter(phone_number=phone_call.call_to).first()
+
+                if not user:
+                    return HttpResponse(str('User not found'), content_type="application/xml", status=500)
+
+                language_note = " Please write the message in Spanish." if user.username == "yova" else ""
+
                 prompt = (
-                    "A new lead just called but we missed it. "
+                    f"A new lead just called but we missed it. "
                     "Send a friendly text saying we're sorry we missed their call "
-                    "and that someone will be in touch shortly."
+                    "and that someone will be in touch shortly. "
                     "Here's an example: "
-                    "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
+                    f"Hi! This is {user.first_name} with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
+                    + language_note
                 )
 
                 try:
                     message = self.ai_agent.generate_response(prompt=prompt)
+
+                    message = Message(
+                        text=text,
+                        text_from=phone_call.call_to,
+                        text_to=phone_call.call_from,
+                        is_inbound=False,
+                        status='pending',
+                        is_read=True
+                    )
+
+                    resp = messaging_service.send_text_message(message=message)
+
+                    message.external_id = resp.sid
+                    message.status = resp.status
+                    message.save()
                 except Exception as e:
-                    text = "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
-
-                message = Message(
-                    text=text,
-                    text_from=phone_call.call_to,
-                    text_to=phone_call.call_from,
-                    is_inbound=False,
-                    status='pending',
-                    is_read=True
-                )
-
-                resp = messaging_service.send_text_message(message=message)
-
-                message.external_id = resp.sid
-                message.status = resp.status
-                message.save()
+                    return HttpResponse(str('Error while generating response from AI Agent'), content_type="application/xml", status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
+                user = User.objects.filter(phone_number=phone_call.call_from).first()
+
+                if not user:
+                    return HttpResponse(str('User not found'), content_type="application/xml", status=500)
+
+                language_note = " Please write the message in Spanish." if user.username == "yova" else ""
+
                 prompt = (
-                    "A new lead just called, I tried to call them but they missed it. "
-                    "Send a friendly text saying we received their bartending inquiry, and we'd like a call back."
+                    "A new lead just came in, I tried to call them but they missed it. "
+                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience. "
                     "Here's an example: "
-                    "Hi! This is David with YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect."
+                    f"Hi! This is {user.first_name} with YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect."
+                    + language_note
                 )
 
                 try:
-                    message = self.ai_agent.generate_response(prompt=prompt)
+                    text = self.ai_agent.generate_response(prompt=prompt)
+
+                    message = Message(
+                        text=text,
+                        text_from=phone_call.call_from,
+                        text_to=phone_call.call_to,
+                        is_inbound=True,
+                        status='pending',
+                        is_read=True
+                    )
+
+                    resp = messaging_service.send_text_message(message=message)
+
+                    message.external_id = resp.sid
+                    message.status = resp.status
+                    message.save()
                 except Exception as e:
-                    text = "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
-
-                message = Message(
-                    text=text,
-                    text_from=phone_call.call_to,
-                    text_to=phone_call.call_from,
-                    is_inbound=False,
-                    status='pending',
-                    is_read=True
-                )
-
-                resp = messaging_service.send_text_message(message=message)
-
-                message.external_id = resp.sid
-                message.status = resp.status
-                message.save()
+                    return HttpResponse(str('Error while generating response from AI Agent'), content_type="application/xml", status=500)
 
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
