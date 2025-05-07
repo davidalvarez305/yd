@@ -13,33 +13,35 @@ class MarketingHelper:
         self.cookies = request.COOKIES
         self.query_params = request.GET
 
-        # Session variables
         self.external_id = request.session.get('external_id')
 
-        # Header variables
         self.referrer = request.META.get('HTTP_REFERER')
         self.ip = request.META.get('REMOTE_ADDR')
 
-        # Marketing variables
         self.click_id = None
         self.client_id = None
         self.platform_id = None
+        self.marketing_campaign = None
+        self.keywords = None
+        self.source = None
+        self.medium = None
+        self.channel = None
 
-        # Source
-        self.marketing_campaign = self.get_or_create_marketing_campaign()
-        self.keywords = request.GET.get('keyword')
-        self.source = request.GET.get('source', self.get_source_from_referrer())
-        self.medium = request.GET.get('medium', self.generate_medium())
-        self.channel = request.GET.get('channel', self.get_channel())
+        # Build all dependent attributes in the correct order
+        self.build()
 
-        # Check platform ID based on Google or Facebook click IDs or referrer
+    def build(self):
+        """
+        Executes the correct order of operations to populate dependent fields.
+        """
         self.set_platform_id()
+        self.marketing_campaign = self.get_or_create_marketing_campaign()
+        self.keywords = self.query_params.get('keyword')
+        self.source = self.query_params.get('source', self.get_source_from_referrer())
+        self.medium = self.query_params.get('medium', self.generate_medium())
+        self.channel = self.query_params.get('channel', self.get_channel())
 
     def get_client_id(self):
-        """
-        Determines the client ID based on the URL parameters and cookies.
-        Returns the appropriate client ID.
-        """
         if any(self.query_params.get(param) for param in MarketingParams.GoogleURLClickIDKeys.value):
             return self.get_cookie(MarketingParams.GoogleAnalyticsCookieClientID.value)
         elif self.query_params.get(MarketingParams.FacebookURLClickID.value):
@@ -47,9 +49,6 @@ class MarketingHelper:
         return None
 
     def get_cookie(self, cookie_name):
-        """
-        Helper function to retrieve the value of a specific cookie by name.
-        """
         return self.cookies.get(cookie_name)
 
     def generate_medium(self):
@@ -63,24 +62,15 @@ class MarketingHelper:
             return "referral"
 
     def is_paid(self, query_params):
-        """
-        Checks if the landing page has any paid marketing parameters (like gclid, fbclid, etc.).
-        """
         return any(query_params.get(key) for key in CLICK_ID_KEYS)
 
     def get_click_id(self):
-        """
-        Retrieve the first valid click ID from the URL parameters.
-        """
         for key in CLICK_ID_KEYS:
             if self.query_params.get(key):
                 return self.query_params.get(key)
         return None
 
     def get_source_from_referrer(self):
-        """
-        Extract the source from the referrer URL (e.g., google.com, facebook.com).
-        """
         try:
             url = self.referrer if self.referrer else ''
             host = url.split('//')[-1].split('/')[0].lower()
@@ -92,66 +82,45 @@ class MarketingHelper:
             return "unknown"
 
     def set_platform_id(self):
-        """
-        Assign platform_id based on marketing conditions:
-        Google (via gclid, gbraid, wbraid) or Facebook (via fbclid, _fbp).
-        """
-        if any(self.query_params.get(param) for param in MarketingParams.GoogleURLClickIDKeys.value) or 'google.com' in self.referrer:
+        if any(self.query_params.get(param) for param in MarketingParams.GoogleURLClickIDKeys.value) or 'google.com' in (self.referrer or ''):
             self.platform_id = ConversionServiceType.GOOGLE.value
         elif self.query_params.get(MarketingParams.FacebookURLClickID.value) or self.get_cookie(MarketingParams.FacebookCookieClientID.value):
             self.platform_id = ConversionServiceType.FACEBOOK.value
 
     def get_channel(self):
-        """
-        Determine the marketing channel based on the referrer.
-        Checks if the referrer is part of known categories such as display networks, search engines, social networks, or video platforms.
-        Returns the channel type as a string: 'display', 'search', 'social', 'video', or 'other'.
-        """
         display_networks = ["googleads.g.doubleclick.net"]
-
         search_engines = [
             "bing", "yahoo", "ecosia", "duckduckgo", "yandex", "baidu", "naver", "ask.com",
             "adsensecustomsearchads", "aol", "brave"
         ]
-
         major_social_networks = [
             "facebook", "instagram", "twitter", "linkedin", "pinterest", "snapchat", "reddit", "whatsapp",
             "wechat", "telegram", "discord", "vkontakte", "weibo", "line", "kakaotalk", "qq", "viber", "tumblr",
             "flickr", "meetup", "tagged", "badoo", "myspace",
         ]
-
         major_video_platforms = [
             "youtube", "tiktok", "vimeo", "dailymotion", "twitch", "bilibili", "youku", "rutube", "vine", "peertube",
             "ig tv", "veoh", "metacafe", "vudu", "vidyard", "rumble", "bit chute", "brightcove", "viddler", "vzaar",
         ]
 
-        # Check display networks
+        ref = self.referrer or ""
+
         for platform in display_networks:
-            if platform in self.referrer:
+            if platform in ref:
                 return "display"
-
-        # Check search engines
         for engine in search_engines:
-            if engine in self.referrer:
+            if engine in ref:
                 return "search"
-
-        # Check social networks
         for network in major_social_networks:
-            if network in self.referrer:
+            if network in ref:
                 return "social"
-
-        # Check video platforms
         for platform in major_video_platforms:
-            if platform in self.referrer:
+            if platform in ref:
                 return "video"
 
         return "other"
 
     def get_or_create_marketing_campaign(self):
-        """
-        Attempts to get or create a MarketingCampaign using the ad_campaign ID and platform ID.
-        Requires both to be present. If missing, returns None.
-        """
         ad_campaign_id = self.query_params.get("ad_campaign")
 
         if not ad_campaign_id or not self.platform_id:
