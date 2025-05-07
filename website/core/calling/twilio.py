@@ -10,7 +10,7 @@ from django.core.files import File
 from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.rest import Client
 
-from core.models import Lead, User
+from core.models import Lead, Message, User
 from core.utils import cleanup_dir_files
 from website import settings
 from .base import CallingServiceInterface
@@ -129,13 +129,18 @@ class TwilioCallingService(CallingServiceInterface):
                     try:
                         message = self.ai_agent.generate_response(prompt=prompt)
                     except Exception as e:
-                        message = "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
+                        text = "Hi! This is David with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
 
-                    messaging_service.send_text_message(
-                        to_number=phone_call.call_from,
-                        from_number=phone_call.call_to,
-                        message=message
+                    message = Message(
+                        text=text,
+                        text_from=phone_call.call_to,
+                        text_to=phone_call.call_from,
+                        is_inbound=False,
+                        status='Sent',
+                        is_read=True
                     )
+
+                    messaging_service.send_text_message(message=message)
 
             elif not phone_call.is_inbound and dial_status in MISSED_STATUSES:
                 print("Initiate missed outbound call text")

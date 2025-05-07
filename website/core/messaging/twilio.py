@@ -106,7 +106,7 @@ class TwilioMessagingService(MessagingServiceInterface):
                 media_urls.append(media.file.url)
                 temp_media.append(media)
 
-        response = self._send_text_message(message, media_urls)
+        response = self.send_text_message(message, media_urls)
 
         message.external_id = response.sid
         message.save()
@@ -115,7 +115,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             media.message = message
             media.save()
 
-    def _send_text_message(self, message: Message, media_urls: list[str] = None):
+    def send_text_message(self, message: Message, media_urls: list[str] = None):
         try:
             response = self.client.messages.create(
                 to=message.text_to,
