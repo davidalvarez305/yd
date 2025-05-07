@@ -9,14 +9,11 @@ from django.db import transaction
 from website import settings
 
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
-from marketing.models import LeadMarketing, MarketingCampaign
 from marketing.utils import MarketingHelper
 
-from communication.email import get_email_service
-
+from .models import LeadMarketing
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
-from .models import Lead
 from .enums import AlertHTTPCodes, AlertStatus
 
 class BaseView(TemplateView):

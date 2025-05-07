@@ -3,8 +3,10 @@ import random
 
 from django.utils import timezone
 
+from core.models import LeadMarketing, LandingPage, CallTrackingNumber, CallTracking
+
+from .models import Visit
 from .enums import MarketingParams
-from .models import Visit, LeadMarketing, LandingPage, CallTrackingNumber, CallTracking
 
 class CallTrackingMixin:
     def dispatch(self, request, *args, **kwargs):

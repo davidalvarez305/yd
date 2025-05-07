@@ -2,7 +2,7 @@ import logging
 from django.http import HttpRequest
 
 from .enums import ConversionServiceType, MarketingParams
-from .models import MarketingCampaign
+from core.models import MarketingCampaign
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 

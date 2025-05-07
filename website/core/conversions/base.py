@@ -1,82 +1,48 @@
 import hashlib
-import json
-import requests
-from django.utils.timezone import now
-from .models import ConversionLog
 from abc import ABC, abstractmethod
 import logging
+from core.http import BaseHttpClient
 
 logger = logging.getLogger(__name__)
 
 class ConversionService(ABC):
-    def __init__(self, conversion_data: dict):
-        """
-        conversion_data: Dictionary containing all required fields for a conversion.
-        """
-        self.conversion_data = conversion_data
+    def __init__(self):
+        self.http = BaseHttpClient()
 
     @abstractmethod
-    def construct_payload(self) -> dict:
+    def _construct_payload(self, data: dict) -> dict:
+        pass
+
+    @abstractmethod
+    def _get_endpoint(self) -> str:
+        pass
+
+    @abstractmethod
+    def _get_service_name(self) -> str:
         """
-        Constructs the appropriate payload for the conversion event.
+        Returns a string identifying the name of the conversion service (e.g., 'facebook', 'google').
+        Used for logging purposes.
         """
         pass
 
-    def send_conversion(self):
-        """
-        Constructs and sends the conversion event to the platform.
-        """
-        payload = self.construct_payload()
-        endpoint = self.get_endpoint()
-        self._send_request(endpoint, payload)
+    def send_conversion(self, data: dict):
+        payload = self._construct_payload(data)
+        endpoint = self._get_endpoint()
 
-    @abstractmethod
-    def get_endpoint(self) -> str:
-        """
-        Returns the API endpoint URL for the conversion event.
-        """
-        pass
-
-    def _send_request(self, endpoint: str, payload: dict):
-        """
-        Sends the payload to the specified endpoint.
-        """
         try:
-            response = requests.post(
-                endpoint, 
-                json=payload, 
-                headers={"Content-Type": "application/json"}
+            response = self.http.request(
+                method="POST",
+                url=endpoint,
+                payload=payload,
+                headers={"Content-Type": "application/json"},
+                extra_log_fields={
+                    "service_name": self._get_service_name()
+                }
             )
-            self._log_conversion(payload, response)
-        except requests.exceptions.RequestException as err:
-            logger.error(f"Failed to send conversion: {err}")
-            self._log_conversion(payload, None, error={"error": str(err)})
-
-    def _log_conversion(self, payload: dict, response=None, error=None):
-        """
-        Logs the conversion attempt, its payload, and the response.
-        """
-        payload_json = json.dumps(payload)
-
-        if response:
-            response_json = json.dumps(response.json())
-            status_code = response.status_code
-        else:
-            response_json = json.dumps(error)
-            status_code = 500
-
-        ConversionLog.objects.create(
-            date_created=now(),
-            endpoint=self.get_endpoint(),
-            payload=payload_json,
-            status_code=status_code,
-            response=response_json
-        )
+            return response
+        except Exception as err:
+            logger.error(f"[{self._get_service_name()}] Failed to send conversion: {err}")
+            raise
 
     def hash_to_sha256(self, value: str) -> str:
-        """
-        Hashes a string using SHA-256.
-        """
-        if not value:
-            return None
-        return hashlib.sha256(value.encode("utf-8")).hexdigest()
+        return hashlib.sha256(value.encode("utf-8")).hexdigest() if value else None

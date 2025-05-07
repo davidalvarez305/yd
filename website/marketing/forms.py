@@ -2,9 +2,9 @@ from django import forms
 
 from core.forms import BaseForm, BaseModelForm, FilterFormMixin
 from core.models import Lead
-from marketing.enums import CONVERSION_SERVICE_CHOICES
-from .conversions import ConversionServiceType
-from .models import MarketingCampaign, CallTrackingNumber, Visit
+from marketing.enums import ConversionServiceType
+from core.models import MarketingCampaign, CallTrackingNumber
+from .models import Visit
 from http import HTTPStatus
 
 class CallTrackingNumberForm(BaseModelForm):
@@ -12,12 +12,7 @@ class CallTrackingNumberForm(BaseModelForm):
         model = CallTrackingNumber
         fields = ['call_tracking_number', 'marketing_campaign']
 
-class ConversionLogFilterForm(FilterFormMixin, BaseForm):
-    conversion_service_type = forms.ChoiceField(
-        choices=CONVERSION_SERVICE_CHOICES,
-        required=False,
-        label='Conversion Service'
-    )
+class HTTPLogFilterForm(FilterFormMixin, BaseForm):
     status_code = forms.ChoiceField(
         choices=[(str(status.value), status.name) for status in HTTPStatus],
         required=False,
@@ -25,7 +20,6 @@ class ConversionLogFilterForm(FilterFormMixin, BaseForm):
     )
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['conversion_service_type'].empty_label = "All Types"
         self.fields['status_code'].empty_label = "All Statuses"
 
 class CallTrackingFilterForm(BaseForm):

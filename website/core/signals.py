@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Lead, PhoneCall
-from marketing.models import CallTracking, LeadMarketing
-from marketing.conversions import report_conversion, ConversionEventType
+from core.models import CallTracking
+from core.conversions import conversion_service_loader
 
 @receiver(post_save, sender=Lead)
 def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:

@@ -1,13 +1,15 @@
 from django.http import HttpResponse
-from .models import ConversionLog, CallTrackingNumber, Visit
-from .forms import ConversionLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm, VisitForm, VisitFilterForm
-from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRMBaseCreateView, CRMBaseUpdateView
 from django.views.generic.edit import UpdateView
 
-class ConversionLogListView(CRMBaseListView):
-    model = ConversionLog
+from .models import Visit
+from .forms import HTTPLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm, VisitForm, VisitFilterForm
+from crm.views import CRMBaseListView, CRMBaseDetailView, CRMBaseDeleteView, CRMBaseCreateView, CRMBaseUpdateView
+from core.models import HTTPLog, CallTrackingNumber
+
+class HTTPLogListView(CRMBaseListView):
+    model = HTTPLog
     context_object_name = "logs"
-    filter_form_class = ConversionLogFilterForm
+    filter_form_class = HTTPLogFilterForm
 
 class CallTrackingNumberListView(CRMBaseListView):
     model = CallTrackingNumber

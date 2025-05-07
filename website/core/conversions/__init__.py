@@ -28,3 +28,5 @@ class ConversionServiceLoader:
 
         self._instances[key] = instance
         return instance
+
+conversion_service_loader = ConversionServiceLoader()

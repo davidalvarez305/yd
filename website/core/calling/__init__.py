@@ -15,3 +15,5 @@ class CallingService(LazyObject):
             transcription_service=TranscriptionService(),
             ai_agent=AIAgentService()
         )
+
+calling_service = CallingService()
