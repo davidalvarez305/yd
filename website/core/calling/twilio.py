@@ -136,11 +136,15 @@ class TwilioCallingService(CallingServiceInterface):
                         text_from=phone_call.call_to,
                         text_to=phone_call.call_from,
                         is_inbound=False,
-                        status='Sent',
+                        status='pending',
                         is_read=True
                     )
 
-                    messaging_service.send_text_message(message=message)
+                    response = messaging_service.send_text_message(message=message)
+
+                    message.external_id = response.sid
+                    message.status = response.status
+                    message.save()
 
             elif not phone_call.is_inbound and dial_status in MISSED_STATUSES:
                 print("Initiate missed outbound call text")

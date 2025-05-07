@@ -239,7 +239,6 @@ class Message(models.Model):
         return self.external_id
 
     def get_lead(self):
-        from core.models import Lead
         return Lead.objects.filter(phone_number=self.text_from).first() or Lead.objects.filter(phone_number=self.text_to).first()
 
     def images(self):
