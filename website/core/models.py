@@ -344,6 +344,7 @@ class InstantForm(models.Model):
 
 class MarketingCampaign(models.Model):
     marketing_campaign_id = models.BigIntegerField()
+    name = models.TextField()
     platform_id = models.IntegerField(choices=AD_PLATFORMS)
 
     class Meta:

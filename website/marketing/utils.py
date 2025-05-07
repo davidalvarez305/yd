@@ -24,7 +24,9 @@ class MarketingHelper:
         self.click_id = None
         self.client_id = None
         self.platform_id = None
-        self.marketing_campaign = MarketingCampaign.objects.filter(marketing_campaign_id=request.GET.get('ad_campaign')).first()
+
+        # Source
+        self.marketing_campaign = self.get_or_create_marketing_campaign()
         self.keywords = request.GET.get('keyword')
         self.source = request.GET.get('source', self.get_source_from_referrer())
         self.medium = request.GET.get('medium', self.generate_medium())
@@ -144,3 +146,20 @@ class MarketingHelper:
                 return "video"
 
         return "other"
+
+    def get_or_create_marketing_campaign(self):
+        """
+        Attempts to get or create a MarketingCampaign using the ad_campaign ID and platform ID.
+        Requires both to be present. If missing, returns None.
+        """
+        ad_campaign_id = self.query_params.get("ad_campaign")
+
+        if not ad_campaign_id or not self.platform_id:
+            return None
+
+        campaign, _ = MarketingCampaign.objects.get_or_create(
+            marketing_campaign_id=ad_campaign_id,
+            platform_id=self.platform_id,
+            defaults={"name": "Unnamed Campaign"}
+        )
+        return campaign
