@@ -15,6 +15,10 @@ from .forms import MessageForm
 def handle_inbound_message(request: HttpRequest):
     return messaging_service.handle_inbound_message(request)
 
+@csrf_exempt
+def handle_message_status_callback(request: HttpRequest):
+    return messaging_service.handle_message_status_callback(request)
+
 class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
     model = Message
     form_class = MessageForm

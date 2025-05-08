@@ -7,4 +7,5 @@ urlpatterns = [
     path('calls/end/recording', views.handle_call_recording_callback, name='call_recording_callback'),
     path('message/inbound', views.handle_inbound_message, name='inbound_message'),
     path('message/outbound', views.MessageCreateView.as_view(), name='outbound_message'),
+    path('message/end/status', views.handle_message_status_callback, name='message_status_callback'),
 ]

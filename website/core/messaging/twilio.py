@@ -11,10 +11,11 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from twilio.twiml.messaging_response import MessagingResponse
 
-from core.utils import cleanup_dir_files, create_generic_file_name, download_file_from_twilio
+from core.utils import cleanup_dir_files, download_file_from_twilio
 from core.models import Message, MessageMedia
 
 from communication.forms import MessageForm
+from communication.enums import TwilioWebhookCallbacks
 from .base import MessagingServiceInterface
 from .utils import strip_country_code
 
@@ -122,31 +123,50 @@ class TwilioMessagingService(MessagingServiceInterface):
 
     def send_text_message(self, message: Message, media_urls: list[str] = None):
         try:
+            status_callback = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.MESSAGE_STATUS_CALLBACK.value)
+            
             response = self.client.messages.create(
                 to=message.text_to,
                 from_=message.text_from,
                 body=message.text,
+                status_callback=status_callback,
                 media_url=media_urls if media_urls else None
             )
-            print("Message sent. Twilio response received.")
 
             if not response.sid:
-                print("Error: Twilio response missing SID.")
                 raise Exception("Twilio message SID not returned.")
 
-            print(f"Twilio Message SID: {response.sid}")
-            print(f"Twilio Message Status: {response.status}")
             return response
 
         except TwilioRestException as e:
-            print("TwilioRestException caught!")
-            print(f"Status: {e.status}")
-            print(f"Code: {e.code}")
-            print(f"Message: {e.msg}")
             raise Exception(f"TwilioRestException: {e.msg}") from e
 
         except Exception as e:
-            print("General exception caught while sending text message.")
-            print(f"Exception type: {type(e).__name__}")
-            print(f"Exception details: {e}")
             raise
+    
+    def handle_message_status_callback(self, request) -> HttpResponse:
+        if request.method != "POST":
+            return HttpResponse("Only POST allowed", status=405)
+
+        valid = self.validator.validate(
+            request.build_absolute_uri(),
+            request.POST,
+            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+        )
+
+        if not valid:
+            return HttpResponse("Invalid Twilio signature", status=403)
+
+        message_sid = request.POST.get("MessageSid")
+        message_status = request.POST.get("MessageStatus")
+
+        if not message_sid:
+            return HttpResponse("Missing MessageSid", status=400)
+
+        try:
+            message = Message.objects.get(external_id=message_sid)
+            message.status = message_status
+            message.save()
+            return HttpResponse(status=204)
+        except Message.DoesNotExist:
+            return HttpResponse("Message not found", status=404)
