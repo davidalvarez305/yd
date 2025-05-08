@@ -35,8 +35,8 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse(str(response), content_type="application/xml", status=405)
 
         response = VoiceResponse()
-
         form = request.POST
+
         call_sid = form.get("CallSid")
         call_from = form.get("From")
         call_to = form.get("To")
@@ -54,7 +54,8 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("No matching phone number found")
             return HttpResponse(str(response), content_type="application/xml", status=404)
 
-        forward_number = forward.phone_number
+        forward_number = forward.forward_phone_number
+
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.INBOUND.value)
         action_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
 
@@ -82,16 +83,17 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except Exception as e:
-            print(f"Server error: {e}")
             response.say("An unexpected error occurred.")
             return HttpResponse(str(response), content_type="application/xml", status=500)
-        
+
     def handle_call_status_callback(self, request) -> HttpResponse:
         response = VoiceResponse()
 
         if request.method != "POST":
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
+
+        print(request.POST.dict())
 
         call_sid = request.POST.get("CallSid")
         dial_status = request.POST.get("DialCallStatus")
@@ -217,6 +219,9 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call = PhoneCall.objects.get(external_id=call_sid)
             phone_call.recording_url = recording_url
             phone_call.save()
+
+            if phone_call.status != "completed":
+                return HttpResponse(str(response), content_type="application/xml", status=200)
 
             job_name = uuid.uuid4()
             audio_filename = job_name + ".mp3"

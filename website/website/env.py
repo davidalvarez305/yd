@@ -26,6 +26,7 @@ class EnvConfig:
         "DOMAIN_HOST",
         "COMPANY_PHONE_NUMBER",
         "COMPANY_EMAIL",
+        "NGROK_HOST",
 
         # AWS
         "AWS_REGION",

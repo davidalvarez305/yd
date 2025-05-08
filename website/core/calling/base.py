@@ -6,7 +6,7 @@ class CallingServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def handle_call_status(self, request):
+    def handle_call_status_callback(self, request):
         pass
 
     @abstractmethod

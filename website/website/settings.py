@@ -11,11 +11,9 @@ env = EnvConfig()
 
 SECRET_KEY = env.get("DJANGO_SECRET")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get("PRODUCTION") == "0"
 
-ALLOWED_HOSTS = env.get("ALLOWED_HOSTS", "127.0.0.1").split(', ')
-print(ALLOWED_HOSTS)
+ALLOWED_HOSTS = [env.get('ALLOWED_HOSTS'), env.get('NGROK_HOST')]
 LOGIN_URL = "/login"  # Change this to your desired login URL
 
 # Application definition
@@ -126,6 +124,7 @@ COMPANY_PHONE_NUMBER = env.get("COMPANY_PHONE_NUMBER")
 COMPANY_EMAIL = env.get("COMPANY_EMAIL")
 ROOT_DOMAIN = env.get("ROOT_DOMAIN")
 DOMAIN_HOST = env.get("DOMAIN_HOST")
+NGROK_HOST = env.get("NGROK_HOST")
 
 GOOGLE_ANALYTICS_API_KEY = env.get("GOOGLE_ANALYTICS_API_KEY")
 GOOGLE_ANALYTICS_ID = env.get("GOOGLE_ANALYTICS_ID")
@@ -226,7 +225,7 @@ AUTH_USER_MODEL = 'core.User'
 MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
 CALLING_SERVICE = 'core.calling.twilio.TwilioCallingService'
 AI_AGENT_SERVICE = 'core.ai.openai.OpenAIAgentService'
-# EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'

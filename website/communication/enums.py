@@ -16,11 +16,15 @@ class TwilioWebhookEvents(Enum):
 
 class TwilioWebhookCallbacks(Enum):
     INBOUND = "/communication/calls/inbound"
-    STATUS = "/communication/calls/status"
+    STATUS = "/communication/calls/end/status"
+    RECORDING = "/communication/calls/end/recording"
     OUTBOUND = "/communication/calls/outbound"
-    RECORDING = "/communication/calls/recording"
 
     @classmethod
     def get_full_url(cls, endpoint):
         base_url = settings.ROOT_DOMAIN
+
+        if settings.DEBUG:
+            base_url = "https://" + settings.NGROK_HOST
+        
         return base_url + endpoint

@@ -43,7 +43,7 @@ def handle_inbound_call(request: HttpRequest):
 
 @csrf_exempt
 def handle_call_status_callback(request: HttpRequest):
-    return calling_service.handle_call_status(request)
+    return calling_service.handle_call_status_callback(request)
 
 @csrf_exempt
 def handle_call_recording_callback(request: HttpRequest):
