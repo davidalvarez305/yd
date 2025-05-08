@@ -9,7 +9,10 @@ from core.models import PhoneCallTranscription
 
 class AWSTranscriptionService:
     def __init__(self):
-        self.client = boto3.client("transcribe")
+        self.client = boto3.client(
+            "transcribe",
+            region_name=settings.AWS_S3_REGION_NAME
+        )
         self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         self.output_prefix = settings.TRANSCRIPTION_STORAGE_PREFIX
 

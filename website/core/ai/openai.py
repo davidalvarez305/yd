@@ -1,10 +1,8 @@
 import traceback
 from openai import OpenAI
 
-from django.utils import timezone
-
 from website import settings
-from core.models import LeadNote
+from core.models import Lead, LeadNote, User
 from .base import AIAgentServiceInterface
 
 class OpenAIAgentService(AIAgentServiceInterface):
@@ -13,7 +11,7 @@ class OpenAIAgentService(AIAgentServiceInterface):
             api_key=settings.OPEN_AI_API_KEY,
         )
 
-    def summarize_phone_call(self, lead_id: int, user_id: int, transcription_text: str) -> None:
+    def summarize_phone_call(self, transcription_text: str) -> str:
         prompt = f"""
             Take the example below:
             <p>
@@ -50,14 +48,8 @@ class OpenAIAgentService(AIAgentServiceInterface):
                 max_tokens=1000,
                 temperature=0.7,
             )
-            summary = response.choices[0].message.content.strip()
 
-            LeadNote.objects.create(
-                note=summary,
-                lead_id=lead_id,
-                date_added=timezone.now(),
-                added_by_user_id=user_id,
-            )
+            return response.choices[0].message.content.strip()
 
         except Exception as e:
             print("Exception occurred during summarizing phone call:")

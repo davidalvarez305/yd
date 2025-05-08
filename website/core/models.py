@@ -208,7 +208,7 @@ class LeadNote(models.Model):
     note = models.TextField()
     lead = models.ForeignKey(Lead, related_name='notes', db_column='lead_id', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='notes', db_column='added_by_user_id', on_delete=models.CASCADE)
-    date_added = models.DateTimeField()
+    date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.note

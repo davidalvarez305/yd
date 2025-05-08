@@ -10,7 +10,7 @@ from django.core.files import File
 from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.rest import Client
 
-from core.models import Lead, Message, User
+from core.models import Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files
 from website import settings
 from .base import CallingServiceInterface
@@ -222,12 +222,12 @@ class TwilioCallingService(CallingServiceInterface):
             if phone_call.status != "completed":
                 return HttpResponse(str(response), content_type="application/xml", status=200)
 
-            job_name = uuid.uuid4()
+            job_name = str(uuid.uuid4())
             audio_filename = job_name + ".mp3"
 
             local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-            self._download_file_from_url(phone_call.recording_url, local_audio_path)
+            self._download_file_from_twilio(phone_call.recording_url, local_audio_path)
 
             with open(local_audio_path, 'rb') as audio:
                 transcription = PhoneCallTranscription(
@@ -248,9 +248,13 @@ class TwilioCallingService(CallingServiceInterface):
             lead = Lead.objects.filter(phone_number=lead_phone).first()
 
             if lead is not None:
-                self.ai_agent.summarize(lead.lead_id, user.user_id, transcription.text)
+                note = self.ai_agent.summarize_phone_call(transcription.text)
 
-            cleanup_dir_files(settings.UPLOADS_URL)
+                LeadNote.objects.create(
+                    note=note,
+                    lead=lead,
+                    user=user,
+                )
 
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
@@ -262,6 +266,9 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("Internal server error")
             print(f"Error during recording callback: {e}")
             return HttpResponse(str(response), content_type="application/xml", status=500)
+        
+        finally:
+            cleanup_dir_files(settings.UPLOADS_URL)
     
     def _download_file_from_twilio(self, twilio_recording_url: str, local_file_path: str) -> None:
         try:
@@ -278,7 +285,6 @@ class TwilioCallingService(CallingServiceInterface):
             with open(local_file_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
-            print(f"File downloaded successfully: {local_file_path}")
         except Exception as e:
             raise Exception(f"Failed to save file locally: {e}")
     
@@ -290,7 +296,7 @@ class TwilioCallingService(CallingServiceInterface):
         https://api.twilio.com/2010-04-01/Accounts/ACxxx/Recordings/RE1234567890abcdef.mp3
         -> returns: RE1234567890abcdef
         """
-        match = re.search(r'/Recordings/([A-Z0-9]+)\.mp3', recording_url)
+        match = re.search(r'/Recordings/([A-Za-z0-9]+)\.mp3', recording_url)
         if not match:
             raise ValueError(f"Could not extract recording SID from URL: {recording_url}")
         return match.group(1)
@@ -298,6 +304,5 @@ class TwilioCallingService(CallingServiceInterface):
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:
             self.client.recordings(recording_sid).delete()
-            print("Recording deleted successfully")
         except BaseException as e:
             raise RuntimeError(f"Failed to delete recording: {e}")

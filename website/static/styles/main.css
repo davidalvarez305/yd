@@ -788,14 +788,6 @@ select{
   right: 0px;
 }
 
-.-bottom-0\.5{
-  bottom: -0.125rem;
-}
-
-.-right-0\.5{
-  right: -0.125rem;
-}
-
 .bottom-0{
   bottom: 0px;
 }
@@ -952,11 +944,6 @@ select{
   display: none;
 }
 
-.size-10{
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
 .size-12{
   width: 3rem;
   height: 3rem;
@@ -965,11 +952,6 @@ select{
 .size-14{
   width: 3.5rem;
   height: 3.5rem;
-}
-
-.size-3{
-  width: 0.75rem;
-  height: 0.75rem;
 }
 
 .size-4{
@@ -1373,10 +1355,6 @@ select{
   border-width: 1px;
 }
 
-.border-2{
-  border-width: 2px;
-}
-
 .border-b{
   border-bottom-width: 1px;
 }
@@ -1435,16 +1413,6 @@ select{
 
 .border-transparent{
   border-color: transparent;
-}
-
-.border-white{
-  --tw-border-opacity: 1;
-  border-color: rgb(255 255 255 / var(--tw-border-opacity, 1));
-}
-
-.bg-emerald-500{
-  --tw-bg-opacity: 1;
-  background-color: rgb(16 185 129 / var(--tw-bg-opacity, 1));
 }
 
 .bg-emerald-600{
