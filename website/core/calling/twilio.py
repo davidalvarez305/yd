@@ -56,14 +56,15 @@ class TwilioCallingService(CallingServiceInterface):
 
         forward_number = forward.forward_phone_number
 
-        recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.INBOUND.value)
+        recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         action_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
 
         try:
             dial = Dial(
-                record="true",
+                record='record-from-ringing-dual',
                 recording_status_callback=recording_callback_url,
-                recording_status_callback_event=TwilioWebhookEvents.all(),
+                recording_status_callback_event="completed",
+                status_callback_event=TwilioWebhookEvents.all(),
                 action=action_url
             )
             dial.number(forward_number)
