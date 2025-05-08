@@ -8,6 +8,7 @@ from django.utils.timezone import now
 from django.core.files import File
 
 from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
 from core.models import Lead, LeadNote, Message, User
@@ -27,6 +28,7 @@ class TwilioCallingService(CallingServiceInterface):
         self.transcription_service = transcription_service
         self.ai_agent = ai_agent
         self.client = Client(account_sid, auth_token)
+        self.validator = RequestValidator(auth_token)
 
     def handle_inbound_call(self, request) -> HttpResponse:
         response = VoiceResponse()
@@ -103,6 +105,16 @@ class TwilioCallingService(CallingServiceInterface):
         if request.method != "POST":
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
+        
+        valid = self.validator.validate(
+            request.build_absolute_uri(),
+            request.POST,
+            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+        )
+
+        if not valid:
+            response.say("Invalid Twilio signature.")
+            return HttpResponse(str(response), content_type="application/xml", status=403)
 
         call_sid = request.POST.get("CallSid")
         dial_status = request.POST.get("DialCallStatus")
@@ -211,6 +223,16 @@ class TwilioCallingService(CallingServiceInterface):
         if request.method != "POST":
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
+        
+        valid = self.validator.validate(
+            request.build_absolute_uri(),
+            request.POST,
+            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+        )
+
+        if not valid:
+            response.say("Invalid Twilio signature.")
+            return HttpResponse(str(response), content_type="application/xml", status=403)
 
         call_sid = request.POST.get("CallSid")
         recording_sid = request.POST.get("RecordingSid")
