@@ -1,10 +1,9 @@
-from django.http import HttpResponseNotAllowed
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 
 from website import settings
 from core.models import Message, PhoneCall, Message
