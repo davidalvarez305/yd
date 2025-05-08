@@ -11,7 +11,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.rest import Client
 
 from core.models import Lead, LeadNote, Message, User
-from core.utils import cleanup_dir_files
+from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
 from .base import CallingServiceInterface
 
@@ -29,12 +29,22 @@ class TwilioCallingService(CallingServiceInterface):
         self.client = Client(account_sid, auth_token)
 
     def handle_inbound_call(self, request) -> HttpResponse:
+        response = VoiceResponse()
+
         if request.method != "POST":
-            response = VoiceResponse()
             response.say("Only POST allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
+        
+        valid = self.validator.validate(
+            request.build_absolute_uri(),
+            request.POST,
+            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+        )
 
-        response = VoiceResponse()
+        if not valid:
+            response.say("Invalid Twilio signature.")
+            return HttpResponse(str(response), content_type="application/xml", status=403)
+
         form = request.POST
 
         call_sid = form.get("CallSid")
@@ -227,7 +237,7 @@ class TwilioCallingService(CallingServiceInterface):
 
             local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-            self._download_file_from_twilio(phone_call.recording_url, local_audio_path)
+            download_file_from_twilio(phone_call.recording_url, local_audio_path)
 
             with open(local_audio_path, 'rb') as audio:
                 transcription = PhoneCallTranscription(
@@ -269,24 +279,6 @@ class TwilioCallingService(CallingServiceInterface):
         
         response.say("Success!")
         return HttpResponse(str(response), content_type="application/xml", status=200)
-    
-    def _download_file_from_twilio(self, twilio_recording_url: str, local_file_path: str) -> None:
-        try:
-            response = requests.get(
-                twilio_recording_url,
-                auth=(self.account_sid, self.auth_token),
-                stream=True
-            )
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise Exception(f"Failed to download file: {e}")
-
-        try:
-            with open(local_file_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-        except Exception as e:
-            raise Exception(f"Failed to save file locally: {e}")
     
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:

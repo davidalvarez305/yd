@@ -2,7 +2,11 @@ import re
 import uuid
 import mimetypes
 from pathlib import Path
+import requests
+
 from django.db import models
+
+from website import settings
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -56,3 +60,21 @@ def cleanup_dir_files(dir_path):
     for file in directory.iterdir():
         if file.is_file():
             file.unlink()
+
+def download_file_from_twilio(twilio_resource: str, local_file_path: str) -> None:
+        try:
+            response = requests.get(
+                twilio_resource,
+                auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                stream=True
+            )
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise Exception(f"Failed to download file: {e}")
+
+        try:
+            with open(local_file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        except Exception as e:
+            raise Exception(f"Failed to save file locally: {e}")
