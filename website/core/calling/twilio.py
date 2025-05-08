@@ -238,7 +238,6 @@ class TwilioCallingService(CallingServiceInterface):
 
             self.transcription_service.transcribe_audio(transcription=transcription)
 
-            recording_sid = self._extract_recording_sid(phone_call.recording_url)
             self._delete_call_recording(recording_sid)
 
             user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
@@ -256,8 +255,6 @@ class TwilioCallingService(CallingServiceInterface):
                     user=user,
                 )
 
-            return HttpResponse(str(response), content_type="application/xml", status=200)
-
         except PhoneCall.DoesNotExist:
             response.say("Phone call not found")
             return HttpResponse(str(response), content_type="application/xml", status=404)
@@ -269,6 +266,9 @@ class TwilioCallingService(CallingServiceInterface):
         
         finally:
             cleanup_dir_files(settings.UPLOADS_URL)
+        
+        response.say("Success!")
+        return HttpResponse(str(response), content_type="application/xml", status=200)
     
     def _download_file_from_twilio(self, twilio_recording_url: str, local_file_path: str) -> None:
         try:
@@ -287,19 +287,6 @@ class TwilioCallingService(CallingServiceInterface):
                     f.write(chunk)
         except Exception as e:
             raise Exception(f"Failed to save file locally: {e}")
-    
-    def _extract_recording_sid(self, recording_url: str) -> str:
-        """
-        Extracts the recording SID from a Twilio recording URL.
-
-        Example:
-        https://api.twilio.com/2010-04-01/Accounts/ACxxx/Recordings/RE1234567890abcdef.mp3
-        -> returns: RE1234567890abcdef
-        """
-        match = re.search(r'/Recordings/([A-Za-z0-9]+)\.mp3', recording_url)
-        if not match:
-            raise ValueError(f"Could not extract recording SID from URL: {recording_url}")
-        return match.group(1)
     
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:
