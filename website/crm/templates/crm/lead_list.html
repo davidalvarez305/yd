@@ -53,10 +53,10 @@
                     </a>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.last_contact.date_created|date:"Y-m-d" }}</p>
+                    <p class="font-medium">{{ lead.last_contact.date_created|date:"m/d/Y h:i A" }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ lead.events.last.event_date|date:"Y-m-d" }}</p>
+                    <p class="font-medium">{{ lead.events.last.event_date|date:"m/d/Y" }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <form action="{% url 'lead_archive' pk=lead.lead_id %}" method="post">
