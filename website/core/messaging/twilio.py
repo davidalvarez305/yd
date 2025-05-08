@@ -11,7 +11,7 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from twilio.twiml.messaging_response import MessagingResponse
 
-from core.utils import create_generic_file_name, download_file_from_twilio
+from core.utils import cleanup_dir_files, create_generic_file_name, download_file_from_twilio
 from core.models import Message, MessageMedia
 
 from communication.forms import MessageForm
@@ -77,15 +77,18 @@ class TwilioMessagingService(MessagingServiceInterface):
                         media = MessageMedia(message=message, content_type=content_type)
                         media.file.save(file_name, content_file)
 
-            response = MessagingResponse()
-            response.message("Message received successfully.")
-            return HttpResponse(str(response), content_type="application/xml", status=200)
-
         except Exception as e:
             print(f"Unexpected error in handle_inbound_message: {e}")
             response = MessagingResponse()
             response.message("Unexpected error occurred.")
             return HttpResponse(str(response), content_type="application/xml", status=500)
+
+        finally:
+            cleanup_dir_files(UPLOADS_URL)
+
+        response = MessagingResponse()
+        response.message("Message received successfully.")
+        return HttpResponse(str(response), content_type="application/xml", status=200)
 
     def handle_outbound_message(self, form: MessageForm) -> None:
         message = form.save(commit=False)
