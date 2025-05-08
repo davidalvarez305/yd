@@ -1,4 +1,5 @@
-import openai
+import traceback
+from openai import OpenAI
 
 from django.utils import timezone
 
@@ -7,8 +8,10 @@ from core.models import LeadNote
 from .base import AIAgentServiceInterface
 
 class OpenAIAgentService(AIAgentServiceInterface):
-    def __init__(self, api_key: str):
-        openai.api_key = api_key
+    def __init__(self):
+        self.client = OpenAI(
+            api_key=settings.OPEN_AI_API_KEY,
+        )
 
     def summarize_phone_call(self, lead_id: int, user_id: int, transcription_text: str) -> None:
         prompt = f"""
@@ -38,8 +41,8 @@ class OpenAIAgentService(AIAgentServiceInterface):
             The following transcript was a sales call for a bartending service. Summarize the key points in the following text while following the example above: {transcription_text}
         """
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that summarizes sales calls for CRM notes."},
                     {"role": "user", "content": prompt}
@@ -57,12 +60,14 @@ class OpenAIAgentService(AIAgentServiceInterface):
             )
 
         except Exception as e:
+            print("Exception occurred during summarizing phone call:")
+            traceback.print_exc()
             raise RuntimeError(f"Failed to summarize phone call: {e}")
     
     def generate_response(self, prompt: str) -> str:
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that helps answer client queries."},
                     {"role": "user", "content": prompt}
@@ -70,8 +75,9 @@ class OpenAIAgentService(AIAgentServiceInterface):
                 max_tokens=1000,
                 temperature=0.7,
             )
-
             return response.choices[0].message.content.strip()
 
         except Exception as e:
-            raise RuntimeError(f"Failed to summarize phone call: {e}")
+            print("Exception occurred during response generation:")
+            traceback.print_exc()
+            raise RuntimeError(f"Failed to generate response: {e}")

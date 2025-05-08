@@ -123,11 +123,25 @@ class TwilioMessagingService(MessagingServiceInterface):
                 body=message.text,
                 media_url=media_urls if media_urls else None
             )
+            print("Message sent. Twilio response received.")
 
             if not response.sid:
+                print("Error: Twilio response missing SID.")
                 raise Exception("Twilio message SID not returned.")
 
+            print(f"Twilio Message SID: {response.sid}")
+            print(f"Twilio Message Status: {response.status}")
             return response
 
         except TwilioRestException as e:
-            raise Exception(e.msg) from e
+            print("TwilioRestException caught!")
+            print(f"Status: {e.status}")
+            print(f"Code: {e.code}")
+            print(f"Message: {e.msg}")
+            raise Exception(f"TwilioRestException: {e.msg}") from e
+
+        except Exception as e:
+            print("General exception caught while sending text message.")
+            print(f"Exception type: {type(e).__name__}")
+            print(f"Exception details: {e}")
+            raise

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EventRole, LeadStatus, LeadInterest, NextAction, ServiceType, UnitType, InvoiceType, User, Lead
+from .models import Event, EventRole, LeadStatus, LeadInterest, NextAction, PhoneCall, ServiceType, UnitType, InvoiceType, User, Lead
 
 admin.site.register(LeadStatus)
 admin.site.register(LeadInterest)
@@ -10,3 +10,5 @@ admin.site.register(InvoiceType)
 admin.site.register(User)
 
 admin.site.register(EventRole)
+admin.site.register(PhoneCall)
+admin.site.register(Event)

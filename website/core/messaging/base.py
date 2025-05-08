@@ -10,5 +10,5 @@ class MessagingServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def _send_text_message(self, message):
+    def send_text_message(self, message):
         pass

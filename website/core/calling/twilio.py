@@ -93,8 +93,6 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
 
-        print(request.POST.dict())
-
         call_sid = request.POST.get("CallSid")
         dial_status = request.POST.get("DialCallStatus")
         dial_duration = request.POST.get("DialCallDuration", "0")
@@ -135,7 +133,7 @@ class TwilioCallingService(CallingServiceInterface):
                 )
 
                 try:
-                    message = self.ai_agent.generate_response(prompt=prompt)
+                    text = self.ai_agent.generate_response(prompt=prompt)
 
                     message = Message(
                         text=text,
@@ -151,7 +149,7 @@ class TwilioCallingService(CallingServiceInterface):
                     message.external_id = resp.sid
                     message.status = resp.status
                     message.save()
-                except Exception as e:
+                except BaseException as e:
                     return HttpResponse(str('Error while generating response from AI Agent'), content_type="application/xml", status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
