@@ -4,5 +4,5 @@ node_modules
 files
 *.json
 *.config
-*.sqlite3
+db.sqlite3
 __pycache__
