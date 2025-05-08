@@ -1,7 +1,9 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import Service, User, Cocktail, Event
+from core.models import Message, PhoneCall, Service, User, Cocktail, Event
 from core.widgets import PriceCellWidget
+
 from django.contrib.auth.models import AbstractUser
+from django.utils.timezone import localtime
 
 class CocktailTable(Table):
     class Meta:
@@ -48,3 +50,37 @@ class UserTable(Table):
         pk = 'user_id'
         detail_url = 'user_detail'
         delete_url = 'user_delete'
+
+class PhoneCallTable(Table):
+    date_created = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    class Meta:
+        model = PhoneCall
+        extra_fields = ['view']
+        pk = 'phone_call_id'
+        detail_url = 'phonecall_detail'
+        exclude = ['external_id', 'phone_call_id', 'recording_url']
+
+class MessageTable(Table):
+    date_created = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    class Meta:
+        model = Message
+        extra_fields = ['view']
+        pk = 'message_id'
+        detail_url = 'message_detail'
+        exclude = ['external_id', 'message_id']

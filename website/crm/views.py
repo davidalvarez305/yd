@@ -14,7 +14,7 @@ from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMar
 from marketing.models import LeadMarketing
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, ServiceTable, EventTable, UserTable
+from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable
 from core.tables import Table
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
@@ -378,7 +378,7 @@ class EventDeleteView(CRMBaseDeleteView):
 
 class MessageListView(CRMTableView):
     model = Message
-    table_class = Table.from_model(Message, exclude=["external_id", "message_id"])
+    table_class = MessageTable
 
 class MessageDetailView(CRMDetailTemplateView):
     model = Message
@@ -398,7 +398,7 @@ class MessageUpdateView(CRMBaseUpdateView):
 
 class PhoneCallListView(CRMTableView):
     model = PhoneCall
-    table_class = Table.from_model(PhoneCall, exclude=["external_id", "PhoneCall_id"])
+    table_class = PhoneCallTable
 
 class PhoneCallDetailView(CRMDetailTemplateView):
     model = PhoneCall
