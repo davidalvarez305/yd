@@ -122,6 +122,8 @@ class DeclarativeTableMeta(type):
                     _declared_fields[field_name] = declared_fields[field_name]
 
         for key, field in declared_fields.items():
+            if include_fields and key not in include_fields:
+                continue
             if key not in _declared_fields:
                 _declared_fields[key] = field
 
@@ -198,7 +200,11 @@ class Table(metaclass=DeclarativeTableMeta):
             (cls,),
             {
                 "_declared_fields": _declared_fields,
-                "Meta": type("Meta", (), {"model": model}),
+                "Meta": type("Meta", (), {
+                    "model": model,
+                    "fields": fields,
+                    "exclude": exclude or [],
+                }),
             }
         )
         return table_class
