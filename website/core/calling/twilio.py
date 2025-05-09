@@ -298,8 +298,8 @@ class TwilioCallingService(CallingServiceInterface):
         if not form.is_valid():
             return HttpResponseBadRequest("Invalid form data")
         
-        from_ = form.cleaned_data.get('from')
-        to_ = form.cleaned_data.get('to')
+        from_ = form.cleaned_data.get('from_')
+        to_ = form.cleaned_data.get('to_')
 
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
