@@ -34,8 +34,7 @@ class TwilioCallingService(CallingServiceInterface):
         response = VoiceResponse()
 
         if request.method != "POST":
-            response.say("Only POST allowed")
-            return HttpResponse(str(response), content_type="application/xml", status=405)
+            return HttpResponse("Only POST allowed", status=405)
         
         if not settings.DEBUG:
             valid = self.validator.validate(
@@ -45,8 +44,7 @@ class TwilioCallingService(CallingServiceInterface):
             )
 
             if not valid:
-                response.say("Invalid Twilio signature.")
-                return HttpResponse(str(response), content_type="application/xml", status=403)
+                return HttpResponse("Invalid Twilio signature.", status=403)
 
         form = request.POST
 
@@ -56,16 +54,14 @@ class TwilioCallingService(CallingServiceInterface):
         call_status = form.get("CallStatus")
 
         if not all([call_sid, call_from, call_to, call_status]):
-            response.say("Missing required fields")
-            return HttpResponseBadRequest(str(response), content_type="application/xml")
+            return HttpResponse("Missing required fields", status=400)
 
         from_number = strip_country_code(call_from)
         to_number = strip_country_code(call_to)
 
         forward = User.objects.filter(phone_number=to_number).first()
         if not forward:
-            response.say("No matching phone number found")
-            return HttpResponse(str(response), content_type="application/xml", status=404)
+            return HttpResponse("No matching phone number found", status=404)
 
         forward_number = forward.forward_phone_number
 
@@ -97,15 +93,13 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except Exception as e:
-            response.say("An unexpected error occurred.")
-            return HttpResponse(str(response), content_type="application/xml", status=500)
+            return HttpResponse("An unexpected error occurred.", status=500)
 
     def handle_call_status_callback(self, request) -> HttpResponse:
         response = VoiceResponse()
 
         if request.method != "POST":
-            response.say("Only POST requests are allowed")
-            return HttpResponse(str(response), content_type="application/xml", status=405)
+            return HttpResponse("Only POST requests are allowed", status=405)
         
         if not settings.DEBUG:
             valid = self.validator.validate(
@@ -115,16 +109,14 @@ class TwilioCallingService(CallingServiceInterface):
             )
 
             if not valid:
-                response.say("Invalid Twilio signature.")
-                return HttpResponse(str(response), content_type="application/xml", status=403)
+                return HttpResponse("Invalid Twilio signature.", status=403)
 
         call_sid = request.POST.get("CallSid")
         dial_status = request.POST.get("DialCallStatus")
         dial_duration = request.POST.get("DialCallDuration", "0")
 
         if not call_sid:
-            response.say("Missing CallSid")
-            return HttpResponse(str(response), content_type="application/xml", status=400)
+            return HttpResponse("Missing CallSid", status=400)
 
         try:
             phone_call = PhoneCall.objects.get(external_id=call_sid)
@@ -144,7 +136,7 @@ class TwilioCallingService(CallingServiceInterface):
                 user = User.objects.filter(phone_number=phone_call.call_to).first()
 
                 if not user:
-                    return HttpResponse(str('User not found'), content_type="application/xml", status=500)
+                    return HttpResponse('User not found', status=500)
 
                 language_note = " Please write the message in Spanish." if user.username == "yova" else ""
 
@@ -175,13 +167,13 @@ class TwilioCallingService(CallingServiceInterface):
                     message.status = resp.status
                     message.save()
                 except BaseException as e:
-                    return HttpResponse(str('Error while generating response from AI Agent'), content_type="application/xml", status=500)
+                    return HttpResponse('Error while generating response from AI Agent', status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
                 user = User.objects.filter(phone_number=phone_call.call_from).first()
 
                 if not user:
-                    return HttpResponse(str('User not found'), content_type="application/xml", status=500)
+                    return HttpResponse('User not found', status=500)
 
                 language_note = " Please write the message in Spanish." if user.username == "yova" else ""
 
@@ -211,20 +203,18 @@ class TwilioCallingService(CallingServiceInterface):
                     message.status = resp.status
                     message.save()
                 except Exception as e:
-                    return HttpResponse(str('Error while generating response from AI Agent'), content_type="application/xml", status=500)
+                    return HttpResponse('Error while generating response from AI Agent', status=500)
 
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except PhoneCall.DoesNotExist:
-            response.say("Call not found")
-            return HttpResponse(str(response), content_type="application/xml", status=404)
+            return HttpResponse("Call not found", status=404)
 
     def handle_call_recording_callback(self, request) -> HttpResponse:
         response = VoiceResponse()
 
         if request.method != "POST":
-            response.say("Only POST requests are allowed")
-            return HttpResponse(str(response), content_type="application/xml", status=405)
+            return HttpResponse("Only POST requests are allowed", status=405)
         
         if not settings.DEBUG:
             valid = self.validator.validate(
@@ -234,15 +224,13 @@ class TwilioCallingService(CallingServiceInterface):
             )
 
             if not valid:
-                response.say("Invalid Twilio signature.")
-                return HttpResponse(str(response), content_type="application/xml", status=403)
+                return HttpResponse("Invalid Twilio signature.", status=403)
 
         call_sid = request.POST.get("CallSid")
         recording_sid = request.POST.get("RecordingSid")
 
         if not call_sid or not recording_sid:
-            response.say("Missing CallSid or RecordingSid")
-            return HttpResponse(str(response), content_type="application/xml", status=400)
+            return HttpResponse("Missing CallSid or RecordingSid", status=400)
 
         recording_url = (
             f"https://api.twilio.com/2010-04-01/Accounts/"
@@ -255,7 +243,7 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.save()
 
             if phone_call.status != "completed":
-                return HttpResponse(str(response), content_type="application/xml", status=200)
+                return HttpResponse("Success!", status=200)
 
             job_name = str(uuid.uuid4())
             audio_filename = job_name + ".mp3"
@@ -291,19 +279,15 @@ class TwilioCallingService(CallingServiceInterface):
                 )
 
         except PhoneCall.DoesNotExist:
-            response.say("Phone call not found")
-            return HttpResponse(str(response), content_type="application/xml", status=404)
+            return HttpResponse("Phone call not found", status=404)
 
         except Exception as e:
-            response.say("Internal server error")
-            print(f"Error during recording callback: {e}")
-            return HttpResponse(str(response), content_type="application/xml", status=500)
+            return HttpResponse("Internal server error", status=500)
         
         finally:
             cleanup_dir_files(settings.UPLOADS_URL)
         
-        response.say("Success!")
-        return HttpResponse(str(response), content_type="application/xml", status=200)
+        return HttpResponse("Success!", status=200)
     
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:
