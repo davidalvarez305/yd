@@ -187,8 +187,8 @@ class TwilioCallingService(CallingServiceInterface):
 
                 prompt = (
                     "A new lead just came in, I tried to call them but they missed it. "
-                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience. "
-                    "Here's an example: "
+                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience."
+                    "Follow the example shown below exactly, do not add any extra text. And swap the first name with the correct value."
                     f"Hi! This is {user.first_name} with YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect."
                     + language_note
                 )
