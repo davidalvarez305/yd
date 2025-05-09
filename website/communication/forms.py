@@ -41,3 +41,7 @@ class PhoneCallForm(forms.ModelForm):
     class Meta:
         model = PhoneCall
         fields = '__all__'
+
+class OutboundPhoneCallForm(forms.Form):
+    text_to = forms.CharField(widget=forms.HiddenInput())
+    text_from = forms.CharField(widget=forms.HiddenInput())

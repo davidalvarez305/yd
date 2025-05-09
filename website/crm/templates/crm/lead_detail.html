@@ -20,7 +20,7 @@
                     Lead's information.
                 </p>
                 <div class="flex sm:flex-col gap-2 items-center md:items-start">
-                    <button type="button"
+                    <button type="button" hx-post="{% url 'call_outbound' %}"
                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-semibold leading-5 text-white hover:border-emerald-600 hover:bg-emerald-600 hover:text-white focus:ring focus:ring-emerald-400/50 active:border-emerald-700 active:bg-emerald-700 dark:focus:ring-emerald-400/90 max-w-[150px] w-full">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
                             fill="currentColor" class="h-5 w-5 hi-micro hi-phone inline-block size-4">

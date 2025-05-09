@@ -14,6 +14,7 @@ from twilio.rest import Client
 from core.models import Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
+from communication.forms import OutboundPhoneCallForm
 from .base import CallingServiceInterface
 
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
@@ -96,8 +97,6 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse("An unexpected error occurred.", status=500)
 
     def handle_call_status_callback(self, request) -> HttpResponse:
-        response = VoiceResponse()
-
         if request.method != "POST":
             return HttpResponse("Only POST requests are allowed", status=405)
         
@@ -205,14 +204,12 @@ class TwilioCallingService(CallingServiceInterface):
                 except Exception as e:
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
-            return HttpResponse(str(response), content_type="application/xml", status=200)
+            return HttpResponse('Success!', status=200)
 
         except PhoneCall.DoesNotExist:
             return HttpResponse("Call not found", status=404)
 
     def handle_call_recording_callback(self, request) -> HttpResponse:
-        response = VoiceResponse()
-
         if request.method != "POST":
             return HttpResponse("Only POST requests are allowed", status=405)
         
@@ -294,3 +291,50 @@ class TwilioCallingService(CallingServiceInterface):
             self.client.recordings(recording_sid).delete()
         except BaseException as e:
             raise RuntimeError(f"Failed to delete recording: {e}")
+    
+    def handle_outbound_call(self, request):
+        form = OutboundPhoneCallForm(request.POST)
+
+        if not form.is_valid():
+            return HttpResponseBadRequest("Invalid form data")
+        
+        from_ = form.cleaned_data.get('from')
+        to_ = form.cleaned_data.get('to')
+
+        recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
+        status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
+
+        response = VoiceResponse()
+        try:
+            dial = Dial(
+                record='record-from-ringing-dual',
+                recording_status_callback=recording_callback_url,
+                recording_status_callback_event="completed",
+                status_callback=status_callback_url,
+                status_callback_event=TwilioWebhookEvents.all(),
+                action=status_callback_url
+            )
+            dial.number(to_)
+            response.append(dial)
+
+            call = self.client.calls.create(
+                from_=from_,
+                to=to_,
+                twiml=str(response)
+            )
+
+            PhoneCall.objects.create(
+                external_id=call.sid,
+                call_duration=0,
+                date_created=now(),
+                call_from=from_,
+                call_to=to_,
+                is_inbound=False,
+                recording_url="",
+                status=call.status,
+            )
+
+            return HttpResponse("Success!", status=200)
+
+        except Exception as e:
+            return HttpResponse("Failed to initiate outbound call", status=200)
