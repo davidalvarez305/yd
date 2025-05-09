@@ -19,7 +19,7 @@ class TwilioWebhookCallbacks(Enum):
     STATUS = "/communication/calls/end/status"
     RECORDING = "/communication/calls/end/recording"
     OUTBOUND = "/communication/calls/outbound"
-    MESSAGE_STATUS_CALLBACK = "communication/message/end/status"
+    MESSAGE_STATUS_CALLBACK = "/communication/message/end/status"
 
     @classmethod
     def get_full_url(cls, endpoint):
