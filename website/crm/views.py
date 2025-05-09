@@ -384,14 +384,6 @@ class MessageDetailView(CRMDetailTemplateView):
     model = Message
     form_class = MessageForm
 
-class MessageDeleteView(CRMBaseDeleteView):
-    model = Message
-    form_class = MessageForm
-
-class MessageCreateView(CRMCreateTemplateView):
-    model = Message
-    form_class = MessageForm
-
 class MessageUpdateView(CRMBaseUpdateView):
     model = Message
     form_class = MessageForm
@@ -401,14 +393,6 @@ class PhoneCallListView(CRMTableView):
     table_class = PhoneCallTable
 
 class PhoneCallDetailView(CRMDetailTemplateView):
-    model = PhoneCall
-    form_class = PhoneCallForm
-
-class PhoneCallDeleteView(CRMBaseDeleteView):
-    model = PhoneCall
-    form_class = PhoneCallForm
-
-class PhoneCallCreateView(CRMCreateTemplateView):
     model = PhoneCall
     form_class = PhoneCallForm
 
