@@ -42,7 +42,7 @@ class OpenAIAgentService(AIAgentServiceInterface):
         """
         try:
             response = self.client.responses.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 instructions="You are a helpful assistant that summarizes sales calls for CRM notes.",
                 input=prompt,
             )
@@ -57,7 +57,7 @@ class OpenAIAgentService(AIAgentServiceInterface):
     def generate_response(self, prompt: str) -> str:
         try:
             response = self.client.responses.create(
-                model="gpt-4o",
+                model="gpt-4.1-nano",
                 instructions="You are a helpful assistant that helps answer client queries.",
                 input=prompt,
             )
