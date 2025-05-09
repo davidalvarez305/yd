@@ -81,3 +81,14 @@
     {% endfor %}
 </div>
 <!-- END Chat Messages -->
+
+<!-- Focus After Render -->
+<script>
+    document.body.addEventListener('htmx:afterSettle', function (event) {
+        if (event.target.id !== 'leadChatMessages') return;
+        
+        const lastMessage = document.getElementById('lastMessage');
+
+        if (lastMessage) lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+</script>
