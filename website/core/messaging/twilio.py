@@ -19,7 +19,7 @@ from communication.enums import TwilioWebhookCallbacks
 from .base import MessagingServiceInterface
 from .utils import strip_country_code
 
-from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, UPLOADS_URL
+from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, UPLOADS_URL, DEBUG
 
 class TwilioMessagingService(MessagingServiceInterface):
     def __init__(self):
@@ -33,15 +33,16 @@ class TwilioMessagingService(MessagingServiceInterface):
             response.message("Only POST allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
 
-        valid = self.validator.validate(
-            request.build_absolute_uri(),
-            request.POST,
-            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
+        if not DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
 
-        if not valid:
-            response.say("Invalid Twilio signature.")
-            return HttpResponse(str(response), content_type="application/xml", status=403)
+            if not valid:
+                response.say("Invalid Twilio signature.")
+                return HttpResponse(str(response), content_type="application/xml", status=403)
 
         try:
             message_sid = request.POST.get("MessageSid")
@@ -148,14 +149,15 @@ class TwilioMessagingService(MessagingServiceInterface):
         if request.method != "POST":
             return HttpResponse("Only POST allowed", status=405)
 
-        valid = self.validator.validate(
-            request.build_absolute_uri(),
-            request.POST,
-            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
+        if not DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
 
-        if not valid:
-            return HttpResponse("Invalid Twilio signature", status=403)
+            if not valid:
+                return HttpResponse("Invalid Twilio signature", status=403)
 
         message_sid = request.POST.get("MessageSid")
         message_status = request.POST.get("MessageStatus")

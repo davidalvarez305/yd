@@ -37,15 +37,16 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("Only POST allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
         
-        valid = self.validator.validate(
-            request.build_absolute_uri(),
-            request.POST,
-            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
+        if not settings.DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
 
-        if not valid:
-            response.say("Invalid Twilio signature.")
-            return HttpResponse(str(response), content_type="application/xml", status=403)
+            if not valid:
+                response.say("Invalid Twilio signature.")
+                return HttpResponse(str(response), content_type="application/xml", status=403)
 
         form = request.POST
 
@@ -106,15 +107,16 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
         
-        valid = self.validator.validate(
-            request.build_absolute_uri(),
-            request.POST,
-            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
+        if not settings.DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
 
-        if not valid:
-            response.say("Invalid Twilio signature.")
-            return HttpResponse(str(response), content_type="application/xml", status=403)
+            if not valid:
+                response.say("Invalid Twilio signature.")
+                return HttpResponse(str(response), content_type="application/xml", status=403)
 
         call_sid = request.POST.get("CallSid")
         dial_status = request.POST.get("DialCallStatus")
@@ -224,15 +226,16 @@ class TwilioCallingService(CallingServiceInterface):
             response.say("Only POST requests are allowed")
             return HttpResponse(str(response), content_type="application/xml", status=405)
         
-        valid = self.validator.validate(
-            request.build_absolute_uri(),
-            request.POST,
-            request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
+        if not settings.DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
 
-        if not valid:
-            response.say("Invalid Twilio signature.")
-            return HttpResponse(str(response), content_type="application/xml", status=403)
+            if not valid:
+                response.say("Invalid Twilio signature.")
+                return HttpResponse(str(response), content_type="application/xml", status=403)
 
         call_sid = request.POST.get("CallSid")
         recording_sid = request.POST.get("RecordingSid")
