@@ -969,11 +969,6 @@ select{
   height: 1.5rem;
 }
 
-.size-8{
-  width: 2rem;
-  height: 2rem;
-}
-
 .h-0\.5{
   height: 0.125rem;
 }
@@ -1513,11 +1508,6 @@ select{
 .object-contain{
   -o-object-fit: contain;
      object-fit: contain;
-}
-
-.object-cover{
-  -o-object-fit: cover;
-     object-fit: cover;
 }
 
 .p-1{
