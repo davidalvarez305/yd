@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from marketing.enums import ConversionEventType
 from .models import Lead, PhoneCall
 from core.models import CallTracking
 from core.conversions import conversion_service_loader
@@ -11,8 +13,6 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
     It checks if the call_from (lead phone number) and call_to (call tracking number) match in the phone call table.
     If there's a match, it assigns campaign-level data associated with that call tracking number to the marketing table & reports conversion to appropriate ad platform.
     """
-    print(f"Signal triggered for Lead ID: {instance.pk}, created={created}")
-
     if created:
         try:
             if instance.lead_marketing.is_instant_form_lead():
@@ -37,6 +37,6 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
 
                             conversion_event_type = ConversionEventType.WebsiteCall
 
-            report_conversion(conversion_event_type=conversion_event_type, lead=instance)
+            conversion_service_loader(conversion_event_type=conversion_event_type, lead=instance)
         except Exception as e:
             print(f"Error processing lead save: {str(e)}")
