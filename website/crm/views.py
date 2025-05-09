@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 
 from website import settings
 from core.models import Message, PhoneCall, Message
-from communication.forms import MessageForm, PhoneCallForm
+from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event
 from core.forms import ServiceForm, UserForm
 from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
@@ -259,6 +259,11 @@ class LeadDetailView(CRMBaseDetailView):
         context['chat_form'] = MessageForm(initial={
             'text_to': lead.phone_number,
             'text_from': self.request.user.phone_number,
+        })
+
+        context['outbound_call_form'] = OutboundPhoneCallForm(initial={
+            'from_': self.request.user.phone_number,
+            'to_': lead.phone_number
         })
 
         return context

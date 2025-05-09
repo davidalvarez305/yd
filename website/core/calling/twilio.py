@@ -1,7 +1,5 @@
 import os
-import re
 import uuid
-import requests
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.timezone import now
@@ -292,15 +290,7 @@ class TwilioCallingService(CallingServiceInterface):
         except BaseException as e:
             raise RuntimeError(f"Failed to delete recording: {e}")
     
-    def handle_outbound_call(self, request):
-        form = OutboundPhoneCallForm(request.POST)
-
-        if not form.is_valid():
-            return HttpResponseBadRequest("Invalid form data")
-        
-        from_ = form.cleaned_data.get('from_')
-        to_ = form.cleaned_data.get('to_')
-
+    def handle_outbound_call(self, from_: str, to_: str):
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
 
@@ -334,7 +324,5 @@ class TwilioCallingService(CallingServiceInterface):
                 status=call.status,
             )
 
-            return HttpResponse("Success!", status=200)
-
         except Exception as e:
-            return HttpResponse("Failed to initiate outbound call", status=200)
+            raise Exception('Error handling outbound call.')
