@@ -1,15 +1,17 @@
-import traceback
+import os
 from openai import OpenAI
-
+import traceback
 from website import settings
 from core.models import Lead, LeadNote, User
 from .base import AIAgentServiceInterface
 
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY") or settings.OPEN_AI_API_KEY,
+)
+
 class OpenAIAgentService(AIAgentServiceInterface):
     def __init__(self):
-        self.client = OpenAI(
-            api_key=settings.OPEN_AI_API_KEY,
-        )
+        self.client = client
 
     def summarize_phone_call(self, transcription_text: str) -> str:
         prompt = f"""
@@ -39,17 +41,13 @@ class OpenAIAgentService(AIAgentServiceInterface):
             The following transcript was a sales call for a bartending service. Summarize the key points in the following text while following the example above. Please return only the HTML: {transcription_text}
         """
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that summarizes sales calls for CRM notes."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=5000,
-                temperature=0.7,
+                instructions="You are a helpful assistant that summarizes sales calls for CRM notes.",
+                input=prompt,
             )
 
-            return response.choices[0].message.content.strip()
+            return response.output_text.strip()
 
         except Exception as e:
             print("Exception occurred during summarizing phone call:")
@@ -58,16 +56,12 @@ class OpenAIAgentService(AIAgentServiceInterface):
     
     def generate_response(self, prompt: str) -> str:
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that helps answer client queries."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=1000,
-                temperature=0.7,
+                instructions="You are a helpful assistant that helps answer client queries.",
+                input=prompt,
             )
-            return response.choices[0].message.content.strip()
+            return response.output_text.strip()
 
         except Exception as e:
             print("Exception occurred during response generation:")
