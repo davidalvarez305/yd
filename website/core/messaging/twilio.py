@@ -27,11 +27,8 @@ class TwilioMessagingService(MessagingServiceInterface):
         self.validator = RequestValidator(TWILIO_AUTH_TOKEN)
 
     def handle_inbound_message(self, request: HttpRequest) -> HttpResponse:
-        response = MessagingResponse()
-
         if request.method != "POST":
-            response.message("Only POST allowed")
-            return HttpResponse(str(response), content_type="application/xml", status=405)
+            return HttpResponse("Only POST allowed", status=405)
 
         if not DEBUG:
             valid = self.validator.validate(
@@ -41,8 +38,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             )
 
             if not valid:
-                response.say("Invalid Twilio signature.")
-                return HttpResponse(str(response), content_type="application/xml", status=403)
+                return HttpResponse("Invalid Twilio signature.", status=403)
 
         try:
             message_sid = request.POST.get("MessageSid")
@@ -80,15 +76,12 @@ class TwilioMessagingService(MessagingServiceInterface):
                         media.file.save(file_name, content_file)
 
         except Exception as e:
-            print(f"Unexpected error in handle_inbound_message: {e}")
-            response.message("Unexpected error occurred.")
-            return HttpResponse(str(response), content_type="application/xml", status=500)
+            return HttpResponse("Unexpected error occurred.", status=500)
 
         finally:
             cleanup_dir_files(UPLOADS_URL)
 
-        response.message("Message received successfully.")
-        return HttpResponse(str(response), content_type="application/xml", status=200)
+        return HttpResponse("Message received successfully.", status=200)
 
     def handle_outbound_message(self, form: MessageForm) -> None:
         message = form.save(commit=False)
