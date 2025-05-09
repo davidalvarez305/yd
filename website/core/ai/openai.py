@@ -36,16 +36,16 @@ class OpenAIAgentService(AIAgentServiceInterface):
             - Follow up to see if she wants to proceed with booking.<br>
             </p>
 
-            The following transcript was a sales call for a bartending service. Summarize the key points in the following text while following the example above: {transcription_text}
+            The following transcript was a sales call for a bartending service. Summarize the key points in the following text while following the example above. Please return only the HTML: {transcription_text}
         """
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that summarizes sales calls for CRM notes."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=1000,
+                max_tokens=5000,
                 temperature=0.7,
             )
 
