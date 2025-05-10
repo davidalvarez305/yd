@@ -24,6 +24,7 @@
                         hx-post="{% url 'call_outbound' %}"
                         hx-target-error="#alertModal"
                         hx-swap="outerHTML"
+                        hx-on::beforeSwap="if (event.detail.xhr.status === 200) event.preventDefault()"
                     >
                         {% csrf_token %}
                         {{ outbound_call_form.as_p }}

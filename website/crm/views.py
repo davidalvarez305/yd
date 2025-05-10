@@ -384,6 +384,7 @@ class EventDeleteView(CRMBaseDeleteView):
 class MessageListView(CRMTableView):
     model = Message
     table_class = MessageTable
+    show_add_button = False
 
 class MessageDetailView(CRMDetailTemplateView):
     model = Message
@@ -396,6 +397,7 @@ class MessageUpdateView(CRMBaseUpdateView):
 class PhoneCallListView(CRMTableView):
     model = PhoneCall
     table_class = PhoneCallTable
+    show_add_button = False
 
 class PhoneCallDetailView(CRMDetailTemplateView):
     model = PhoneCall
