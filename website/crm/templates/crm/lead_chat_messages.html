@@ -83,15 +83,17 @@
 <!-- END Chat Messages -->
 
 <script>
-    function scrollToLastMessage() {
-        const lastMessage = document.getElementById('lastMessage');
+    function scrollChatToBottom() {
+        const container = document.getElementById('leadChatMessages');
         
-        if (lastMessage) lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        if (container) container.scrollTop = container.scrollHeight;
     }
 
-    document.addEventListener('DOMContentLoaded', () => scrollToLastMessage());
-
     document.body.addEventListener('htmx:afterSwap', function (event) {
-        if (event.target.id === 'leadChatMessages') scrollToLastMessage();
+        if (event.target.id === 'leadChatMessages') {
+            scrollChatToBottom();
+        }
     });
+
+    document.addEventListener('DOMContentLoaded', () => scrollChatToBottom());
 </script>
