@@ -28,7 +28,7 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
                 if tracking_call:
                     if phone_call.date_created <= tracking_call.date_expires:
 
-                        marketing = instance.lead_marketing.first()
+                        marketing = getattr(instance, 'lead_marketing', None)
                         if marketing:
                             marketing.click_id = tracking_call.click_id
                             marketing.client_id = tracking_call.client_id

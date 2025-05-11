@@ -90,9 +90,7 @@
     }
 
     document.body.addEventListener('htmx:afterSwap', function (event) {
-        if (event.target.id === 'leadChatMessages') {
-            scrollChatToBottom();
-        }
+        if (event.target.id === 'leadChatMessages') scrollChatToBottom();
     });
 
     document.addEventListener('DOMContentLoaded', () => scrollChatToBottom());
