@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from marketing.enums import ConversionEventType
 from .models import Lead, PhoneCall
 from core.models import CallTracking
-from core.conversions import conversion_service_loader
+from core.conversions import conversion_service
 
 @receiver(post_save, sender=Lead)
 def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
@@ -37,6 +37,6 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
 
                             conversion_event_type = ConversionEventType.WebsiteCall
 
-            conversion_service_loader(conversion_event_type=conversion_event_type, lead=instance)
+            conversion_service.send_conversion(data=data)
         except Exception as e:
             print(f"Error processing lead save: {str(e)}")

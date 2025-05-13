@@ -4,11 +4,6 @@ from django.conf import settings
 class ConversionServiceLoader:
     def __init__(self):
         self._instances = {}
-        self._registry = {}
-
-    def register(self, key, cls):
-        """Register a conversion service class manually or via decorator."""
-        self._registry[key] = cls
 
     def get(self, key):
         """Get the service instance either from settings or internal registry."""
@@ -20,13 +15,20 @@ class ConversionServiceLoader:
             cls = import_string(config["BACKEND"])
             options = config.get("OPTIONS", {})
             instance = cls(**options)
-        elif key in self._registry:
-            cls = self._registry[key]
-            instance = cls()
         else:
             raise ValueError(f"No conversion service found for key '{key}'.")
 
         self._instances[key] = instance
         return instance
 
-conversion_service_loader = ConversionServiceLoader()
+    def all_services(self):
+        """Return all initialized service instances."""
+        keys = set(settings.CONVERSION_SERVICES.keys())
+        return [self.get(key) for key in keys]
+
+    def report_conversions(self, data: dict):
+        """Send the conversion data to all registered services."""
+        for service in self.all_services():
+            service.send_conversion(data)
+
+conversion_service = ConversionServiceLoader()

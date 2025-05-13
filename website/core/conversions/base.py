@@ -1,13 +1,11 @@
 import hashlib
 from abc import ABC, abstractmethod
-import logging
 from core.http import BaseHttpClient
 
-logger = logging.getLogger(__name__)
-
 class ConversionService(ABC):
-    def __init__(self):
+    def __init__(self, **options):
         self.http = BaseHttpClient()
+        self.options = options
 
     @abstractmethod
     def _construct_payload(self, data: dict) -> dict:
@@ -21,7 +19,6 @@ class ConversionService(ABC):
     def _get_service_name(self) -> str:
         """
         Returns a string identifying the name of the conversion service (e.g., 'facebook', 'google').
-        Used for logging purposes.
         """
         pass
 
@@ -35,13 +32,11 @@ class ConversionService(ABC):
                 url=endpoint,
                 payload=payload,
                 headers={"Content-Type": "application/json"},
-                extra_log_fields={
-                    "service_name": self._get_service_name()
-                }
+                extra_log_fields={"service_name": self._get_service_name()}
             )
             return response
         except Exception as err:
-            logger.error(f"[{self._get_service_name()}] Failed to send conversion: {err}")
+            print(f'ERROR SENDIGN CONV: {err}')
             raise
 
     def hash_to_sha256(self, value: str) -> str:
