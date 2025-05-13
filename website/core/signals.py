@@ -17,8 +17,10 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
         try:
             if instance.lead_marketing.is_instant_form_lead():
                 return
+            
+            data = {}
 
-            conversion_event_type = ConversionEventType.FormSubmission
+            data['event_name'] = ConversionEventType.FormSubmission.value
 
             phone_call = PhoneCall.objects.filter(call_from=instance.phone_number, date_created__lt=instance.created_at).first()
 
@@ -35,7 +37,13 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
                             marketing.marketing_campaign = tracking_call.call_tracking_number.marketing_campaign
                             marketing.save()
 
-                            conversion_event_type = ConversionEventType.WebsiteCall
+                            data['event_name'] = ConversionEventType.WebsiteCall.value
+
+            attributes = ['client_id', 'click_id', 'email', 'phone_number']
+            for attr in attributes:
+                value = getattr(instance.lead_marketing, attr, None)
+                if value:
+                    data[attr] = value
 
             conversion_service.send_conversion(data=data)
         except Exception as e:

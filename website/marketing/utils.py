@@ -1,4 +1,3 @@
-import logging
 from django.http import HttpRequest
 
 from .enums import ConversionServiceType, MarketingParams
@@ -9,14 +8,14 @@ CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
-        self.landing_page = request.build_absolute_uri()
-        self.cookies = request.COOKIES
-        self.query_params = request.GET
+        self.landing_page = self.request.build_absolute_uri()
+        self.cookies = self.request.COOKIES
+        self.query_params = self.request.GET
 
-        self.external_id = request.session.get('external_id')
+        self.external_id = self.request.session.get('external_id')
 
-        self.referrer = request.META.get('HTTP_REFERER')
-        self.ip = request.META.get('REMOTE_ADDR')
+        self.referrer = self.request.META.get('HTTP_REFERER')
+        self.ip = self.request.META.get('REMOTE_ADDR')
 
         self.click_id = None
         self.client_id = None
@@ -27,7 +26,6 @@ class MarketingHelper:
         self.medium = None
         self.channel = None
 
-        # Build all dependent attributes in the correct order
         self.build()
 
     def build(self):
