@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
@@ -6,15 +7,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 
 from website import settings
-from core.models import Message, PhoneCall, Message
+from core.models import CallTrackingNumber, HTTPLog, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
-from core.models import LeadStatus, Lead, User, Service, Cocktail, Event
+from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm
-from marketing.models import LeadMarketing
+from crm.forms import HTTPLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable
+from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
@@ -406,3 +406,42 @@ class PhoneCallDetailView(CRMDetailTemplateView):
 class PhoneCallUpdateView(CRMBaseUpdateView):
     model = PhoneCall
     form_class = PhoneCallForm
+
+class HTTPLogListView(CRMBaseListView):
+    model = HTTPLog
+    context_object_name = "logs"
+    filter_form_class = HTTPLogFilterForm
+
+class CallTrackingNumberListView(CRMTableView):
+    model = CallTrackingNumber
+    table_class = Table.from_model(model=CallTrackingNumber)
+
+class CallTrackingNumberCreateView(CRMCreateTemplateView):
+    model = CallTrackingNumber
+    form_class = CallTrackingNumberForm
+
+class CallTrackingNumberUpdateView(CRMBaseUpdateView):
+    model = CallTrackingNumber
+    form_class = CallTrackingNumberForm
+
+class CallTrackingNumberDetailView(CRMDetailTemplateView):
+    model = CallTrackingNumber
+    form_class = CallTrackingNumberForm
+
+class CallTrackingNumberDeleteView(CRMBaseDeleteView):
+    model = CallTrackingNumber
+    form_class = CallTrackingNumberForm
+
+class VisitListView(CRMTableView):
+    model = Visit
+    table_class = VisitTable
+    show_add_button = False
+
+class VisitUpdateView(UpdateView):
+    form_class = VisitForm
+    model = Visit
+    http_method_names = ['post']
+    
+    def form_valid(self, form):
+        form.save()
+        return HttpResponse("Updated")

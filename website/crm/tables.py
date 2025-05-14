@@ -1,6 +1,7 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import Message, PhoneCall, Service, User, Cocktail, Event
+from core.models import Message, PhoneCall, Service, User, Cocktail, Event, Visit
 from core.widgets import PriceCellWidget
+from core.utils import deep_getattr
 
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import localtime
@@ -84,3 +85,35 @@ class MessageTable(Table):
         pk = 'message_id'
         detail_url = 'message_detail'
         exclude = ['external_id', 'message_id']
+
+class VisitTable(Table):
+    date_created = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    lead = TableField(
+        label='Lead',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'lead_marketing.lead', '')
+            }
+        )
+    )
+
+    lead_marketing = TableField(
+        label='Marketing',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'lead_marketing.marketing_campaign.name', '')
+            }
+        )
+    )
+
+    class Meta:
+        model = Visit
+        exclude = ['visit_id', 'external_id', 'referrer', 'url']

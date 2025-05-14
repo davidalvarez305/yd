@@ -1,15 +1,14 @@
 from django.urls import path
 
-from marketing import views as marketing_views
 from . import views
 
 urlpatterns = [
     # Call Tracking
-    path('call-tracking/', marketing_views.CallTrackingNumberListView.as_view(), name='calltrackingnumber_list'),
-    path('call-tracking/create/', marketing_views.CallTrackingNumberCreateView.as_view(), name='calltrackingnumber_create'),
-    path('call-tracking/<int:pk>/', marketing_views.CallTrackingNumberDetailView.as_view(), name='calltrackingnumber_detail'),
-    path('call-tracking/<int:pk>/edit/', marketing_views.CallTrackingNumberUpdateView.as_view(), name='calltrackingnumber_update'),
-    path('call-tracking/<int:pk>/delete/', marketing_views.CallTrackingNumberDeleteView.as_view(), name='calltrackingnumber_delete'),
+    path('call-tracking/', views.CallTrackingNumberListView.as_view(), name='calltrackingnumber_list'),
+    path('call-tracking/create/', views.CallTrackingNumberCreateView.as_view(), name='calltrackingnumber_create'),
+    path('call-tracking/<int:pk>/', views.CallTrackingNumberDetailView.as_view(), name='calltrackingnumber_detail'),
+    path('call-tracking/<int:pk>/edit/', views.CallTrackingNumberUpdateView.as_view(), name='calltrackingnumber_update'),
+    path('call-tracking/<int:pk>/delete/', views.CallTrackingNumberDeleteView.as_view(), name='calltrackingnumber_delete'),
     
     # Lead
     path('lead/', views.LeadListView.as_view(), name='lead_list'),
@@ -57,4 +56,11 @@ urlpatterns = [
     path('phone-call/', views.PhoneCallListView.as_view(), name='phonecall_list'),
     path('phone-call/<int:pk>/', views.PhoneCallDetailView.as_view(), name='phonecall_detail'),
     path('phone-call/<int:pk>/edit/', views.PhoneCallUpdateView.as_view(), name='phonecall_update'),
+
+    # HTTP Logs
+    path('log', views.HTTPLogListView.as_view(), name='log'),
+    
+    # Visit
+    path('visit/', views.VisitListView.as_view(), name='visit_list'),
+    path('visit/<int:pk>/edit/', views.VisitUpdateView.as_view(), name='visit_update'),
 ]

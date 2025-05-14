@@ -2,7 +2,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from .widgets import DeleteButton, TableCellWidget, TableHeaderWidget, ViewButton
-from .utils import deep_getattr
 
 # Example Use
 """ 

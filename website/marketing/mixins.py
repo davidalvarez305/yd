@@ -3,11 +3,10 @@ import random
 
 from django.utils.timezone import now, timedelta
 
-from core.models import LeadMarketing, CallTrackingNumber, CallTracking
+from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from website import settings
 
 from .utils import get_marketing_params
-from .models import Visit
 from .enums import MarketingParams
 
 class CallTrackingMixin:
