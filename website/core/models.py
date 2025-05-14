@@ -91,7 +91,6 @@ class Lead(models.Model):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
     
     def visits(self):
-        from marketing.models import Visit, LeadMarketing
         return Visit.objects.filter(lead_marketing=LeadMarketing.objects.filter(lead=self).first())
     
     def last_contact(self):
