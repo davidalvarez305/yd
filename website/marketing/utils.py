@@ -1,5 +1,4 @@
 from django.http import HttpRequest
-
 from .enums import ConversionServiceType, MarketingParams
 from core.models import MarketingCampaign
 
@@ -18,39 +17,28 @@ class MarketingHelper:
         self.ip = self.request.META.get('REMOTE_ADDR')
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
-        self.click_id = None
-        self.client_id = None
-        self.platform_id = None
-        self.marketing_campaign = None
-        self.keywords = None
-        self.source = None
-        self.medium = None
-        self.channel = None
-
-        self.build()
-
-    def build(self):
-        """
-        Executes the correct order of operations to populate dependent fields.
-        """
-        self.set_platform_id()
         self.marketing_campaign = self.get_or_create_marketing_campaign()
         self.keywords = self.query_params.get('keyword')
         self.source = self.query_params.get('source', self.get_source_from_referrer())
         self.medium = self.query_params.get('medium', self.generate_medium())
         self.channel = self.query_params.get('channel', self.get_channel())
 
-    def get_client_id(self):
-        if any(self.query_params.get(param) for param in MarketingParams.GoogleURLClickIDKeys.value):
-            return self.get_cookie(MarketingParams.GoogleAnalyticsCookieClientID.value)
-        elif self.query_params.get(MarketingParams.FacebookURLClickID.value):
-            return self.get_cookie(MarketingParams.FacebookCookieClientID.value)
-        return None
+        marketing_params = get_marketing_params(request=self.request)
+
+        self.click_id = marketing_params.get('click_id')
+        self.platform_id = marketing_params.get('platform_id')
+        self.client_id = marketing_params.get('client_id')
 
     def get_cookie(self, cookie_name):
+        """
+        Returns the value of a cookie if it exists, otherwise None.
+        """
         return self.cookies.get(cookie_name)
 
     def generate_medium(self):
+        """
+        Determines the marketing medium based on referrer and query parameters.
+        """
         if not self.referrer:
             return "direct"
         elif not self.query_params:
@@ -61,15 +49,15 @@ class MarketingHelper:
             return "referral"
 
     def is_paid(self, query_params):
+        """
+        Determines if the traffic is from a paid source (based on query params).
+        """
         return any(query_params.get(key) for key in CLICK_ID_KEYS)
 
-    def get_click_id(self):
-        for key in CLICK_ID_KEYS:
-            if self.query_params.get(key):
-                return self.query_params.get(key)
-        return None
-
     def get_source_from_referrer(self):
+        """
+        Extracts the source of the traffic from the referrer URL.
+        """
         try:
             url = self.referrer if self.referrer else ''
             host = url.split('//')[-1].split('/')[0].lower()
@@ -80,13 +68,10 @@ class MarketingHelper:
             print(f"Error parsing referrer: {e}")
             return "unknown"
 
-    def set_platform_id(self):
-        if any(self.query_params.get(param) for param in MarketingParams.GoogleURLClickIDKeys.value) or 'google.com' in (self.referrer or ''):
-            self.platform_id = ConversionServiceType.GOOGLE.value
-        elif self.query_params.get(MarketingParams.FacebookURLClickID.value) or self.get_cookie(MarketingParams.FacebookCookieClientID.value):
-            self.platform_id = ConversionServiceType.FACEBOOK.value
-
     def get_channel(self):
+        """
+        Determines the channel based on the referrer.
+        """
         display_networks = ["googleads.g.doubleclick.net"]
         search_engines = [
             "bing", "yahoo", "ecosia", "duckduckgo", "yandex", "baidu", "naver", "ask.com",
@@ -120,6 +105,9 @@ class MarketingHelper:
         return "other"
 
     def get_or_create_marketing_campaign(self):
+        """
+        Fetches or creates a marketing campaign based on URL parameters.
+        """
         ad_campaign_id = self.query_params.get("ad_campaign")
 
         if not ad_campaign_id or not self.platform_id:
@@ -131,3 +119,38 @@ class MarketingHelper:
             defaults={"name": "Unnamed Campaign"}
         )
         return campaign
+
+def get_marketing_params(request: HttpRequest) -> dict:
+    """
+    Utility function to extract marketing parameters from the URL and cookies.
+    Extracts click_id from the URL, client_id from cookies, and platform_id based on the URL parameters.
+    """
+    # Step 1: Extract `click_id` and `platform_id` from the URL
+    click_id = None
+    platform_id = None
+    client_id = None
+
+    for key in MarketingParams.GoogleURLClickIDKeys.value:
+        click_id = request.GET.get(key, None)
+        if click_id:
+            platform_id = ConversionServiceType.GOOGLE.value
+            break
+
+    if not click_id:
+        fbclid = request.GET.get(MarketingParams.FacebookURLClickID.value, None)
+        if fbclid:
+            click_id = fbclid
+            platform_id = ConversionServiceType.FACEBOOK.value
+
+    # Step 2: Extract `client_id` from cookies based on `platform_id`
+    if platform_id == ConversionServiceType.GOOGLE.value:
+        client_id = request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
+    elif platform_id == ConversionServiceType.FACEBOOK.value:
+        client_id = request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
+
+    # Step 3: Return the extracted values
+    return {
+        "click_id": click_id,
+        "client_id": client_id,
+        "platform_id": platform_id
+    }

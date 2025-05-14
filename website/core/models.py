@@ -427,13 +427,13 @@ class CallTracking(models.Model):
         CallTrackingNumber,
         on_delete=models.CASCADE,
         db_column='call_tracking_number_id',
-        related_name='call_trackings'
+        related_name='calls'
     )
     date_assigned = models.DateTimeField()
     date_expires = models.DateTimeField()
-    client_id = models.CharField(max_length=255, db_index=True)
+    client_id = models.CharField(max_length=255)
     click_id = models.CharField(max_length=255, db_index=True, unique=True)
-    external_id = models.CharField(max_length=255, db_index=True)
+    external_id = models.CharField(max_length=255)
 
     def __str__(self):
         return str(self.call_tracking_number)

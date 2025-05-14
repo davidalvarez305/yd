@@ -3,71 +3,60 @@ import random
 
 from django.utils import timezone
 
-from core.models import LeadMarketing, LandingPage, CallTrackingNumber, CallTracking
+from core.models import LeadMarketing, CallTrackingNumber, CallTracking
+from website import settings
 
+from .utils import get_marketing_params
 from .models import Visit
 from .enums import MarketingParams
 
 class CallTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
-        urls = LandingPage.objects.values_list('url', flat=True)
-
         self.clean_up_expired_session(request)
 
-        if urls and request.path in urls:
-            self.track_call(request)
+        self.track_call(request)
 
         return super().dispatch(request, *args, **kwargs)
 
     def track_call(self, request):
-        # Step 1: Check for gclid or fbclid in the URL using Enum
-        gclid = request.GET.get(MarketingParams.GoogleURLClickID.value, None)
-        fbclid = request.GET.get(MarketingParams.FacebookURLClickID.value, None)
+        marketing_params = get_marketing_params(request)
 
-        # Step 2: Determine the platform_id
-        platform_id = None
-        if gclid:
-            platform_id = CallTrackingNumber.GOOGLE
-        elif fbclid:
-            platform_id = CallTrackingNumber.FACEBOOK
+        click_id = marketing_params.get('click_id')
+        client_id = marketing_params.get('client_id')
+        platform_id = marketing_params.get('platform_id')
 
-        # Step 3: Only proceed if a platform_id is found
-        if platform_id is not None:
+        if not client_id or click_id or platform_id:
             return
 
-        client_id = None
-        if gclid:
-            client_id = request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
+        phone_number = random.choice(CallTrackingNumber.objects.all())
 
-        if not client_id:
-            client_id = request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
+        request.session[MarketingParams.CallTrackingNumberSessionValue.value] = phone_number.call_tracking_number
 
-        # Step 4: Assign the click_id
-        click_id = fbclid if fbclid else gclid
+        call_tracking = CallTracking(
+            call_tracking_number=phone_number,
+            date_assigned=timezone.now(),
+            date_expires=timezone.now() + timezone.timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
+            client_id=client_id,
+            click_id=click_id
+        )
 
-        # Step 5: If client_id and click_id are available, save the data
-        if client_id and click_id:
-            phone_number = random.choice(CallTrackingNumber.objects.filter(platform_id=platform_id))
-
-            # Step 6: Store the value in session
-            request.session[MarketingParams.CallTrackingNumberSessionValue.value] = phone_number.call_tracking_number
-
-            # Step 7: Create a new CallTracking record
-            call_tracking = CallTracking(
-                call_tracking_number=phone_number,
-                date_assigned=timezone.now(),
-                date_expires=timezone.now() + timezone.timedelta(minutes=10),
-                client_id=client_id,
-                click_id=click_id
-            )
-            call_tracking.save()
+        call_tracking.save()
 
     def clean_up_expired_session(self, request):
         session_data = request.session.get(MarketingParams.CallTrackingNumberSessionValue.value, None)
-        if session_data:
-            timestamp = session_data.get('timestamp', None)
-            if timestamp and timezone.now() - timestamp > timezone.timedelta(minutes=10):
-                del request.session[MarketingParams.CallTrackingNumberSessionValue.value]
+        if not session_data:
+            return
+
+        timestamp = session_data.get('timestamp', None)
+
+        if not timestamp:
+            return
+        
+        time_diff = timezone.now() - timestamp
+        if time_diff > timezone.timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT):
+            return
+
+        del request.session[MarketingParams.CallTrackingNumberSessionValue.value]
 
 class VisitTrackingMixin:
     def dispatch(self, request, *args, **kwargs):

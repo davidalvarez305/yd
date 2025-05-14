@@ -16,7 +16,15 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             if instance.lead_marketing.is_instant_form_lead():
                 return
             
-            phone_call = PhoneCall.objects.filter(call_from=instance.phone_number, date_created__lt=instance.created_at).first()
+            phone_call = (
+                PhoneCall.objects
+                .filter(
+                    call_from=instance.phone_number,
+                    date_created__lt=instance.created_at,
+                )
+                .order_by('-date_created')
+                .first()
+            )
 
             if not phone_call:
                 return
@@ -41,6 +49,7 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             
             marketing.click_id = tracking_call.click_id
             marketing.client_id = tracking_call.client_id
+            marketing.external_id = tracking_call.external_id
             marketing.marketing_campaign = tracking_call.call_tracking_number.marketing_campaign
             marketing.save()
 

@@ -8,9 +8,16 @@ from .models import Visit
 from http import HTTPStatus
 
 class CallTrackingNumberForm(BaseModelForm):
+    marketing_campaign = forms.ModelChoiceField(
+        queryset=MarketingCampaign.objects.all(),
+        required=True,
+        empty_label='---',
+        label='Marketing Campaign',
+    )
+
     class Meta:
         model = CallTrackingNumber
-        fields = ['call_tracking_number', 'marketing_campaign']
+        fields = ['call_tracking_number']
 
 class HTTPLogFilterForm(FilterFormMixin, BaseForm):
     status_code = forms.ChoiceField(
