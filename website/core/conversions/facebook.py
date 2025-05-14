@@ -1,3 +1,5 @@
+import re
+from marketing.enums import ConversionServiceType
 from .base import ConversionService
 
 class FacebookConversionService(ConversionService):
@@ -27,3 +29,28 @@ class FacebookConversionService(ConversionService):
 
     def _get_service_name(self) -> str:
         return "facebook"
+    
+    def _is_valid(self, data: dict) -> bool:
+        if getattr(self, 'platform_id', '') != ConversionServiceType.FACEBOOK.value:
+            return False
+
+        client_id = data.get("client_id")
+        if not client_id or not self._is_valid_client_id(client_id):
+            return False
+        
+        client_id_parts = client_id.split('.')
+        if len(client_id_parts) != 4:
+            return False
+        
+        fbp_click_id = client_id_parts[3]
+        url_click_id = data.get('click_id')
+
+        if fbp_click_id != url_click_id:
+            return False
+
+        return True
+    
+    def _is_valid_client_id(self, client_id: str) -> bool:
+        client_id_pattern = re.compile(r"^fb\.1\.\d+\.[A-Za-z0-9]+$")
+        
+        return bool(client_id_pattern.match(client_id))

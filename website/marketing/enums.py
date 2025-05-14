@@ -21,6 +21,4 @@ CONVERSION_SERVICE_CHOICES = [(e.value, e.name.capitalize()) for e in Conversion
 
 class ConversionEventType(Enum):
     FormSubmission = "generate_lead"
-    LeadAd = "generate_lead"
-    WebsiteCall = "Website call"
     EventBooking = "event"

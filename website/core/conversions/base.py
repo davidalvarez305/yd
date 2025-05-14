@@ -12,6 +12,10 @@ class ConversionService(ABC):
         pass
 
     @abstractmethod
+    def _is_valid(self, data: dict) -> dict:
+        pass
+
+    @abstractmethod
     def _get_endpoint(self) -> str:
         pass
 
@@ -26,6 +30,10 @@ class ConversionService(ABC):
         payload = self._construct_payload(data)
         endpoint = self._get_endpoint()
 
+        if not self._is_valid(data):
+            print(f'INVALID DATA: {data}')
+            return
+
         try:
             response = self.http.request(
                 method="POST",
@@ -36,7 +44,7 @@ class ConversionService(ABC):
             )
             return response
         except Exception as err:
-            print(f'ERROR SENDIGN CONV: {err}')
+            print(f'ERROR SENDING CONV: {err}')
             raise
 
     def hash_to_sha256(self, value: str) -> str:

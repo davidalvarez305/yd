@@ -1,3 +1,6 @@
+import re
+
+from marketing.enums import ConversionServiceType
 from .base import ConversionService
 
 class GoogleConversionService(ConversionService):
@@ -26,3 +29,18 @@ class GoogleConversionService(ConversionService):
 
     def _get_service_name(self) -> str:
         return "google_analytics_4"
+    
+    def _is_valid(self, data: dict) -> bool:
+        if getattr(self, 'platform_id', '') != ConversionServiceType.GOOGLE.value:
+            return False
+
+        client_id = data.get("client_id")
+        if not client_id or not self._is_valid_client_id(client_id):
+            return False
+
+        return True
+
+    def _is_valid_client_id(self, client_id: str) -> bool:
+        client_id_pattern = re.compile(r"^GA1\.1\.\d+\.\d+$")
+        
+        return bool(client_id_pattern.match(client_id))
