@@ -48,11 +48,11 @@ class CallTrackingMixin:
         call_tracking.save()
 
     def clean_up_expired_session(self, request):
-        session_data = request.session.get(MarketingParams.CallTrackingNumberSessionValue.value, None)
-        if not session_data:
+        data = request.session.get(MarketingParams.CallTrackingNumberSessionValue.value, None)
+        if not data:
             return
 
-        timestamp = session_data.get('timestamp', None)
+        timestamp = data.get('timestamp', None)
 
         if not timestamp:
             return
