@@ -1,10 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from marketing.enums import ConversionEventType
 from .models import Lead, PhoneCall
 from core.models import CallTracking
-from core.conversions import conversion_service
 
 @receiver(post_save, sender=Lead)
 def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
@@ -18,33 +16,33 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             if instance.lead_marketing.is_instant_form_lead():
                 return
             
-            data = {}
-
-            data['event_name'] = ConversionEventType.FormSubmission.value
-
             phone_call = PhoneCall.objects.filter(call_from=instance.phone_number, date_created__lt=instance.created_at).first()
 
-            if phone_call:
-                tracking_call = CallTracking.objects.filter(phone_number=phone_call.call_to).first()
+            if not phone_call:
+                return
+           
+            tracking_call = (
+                CallTracking.objects
+                .filter(
+                    phone_number=phone_call.call_to,
+                    date_assigned__lt=phone_call.date_created,
+                    date_expires__gt=phone_call.date_created,
+                )
+                .order_by('-date_created')
+                .first()
+            )
 
-                if tracking_call:
-                    if phone_call.date_created <= tracking_call.date_expires:
+            if not tracking_call:
+                return
 
-                        marketing = getattr(instance, 'lead_marketing', None)
-                        if marketing:
-                            marketing.click_id = tracking_call.click_id
-                            marketing.client_id = tracking_call.client_id
-                            marketing.marketing_campaign = tracking_call.call_tracking_number.marketing_campaign
-                            marketing.save()
+            marketing = getattr(instance, 'lead_marketing', None)
+            if not marketing:
+                return
+            
+            marketing.click_id = tracking_call.click_id
+            marketing.client_id = tracking_call.client_id
+            marketing.marketing_campaign = tracking_call.call_tracking_number.marketing_campaign
+            marketing.save()
 
-                            data['event_name'] = ConversionEventType.WebsiteCall.value
-
-            attributes = ['client_id', 'click_id', 'email', 'phone_number']
-            for attr in attributes:
-                value = getattr(instance.lead_marketing, attr, None)
-                if value:
-                    data[attr] = value
-
-            conversion_service.send_conversion(data=data)
         except Exception as e:
             print(f"Error processing lead save: {str(e)}")

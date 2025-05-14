@@ -10,11 +10,14 @@ from website import settings
 
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
+from marketing.enums import ConversionEventType
 
 from .models import LeadMarketing
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .enums import AlertHTTPCodes, AlertStatus
+from .conversions import conversion_service
+
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
@@ -214,6 +217,17 @@ class QuoteView(BaseWebsiteView):
                 )
 
                 marketing.save()
+
+                data = {}
+                data['event_name'] = ConversionEventType.FormSubmission.value
+
+                attributes = ['client_id', 'click_id', 'email', 'phone_number']
+                for attr in attributes:
+                    value = getattr(lead.lead_marketing, attr, None)
+                    if value:
+                        data[attr] = value
+
+                conversion_service.send_conversion(data=data)
 
             return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
