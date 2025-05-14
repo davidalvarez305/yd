@@ -31,7 +31,10 @@ class CallTrackingMixin:
 
         phone_number = random.choice(CallTrackingNumber.objects.all())
 
-        request.session[MarketingParams.CallTrackingNumberSessionValue.value] = phone_number.call_tracking_number
+        request.session[MarketingParams.CallTrackingNumberSessionValue.value] = {
+            'call_tracking_number': phone_number.call_tracking_number,
+            'timestamp': now(),
+        }
 
         call_tracking = CallTracking(
             call_tracking_number=phone_number,
