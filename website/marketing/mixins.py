@@ -25,7 +25,7 @@ class CallTrackingMixin:
         platform_id = marketing_params.get('platform_id')
         external_id = request.session.get('external_id')
 
-        if not client_id or click_id or platform_id:
+        if not click_id or not platform_id or not client_id:
             return
 
         phone_number = random.choice(CallTrackingNumber.objects.all())
