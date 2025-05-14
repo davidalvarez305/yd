@@ -220,6 +220,9 @@ class QuoteView(BaseWebsiteView):
 
                 data = {}
                 data['event_name'] = ConversionEventType.FormSubmission.value
+                data['ip_address'] = helper.ip
+                data['user_agent'] = helper.user_agent
+                data['event_time'] = lead.created_at
 
                 attributes = ['client_id', 'click_id', 'email', 'phone_number']
                 for attr in attributes:
@@ -227,7 +230,7 @@ class QuoteView(BaseWebsiteView):
                     if value:
                         data[attr] = value
 
-                conversion_service.send_conversion(data=data)
+                conversion_service.report_conversions(data=data)
 
             return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 

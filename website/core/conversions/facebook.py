@@ -1,19 +1,19 @@
 from .base import ConversionService
 
 class FacebookConversionService(ConversionService):
-    def _construct_payload(self) -> dict:
+    def _construct_payload(self, data: dict) -> dict:
         user_data = {
-            "em": [self.hash_to_sha256(self.conversion_data.get("email"))],
-            "ph": [self.hash_to_sha256(self.conversion_data.get("phone_number"))],
-            "client_ip_address": self.conversion_data.get("ip_address"),
-            "client_user_agent": self.conversion_data.get("user_agent"),
+            "em": [self.hash_to_sha256(data.get("email"))],
+            "ph": [self.hash_to_sha256(data.get("phone_number"))],
+            "client_ip_address": data.get("ip_address"),
+            "client_user_agent": data.get("user_agent"),
         }
 
         event = {
-            "event_name": self.conversion_data.get("event_name"),
-            "event_time": self.conversion_data.get("event_time"),
+            "event_name": data.get("event_name"),
+            "event_time": data.get("event_time"),
             "user_data": user_data,
-            "action_source": self.conversion_data.get("action_source", "website"),
+            "action_source": data.get("action_source", "website"),
         }
 
         return {

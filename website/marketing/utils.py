@@ -16,6 +16,7 @@ class MarketingHelper:
 
         self.referrer = self.request.META.get('HTTP_REFERER')
         self.ip = self.request.META.get('REMOTE_ADDR')
+        self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
         self.click_id = None
         self.client_id = None
