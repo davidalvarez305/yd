@@ -52,7 +52,7 @@ class CallTrackingMixin:
         if not data:
             return
 
-        session_time = data.get('session_time', None)
+        session_time = data.get('timestamp', None)
 
         if not session_time:
             return
