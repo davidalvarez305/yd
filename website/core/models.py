@@ -1,6 +1,7 @@
 import json
 import os
 from django.db import models
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 from django.db.models import Q
@@ -81,6 +82,8 @@ class Lead(models.Model):
     actions = models.ManyToManyField('core.NextAction', related_name='actions', through='LeadNextAction')
     stripe_customer_id = models.CharField(max_length=255, unique=True, null=True)
 
+    search_vector = SearchVectorField(null=True)
+
     def __str__(self):
         return self.full_name
     
@@ -105,6 +108,18 @@ class Lead(models.Model):
         if last_msg and last_call:
             return last_msg if last_msg.date_created > last_call.date_created else last_call
         return last_msg or last_call
+    
+    def update_search_vector(self):
+        self.search_vector = (
+            SearchVector('full_name') +
+            SearchVector('phone_number') +
+            SearchVector('message')
+        )
+        self.save()
+
+    def save(self, *args, **kwargs):
+        self.update_search_vector()
+        super().save(*args, **kwargs)
     
     class Meta:
         db_table = 'lead'

@@ -5,6 +5,8 @@ from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import F
 
 from website import settings
 from core.models import CallTrackingNumber, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
@@ -237,7 +239,22 @@ class LeadListView(CRMBaseListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.exclude(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
+        
+        search = self.request.GET.get('search', None)
+        
+        if search:
+            search_query = SearchQuery(search, search_type='plain')
+
+            queryset = queryset.annotate(
+                rank=SearchRank(F('search_vector'), search_query)
+            ).filter(search_vector=search_query)
+            
+            queryset = queryset.order_by('-rank')
+
+        else:
+            queryset = queryset.exclude(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
+        
+        return queryset
 
 class LeadUpdateView(CRMBaseUpdateView):
     model = Lead
