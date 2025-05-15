@@ -7,11 +7,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 
 from website import settings
-from core.models import CallTrackingNumber, HTTPLog, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, VisitFilterForm, VisitForm
+from crm.forms import HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
@@ -454,3 +454,19 @@ class VisitUpdateView(UpdateView):
     def form_valid(self, form):
         form.save()
         return HttpResponse("Updated")
+
+class LeadNoteDetailView(CRMDetailTemplateView):
+    model = LeadNote
+    form_class = LeadNoteForm
+
+class LeadNoteCreateView(CRMBaseCreateView):
+    model = LeadNote
+    form_class = LeadNoteForm
+
+class LeadNoteUpdateView(CRMBaseUpdateView):
+    model = LeadNote
+    form_class = LeadNoteForm
+
+class LeadNoteDeleteView(CRMBaseDeleteView):
+    model = LeadNote
+    form_class = LeadNoteForm

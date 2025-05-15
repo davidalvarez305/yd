@@ -462,3 +462,7 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
             queryset = queryset.filter(lead=self.cleaned_data['lead'])
 
         return queryset
+
+class LeadNoteForm(BaseModelForm):
+    class Meta:
+        fields = ['note']

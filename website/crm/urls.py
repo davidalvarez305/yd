@@ -63,4 +63,10 @@ urlpatterns = [
     # Visit
     path('visit/', views.VisitListView.as_view(), name='visit_list'),
     path('visit/<int:pk>/edit/', views.VisitUpdateView.as_view(), name='visit_update'),
+
+    # Lead Note
+    path('lead-note/create/', views.LeadNoteCreateView.as_view(), name='leadnote_create'),
+    path('lead-note/<int:pk>/', views.LeadNoteDetailView.as_view(), name='leadnote_detail'),
+    path('lead-note/<int:pk>/edit/', views.LeadNoteUpdateView.as_view(), name='leadnote_update'),
+    path('lead-note/<int:pk>/delete/', views.LeadNoteDeleteView.as_view(), name='leadnote_delete'),
 ]
