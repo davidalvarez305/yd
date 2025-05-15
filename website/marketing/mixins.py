@@ -4,6 +4,7 @@ import random
 
 from django.http import HttpRequest
 from django.utils.timezone import now, timedelta
+from django.utils.dateparse import parse_datetime
 
 from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from website import settings
@@ -21,32 +22,21 @@ class CallTrackingMixin:
         return super().dispatch(request, *args, **kwargs)
 
     def track_call(self, request: HttpRequest):
-        marketing_params = get_marketing_params(request)
-
-        click_id = marketing_params.get('click_id')
-        client_id = marketing_params.get('client_id')
-        platform_id = marketing_params.get('platform_id')
-        external_id = request.session.get('external_id')
-
-        if not click_id or not platform_id or not client_id:
-            return
-
         phone_number = random.choice(CallTrackingNumber.objects.all())
 
         request.session[MarketingParams.CallTrackingNumberSessionValue.value] = {
             'call_tracking_number': phone_number.call_tracking_number,
-            'timestamp': now(),
+            'timestamp': now().isoformat(),
         }
 
         metadata = MarketingHelper(request)
-        print(metadata)
         
         call_tracking = CallTracking(
             call_tracking_number=phone_number,
             date_assigned=now(),
             date_expires=now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
             metadata=json.dumps(metadata.to_dict()),
-            external_id=external_id,
+            external_id=request.session.get('external_id')
         )
 
         call_tracking.save()
@@ -56,8 +46,12 @@ class CallTrackingMixin:
         if not data:
             return
 
-        timestamp = data.get('timestamp', None)
+        session_time = data.get('session_time', None)
 
+        if not session_time:
+            return
+        
+        timestamp = parse_datetime(session_time)
         if not timestamp:
             return
         

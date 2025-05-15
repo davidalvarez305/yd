@@ -11,7 +11,7 @@ from core.models import CallTrackingNumber, HTTPLog, Message, PhoneCall, Message
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import HTTPLogFilterForm, CallTrackingFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, VisitFilterForm, VisitForm
+from crm.forms import HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable

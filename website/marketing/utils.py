@@ -7,6 +7,8 @@ CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
+        self.marketing_campaign = self.get_or_create_marketing_campaign()
+        
         self.landing_page = self.request.build_absolute_uri()
 
         self.external_id = self.request.session.get('external_id')
@@ -15,7 +17,6 @@ class MarketingHelper:
         self.ip = self.request.META.get('REMOTE_ADDR')
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
-        self.marketing_campaign = self.get_or_create_marketing_campaign()
         self.keywords = self.request.GET.get('keyword')
         self.source = self.request.GET.get('source', self.get_source_from_referrer())
         self.medium = self.request.GET.get('medium', self.generate_medium())
@@ -28,7 +29,7 @@ class MarketingHelper:
         self.client_id = marketing_params.get('client_id')
     
     def to_dict(self):
-        exclude = {'request'}
+        exclude = {'request', 'marketing_campaign'}
         return {
             key: value
             for key, value in self.__dict__.items()
