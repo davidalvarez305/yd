@@ -182,7 +182,7 @@ class Table(metaclass=DeclarativeTableMeta):
         )
     
     @classmethod
-    def from_model(cls, model, fields=None, exclude=None):
+    def from_model(cls, model, fields=None, exclude=None, extra_fields=None, attrs=None):
         _declared_fields = {}
 
         if fields is None:
@@ -194,16 +194,26 @@ class Table(metaclass=DeclarativeTableMeta):
             field_obj = model._meta.get_field(field_name)
             _declared_fields[field_name] = TableField.from_model_field(field_obj)
 
+        # Build the Meta class dynamically
+        meta_attrs = {
+            "model": model,
+            "fields": fields,
+            "exclude": exclude or [],
+            "extra_fields": extra_fields or [],
+        }
+
+        if attrs:
+            meta_attrs.update(attrs)  # ✅ inject custom attrs into Meta
+
+        Meta = type("Meta", (), meta_attrs)
+
         table_class = type(
             f"{model.__name__}Table",
             (cls,),
             {
                 "_declared_fields": _declared_fields,
-                "Meta": type("Meta", (), {
-                    "model": model,
-                    "fields": fields,
-                    "exclude": exclude or [],
-                }),
+                "Meta": Meta,
             }
         )
+
         return table_class

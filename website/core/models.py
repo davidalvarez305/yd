@@ -408,13 +408,6 @@ class HTTPLog(models.Model):
 class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     call_tracking_number = models.CharField(max_length=15)
-    marketing_campaign = models.ForeignKey(
-        MarketingCampaign,
-        related_name='call_tracking_numbers',
-        on_delete=models.SET_NULL,
-        db_column='marketing_campaign_id',
-        null=True,
-    )
 
     def __str__(self):
         return self.call_tracking_number

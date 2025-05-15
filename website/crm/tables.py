@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.models import CallTrackingNumber, Message, PhoneCall, Service, User, Cocktail, Event, Visit
 from core.widgets import PriceCellWidget
 from core.utils import deep_getattr
 

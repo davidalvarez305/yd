@@ -356,13 +356,6 @@ class LeadMarketingForm(BaseModelForm):
         ]
 
 class CallTrackingNumberForm(BaseModelForm):
-    marketing_campaign = forms.ModelChoiceField(
-        queryset=MarketingCampaign.objects.all(),
-        required=True,
-        empty_label='---',
-        label='Marketing Campaign',
-    )
-
     class Meta:
         model = CallTrackingNumber
         fields = ['call_tracking_number']
@@ -382,12 +375,6 @@ class CallTrackingFilterForm(BaseForm):
         choices=[('', 'All Types')] + [(item.value, item.name.title()) for item in ConversionServiceType],
         required=False,
         label='Ad Platform',
-    )
-    campaign = forms.ModelChoiceField(
-        queryset=MarketingCampaign.objects.all(),
-        required=False,
-        empty_label='All',
-        label='Campaign',
     )
 
     def __init__(self, *args, **kwargs):

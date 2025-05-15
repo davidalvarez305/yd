@@ -414,7 +414,15 @@ class HTTPLogListView(CRMBaseListView):
 
 class CallTrackingNumberListView(CRMTableView):
     model = CallTrackingNumber
-    table_class = Table.from_model(model=CallTrackingNumber)
+    table_class = (
+        Table.from_model(
+            model=CallTrackingNumber,
+            extra_fields=['view', 'delete'],
+            attrs={
+                'pk': 'call_tracking_number_id',
+            }
+        )
+    )
 
 class CallTrackingNumberCreateView(CRMCreateTemplateView):
     model = CallTrackingNumber
