@@ -47,10 +47,10 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             if not marketing:
                 return
             
-            marketing.click_id = tracking_call.click_id
-            marketing.client_id = tracking_call.client_id
-            marketing.external_id = tracking_call.external_id
-            marketing.marketing_campaign = tracking_call.call_tracking_number.marketing_campaign
+            for key, value in tracking_call.metadata.items():
+                if hasattr(marketing, key):
+                    setattr(marketing, key, value)
+
             marketing.save()
 
         except Exception as e:
