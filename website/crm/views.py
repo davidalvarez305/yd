@@ -418,7 +418,7 @@ class CallTrackingNumberListView(CRMTableView):
         Table.from_model(
             model=CallTrackingNumber,
             extra_fields=['view', 'delete'],
-            attrs={
+            meta_attrs={
                 'pk': 'call_tracking_number_id',
             }
         )
