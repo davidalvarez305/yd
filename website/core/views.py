@@ -90,6 +90,14 @@ class HomeView(BaseWebsiteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['js_files'] += ['js/floatingHeader.js']
+        
+        session_data = self.request.session.get('call_tracking_number')
+        if isinstance(session_data, dict):
+            phone_number = session_data.get('call_tracking_number')
+            if phone_number and len(phone_number) == 10:
+                formatted_number = format_phone_number(phone_number)
+                context['formatted_call_tracking_number'] = formatted_number
+                context['phone_number'] = phone_number
 
         context["features"] = [
             "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
