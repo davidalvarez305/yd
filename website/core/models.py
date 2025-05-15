@@ -425,8 +425,7 @@ class CallTracking(models.Model):
     )
     date_assigned = models.DateTimeField()
     date_expires = models.DateTimeField()
-    client_id = models.CharField(max_length=255)
-    click_id = models.CharField(max_length=255, db_index=True, unique=True)
+    metadata = models.JSONField(null=True)
     external_id = models.CharField(max_length=255)
 
     def __str__(self):

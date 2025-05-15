@@ -1,25 +1,26 @@
+import json
 import uuid
 import random
 
+from django.http import HttpRequest
 from django.utils.timezone import now, timedelta
 
 from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from website import settings
 
-from .utils import get_marketing_params
+from .utils import MarketingHelper, get_marketing_params
 from .enums import MarketingParams
 
 class CallTrackingMixin:
-    def dispatch(self, request, *args, **kwargs):
-        """ if request.user.is_authenticated:
-            return """
-        self.clean_up_expired_session(request)
+    def dispatch(self, request: HttpRequest, *args, **kwargs):
+        if not request.user.is_authenticated:
+            self.clean_up_expired_session(request)
 
-        self.track_call(request)
+            self.track_call(request)
 
         return super().dispatch(request, *args, **kwargs)
 
-    def track_call(self, request):
+    def track_call(self, request: HttpRequest):
         marketing_params = get_marketing_params(request)
 
         click_id = marketing_params.get('click_id')
@@ -37,12 +38,14 @@ class CallTrackingMixin:
             'timestamp': now(),
         }
 
+        metadata = MarketingHelper(request)
+        print(metadata)
+        
         call_tracking = CallTracking(
             call_tracking_number=phone_number,
             date_assigned=now(),
             date_expires=now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
-            client_id=client_id,
-            click_id=click_id,
+            metadata=json.dumps(metadata.to_dict()),
             external_id=external_id,
         )
 

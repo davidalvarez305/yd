@@ -8,8 +8,6 @@ class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
         self.landing_page = self.request.build_absolute_uri()
-        self.cookies = self.request.COOKIES
-        self.query_params = self.request.GET
 
         self.external_id = self.request.session.get('external_id')
 
@@ -18,22 +16,30 @@ class MarketingHelper:
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
         self.marketing_campaign = self.get_or_create_marketing_campaign()
-        self.keywords = self.query_params.get('keyword')
-        self.source = self.query_params.get('source', self.get_source_from_referrer())
-        self.medium = self.query_params.get('medium', self.generate_medium())
-        self.channel = self.query_params.get('channel', self.get_channel())
+        self.keywords = self.request.GET.get('keyword')
+        self.source = self.request.GET.get('source', self.get_source_from_referrer())
+        self.medium = self.request.GET.get('medium', self.generate_medium())
+        self.channel = self.request.GET.get('channel', self.get_channel())
 
         marketing_params = get_marketing_params(request=self.request)
 
         self.click_id = marketing_params.get('click_id')
         self.platform_id = marketing_params.get('platform_id')
         self.client_id = marketing_params.get('client_id')
+    
+    def to_dict(self):
+        exclude = {'request'}
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in exclude
+        }
 
     def get_cookie(self, cookie_name):
         """
         Returns the value of a cookie if it exists, otherwise None.
         """
-        return self.cookies.get(cookie_name)
+        return self.request.COOKIES.get(cookie_name)
 
     def generate_medium(self):
         """
@@ -41,9 +47,9 @@ class MarketingHelper:
         """
         if not self.referrer:
             return "direct"
-        elif not self.query_params:
+        elif not self.request.GET:
             return "organic"
-        elif self.is_paid(self.query_params):
+        elif self.is_paid(self.request.GET):
             return "paid"
         else:
             return "referral"
@@ -108,7 +114,7 @@ class MarketingHelper:
         """
         Fetches or creates a marketing campaign based on URL parameters.
         """
-        ad_campaign_id = self.query_params.get("ad_campaign")
+        ad_campaign_id = self.request.GET.get("ad_campaign")
 
         if not ad_campaign_id or not self.platform_id:
             return None
