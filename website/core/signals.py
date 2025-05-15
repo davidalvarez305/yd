@@ -1,7 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Lead, PhoneCall
+from marketing.utils import get_or_create_marketing_campaign
+
+from .models import Lead, MarketingCampaign, PhoneCall
 from core.models import CallTracking
 
 @receiver(post_save, sender=Lead)
@@ -50,6 +52,15 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             for key, value in tracking_call.metadata.items():
                 if hasattr(marketing, key):
                     setattr(marketing, key, value)
+
+            campaign_id = getattr(tracking_call.metadata, 'marketing_campaign_id', None)
+            campaign_name = getattr(tracking_call.metadata, 'marketing_campaign_name', None)
+
+            marketing.marketing_campaign = MarketingCampaign.objects.get_or_create(
+                marketing_campaign_id=campaign_id,
+                platform_id=marketing.platform_id,
+                name=campaign_name,
+            )
 
             marketing.save()
 

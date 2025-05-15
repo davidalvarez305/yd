@@ -207,22 +207,13 @@ class QuoteView(BaseWebsiteView):
                 lead = form.save()
 
                 helper = MarketingHelper(request)
+                marketing = LeadMarketing()
 
-                marketing = LeadMarketing(
-                    lead=lead,
-                    marketing_campaign=helper.marketing_campaign,
-                    external_id=helper.external_id,
-                    referrer=helper.referrer,
-                    landing_page=helper.landing_page,
-                    ip=helper.ip,
-                    button_clicked=form.cleaned_data.get('button_clicked'),
-                    medium=helper.medium,
-                    source=helper.source,
-                    channel=helper.channel,
-                    keyword=helper.keywords,
-                    click_id=helper.click_id,
-                    client_id=helper.client_id,
-                )
+                for key, value in helper.items():
+                    if hasattr(marketing, key):
+                        setattr(marketing, key, value)
+
+                marketing.button_clicked = form.cleaned_data.get('button_clicked')
 
                 marketing.save()
 

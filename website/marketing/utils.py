@@ -7,7 +7,6 @@ CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
-        self.marketing_campaign = self.get_or_create_marketing_campaign()
         
         self.landing_page = self.request.build_absolute_uri()
 
@@ -27,14 +26,21 @@ class MarketingHelper:
         self.click_id = marketing_params.get('click_id')
         self.platform_id = marketing_params.get('platform_id')
         self.client_id = marketing_params.get('client_id')
+
+        self.marketing_campaign = self.get_or_create_marketing_campaign(request=self.request, platform_id=self.platform_id)
     
     def to_dict(self):
         exclude = {'request', 'marketing_campaign'}
-        return {
+        data = {
             key: value
             for key, value in self.__dict__.items()
             if key not in exclude
         }
+
+        data['marketing_campaign_id'] = self.marketing_campaign.marketing_campaign_id
+        data['marketing_campaign_name'] = self.marketing_campaign.name
+
+        return data
 
     def get_cookie(self, cookie_name):
         """
@@ -115,15 +121,16 @@ class MarketingHelper:
         """
         Fetches or creates a marketing campaign based on URL parameters.
         """
-        ad_campaign_id = self.request.GET.get("ad_campaign")
+        campaign_id = self.request.GET.get("campaign_id")
+        campaign_name = self.request.GET.get("ad_campaign")
 
-        if not ad_campaign_id or not self.platform_id:
+        if not campaign_id or not self.platform_id:
             return None
 
         campaign, _ = MarketingCampaign.objects.get_or_create(
-            marketing_campaign_id=ad_campaign_id,
+            marketing_campaign_id=campaign_id,
             platform_id=self.platform_id,
-            defaults={"name": "Unnamed Campaign"}
+            name=campaign_name,
         )
         return campaign
 
