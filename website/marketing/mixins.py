@@ -11,6 +11,8 @@ from .enums import MarketingParams
 
 class CallTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
+        """ if request.user.is_authenticated:
+            return """
         self.clean_up_expired_session(request)
 
         self.track_call(request)
