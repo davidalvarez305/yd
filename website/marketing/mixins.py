@@ -12,10 +12,16 @@ from website import settings
 from .utils import MarketingHelper, get_marketing_params
 from .enums import MarketingParams
 
+tracking_number = MarketingParams.CallTrackingNumberSessionValue.value
+
 class CallTrackingMixin:
     def dispatch(self, request: HttpRequest, *args, **kwargs):
         if not request.user.is_authenticated:
             self.clean_up_expired_session(request)
+
+            # If after clean up, there still a value, wait until expiration before new assignment
+            if request.session.get(tracking_number):
+                return
 
             self.track_call(request)
 
@@ -24,7 +30,7 @@ class CallTrackingMixin:
     def track_call(self, request: HttpRequest):
         phone_number = random.choice(CallTrackingNumber.objects.all())
 
-        request.session[MarketingParams.CallTrackingNumberSessionValue.value] = {
+        request.session[tracking_number] = {
             'call_tracking_number': phone_number.call_tracking_number,
             'timestamp': now().isoformat(),
         }
@@ -42,7 +48,7 @@ class CallTrackingMixin:
         call_tracking.save()
 
     def clean_up_expired_session(self, request):
-        data = request.session.get(MarketingParams.CallTrackingNumberSessionValue.value, None)
+        data = request.session.get(tracking_number, None)
         if not data:
             return
 
@@ -59,7 +65,7 @@ class CallTrackingMixin:
         if time_diff > timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT):
             return
 
-        del request.session[MarketingParams.CallTrackingNumberSessionValue.value]
+        del request.session[tracking_number]
 
 class VisitTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
