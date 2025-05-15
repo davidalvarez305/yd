@@ -272,6 +272,8 @@ class TwilioCallingService(CallingServiceInterface):
                     lead=lead,
                     user=user,
                 )
+        
+            return HttpResponse("Success!", status=200)
 
         except PhoneCall.DoesNotExist:
             return HttpResponse("Phone call not found", status=404)
@@ -281,8 +283,6 @@ class TwilioCallingService(CallingServiceInterface):
         
         finally:
             cleanup_dir_files(settings.UPLOADS_URL)
-        
-        return HttpResponse("Success!", status=200)
     
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:
