@@ -1,8 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from marketing.utils import get_or_create_marketing_campaign
-
 from .models import Lead, MarketingCampaign, PhoneCall
 from core.models import CallTracking
 

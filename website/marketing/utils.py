@@ -27,7 +27,7 @@ class MarketingHelper:
         self.platform_id = marketing_params.get('platform_id')
         self.client_id = marketing_params.get('client_id')
 
-        self.marketing_campaign = self.get_or_create_marketing_campaign(request=self.request, platform_id=self.platform_id)
+        self.marketing_campaign = self.get_or_create_marketing_campaign()
     
     def to_dict(self):
         exclude = {'request', 'marketing_campaign'}
