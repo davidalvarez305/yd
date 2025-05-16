@@ -37,8 +37,9 @@ class MarketingHelper:
             if key not in exclude
         }
 
-        data['marketing_campaign_id'] = self.marketing_campaign.marketing_campaign_id
-        data['marketing_campaign_name'] = self.marketing_campaign.name
+        if self.marketing_campaign:
+            data['marketing_campaign_id'] = self.marketing_campaign.marketing_campaign_id
+            data['marketing_campaign_name'] = self.marketing_campaign.name
 
         return data
 
