@@ -85,6 +85,8 @@ def format_phone_number(phone_number: str) -> str:
     Returns the original string if not 10 digits.
     """
     digits = ''.join(filter(str.isdigit, phone_number))
+    
     if len(digits) == 10:
         return f"({digits[:3]}) {digits[3:6]} - {digits[6:]}"
+    
     return phone_number
