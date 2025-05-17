@@ -1,3 +1,4 @@
+from enum import Enum
 import json
 import os
 from django.db import models
@@ -48,12 +49,33 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.first_name + " " + self.last_name
 
 
+class LeadStatusEnum(Enum):
+    LEAD_CREATED = 'Lead Created'
+    QUALIFIED_LEAD = 'Qualified Lead'
+    INVOICE_SENT = 'Invoice Sent'
+    EVENT_BOOKED = 'Event Booked'
+
+    def __str__(self):
+        return self.value
+
 class LeadStatus(models.Model):
     lead_status_id = models.IntegerField(primary_key=True)
-    status = models.CharField(max_length=100)
+    status = models.CharField(
+        max_length=50,
+        choices=[(status.name, status.value) for status in LeadStatusEnum]
+    )
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.status
+
+class LeadStatusHistory(models.Model):
+    lead = models.ForeignKey('Lead', on_delete=models.CASCADE)
+    lead_status = models.ForeignKey('LeadStatus', on_delete=models.CASCADE)
+    date_changed = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lead {self.lead.id} - Status {self.lead_status.get_status_display()} on {self.date_changed}"
 
 class LeadInterest(models.Model):
     lead_interest_id = models.IntegerField(primary_key=True)
@@ -77,9 +99,9 @@ class Lead(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     email = models.EmailField(null=True, unique=True)
     message = models.TextField(null=True)
-    lead_status = models.ForeignKey(LeadStatus, related_name='stauses', null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
+    lead_status = models.ForeignKey(LeadStatus, null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
     lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
-    actions = models.ManyToManyField('core.NextAction', related_name='actions', through='LeadNextAction')
+    actions = models.ManyToManyField('NextAction', through='LeadNextAction')
     stripe_customer_id = models.CharField(max_length=255, unique=True, null=True)
 
     search_vector = SearchVectorField(null=True)
@@ -112,10 +134,22 @@ class Lead(models.Model):
     def update_search_vector(self):
         self.search_vector = (
             SearchVector('full_name') +
-            SearchVector('phone_number') +
-            SearchVector('message')
+            SearchVector('phone_number')
         )
         self.save()
+
+    def change_lead_status(self, status: str):
+        lead_status = LeadStatus.objects.filter(status=status).first()
+
+        if lead_status is None:
+            raise ValueError('Invalid lead status.')
+
+        entry = LeadStatusHistory.objects.create(
+            lead=self,
+            lead_status=lead_status,
+            date_changed=now()
+        )
+        return entry
 
     def save(self, *args, **kwargs):
         self.update_search_vector()
