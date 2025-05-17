@@ -94,7 +94,6 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateV
 
         if form.is_valid():
             try:
-                form.instance.pk = self.object.pk
                 form.save()
 
                 if not self.trigger_alert:

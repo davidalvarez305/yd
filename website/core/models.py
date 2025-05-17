@@ -1,6 +1,7 @@
 from enum import Enum
 import json
 import os
+from typing import Union
 from django.db import models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
@@ -138,18 +139,23 @@ class Lead(models.Model):
         )
         self.save()
 
-    def change_lead_status(self, status: str):
-        lead_status = LeadStatus.objects.filter(status=status).first()
+    def change_lead_status(self, status: Union[str, LeadStatusEnum]):
+        if isinstance(status, LeadStatusEnum):
+            status = status.value
 
-        if lead_status is None:
-            raise ValueError('Invalid lead status.')
+        try:
+            lead_status = LeadStatus.objects.get(status=status)
+        except LeadStatus.DoesNotExist:
+            raise ValueError("Invalid lead status.")
+        
+        self.lead_status = lead_status
+        self.save()
 
-        entry = LeadStatusHistory.objects.create(
+        LeadStatusHistory.objects.create(
             lead=self,
             lead_status=lead_status,
             date_changed=now()
         )
-        return entry
 
     def save(self, *args, **kwargs):
         self.update_search_vector()

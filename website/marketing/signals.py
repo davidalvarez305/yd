@@ -24,7 +24,21 @@ def handle_lead_status_change(sender, instance: LeadStatus, created, **kwargs) -
     data = { 
         'event_name': status_event_map.get(instance.status),
         'lead_ad_id': lead.lead_marketing.lead_ad_id,
-     }
+    }
+
+    data = {}
+    'event_name': status_event_map.get(instance.status)
+    data['ip_address'] = helper.ip
+    data['user_agent'] = helper.user_agent
+    data['event_time'] = lead.created_at
+
+    attributes = ['client_id', 'click_id', 'email', 'phone_number']
+    for attr in attributes:
+        value = getattr(lead.lead_marketing, attr, None)
+        if value:
+            data[attr] = value
+
+    conversion_service.report_conversions(data=data)
 
     if instance.status == LeadStatusEnum.LEAD_CREATED.value:
         conversion_service.send_conservion(data=data)
@@ -36,4 +50,5 @@ def handle_lead_status_change(sender, instance: LeadStatus, created, **kwargs) -
         pass
 
     elif instance.status == LeadStatusEnum.EVENT_BOOKED.value:
+        conversion_service.send_conservion(data=data)
         pass

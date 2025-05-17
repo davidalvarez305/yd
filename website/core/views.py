@@ -10,9 +10,8 @@ from website import settings
 
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
-from marketing.enums import ConversionEventType
 
-from .models import LeadMarketing
+from .models import LeadMarketing, LeadStatus, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -217,19 +216,7 @@ class QuoteView(BaseWebsiteView):
 
                 marketing.save()
 
-                data = {}
-                data['event_name'] = ConversionEventType.FormSubmission.value
-                data['ip_address'] = helper.ip
-                data['user_agent'] = helper.user_agent
-                data['event_time'] = lead.created_at
-
-                attributes = ['client_id', 'click_id', 'email', 'phone_number']
-                for attr in attributes:
-                    value = getattr(lead.lead_marketing, attr, None)
-                    if value:
-                        data[attr] = value
-
-                conversion_service.report_conversions(data=data)
+                lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
             return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
