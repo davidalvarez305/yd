@@ -21,15 +21,11 @@ def handle_lead_status_change(sender, instance: LeadStatus, created, **kwargs) -
     }
     
     lead = Lead.objects.filter(lead_id=instance.lead_set.first()).first()
-    data = { 
-        'event_name': status_event_map.get(instance.status),
-        'lead_ad_id': lead.lead_marketing.lead_ad_id,
-    }
 
     data = {}
-    'event_name': status_event_map.get(instance.status)
-    data['ip_address'] = helper.ip
-    data['user_agent'] = helper.user_agent
+    data['event_name'] = status_event_map.get(instance.status)
+    data['ip_address'] = lead.lead_marketing.ip
+    data['user_agent'] = lead.lead_marketing.user_agent
     data['event_time'] = lead.created_at
 
     attributes = ['client_id', 'click_id', 'email', 'phone_number']
