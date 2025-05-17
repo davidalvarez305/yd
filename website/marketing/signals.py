@@ -31,6 +31,7 @@ def handle_lead_status_change(sender, instance: LeadStatus, created, **kwargs) -
     value = lead.value()
     if value > 0.0:
         data['value'] = value
+        data['currency'] = 'USD'
 
     attributes = ['client_id', 'click_id', 'email', 'phone_number']
     for attr in attributes:
