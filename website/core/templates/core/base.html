@@ -341,9 +341,14 @@
 				const body = new FormData();
 				body.set('visit_id', "{{ visit_id }}");
 				body.set('session_duration', (endTime - startTime) / 1000);
-				body.set('csrfmiddlewaretoken', "{% csrf_token %}");
 
-				fetch("{% url 'visit_update' pk=visit_id %}", { method: "POST", body: body });
+				fetch("{% url 'visit_update' pk=visit_id %}", {
+					method: "POST",
+					body: body,
+					headers: {
+						"X-CSRFToken": "{{ csrf_token }}",
+					},
+				});
 			};
 		};
 	};
