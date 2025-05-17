@@ -6,7 +6,7 @@ from django.db import models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
@@ -156,6 +156,10 @@ class Lead(models.Model):
             lead_status=lead_status,
             date_changed=now()
         )
+    
+    def value(self) -> float:
+        result = self.events.aggregate(total=Sum('amount'))
+        return result['total'] or 0.0
 
     def save(self, *args, **kwargs):
         self.update_search_vector()

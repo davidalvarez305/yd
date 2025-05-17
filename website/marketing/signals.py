@@ -28,23 +28,14 @@ def handle_lead_status_change(sender, instance: LeadStatus, created, **kwargs) -
     data['user_agent'] = lead.lead_marketing.user_agent
     data['event_time'] = lead.created_at
 
+    value = lead.value()
+    if value > 0.0:
+        data['value'] = value
+
     attributes = ['client_id', 'click_id', 'email', 'phone_number']
     for attr in attributes:
         value = getattr(lead.lead_marketing, attr, None)
         if value:
             data[attr] = value
 
-    conversion_service.report_conversions(data=data)
-
-    if instance.status == LeadStatusEnum.LEAD_CREATED.value:
-        conversion_service.send_conservion(data=data)
-    
-    elif instance.status == LeadStatusEnum.QUALIFIED_LEAD.value:
-        pass
-
-    elif instance.status == LeadStatusEnum.INVOICE_SENT.value:
-        pass
-
-    elif instance.status == LeadStatusEnum.EVENT_BOOKED.value:
-        conversion_service.send_conservion(data=data)
-        pass
+    conversion_service.send_conservion(data=data)
