@@ -9,7 +9,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
-from core.models import Lead, LeadNote, Message, User
+from core.models import Lead, LeadNote, LeadStatusEnum, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
 from communication.forms import OutboundPhoneCallForm
@@ -122,7 +122,12 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = dial_status
             phone_call.save()
 
-            lead_phone_number = phone_call.call_from
+            lead_phone_number = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
+            user_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
+
+            lead = Lead.objects.filter(phone_number=lead_phone_number).first()
+            user = User.objects.filter(phone_number=user_phone_number).first()
+
             outbound_calls = PhoneCall.objects.filter(call_to=lead_phone_number).count()
             inbound_calls = PhoneCall.objects.filter(call_from=lead_phone_number).count()
 
@@ -130,8 +135,6 @@ class TwilioCallingService(CallingServiceInterface):
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
             if phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                user = User.objects.filter(phone_number=phone_call.call_to).first()
-
                 if not user:
                     return HttpResponse('User not found', status=500)
 
@@ -167,8 +170,6 @@ class TwilioCallingService(CallingServiceInterface):
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                user = User.objects.filter(phone_number=phone_call.call_from).first()
-
                 if not user:
                     return HttpResponse('User not found', status=500)
 
@@ -202,6 +203,9 @@ class TwilioCallingService(CallingServiceInterface):
                 except Exception as e:
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
+            if lead.is_qualified() and lead.lead_status == LeadStatusEnum.LEAD_CREATED:
+                lead.change_lead_status(LeadStatusEnum.QUALIFIED_LEAD)            
+            
             return HttpResponse('Success!', status=200)
 
         except PhoneCall.DoesNotExist:

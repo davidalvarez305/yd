@@ -113,11 +113,15 @@ class Lead(models.Model):
     def phone_calls(self):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
     
+    def is_qualified(self):
+        total_duration = self.phone_calls().aggregate(total=Sum('duration'))['total'] or 0
+        return total_duration > 120
+    
     def messages(self):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
     
     def visits(self):
-        return Visit.objects.filter(lead_marketing=LeadMarketing.objects.filter(lead=self).first())
+        return Visit.objects.filter(lead_marketing=self.lead_marketing)
     
     def last_contact(self):
         last_msg = Message.objects.filter(
