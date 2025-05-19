@@ -10,6 +10,7 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
+from marketing.signals import lead_status_changed
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -160,6 +161,8 @@ class Lead(models.Model):
             lead_status=lead_status,
             date_changed=now()
         )
+
+        lead_status_changed.send(sender=self.__class__, instance=self)
     
     def value(self) -> float:
         result = self.events.aggregate(total=Sum('amount'))
