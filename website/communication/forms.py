@@ -1,16 +1,16 @@
 from django import forms
 
 from core.models import Message, PhoneCall
-from core.forms import BaseModelForm, MultiFileField, MultiFileInput
+from core.forms import MultiFileInput, MultiMediaFileField
 
-class MessageForm(BaseModelForm):
+class MessageForm(forms.ModelForm):
     text = forms.CharField(
         label="Message*",
         widget=forms.Textarea(attrs={'rows': 3, 'required': False}),
         required=False
     )
 
-    message_media = MultiFileField(
+    message_media = MultiMediaFileField(
         widget=MultiFileInput(attrs={
             'multiple': True,
             'style': 'display: none;',
