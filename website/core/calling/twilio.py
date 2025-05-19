@@ -203,9 +203,9 @@ class TwilioCallingService(CallingServiceInterface):
                 except Exception as e:
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
-            if lead.is_qualified() and lead.lead_status == LeadStatusEnum.LEAD_CREATED:
+            if lead.is_qualified() and lead.lead_status == LeadStatusEnum.LEAD_CREATED.value:
                 lead.change_lead_status(LeadStatusEnum.QUALIFIED_LEAD)            
-            
+
             return HttpResponse('Success!', status=200)
 
         except PhoneCall.DoesNotExist:
