@@ -1,6 +1,5 @@
 from io import BytesIO
 import os
-import mimetypes
 
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile

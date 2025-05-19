@@ -1,12 +1,21 @@
+import re
+import os
+from io import BytesIO
+from pydub import AudioSegment
+
+from website.settings import COMPANY_NAME
+from .utils import add_form_field_class
+from .utils import create_generic_file_name
+from .widgets import ToggleSwitchWidget
+from .models import Lead, Service, UnitType, User, ServiceType
+from .email import email_service
+
+from django import forms
+from django.conf import settings
+from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django import forms
 from django.core.exceptions import ValidationError
-import re
-
-from core.utils import add_form_field_class
-from core.widgets import ToggleSwitchWidget
-from core.models import Lead, Service, UnitType, User, ServiceType
-from core.email import email_service
-from website.settings import COMPANY_NAME
 
 class MultiFileInput(forms.FileInput):
     allow_multiple_selected = True
@@ -273,3 +282,80 @@ class UserForm(BaseModelForm):
     def save(self, commit=True):
         user = super().save()
         return user
+
+class AttachmentProcessingError(Exception):
+    pass
+
+class MultiMediaFileField(forms.FileField):
+    widget = MultiFileInput
+
+    def __init__(self, *args, **kwargs):
+        self.upload_root = getattr(settings, "UPLOADS_ROOT", os.path.join(settings.BASE_DIR, "uploads"))
+        os.makedirs(self.upload_root, exist_ok=True)
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        files = data or []
+        if self.required and not files:
+            raise forms.ValidationError(self.error_messages['required'], code='required')
+
+        media_files = []
+
+        for file in files:
+            content_type = getattr(file, 'content_type', '')
+            if content_type.startswith('audio/'):
+                try:
+                    file_name = create_generic_file_name(content_type=content_type)
+                    sub_dir = self._get_sub_dir(content_type)
+                    target_dir = os.path.join(self.upload_root, sub_dir)
+                    os.makedirs(target_dir, exist_ok=True)
+
+                    audio = self._convert_audio_format(file, file_name, 'mp3', target_dir)
+
+                    media_file = InMemoryUploadedFile(
+                        file=audio.file,
+                        field_name=self.name,
+                        name=audio.name,
+                        content_type='audio/mpeg',
+                        size=audio.size,
+                        charset=None
+                    )
+                    media_files.append(media_file)
+                except Exception as e:
+                    raise forms.ValidationError(f'Audio processing failed: {str(e)}')
+            else:
+                media_files.append(file)
+
+        return media_files
+
+    def _convert_audio_format(self, django_file, file_name: str, to_format: str, target_dir: str) -> File:
+        from_path = os.path.join(target_dir, file_name)
+        original_extension = os.path.splitext(from_path)[1].lstrip('.')
+        to_file_name = file_name.replace(original_extension, to_format)
+
+        try:
+            with open(from_path, "wb") as tmp_file:
+                for chunk in django_file.chunks():
+                    tmp_file.write(chunk)
+
+            audio = AudioSegment.from_file(from_path)
+            buffer = BytesIO()
+            audio.export(buffer, format=to_format, bitrate="192k")
+            buffer.seek(0)
+
+            return File(buffer, name=to_file_name)
+
+        except Exception as e:
+            raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
+
+        finally:
+            if os.path.exists(from_path):
+                os.remove(from_path)
+
+    def _get_sub_dir(self, content_type: str) -> str:
+        main_type = content_type.split("/")[0]
+        return {
+            "audio": "audio",
+            "image": "images",
+            "video": "videos"
+        }.get(main_type, "misc")

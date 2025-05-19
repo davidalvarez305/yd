@@ -29,14 +29,14 @@ def is_mobile(user_agent):
     
 def create_generic_file_name(content_type: str) -> str:
     if not content_type:
-        raise ValueError("No content type provided")
+        raise ValueError('No content type provided')
     
-    if content_type == "audio/webm":
-        extension = ".webm"
+    if content_type == 'audio/webm':
+        extension = '.webm'
     else:
-        extension = mimetypes.guess_extension(content_type) or ".bin"
+        extension = mimetypes.guess_extension(content_type) or '.bin'
     
-    return f"{uuid.uuid4()}{extension}"
+    return f'{uuid.uuid4()}{extension}'
 
 def add_form_field_class(widget, new_classes):
     existing = widget.attrs.get('class', '')
