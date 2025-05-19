@@ -302,31 +302,42 @@ class MultiMediaFileField(forms.FileField):
         media_files = []
 
         for file in files:
-            content_type = getattr(file, 'content_type', '')
-            if content_type.startswith('audio/'):
-                try:
-                    file_name = create_generic_file_name(content_type=content_type)
+            content_type = getattr(file, "content_type", "")
+            file_name = create_generic_file_name(content_type=content_type)
+
+            try:
+                if content_type.startswith("audio/"):
                     sub_dir = self._get_sub_dir(content_type)
                     target_dir = os.path.join(self.upload_root, sub_dir)
                     os.makedirs(target_dir, exist_ok=True)
 
-                    audio = self._convert_audio_format(file, file_name, 'mp3', target_dir)
+                    file = self._convert_audio_format(file, file_name, "mp3", target_dir)
+                    content_type = "audio/mpeg"
 
-                    media_file = InMemoryUploadedFile(
-                        file=audio.file,
-                        field_name=self.name,
-                        name=audio.name,
-                        content_type='audio/mpeg',
-                        size=audio.size,
-                        charset=None
-                    )
-                    media_files.append(media_file)
-                except Exception as e:
-                    raise forms.ValidationError(f'Audio processing failed: {str(e)}')
-            else:
-                media_files.append(file)
+                uploaded_file = self._build_uploaded_file(
+                    file_obj=file.file,
+                    name=file_name,
+                    content_type=content_type,
+                    size=file.size,
+                    charset=getattr(file, "charset", None)
+                )
+
+                media_files.append(uploaded_file)
+
+            except Exception as e:
+                raise forms.ValidationError(f"File processing failed: {str(e)}")
 
         return media_files
+    
+    def _build_uploaded_file(self, file_obj, name, content_type, size, charset=None):
+        return InMemoryUploadedFile(
+            file=file_obj,
+            field_name=self.name,
+            name=name,
+            content_type=content_type,
+            size=size,
+            charset=charset
+        )
 
     def _convert_audio_format(self, django_file, file_name: str, to_format: str, target_dir: str) -> File:
         from_path = os.path.join(target_dir, file_name)
