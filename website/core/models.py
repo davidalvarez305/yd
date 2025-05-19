@@ -114,8 +114,8 @@ class Lead(models.Model):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
     
     def is_qualified(self):
-        total_duration = self.phone_calls().aggregate(total=Sum('duration'))['total'] or 0
-        return total_duration > 120
+        total_duration = self.phone_calls().aggregate(total=Sum('duration'))
+        return total_duration.get('total', 0) > 120
     
     def messages(self):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
