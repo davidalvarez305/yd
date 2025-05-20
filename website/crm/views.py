@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
+from django.utils.timezone import now
 
 from website import settings
 from core.models import CallTrackingNumber, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
@@ -18,12 +19,21 @@ from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
+from core.utils import format_phone_number, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
+            "page_title": settings.COMPANY_NAME,
+            "meta_description": "YD Cocktails CRM",
+            "site_name": settings.SITE_NAME,
+            "phone_number": format_phone_number(settings.COMPANY_PHONE_NUMBER),
+            "current_year": now().year,
+            "company_name": settings.COMPANY_NAME,
+            "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
+            "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
             "assumed_base_hours_for_per_person_pricing": settings.ASSUMED_BASE_HOURS,
             "unread_messages": Message.objects.filter(is_read=False).count(),
         })
