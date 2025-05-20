@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.utils.timezone import now
 from django.core.files import File
 
@@ -12,7 +12,6 @@ from twilio.rest import Client
 from core.models import Lead, LeadNote, LeadStatusEnum, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
-from communication.forms import OutboundPhoneCallForm
 from .base import CallingServiceInterface
 
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
@@ -120,7 +119,7 @@ class TwilioCallingService(CallingServiceInterface):
 
             phone_call.call_duration = int(dial_duration)
             phone_call.status = dial_status
-            phone_call.save()
+            phone_call.save(update_fields=['call_duration', 'status'])
 
             lead_phone_number = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
             user_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
@@ -204,7 +203,7 @@ class TwilioCallingService(CallingServiceInterface):
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
             if lead.is_qualified() and lead.lead_status == LeadStatusEnum.LEAD_CREATED.value:
-                lead.change_lead_status(LeadStatusEnum.QUALIFIED_LEAD)            
+                lead.change_lead_status(status=LeadStatusEnum.QUALIFIED_LEAD)            
 
             return HttpResponse('Success!', status=200)
 

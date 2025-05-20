@@ -5,10 +5,14 @@ class MessagingProvider(Enum):
     TWILIO = "twilio"
 
 class TwilioWebhookEvents(Enum):
+    INITIATED = "initiated"
+    RINGING = "ringing"
+    IN_PROGRESS = "in-progress"
     COMPLETED = "completed"
     NO_ANSWER = "no-answer"
     BUSY = "busy"
     FAILED = "failed"
+    CANCELED = "canceled"
 
     @classmethod
     def all(cls):
