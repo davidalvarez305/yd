@@ -72,6 +72,7 @@ class LeadStatus(models.Model):
         return self.status
 
 class LeadStatusHistory(models.Model):
+    lead_status_history_id = models.AutoField(primary_key=True)
     lead = models.ForeignKey('Lead', on_delete=models.CASCADE)
     lead_status = models.ForeignKey('LeadStatus', on_delete=models.CASCADE)
     date_changed = models.DateTimeField(auto_now_add=True)
