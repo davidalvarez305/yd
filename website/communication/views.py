@@ -10,12 +10,10 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from crm.views import CRMBaseCreateView
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from core.attachments import AttachmentServiceMixin
-from core.models import Lead, Message, PhoneCall
+from core.models import Lead, Message
 from core.messaging import messaging_service
 from core.calling import calling_service
 from communication.forms import OutboundPhoneCallForm
-from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 
 from .forms import MessageForm
 
@@ -27,7 +25,7 @@ def handle_inbound_message(request: HttpRequest):
 def handle_message_status_callback(request: HttpRequest):
     return messaging_service.handle_message_status_callback(request)
 
-class MessageCreateView(AttachmentServiceMixin, CRMBaseCreateView, AlertMixin):
+class MessageCreateView(CRMBaseCreateView, AlertMixin):
     model = Message
     form_class = MessageForm
 
