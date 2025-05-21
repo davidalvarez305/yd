@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Lead, MarketingCampaign, PhoneCall
+from .models import Lead, LeadMarketing, MarketingCampaign, PhoneCall
 from core.models import CallTracking
 
 @receiver(post_save, sender=Lead)
@@ -13,19 +13,15 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
     """
     if created:
         try:
-            lead_marketing = getattr(instance, 'lead_marketing', None)
-            if lead_marketing is None:
-                raise AttributeError('Lead marketing is not available on instance.')
+            lead_marketing = LeadMarketing.objects.filter(lead=instance).first()
+
+            if not lead_marketing:
+                raise ValueError('Lead marketing not found.')
 
             if lead_marketing.is_instant_form_lead():
                 return
-            
-            phone_calls = instance.phone_calls()
 
-            if not phone_calls:
-                return
-            
-            first_inbound_call = phone_calls.order_by('-date_created').first()
+            first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('-date_created').first()
 
             tracking_call = (
                 CallTracking.objects
@@ -38,7 +34,7 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
                 .first()
             )
 
-            if tracking_call is None:
+            if not tracking_call:
                 return
             
             for key, value in tracking_call.metadata.items():

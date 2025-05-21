@@ -203,7 +203,7 @@ class QuoteView(BaseWebsiteView):
 
         try:
             with transaction.atomic():
-                lead = form.save(commit=False)
+                lead = form.save()
 
                 helper = MarketingHelper(request)
                 marketing = LeadMarketing()
@@ -214,14 +214,13 @@ class QuoteView(BaseWebsiteView):
 
                 marketing.button_clicked = form.cleaned_data.get('button_clicked')
 
-                lead.lead_marketing = marketing
+                marketing.lead = lead
 
-                lead.save()
+                marketing.save()
 
             lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
             return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
         except Exception as e:
-            print(f'Internal server error: {e}')
             return self.alert(request, "Internal server error", AlertStatus.INTERNAL_ERROR)

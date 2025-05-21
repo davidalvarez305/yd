@@ -439,7 +439,7 @@ class LeadMarketing(models.Model):
         return f"Marketing info for Lead {self.lead_id}"
     
     def is_instant_form_lead(self):
-        return self.instant_form_lead_id is not None
+        return bool(self.instant_form_lead_id)
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
