@@ -21,7 +21,7 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
             if lead_marketing.is_instant_form_lead():
                 return
 
-            first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('-date_created').first()
+            first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('date_created').first()
 
             tracking_call = (
                 CallTracking.objects
