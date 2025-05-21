@@ -58,7 +58,7 @@ class LeadStatusEnum(Enum):
     EVENT_BOOKED = 'Event Booked'
 
     def __str__(self):
-        return self.value
+        return self.name
 
 class LeadStatus(models.Model):
     lead_status_id = models.IntegerField(primary_key=True)
@@ -66,7 +66,6 @@ class LeadStatus(models.Model):
         max_length=50,
         choices=[(status.name, status.value) for status in LeadStatusEnum]
     )
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.status
@@ -155,7 +154,7 @@ class Lead(models.Model):
 
     def change_lead_status(self, status: Union[str, LeadStatusEnum]):
         if isinstance(status, LeadStatusEnum):
-            status = status.value
+            status = status.name
 
         try:
             lead_status = LeadStatus.objects.get(status=status)
@@ -172,14 +171,14 @@ class Lead(models.Model):
         )
 
         lead_status_changed.send(sender=self.__class__, instance=self)
-    
+
     def value(self) -> float:
         result = self.events.aggregate(total=Sum('amount'))
         return result['total'] or 0.0
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.objects.filter(pk=self.pk).update(
+        self.__class__.objects.filter(pk=self.pk).update(
             search_vector=SearchVector('full_name', 'phone_number')
         )
     
