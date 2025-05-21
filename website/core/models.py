@@ -10,7 +10,7 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
-from marketing.signals import lead_status_changed
+from .signals import lead_status_changed
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
