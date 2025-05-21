@@ -70,6 +70,9 @@ class LeadStatus(models.Model):
 
     def __str__(self):
         return self.status
+    
+    class Meta:
+        db_table = 'lead_status'
 
 class LeadStatusHistory(models.Model):
     lead_status_history_id = models.AutoField(primary_key=True)
@@ -80,12 +83,18 @@ class LeadStatusHistory(models.Model):
     def __str__(self):
         return f"Lead {self.lead.id} - Status {self.lead_status.get_status_display()} on {self.date_changed}"
 
+    class Meta:
+        db_table = 'lead_status_history'
+
 class LeadInterest(models.Model):
     lead_interest_id = models.IntegerField(primary_key=True)
     interest = models.CharField(max_length=100)
 
     def __str__(self):
         return self.interest
+    
+    class Meta:
+        db_table = 'lead_interest'
 
 class NextAction(models.Model):
     next_action_id = models.IntegerField(primary_key=True)
@@ -93,6 +102,9 @@ class NextAction(models.Model):
 
     def __str__(self):
         return self.action
+    
+    class Meta:
+        db_table = 'next_action'
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
@@ -179,6 +191,9 @@ class LeadNextAction(models.Model):
     next_action = models.ForeignKey(NextAction, db_column='next_action_id', on_delete=models.CASCADE)
     lead = models.ForeignKey(Lead, db_column='lead_id', on_delete=models.CASCADE)
     action_date = models.DateTimeField()
+
+    class Meta:
+        db_table = 'lead_next_action'
 
 class ServiceType(models.Model):
     service_type_id = models.IntegerField(primary_key=True)
@@ -415,6 +430,7 @@ class MarketingCampaign(models.Model):
         return self.name
 
     class Meta:
+        db_table = 'marketing_campaign'
         unique_together = ('marketing_campaign_id', 'platform_id')
 
 class LeadMarketing(models.Model):
@@ -498,17 +514,6 @@ class CallTracking(models.Model):
 
     class Meta:
         db_table = 'call_tracking'
-
-class LandingPage(models.Model):
-    landing_page_id = models.AutoField(primary_key=True)
-    url = models.SlugField()
-    template = models.CharField(max_length=255)
-
-    def __str__(self):
-        return str(self.url)
-
-    class Meta:
-        db_table = 'landing_page'
 
 class Cocktail(models.Model):
     cocktail_id = models.IntegerField(primary_key=True)
