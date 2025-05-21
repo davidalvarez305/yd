@@ -1,9 +1,9 @@
 from django import forms
 
 from core.models import Message, PhoneCall
-from core.forms import MultiFileInput, MultiMediaFileField
+from core.forms import BaseModelForm, MultiFileInput, MultiMediaFileField
 
-class MessageForm(forms.ModelForm):
+class MessageForm(BaseModelForm):
     text = forms.CharField(
         label="Message*",
         widget=forms.Textarea(attrs={'rows': 3, 'required': False}),
@@ -37,7 +37,7 @@ class MessageForm(forms.ModelForm):
         model = Message
         fields = ['text', 'message_media', 'text_to', 'text_from']
 
-class PhoneCallForm(forms.ModelForm):
+class PhoneCallForm(BaseModelForm):
     class Meta:
         model = PhoneCall
         fields = '__all__'
