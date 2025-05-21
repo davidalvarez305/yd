@@ -84,6 +84,10 @@ class LeadForm(BaseModelForm):
                 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
             )
         return phone_number
+    
+    def clean_stripe_customer_id(self):
+        value = self.cleaned_data.get('stripe_customer_id')
+        return value.strip() or None
 
     class Meta:
         model = Lead
