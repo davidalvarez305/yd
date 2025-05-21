@@ -203,20 +203,22 @@ class QuoteView(BaseWebsiteView):
 
         try:
             with transaction.atomic():
-                lead = form.save()
+                lead = form.save(commit=False)
 
                 helper = MarketingHelper(request)
                 marketing = LeadMarketing()
 
-                for key, value in helper.items():
+                for key, value in helper.to_dict().items():
                     if hasattr(marketing, key):
                         setattr(marketing, key, value)
 
                 marketing.button_clicked = form.cleaned_data.get('button_clicked')
 
-                marketing.save()
+                lead.lead_marketing = marketing
 
-                lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
+                lead.save()
+
+            lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
             return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 

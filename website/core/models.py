@@ -139,11 +139,7 @@ class Lead(models.Model):
         return last_msg or last_call
     
     def update_search_vector(self):
-        self.search_vector = (
-            SearchVector('full_name') +
-            SearchVector('phone_number')
-        )
-        self.save()
+        return SearchVector('full_name') + SearchVector('phone_number')
 
     def change_lead_status(self, status: Union[str, LeadStatusEnum]):
         if isinstance(status, LeadStatusEnum):
@@ -170,8 +166,10 @@ class Lead(models.Model):
         return result['total'] or 0.0
 
     def save(self, *args, **kwargs):
-        self.update_search_vector()
         super().save(*args, **kwargs)
+        self.objects.filter(pk=self.pk).update(
+            search_vector=SearchVector('full_name', 'phone_number')
+        )
     
     class Meta:
         db_table = 'lead'

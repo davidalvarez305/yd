@@ -13,54 +13,48 @@ def handle_lead_save(sender, instance: Lead, created, **kwargs) -> None:
     """
     if created:
         try:
-            if instance.lead_marketing.is_instant_form_lead():
+            lead_marketing = getattr(instance, 'lead_marketing', None)
+            if lead_marketing is None:
+                raise AttributeError('Lead marketing is not available on instance.')
+
+            if lead_marketing.is_instant_form_lead():
                 return
             
-            phone_call = (
-                PhoneCall.objects
-                .filter(
-                    call_from=instance.phone_number,
-                    date_created__lt=instance.created_at,
-                )
-                .order_by('-date_created')
-                .first()
-            )
+            phone_calls = instance.phone_calls()
 
-            if not phone_call:
+            if not phone_calls:
                 return
-           
+            
+            first_inbound_call = phone_calls.order_by('-date_created').first()
+
             tracking_call = (
                 CallTracking.objects
                 .filter(
-                    phone_number=phone_call.call_to,
-                    date_assigned__lt=phone_call.date_created,
-                    date_expires__gt=phone_call.date_created,
+                    phone_number=first_inbound_call.call_to,
+                    date_assigned__lt=first_inbound_call.date_created,
+                    date_expires__gt=first_inbound_call.date_created,
                 )
                 .order_by('-date_created')
                 .first()
             )
 
-            if not tracking_call:
-                return
-
-            marketing = getattr(instance, 'lead_marketing', None)
-            if not marketing:
+            if tracking_call is None:
                 return
             
             for key, value in tracking_call.metadata.items():
-                if hasattr(marketing, key):
-                    setattr(marketing, key, value)
+                if hasattr(lead_marketing, key):
+                    setattr(lead_marketing, key, value)
 
             campaign_id = getattr(tracking_call.metadata, 'marketing_campaign_id', None)
             campaign_name = getattr(tracking_call.metadata, 'marketing_campaign_name', None)
 
-            marketing.marketing_campaign = MarketingCampaign.objects.get_or_create(
+            lead_marketing.marketing_campaign = MarketingCampaign.objects.get_or_create(
                 marketing_campaign_id=campaign_id,
-                platform_id=marketing.platform_id,
+                platform_id=lead_marketing.platform_id,
                 name=campaign_name,
             )
 
-            marketing.save()
+            lead_marketing.save()
 
         except Exception as e:
             print(f"Error processing lead save: {str(e)}")
