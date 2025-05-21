@@ -42,11 +42,12 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     campaign_id = getattr(tracking_call.metadata, 'marketing_campaign_id', None)
     campaign_name = getattr(tracking_call.metadata, 'marketing_campaign_name', None)
 
-    lead_marketing.marketing_campaign = MarketingCampaign.objects.get_or_create(
-        marketing_campaign_id=campaign_id,
-        platform_id=lead_marketing.platform_id,
-        name=campaign_name,
-    )
+    if campaign_id and campaign_name:
+        lead_marketing.marketing_campaign = MarketingCampaign.objects.get_or_create(
+            marketing_campaign_id=campaign_id,
+            platform_id=lead_marketing.platform_id,
+            name=campaign_name,
+        )
 
     lead_marketing.save()
     
