@@ -62,13 +62,22 @@ WSGI_APPLICATION = 'website.wsgi.application'
 
 
 # Database
+POSTGRES_HOST = env.get("POSTGRES_HOST")
+POSTGRES_PORT = env.get("POSTGRES_PORT")
+PGUSER = env.get("PGUSER")
+POSTGRES_PASSWORD = env.get("POSTGRES_PASSWORD")
+POSTGRES_DB = env.get("POSTGRES_DB")
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': POSTGRES_DB,
+        'USER': PGUSER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': POSTGRES_HOST,
+        'PORT': POSTGRES_PORT,
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -111,12 +120,6 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 # Env
 PRODUCTION = env.get("PRODUCTION")
-POSTGRES_HOST = env.get("POSTGRES_HOST")
-POSTGRES_PORT = env.get("POSTGRES_PORT")
-PGUSER = env.get("PGUSER")
-POSTGRES_PASSWORD = env.get("POSTGRES_PASSWORD")
-POSTGRES_DB = env.get("POSTGRES_DB")
-SERVER_PORT = env.get("SERVER_PORT")
 
 COMPANY_NAME = env.get("COMPANY_NAME")
 SITE_NAME = env.get("SITE_NAME")

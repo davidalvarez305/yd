@@ -1,13 +1,12 @@
 from django.db.models.signals import Signal
 from django.dispatch import receiver
 
-from core.models import Lead
 from core.conversions import conversion_service
 
 lead_status_changed = Signal()
 
 @receiver(lead_status_changed)
-def handle_lead_status_change(sender, instance: Lead, **kwargs):
+def handle_lead_status_change(sender, instance, **kwargs):
     """
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.

@@ -763,6 +763,10 @@ select{
   border-width: 0;
 }
 
+.pointer-events-none{
+  pointer-events: none;
+}
+
 .static{
   position: static;
 }
@@ -786,6 +790,11 @@ select{
 .inset-x-0{
   left: 0px;
   right: 0px;
+}
+
+.inset-y-0{
+  top: 0px;
+  bottom: 0px;
 }
 
 .bottom-0{
@@ -864,6 +873,11 @@ select{
   margin-bottom: 2rem;
 }
 
+.my-px{
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
 .mb-0\.5{
   margin-bottom: 0.125rem;
 }
@@ -898,6 +912,10 @@ select{
 
 .ml-2{
   margin-left: 0.5rem;
+}
+
+.ml-px{
+  margin-left: 1px;
 }
 
 .mt-0\.5{
@@ -1011,6 +1029,10 @@ select{
 
 .min-h-dvh{
   min-height: 100dvh;
+}
+
+.w-10{
+  width: 2.5rem;
 }
 
 .w-12{
@@ -1332,6 +1354,11 @@ select{
 
 .rounded-xl{
   border-radius: 0.75rem;
+}
+
+.rounded-l{
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
 }
 
 .rounded-bl-none{
@@ -1759,10 +1786,6 @@ select{
 
 .uppercase{
   text-transform: uppercase;
-}
-
-.capitalize{
-  text-transform: capitalize;
 }
 
 .leading-4{

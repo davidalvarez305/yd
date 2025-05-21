@@ -61,11 +61,14 @@ class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
             self.filter_form = filter_form_class(self.request.GET)
 
             if self.filter_form.is_valid():
+                model_fields = {f.name for f in self.model._meta.get_fields()}
+
                 filters = {
                     field_name: field_value
                     for field_name, field_value in self.filter_form.cleaned_data.items()
-                    if field_value not in [None, '']
+                    if field_name in model_fields and field_value not in [None, '']
                 }
+
                 queryset = queryset.filter(**filters)
 
         return queryset
@@ -249,7 +252,7 @@ class LeadListView(CRMBaseListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         
-        search = self.request.GET.get('search', None)
+        search = self.request.GET.get('search')
         
         if search:
             search_query = SearchQuery(search, search_type='plain')
@@ -257,6 +260,8 @@ class LeadListView(CRMBaseListView):
             queryset = queryset.annotate(
                 rank=SearchRank(F('search_vector'), search_query)
             ).filter(search_vector=search_query)
+
+            print(queryset)
             
             queryset = queryset.order_by('-rank')
 

@@ -28,12 +28,20 @@ class CallTrackingMixin:
         return super().dispatch(request, *args, **kwargs)
 
     def track_call(self, request: HttpRequest):
-        phone_number = random.choice(CallTrackingNumber.objects.all())
+        tracking_numbers = CallTrackingNumber.objects.all()
 
-        request.session[tracking_number] = {
-            'call_tracking_number': phone_number.call_tracking_number,
+        data = {
+            'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
             'timestamp': now().isoformat(),
         }
+
+        if len(tracking_numbers) == 0:
+            return
+
+        phone_number = random.choice(tracking_numbers)
+
+        data['call_tracking_number'] = phone_number.call_tracking_number
+        request.session[tracking_number] = data
 
         metadata = MarketingHelper(request)
         

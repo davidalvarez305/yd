@@ -16,7 +16,6 @@ class EnvConfig:
         "POSTGRES_DB",
 
         # Server
-        "SERVER_PORT",
         "ALLOWED_HOSTS",
 
         # Company
