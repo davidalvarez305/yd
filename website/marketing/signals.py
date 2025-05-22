@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from core.conversions import conversion_service
-from core.models import Lead, LeadMarketing, MarketingCampaign, PhoneCall
+from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign, PhoneCall
 from core.models import CallTracking
 from core.signals import lead_status_changed
 
@@ -49,8 +49,12 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
 
     conversion_service.send_conservion(data=data)
 
-    # Assign Lead Marketing Data if Lead Came From Call
+    # Assign lead marketing data if lead came from phone call
     if lead_marketing.is_instant_form_lead():
+        return
+    
+    # Only apply marketing data the first time the lead is assigned to lead created
+    if instance.lead_status.status != LeadStatusEnum.LEAD_CREATED:
         return
 
     first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('date_created').first()
