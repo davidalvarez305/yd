@@ -5,6 +5,25 @@ from .base import ConversionService
 
 class FacebookConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
+        click_id = data.get('click_id')
+        if not click_id:
+            return {
+                'data': [
+                    {
+                        'event_name': data.get('event_name'),
+                        'event_time': data.get('event_time'),
+                        'action_source': 'crm',
+                        'user_data': {
+                            'lead_id': data.get('instant_form_lead_id')
+                        },
+                        'custom_data': {
+                            'lead_event_source': settings.COMPANY_NAME,
+                            'event_source': 'crm'
+                        }
+                    }
+                ]
+            }
+        
         user_data = {
             'em': [self.hash_to_sha256(data.get('email'))],
             'ph': [self.hash_to_sha256(data.get('phone_number'))],
@@ -18,41 +37,25 @@ class FacebookConversionService(ConversionService):
             'value': data.get('value', settings.DEFAULT_LEAD_VALUE)
         }
 
-        web_payload = {
-            'data': [
-                {
-                    'event_name': data.get('event_name'),
-                    'event_time': data.get('event_time'),
-                    'action_source': 'website',
-                    'user_data': user_data,
-                    'custom_data': custom_data,
-                }
-            ]
+        event = {
+            'event_name': data.get('event_name'),
+            'event_time': data.get('event_time'),
+            'action_source': 'website',
+            'user_data': user_data,
+            'custom_data': custom_data,
         }
 
-        click_id = data.get('click_id')
+        self._add_valid_property(event, 'event_source_url', data.get('event_source_url'))
 
-        if click_id:
-            return web_payload
-        
-        lead_ads_payload = {
+        return {
             'data': [
-                {
-                    'event_name': data.get('event_name'),
-                    'event_time': data.get('event_time'),
-                    'action_source': 'crm',
-                    'user_data': {
-                        'lead_id': data.get('instant_form_lead_id')
-                    },
-                    'custom_data': {
-                        'lead_event_source': settings.COMPANY_NAME,
-                        'event_source': 'crm'
-                    }
-                }
+                event
             ]
         }
-
-        return lead_ads_payload
+    
+    def _add_valid_property(target: dict, key: str, value):
+        if value:
+            target[key] = value
 
     def _get_endpoint(self) -> str:
         pixel_id = self.options.get('pixel_id')
