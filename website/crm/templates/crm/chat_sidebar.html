@@ -1,7 +1,7 @@
 {% for lead in leads %}
 <li class="group flex cursor-pointer items-center justify-between gap-2 px-3 text-sm text-gray-600 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white"
     role="option" tabindex="-1" aria-selected="false">
-    <div class="leadName grow truncate py-1.5">{{ lead.LeadName }}</div>
+    <div class="grow truncate py-1.5">{{ lead.full_name }}</div>
     <div id="icons">
         {% if lead.unread_messages_count > 0 %}
         <button class="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-200 bg-white px-3 py-0.5 m-1 font-semibold leading-6 text-primary-800 hover:z-1 hover:border-primary-300 hover:text-primary-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-primary-200 active:shadow-none dark:border-primary-700 dark:bg-gray-800 dark:text-primary-300 dark:hover:border-primary-600 dark:hover:text-primary-200 dark:focus:ring-gray-600/40 dark:active:border-primary-700">
@@ -15,7 +15,7 @@
                 <path d="M7 9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-.25v1.25a.75.75 0 0 1-1.28.53L9.69 12H9a2 2 0 0 1-2-2V9Z"/>
             </svg>
         </button>
-        <a href="/crm/lead/{{ lead.LeadID }}" target="_blank"
+        <a href="{ url 'lead_detail' pk=lead.pk }"
             class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1 m-1 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
             <!-- User SVG -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-user-circle inline-block size-4">
