@@ -158,7 +158,7 @@ class Lead(models.Model):
         lead_status = LeadStatus.objects.filter(status=status).first()
 
         if not lead_status:
-            raise ValueError("Invalid lead status.")
+            raise ValueError('Invalid lead status.')
         
         self.lead_status = lead_status
         self.save()
