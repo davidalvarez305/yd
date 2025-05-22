@@ -13,6 +13,11 @@ class FacebookConversionService(ConversionService):
             'fbc': data.get('click_id')
         }
 
+        custom_data = {
+            'currency': data.get('currency', settings.DEFAULT_CURRENCY),
+            'value': data.get('value', settings.DEFAULT_LEAD_VALUE)
+        }
+
         web_payload = {
             'data': [
                 {
@@ -20,6 +25,7 @@ class FacebookConversionService(ConversionService):
                     'event_time': data.get('event_time'),
                     'action_source': 'website',
                     'user_data': user_data,
+                    'custom_data': custom_data,
                 }
             ]
         }

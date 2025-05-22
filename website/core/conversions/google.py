@@ -1,6 +1,7 @@
 import re
 
 from marketing.enums import ConversionServiceType
+from website import settings
 from .base import ConversionService
 
 class GoogleConversionService(ConversionService):
@@ -11,8 +12,8 @@ class GoogleConversionService(ConversionService):
                 {
                     'name': data.get('event_name'),
                     'params': {
-                        'value': data.get('value', 100.0),
-                        'currency': 'USD',
+                        'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
+                        'currency': data.get('currency', settings.DEFAULT_CURRENCY),
                     },
                 }
             ],
