@@ -22,8 +22,8 @@
             <div class="md:w-2/3 md:pl-24">
                 <form class="space-y-6 xl:w-2/3"
                     hx-post="{% url update_url pk=pk %}"
-                    hx-ext="loading-states"
                     hx-target-error="#alertModal"
+                    hx-ext="loading-states"
                     data-loading-target="#submitButtonLoader"
                     data-loading-class-remove="hidden"
                 >
