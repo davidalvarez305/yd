@@ -155,9 +155,9 @@ class Lead(models.Model):
         if isinstance(status, LeadStatusEnum):
             status = status.name
 
-        try:
-            lead_status = LeadStatus.objects.get(status=status)
-        except LeadStatus.DoesNotExist:
+        lead_status = LeadStatus.objects.filter(status=status).first()
+
+        if not lead_status:
             raise ValueError("Invalid lead status.")
         
         self.lead_status = lead_status
@@ -165,8 +165,7 @@ class Lead(models.Model):
 
         LeadStatusHistory.objects.create(
             lead=self,
-            lead_status=lead_status,
-            date_changed=now()
+            lead_status=lead_status
         )
 
         lead_status_changed.send(sender=self.__class__, instance=self)
