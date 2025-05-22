@@ -290,6 +290,11 @@ class MultiMediaFileField(forms.FileField):
     widget = MultiFileInput
 
     def __init__(self, *args, **kwargs):
+        field_name = kwargs.pop('field_name', None)
+        if not field_name:
+            raise AttributeError("MultiMediaFileField requires a 'field_name' argument.")
+
+        self.field_name = field_name
         self.upload_root = getattr(settings, "UPLOADS_ROOT", os.path.join(settings.BASE_DIR, "uploads"))
         os.makedirs(self.upload_root, exist_ok=True)
         super().__init__(*args, **kwargs)
@@ -332,7 +337,7 @@ class MultiMediaFileField(forms.FileField):
     def _build_uploaded_file(self, file_obj, name, content_type, size, charset=None):
         return InMemoryUploadedFile(
             file=file_obj,
-            field_name=self.name,
+            field_name=self.field_name,
             name=name,
             content_type=content_type,
             size=size,

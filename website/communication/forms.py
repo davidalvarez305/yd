@@ -17,7 +17,8 @@ class MessageForm(BaseModelForm):
             'id': 'messageMedia',
             'accept': 'audio/*, image/*, video/*'
         }),
-        required=False
+        required=False,
+        field_name='messageMedia',
     )
 
     text_to = forms.CharField(widget=forms.HiddenInput())
