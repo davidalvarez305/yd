@@ -8,6 +8,7 @@ from django.shortcuts import redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from django.utils.timezone import now
+from django.http import HttpResponseRedirect
 
 from website import settings
 from core.models import CallTrackingNumber, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
@@ -142,6 +143,15 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
         """
         model_name = self.model._meta.model_name
         return [f"crm/{model_name}_form.html"]
+    
+    def form_valid(self, form):
+        if self.request.htmx:
+            success_url = self.get_success_url()
+            response = HttpResponseRedirect(success_url)
+            response['HX-Redirect'] = success_url
+            return response
+
+        return super().form_valid(form)
 
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
