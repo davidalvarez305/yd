@@ -19,7 +19,6 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     # Report Conversion Event
     status_event_map = {
         'Lead Created': 'generate_lead',
-        'Qualified Lead': 'qualified_lead',
         'Sales Prospect': 'invoice_sent',
         'Event Booking': 'event_booked',
     }
