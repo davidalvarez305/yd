@@ -9,7 +9,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
-from core.models import Lead, LeadNote, LeadStatusEnum, Message, User
+from core.models import Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
 from .base import CallingServiceInterface
@@ -201,9 +201,6 @@ class TwilioCallingService(CallingServiceInterface):
                     message.save()
                 except Exception as e:
                     return HttpResponse('Error while generating response from AI Agent', status=500)
-
-            if lead.is_qualified() and lead.lead_status == LeadStatusEnum.LEAD_CREATED.value:
-                lead.change_lead_status(status=LeadStatusEnum.QUALIFIED_LEAD)            
 
             return HttpResponse('Success!', status=200)
 

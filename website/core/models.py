@@ -53,7 +53,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'Lead Created'
-    QUALIFIED_LEAD = 'Qualified Lead'
     INVOICE_SENT = 'Invoice Sent'
     EVENT_BOOKED = 'Event Booked'
 
