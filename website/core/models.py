@@ -172,7 +172,7 @@ class Lead(models.Model):
 
     def value(self) -> float:
         result = self.events.aggregate(total=Sum('amount'))
-        return result['total'] or 0.0
+        return result.get('total') or 0.0
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
