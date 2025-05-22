@@ -132,6 +132,9 @@ class Lead(models.Model):
     def messages(self):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
     
+    def unread_messages_count(self):
+        return Message.objects.filter(text_to=self.phone_number, is_unread=True).count()
+    
     def visits(self):
         return Visit.objects.filter(lead_marketing=self.lead_marketing)
     
@@ -305,6 +308,11 @@ class Message(models.Model):
 
     class Meta:
         db_table = "message"
+        indexes = [
+            models.Index(fields=["text_from"]),
+            models.Index(fields=["text_to"]),
+            models.Index(fields=["is_unread"]),
+        ]
 
     def save(self, *args, **kwargs):
         self.text_from = self.text_from[-10:]

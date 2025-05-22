@@ -511,3 +511,7 @@ class LeadNoteUpdateView(CRMBaseUpdateView):
 class LeadNoteDeleteView(CRMBaseDeleteView):
     model = LeadNote
     form_class = LeadNoteForm
+
+class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
+    template = 'messages.html'
+    model = Message
