@@ -15,46 +15,8 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
 
     if not lead_marketing:
         raise ValueError('Lead marketing not found.')
-
-    if lead_marketing.is_instant_form_lead():
-        return
-
-    first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('date_created').first()
-
-    if not first_inbound_call:
-        return
-
-    tracking_call = (
-        CallTracking.objects
-        .filter(
-            phone_number=first_inbound_call.call_to,
-            date_assigned__lt=first_inbound_call.date_created,
-            date_expires__gt=first_inbound_call.date_created,
-        )
-        .order_by('-date_created')
-        .first()
-    )
-
-    if not tracking_call:
-        return
     
-    for key, value in tracking_call.metadata.items():
-        if hasattr(lead_marketing, key):
-            setattr(lead_marketing, key, value)
-
-    campaign_id = tracking_call.metadata.get('marketing_campaign_id')
-    campaign_name = tracking_call.metadata.get('marketing_campaign_name')
-
-    if campaign_id and campaign_name:
-        campaign, created = MarketingCampaign.objects.get_or_create(
-            marketing_campaign_id=campaign_id,
-            platform_id=lead_marketing.platform_id,
-            defaults={'name': campaign_name}
-        )
-        lead_marketing.marketing_campaign = campaign
-
-    lead_marketing.save()
-
+    # Report Conversion Event
     status_event_map = {
         'Lead Created': 'generate_lead',
         'Qualified Lead': 'qualified_lead',
@@ -86,3 +48,43 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
             data[attr] = attr_value
 
     conversion_service.send_conservion(data=data)
+
+    # Assign Lead Marketing Data if Lead Came From Call
+    if lead_marketing.is_instant_form_lead():
+        return
+
+    first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('date_created').first()
+
+    if not first_inbound_call:
+        return
+
+    tracking_call = (
+        CallTracking.objects
+        .filter(
+            phone_number=first_inbound_call.call_to,
+            date_assigned__lt=first_inbound_call.date_created,
+            date_expires__gt=first_inbound_call.date_created,
+        )
+        .order_by('-date_created')
+        .first()
+    )
+
+    if not tracking_call:
+        return
+    
+    for key, value in tracking_call.metadata.items():
+        if hasattr(lead_marketing, key):
+            setattr(lead_marketing, key, value)
+
+    campaign_id = tracking_call.metadata.get('marketing_campaign_id')
+    campaign_name = tracking_call.metadata.get('marketing_campaign_name')
+
+    if campaign_id and campaign_name:
+        campaign, _ = MarketingCampaign.objects.get_or_create(
+            marketing_campaign_id=campaign_id,
+            platform_id=lead_marketing.platform_id,
+            defaults={'name': campaign_name}
+        )
+        lead_marketing.marketing_campaign = campaign
+
+    lead_marketing.save()
