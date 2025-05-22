@@ -41,7 +41,14 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         data['value'] = value
         data['currency'] = 'USD'
 
-    attributes = ['client_id', 'click_id', 'email', 'phone_number']
+    attributes = [
+        'client_id',
+        'click_id',
+        'email',
+        'phone_number',
+        'instant_form_lead_id'
+    ]
+
     for attr in attributes:
         attr_value = getattr(lead_marketing, attr, None)
         if attr_value:

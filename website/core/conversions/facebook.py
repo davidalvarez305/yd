@@ -36,7 +36,7 @@ class FacebookConversionService(ConversionService):
                     'event_time': data.get('event_time'),
                     'action_source': 'crm',
                     'user_data': {
-                        'lead_id': data.get('lead_id_id')
+                        'lead_id': data.get('instant_form_lead_id')
                     },
                     'custom_data': {
                         'lead_event_source': settings.COMPANY_NAME,
@@ -62,7 +62,7 @@ class FacebookConversionService(ConversionService):
         
         click_id = data.get('click_id')
         if not click_id:
-            return data.get('lead_id') is not None
+            return data.get('instant_form_lead_id') is not None
 
         client_id = data.get('client_id')
         if not client_id or not self._is_valid_client_id(client_id):
