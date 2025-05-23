@@ -418,6 +418,18 @@ class EventDetailView(CRMDetailTemplateView):
     model = Event
     form_class = EventForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event =  Event.objects.get(event_id=kwargs.get('pk'))
+        initial = { 'event': event }
+
+        context.update({
+            'event_cocktail_form': EventCocktailForm(initial=initial),
+            'event_cocktail_table': EventCocktailTable
+        })
+
+        return context
+
 class EventDeleteView(CRMBaseDeleteView):
     model = Event
     form_class = EventForm
