@@ -103,7 +103,6 @@
                             <form method="post" class="space-y-6 p-2 md:p-2"
                                 hx-post="{% url 'event_cocktails_create' %}"
                                 hx-target="#eventCocktailsTable"
-                                hx-swap="outerHTML"
                                 hx-ext="loading-states"
                                 data-loading-target="#submitButtonLoader"
                                 data-loading-class-remove="hidden"
@@ -141,7 +140,9 @@
         </div>
     </div>
 </div>
-{% include 'crm/event_cocktails_table.html' %}
+<div id="eventCocktailsTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    {{ event_cocktails_table.render }}
+</div>
 <!-- END Event Cocktails -->
 <!-- Divider: With Heading -->
     <h3 class="my-8 flex items-center">
