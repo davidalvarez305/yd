@@ -513,5 +513,27 @@ class LeadNoteDeleteView(CRMBaseDeleteView):
     form_class = LeadNoteForm
 
 class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
-    template = 'messages.html'
     model = Message
+    template_name = 'crm/messages.html'
+    context_object_name = 'messages'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        leads = Lead.objects.all()
+        context['leads'] = leads
+        return context
+
+class LeadChatMessagesView(LoginRequiredMixin, CRMContextMixin, ListView):
+    model = Message
+    template_name = 'crm/lead_chat.html'
+    context_object_name = 'lead'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lead = Lead.objects.filter(pk=self.kwargs.get('pk')).first()
+        context['lead'] = lead
+        context['chat_form'] = MessageForm(initial={
+            'text_to': lead.phone_number,
+            'text_from': self.request.user.phone_number,
+        })
+        return context
