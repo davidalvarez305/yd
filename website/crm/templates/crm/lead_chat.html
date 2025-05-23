@@ -108,31 +108,33 @@
 
 <!-- Image & Video Input -->
 <script>
-    const fileAttachment = document.getElementById('fileAttachment');
-    const fileCount = document.getElementById('fileCount');
-    const messageMedia = document.getElementById('messageMedia');
+    document.addEventListener('DOMContentLoaded', function handleMediaInput() {
+        const fileAttachment = document.getElementById('fileAttachment');
+        const fileCount = document.getElementById('fileCount');
+        const messageMedia = document.getElementById('messageMedia');
 
-    function handleFileAttachment() {
-        if (messageMedia) messageMedia.click();
-    }
-
-    fileAttachment.addEventListener('click', () => handleFileAttachment());
-
-    messageMedia.addEventListener('change', (e) => {
-        const count = e.target.files.length;
-
-        switch (count) {
-            case 0:
-                fileCount.textContent = '';
-                break;
-            case 1:
-                fileCount.textContent = '1 file attached';
-                break;
-            default:
-                fileCount.textContent = `${count} files attached`;
-                break;
+        function handleFileAttachment() {
+            if (messageMedia) messageMedia.click();
         }
-    });
+
+        fileAttachment.addEventListener('click', () => handleFileAttachment());
+
+        messageMedia.addEventListener('change', (e) => {
+            const count = e.target.files.length;
+
+            switch (count) {
+                case 0:
+                    fileCount.textContent = '';
+                    break;
+                case 1:
+                    fileCount.textContent = '1 file attached';
+                    break;
+                default:
+                    fileCount.textContent = `${count} files attached`;
+                    break;
+            }
+        });
+    })
 </script>
 <!-- END Image & Video Input -->
 
