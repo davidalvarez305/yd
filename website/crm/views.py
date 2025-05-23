@@ -11,7 +11,7 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, EventCocktail, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
@@ -523,7 +523,7 @@ class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
         context['leads'] = leads
         return context
 
-class LeadChatMessagesView(LoginRequiredMixin, CRMContextMixin, ListView):
+class LeadChatMessagesView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'crm/lead_chat.html'
     context_object_name = 'lead'
@@ -537,3 +537,21 @@ class LeadChatMessagesView(LoginRequiredMixin, CRMContextMixin, ListView):
             'text_from': self.request.user.phone_number,
         })
         return context
+
+class CocktailOptionsListView(LoginRequiredMixin, ListView):
+    model = Cocktail
+
+    def get(self, request, *args, **kwargs):
+        search = self.request.GET.get('search', '')
+
+        cocktails = Cocktail.objects.filter(name__icontains=search)
+        html = ''
+
+        for cocktail in cocktails:
+            html += f'''
+            <option class="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white" role="option" tabindex="-1" aria-selected="false">
+                <div class="grow truncate py-2 font-medium">{cocktail.name}</div>
+            </option>
+            '''
+
+        return HttpResponse(html)

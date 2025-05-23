@@ -29,6 +29,7 @@ urlpatterns = [
     path('cocktail/<int:pk>/', views.CocktailDetailView.as_view(), name='cocktail_detail'),
     path('cocktail/<int:pk>/edit/', views.CocktailUpdateView.as_view(), name='cocktail_update'),
     path('cocktail/<int:pk>/delete/', views.CocktailDeleteView.as_view(), name='cocktail_delete'),
+    path('cocktail/options/', views.CocktailOptionsListView.as_view(), name='cocktail_options'),
     
     # Service
     path('service/', views.ServiceListView.as_view(), name='service_list'),
