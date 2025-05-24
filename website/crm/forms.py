@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, EventCocktail, Lead, LeadStatus, LeadInterest, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -470,3 +470,28 @@ class VisitFilterForm(FilterFormMixin, BaseForm):
 class LeadNoteForm(BaseModelForm):
     class Meta:
         fields = ['note']
+
+class EventCocktailForm(BaseModelForm):
+    cocktail = forms.ModelChoiceField(
+        queryset=Cocktail.objects.all(),
+        required=True,
+        empty_label="Cocktail",
+        widget=forms.Select(attrs={
+            'id': 'cocktail',
+            'name': 'cocktail',
+        })
+    )
+
+    event = forms.ModelChoiceField(
+        queryset=Event.objects.all(),
+        required=True,
+        empty_label="Event",
+        widget=forms.Select(attrs={
+            'id': 'event',
+            'name': 'event',
+        })
+    )
+
+    class Meta:
+        model = EventCocktail
+        fields = ['cocktail', 'event']

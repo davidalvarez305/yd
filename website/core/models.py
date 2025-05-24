@@ -60,7 +60,7 @@ class LeadStatusEnum(Enum):
         return self.name
 
 class LeadStatus(models.Model):
-    lead_status_id = models.IntegerField(primary_key=True)
+    lead_status_id = models.AutoField(primary_key=True)
     status = models.CharField(
         max_length=50,
         choices=[(status.name, status.value) for status in LeadStatusEnum]
@@ -85,7 +85,7 @@ class LeadStatusHistory(models.Model):
         db_table = 'lead_status_history'
 
 class LeadInterest(models.Model):
-    lead_interest_id = models.IntegerField(primary_key=True)
+    lead_interest_id = models.AutoField(primary_key=True)
     interest = models.CharField(max_length=100)
 
     def __str__(self):
@@ -95,7 +95,7 @@ class LeadInterest(models.Model):
         db_table = 'lead_interest'
 
 class NextAction(models.Model):
-    next_action_id = models.IntegerField(primary_key=True)
+    next_action_id = models.AutoField(primary_key=True)
     action = models.CharField(max_length=255)
 
     def __str__(self):
@@ -187,7 +187,7 @@ class Lead(models.Model):
         db_table = 'lead'
 
 class LeadNextAction(models.Model):
-    lead_next_action_id = models.IntegerField(primary_key=True)
+    lead_next_action_id = models.AutoField(primary_key=True)
     next_action = models.ForeignKey(NextAction, db_column='next_action_id', on_delete=models.CASCADE)
     lead = models.ForeignKey(Lead, db_column='lead_id', on_delete=models.CASCADE)
     action_date = models.DateTimeField()
@@ -196,7 +196,7 @@ class LeadNextAction(models.Model):
         db_table = 'lead_next_action'
 
 class ServiceType(models.Model):
-    service_type_id = models.IntegerField(primary_key=True)
+    service_type_id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
 
     def __str__(self):
@@ -206,7 +206,7 @@ class ServiceType(models.Model):
         db_table = 'service_type'
 
 class UnitType(models.Model):
-    unit_type_id = models.IntegerField(primary_key=True)
+    unit_type_id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
 
     def __str__(self):
@@ -216,7 +216,7 @@ class UnitType(models.Model):
         db_table = 'unit_type'
 
 class Quote(models.Model):
-    quote_id = models.IntegerField(primary_key=True)
+    quote_id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=100)
     lead = models.ForeignKey(Lead, related_name='quotes', db_column='lead_id', on_delete=models.CASCADE)
     guests = models.IntegerField()
@@ -232,7 +232,7 @@ class Quote(models.Model):
         return sum(float(qs.units) * float(qs.price_per_unit) for qs in self.quote_services.all())
 
 class Service(models.Model):
-    service_id = models.IntegerField(primary_key=True)
+    service_id = models.AutoField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)
     service = models.CharField(max_length=255)
     suggested_price = models.FloatField(null=True)
@@ -246,7 +246,7 @@ class Service(models.Model):
         db_table = 'service'
 
 class QuoteService(models.Model):
-    quote_service_id = models.IntegerField(primary_key=True)
+    quote_service_id = models.AutoField(primary_key=True)
     service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
     quote = models.ForeignKey(Quote, related_name='quote_services', db_column='quote_id', on_delete=models.RESTRICT)
     units = models.FloatField()
@@ -259,7 +259,7 @@ class QuoteService(models.Model):
         db_table = 'quote_service'
 
 class InvoiceType(models.Model):
-    invoice_type_id = models.IntegerField(primary_key=True)
+    invoice_type_id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
     amount_percentage = models.FloatField()
 
@@ -270,7 +270,7 @@ class InvoiceType(models.Model):
         db_table = 'invoice_type'
 
 class Invoice(models.Model):
-    invoice_id = models.IntegerField(primary_key=True)
+    invoice_id = models.AutoField(primary_key=True)
     quote = models.ForeignKey(Quote, related_name='invoices', db_column='quote_id', on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_paid = models.DateTimeField()
@@ -283,7 +283,7 @@ class Invoice(models.Model):
         db_table = 'invoice'
 
 class LeadNote(models.Model):
-    lead_note_id = models.IntegerField(primary_key=True)
+    lead_note_id = models.AutoField(primary_key=True)
     note = models.TextField()
     lead = models.ForeignKey(Lead, related_name='notes', db_column='lead_id', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='notes', db_column='added_by_user_id', on_delete=models.CASCADE)
@@ -521,7 +521,7 @@ class CallTracking(models.Model):
         db_table = 'call_tracking'
 
 class Cocktail(models.Model):
-    cocktail_id = models.IntegerField(primary_key=True)
+    cocktail_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
 
     class Meta:
@@ -531,7 +531,7 @@ class Cocktail(models.Model):
         return self.name
 
 class Event(models.Model):
-    event_id = models.IntegerField(primary_key=True)
+    event_id = models.AutoField(primary_key=True)
     lead = models.ForeignKey(Lead, related_name='events', db_column='lead_id', on_delete=models.CASCADE)
     street_address = models.CharField(max_length=255, null=True)
     city = models.CharField(max_length=100, null=True)
@@ -553,7 +553,7 @@ class Event(models.Model):
         db_table = 'event'
 
 class EventCocktail(models.Model):
-    event_cocktail_id = models.IntegerField(primary_key=True)
+    event_cocktail_id = models.AutoField(primary_key=True)
     cocktail = models.ForeignKey(Cocktail, db_column='cocktail_id', on_delete=models.CASCADE)
     event = models.ForeignKey(Event, db_column='event_id', on_delete=models.CASCADE)
 
@@ -562,14 +562,14 @@ class EventCocktail(models.Model):
         unique_together = ('cocktail', 'event')
 
 class EventRole(models.Model):
-    event_role_id = models.IntegerField(primary_key=True)
+    event_role_id = models.AutoField(primary_key=True)
     role = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'event_role'
 
 class EventStaff(models.Model):
-    event_staff_id = models.IntegerField(primary_key=True)
+    event_staff_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User,db_column='user_id', on_delete=models.RESTRICT)
     event = models.ForeignKey(Event, db_column='event_id', on_delete=models.CASCADE)
     event_role = models.ForeignKey(EventRole, db_column='event_role_id', on_delete=models.RESTRICT)

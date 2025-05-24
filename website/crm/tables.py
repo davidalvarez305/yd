@@ -27,9 +27,42 @@ class ServiceTable(Table):
         delete_url = 'service_delete'
 
 class EventTable(Table):
+    event_time = TableField(
+        name='event_time',
+        label='Event Time',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"{row.start_time.strftime('%Y-%m-%d')} {row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
+            }
+        )
+    )
+
+    address = TableField(
+        name='address',
+        label='Address',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"{row.street_address}, {row.city}, {row.zip_code}"
+            }
+        )
+    )
+
     class Meta:
         model = Event
         extra_fields = ['view', 'delete']
+        exclude = [
+            'event_id',
+            'date_created',
+            'date_paid',
+            'tip',
+            'cocktails',
+            'start_time',
+            'end_time',
+            'street_address',
+            'city',
+            'zip_code',
+            'amount'
+        ]
         pk = 'event_id'
         detail_url = 'event_detail'
         delete_url = 'event_delete'

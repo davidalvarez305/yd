@@ -15,7 +15,7 @@ from core.models import CallTrackingNumber, EventCocktail, HTTPLog, LeadNote, Me
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import EventCocktailForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
@@ -145,13 +145,13 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
         return [f"crm/{model_name}_form.html"]
     
     def form_valid(self, form):
-        if self.request.htmx:
-            success_url = self.get_success_url()
-            response = HttpResponseRedirect(success_url)
-            response['HX-Redirect'] = success_url
-            return response
+        response = super().form_valid(form)
 
-        return super().form_valid(form)
+        if self.request.headers.get('HX-Request') == 'true':
+            success_url = self.get_success_url()
+            return HttpResponse(status=200, headers={'HX-Redirect': success_url})
+
+        return response
 
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
@@ -567,3 +567,11 @@ class CocktailOptionsListView(LoginRequiredMixin, ListView):
             '''
 
         return HttpResponse(html)
+
+class EventCocktailCreateView(CRMBaseCreateView):
+    model = EventCocktail
+    form_class = EventCocktailForm
+
+class EventCocktailDeleteView(CRMBaseDeleteView):
+    model = EventCocktail
+    form_class = EventCocktailForm
