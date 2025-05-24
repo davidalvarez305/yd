@@ -543,11 +543,14 @@ class Event(models.Model):
     amount = models.FloatField()
     tip = models.FloatField(null=True)
     guests = models.IntegerField()
-    cocktails = models.ManyToManyField(
+    cocktail = models.ManyToManyField(
         Cocktail,
         through='EventCocktail',
         related_name='events'
     )
+
+    def __str__(self):
+        return f"{self.lead}: {self.start_time.strftime('%B %d, %Y')} - {self.start_time.strftime('%#I %p')}"
     
     class Meta:
         db_table = 'event'

@@ -1,3 +1,4 @@
+from django import forms
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
@@ -136,3 +137,16 @@ def DeleteButton(pk="id", url=None):
         },
         data={"csrf": True}
     )
+
+class AutocompleteSelect(forms.SelectMultiple):
+    template_name = 'components/autocomplete_select.html'
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        option['attrs']['class'] = (
+            "group flex cursor-pointer items-center justify-between gap-2 "
+            "rounded-lg px-3 text-sm text-gray-600 hover:bg-gray-100 "
+            "hover:text-gray-950 dark:text-gray-300 dark:hover:bg-gray-800 "
+            "dark:hover:text-white"
+        )
+        return option

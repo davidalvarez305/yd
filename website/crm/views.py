@@ -133,6 +133,7 @@ class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
 
 class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     success_url = None
+    trigger_alert = False
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
@@ -146,6 +147,9 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
+
+        """ if self.trigger_alert:
+            return self.alert(self.request, "Successfully created!", AlertStatus.SUCCESS) """
 
         if self.request.headers.get('HX-Request') == 'true':
             success_url = self.get_success_url()
@@ -413,19 +417,21 @@ class EventCreateView(CRMCreateTemplateView):
 class EventUpdateView(CRMBaseUpdateView):
     model = Event
     form_class = EventForm
+    trigger_alert = True
 
 class EventDetailView(CRMDetailTemplateView):
+    template_name = 'crm/event_internal_detail.html'
+    context_object_name = 'event'
     model = Event
     form_class = EventForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        event =  Event.objects.get(event_id=kwargs.get('pk'))
-        initial = { 'event': event }
-
+        initial = { 'event': self.object }
         context.update({
+            'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
-            'event_cocktail_table': EventCocktailTable
+            'event_cocktail_table': Table.from_model(model=Event)
         })
 
         return context
@@ -568,7 +574,7 @@ class CocktailOptionsListView(LoginRequiredMixin, ListView):
 
         return HttpResponse(html)
 
-class EventCocktailCreateView(CRMBaseCreateView):
+class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 

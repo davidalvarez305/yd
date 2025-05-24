@@ -6,6 +6,7 @@ from core.models import CallTrackingNumber, EventCocktail, Lead, LeadStatus, Lea
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
+from core.widgets import AutocompleteSelect
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -472,26 +473,14 @@ class LeadNoteForm(BaseModelForm):
         fields = ['note']
 
 class EventCocktailForm(BaseModelForm):
-    cocktail = forms.ModelChoiceField(
-        queryset=Cocktail.objects.all(),
-        required=True,
-        empty_label="Cocktail",
-        widget=forms.Select(attrs={
-            'id': 'cocktail',
-            'name': 'cocktail',
-        })
-    )
-
-    event = forms.ModelChoiceField(
-        queryset=Event.objects.all(),
-        required=True,
-        empty_label="Event",
-        widget=forms.Select(attrs={
-            'id': 'event',
-            'name': 'event',
-        })
-    )
-
     class Meta:
         model = EventCocktail
         fields = ['cocktail', 'event']
+        widgets = {
+            'cocktail': forms.Select(attrs={
+                'class': 'block w-full rounded border-gray-300 bg-white px-3 py-2',
+            }),
+            'event': forms.Select(attrs={
+                'class': 'block w-full rounded border-gray-300 bg-white px-3 py-2',
+            }),
+        }

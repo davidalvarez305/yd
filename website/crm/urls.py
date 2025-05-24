@@ -53,8 +53,8 @@ urlpatterns = [
     path('event/<int:pk>/delete/', views.EventDeleteView.as_view(), name='event_delete'),
 
     # Event Cocktails
-    path('event-cocktails/create/', views.EventCocktailCreateView.as_view(), name='event_cocktails_create'),
-    path('event-cocktails/<int:pk>/delete/', views.EventCocktailDeleteView.as_view(), name='event_cocktails_create'),
+    path('event-cocktails/create/', views.EventCocktailCreateView.as_view(), name='eventcocktail_create'),
+    path('event-cocktails/<int:pk>/delete/', views.EventCocktailDeleteView.as_view(), name='eventcocktail_delete'),
     
     # Message
     path('message/', views.MessageListView.as_view(), name='message_list'),
