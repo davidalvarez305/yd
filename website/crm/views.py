@@ -586,6 +586,10 @@ class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 
+    def form_valid(self, form):
+        super().form_valid(form)
+        return redirect(self.request.META.get('HTTP_REFERER'))
+
 class EventCocktailDeleteView(CRMBaseDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
