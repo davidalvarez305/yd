@@ -428,10 +428,18 @@ class EventDetailView(CRMDetailTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         initial = { 'event': self.object }
+        table = Table.from_model(
+            model=EventCocktail,
+            exclude=['event_cocktail_id', 'event'],
+            extra_fields=['delete'],
+            meta_attrs={
+                'pk': 'event_cocktail_id',
+            }
+        )
         context.update({
             'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
-            'event_cocktail_table': Table.from_model(model=Event)
+            'event_cocktail_table': table(data=EventCocktail.objects.filter(event=self.object))
         })
 
         return context

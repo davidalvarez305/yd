@@ -55,13 +55,13 @@ class EventTable(Table):
             'date_created',
             'date_paid',
             'tip',
-            'cocktails',
+            'cocktail',
             'start_time',
             'end_time',
             'street_address',
             'city',
             'zip_code',
-            'amount'
+            'amount',
         ]
         pk = 'event_id'
         detail_url = 'event_detail'
