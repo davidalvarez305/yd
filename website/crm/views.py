@@ -428,7 +428,7 @@ class EventDetailView(CRMDetailTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         initial = { 'event': self.object }
-        table = Table.from_model(
+        event_cocktail_table = Table.from_model(
             model=EventCocktail,
             exclude=['event_cocktail_id', 'event'],
             extra_fields=['delete'],
@@ -439,7 +439,7 @@ class EventDetailView(CRMDetailTemplateView):
         context.update({
             'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
-            'event_cocktail_table': table(data=EventCocktail.objects.filter(event=self.object))
+            'event_cocktail_table': event_cocktail_table(data=EventCocktail.objects.filter(event=self.object), request=self.request)
         })
 
         return context
@@ -586,9 +586,9 @@ class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 
-    def form_valid(self, form):
-        super().form_valid(form)
-        return redirect(self.request.META.get('HTTP_REFERER'))
+    def post(self, request, *args, **kwargs):
+        self.success_url = request.headers.get('Hx-Current-Url')
+        return super().post(request, *args, **kwargs)
 
 class EventCocktailDeleteView(CRMBaseDeleteView):
     model = EventCocktail
