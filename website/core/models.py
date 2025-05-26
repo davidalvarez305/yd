@@ -568,6 +568,9 @@ class EventRole(models.Model):
     event_role_id = models.AutoField(primary_key=True)
     role = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.role
+
     class Meta:
         db_table = 'event_role'
 
@@ -577,7 +580,9 @@ class EventStaff(models.Model):
     event = models.ForeignKey(Event, db_column='event_id', on_delete=models.CASCADE)
     event_role = models.ForeignKey(EventRole, db_column='event_role_id', on_delete=models.RESTRICT)
     hourly_rate = models.FloatField()
-    
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+
     class Meta:
         db_table = 'event_staff'
 

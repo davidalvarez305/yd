@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, EventCocktail, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, EventCocktail, EventStaff, Lead, LeadStatus, LeadInterest, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -477,8 +477,36 @@ class EventCocktailForm(BaseModelForm):
         model = EventCocktail
         fields = ['cocktail', 'event']
         widgets = {
-            'cocktail': forms.Select(attrs={
-                'class': 'block w-full rounded border-gray-300 bg-white px-3 py-2',
-            }),
+            'cocktail': forms.Select(),
+            'event': forms.HiddenInput(),
+        }
+
+class EventStaffForm(BaseModelForm):
+    start_time = forms.DateTimeField(
+        label="Start Time*",
+        widget=forms.DateTimeInput(attrs={
+            'required': True,
+            'name': 'start_time',
+            'type': 'datetime-local',
+        }),
+        required=True
+    )
+
+    end_time = forms.DateTimeField(
+        label="End Time*",
+        widget=forms.DateTimeInput(attrs={
+            'required': True,
+            'name': 'end_time',
+            'type': 'datetime-local',
+        }),
+        required=True
+    )
+
+    class Meta:
+        model = EventStaff
+        fields = ['user', 'event', 'event_role', 'hourly_rate', 'start_time', 'end_time']
+        widgets = {
+            'user': forms.Select(),
+            'event_role': forms.Select(),
             'event': forms.HiddenInput(),
         }

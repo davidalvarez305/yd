@@ -11,14 +11,14 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, EventCocktail, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, EventCocktail, EventStaff, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import EventCocktailForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, EventCocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
+from crm.tables import CocktailTable, EventCocktailTable, EventStaffTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -432,7 +432,9 @@ class EventDetailView(CRMDetailTemplateView):
         context.update({
             'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
-            'event_cocktail_table': EventCocktailTable(data=EventCocktail.objects.filter(event=self.object), request=self.request)
+            'event_cocktail_table': EventCocktailTable(data=EventCocktail.objects.filter(event=self.object), request=self.request),
+            'event_staff_form': EventStaffForm(initial=initial),
+            'event_staff_table': EventStaffTable(data=EventStaff.objects.filter(event=self.object), request=self.request),
         })
 
         return context
@@ -591,6 +593,27 @@ class EventCocktailCreateView(CRMCreateTemplateView):
 class EventCocktailDeleteView(CRMBaseDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
+
+    def get_success_url(self):
+            return self.request.headers.get('Referer')
+
+
+class EventStaffCreateView(CRMCreateTemplateView):
+    model = EventStaff
+    form_class = EventStaffForm
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        event = self.object.event
+        qs = EventStaff.objects.filter(event=event)
+        table = EventStaffTable(data=qs, request=self.request)
+
+        return HttpResponse(table.render())
+
+class EventStaffDeleteView(CRMBaseDeleteView):
+    model = EventStaff
+    form_class = EventStaffForm
 
     def get_success_url(self):
             return self.request.headers.get('Referer')

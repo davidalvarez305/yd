@@ -56,6 +56,10 @@ urlpatterns = [
     path('event-cocktails/create/', views.EventCocktailCreateView.as_view(), name='eventcocktail_create'),
     path('event-cocktails/<int:pk>/delete/', views.EventCocktailDeleteView.as_view(), name='eventcocktail_delete'),
     
+    # Event Staff
+    path('event-staff/create/', views.EventStaffCreateView.as_view(), name='eventstaff_create'),
+    path('event-staff/<int:pk>/delete/', views.EventStaffDeleteView.as_view(), name='eventstaff_delete'),
+    
     # Message
     path('message/', views.MessageListView.as_view(), name='message_list'),
     path('message/<int:pk>/', views.MessageDetailView.as_view(), name='message_detail'),

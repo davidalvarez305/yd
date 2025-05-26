@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CallTrackingNumber, EventCocktail, Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.models import CallTrackingNumber, EventCocktail, EventStaff, Message, PhoneCall, Service, User, Cocktail, Event, Visit
 from core.widgets import PriceCellWidget
 from core.utils import deep_getattr
 
@@ -157,3 +157,30 @@ class EventCocktailTable(Table):
         exclude=['event_cocktail_id', 'event']
         extra_fields=['delete']
         pk = 'event_cocktail_id'
+
+class EventStaffTable(Table):
+    hourly_rate = TableField(
+        name='hourly_rate',
+        label='Pay Rate',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"${row.hourly_rate}"
+            }
+        )
+    )
+    
+    assigned_staff = TableField(
+        name='assigned_staff',
+        label='Assigned Time',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"{row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
+            }
+        )
+    )
+
+    class Meta:
+        model = EventStaff
+        exclude=['event_staff_id', 'event', 'start_time', 'end_time']
+        extra_fields=['delete']
+        pk = 'event_staff_id'
