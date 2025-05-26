@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CallTrackingNumber, Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.models import CallTrackingNumber, EventCocktail, Message, PhoneCall, Service, User, Cocktail, Event, Visit
 from core.widgets import PriceCellWidget
 from core.utils import deep_getattr
 
@@ -32,7 +32,7 @@ class EventTable(Table):
         label='Event Time',
         cell_widget=TableCellWidget(
             data = {
-                'value': lambda row: f"{row.start_time.strftime('%Y-%m-%d')} {row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
+                'value': lambda row: f"{row.start_time.strftime('%B, %d')}: {row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
             }
         )
     )
@@ -150,3 +150,10 @@ class VisitTable(Table):
     class Meta:
         model = Visit
         exclude = ['visit_id', 'external_id', 'referrer', 'url']
+
+class EventCocktailTable(Table):
+    class Meta:
+        model = EventCocktail
+        exclude=['event_cocktail_id', 'event']
+        extra_fields=['delete']
+        pk = 'event_cocktail_id'

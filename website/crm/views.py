@@ -18,7 +18,7 @@ from core.forms import ServiceForm, UserForm
 from crm.forms import EventCocktailForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
+from crm.tables import CocktailTable, EventCocktailTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -428,18 +428,11 @@ class EventDetailView(CRMDetailTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         initial = { 'event': self.object }
-        event_cocktail_table = Table.from_model(
-            model=EventCocktail,
-            exclude=['event_cocktail_id', 'event'],
-            extra_fields=['delete'],
-            meta_attrs={
-                'pk': 'event_cocktail_id',
-            }
-        )
+        
         context.update({
             'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
-            'event_cocktail_table': event_cocktail_table(data=EventCocktail.objects.filter(event=self.object), request=self.request)
+            'event_cocktail_table': EventCocktailTable(data=EventCocktail.objects.filter(event=self.object), request=self.request)
         })
 
         return context
@@ -586,10 +579,18 @@ class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 
-    def post(self, request, *args, **kwargs):
-        self.success_url = request.headers.get('Hx-Current-Url')
-        return super().post(request, *args, **kwargs)
+    def form_valid(self, form):
+        self.object = form.save()
+
+        event = self.object.event
+        qs = EventCocktail.objects.filter(event=event)
+        table = EventCocktailTable(data=qs, request=self.request)
+
+        return HttpResponse(table.render())
 
 class EventCocktailDeleteView(CRMBaseDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
+
+    def get_success_url(self):
+            return self.request.headers.get('Referer')

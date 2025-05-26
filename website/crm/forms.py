@@ -480,7 +480,5 @@ class EventCocktailForm(BaseModelForm):
             'cocktail': forms.Select(attrs={
                 'class': 'block w-full rounded border-gray-300 bg-white px-3 py-2',
             }),
-            'event': forms.Select(attrs={
-                'class': 'block w-full rounded border-gray-300 bg-white px-3 py-2',
-            }),
+            'event': forms.HiddenInput(),
         }

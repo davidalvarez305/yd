@@ -1,7 +1,0 @@
-<select name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} multiple>
-  {% for group, options, index in widget.optgroups %}
-    {% for option in options %}
-      <option value="{{ option.value|stringformat:'s' }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
-    {% endfor %}
-  {% endfor %}
-</select>
