@@ -63,7 +63,7 @@ def populate_units(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cocktails", "XXXX_previous_migration_name"),  # adjust accordingly
+        ("core", "XXXX_previous_migration_name"),
     ]
 
     operations = [
