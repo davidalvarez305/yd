@@ -1,6 +1,7 @@
+from django.urls import reverse, reverse_lazy
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CallTrackingNumber, EventCocktail, EventStaff, Message, PhoneCall, Service, User, Cocktail, Event, Visit
-from core.widgets import PriceCellWidget
+from core.models import EventCocktail, EventStaff, Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.widgets import DeleteButtonHTMX, PriceCellWidget
 from core.utils import deep_getattr
 
 from django.contrib.auth.models import AbstractUser
@@ -152,10 +153,26 @@ class VisitTable(Table):
         exclude = ['visit_id', 'external_id', 'referrer', 'url']
 
 class EventCocktailTable(Table):
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButtonHTMX(
+            pk='event_cocktail_id',
+            url=lambda pk: reverse('eventcocktail_delete', kwargs={'pk': pk}),
+            htmx_attrs={
+                'hx-post': '/crm/event-cocktails/{event_cocktail_id}/delete/',
+                'hx-target': '#eventCocktailsTable',
+                'hx-ext': "loading-states",
+                'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
+                'data-loading-target': '#submitButtonLoader',
+                'data-loading-class-remove': 'hidden',
+            }
+        )
+    )
+
     class Meta:
         model = EventCocktail
         exclude=['event_cocktail_id', 'event']
-        extra_fields=['delete']
         pk = 'event_cocktail_id'
 
 class EventStaffTable(Table):
@@ -179,8 +196,24 @@ class EventStaffTable(Table):
         )
     )
 
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButtonHTMX(
+            pk='event_staff_id',
+            url=lambda pk: reverse('eventstaff_delete', kwargs={'pk': pk}),
+            htmx_attrs={
+                'hx-post': '/crm/event-staffs/{event_staff_id}/delete/',
+                'hx-target': '#eventStaffTable',
+                'hx-ext': "loading-states",
+                'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
+                'data-loading-target': '#submitButtonLoader',
+                'data-loading-class-remove': 'hidden',
+            }
+        )
+    )
+
     class Meta:
         model = EventStaff
         exclude=['event_staff_id', 'event', 'start_time', 'end_time']
-        extra_fields=['delete']
         pk = 'event_staff_id'

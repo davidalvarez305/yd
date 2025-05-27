@@ -6,7 +6,6 @@ from core.models import CallTrackingNumber, EventCocktail, EventStaff, Lead, Lea
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
-from core.widgets import AutocompleteSelect
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(

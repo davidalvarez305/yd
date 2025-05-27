@@ -594,9 +594,13 @@ class EventCocktailDeleteView(CRMBaseDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
 
-    def get_success_url(self):
-            return self.request.headers.get('Referer')
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        qs = EventCocktail.objects.filter(event=self.object.event)
+        table = EventCocktailTable(data=qs, request=self.request)
 
+        return HttpResponse(table.render())
 
 class EventStaffCreateView(CRMCreateTemplateView):
     model = EventStaff
@@ -615,5 +619,10 @@ class EventStaffDeleteView(CRMBaseDeleteView):
     model = EventStaff
     form_class = EventStaffForm
 
-    def get_success_url(self):
-            return self.request.headers.get('Referer')
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        qs = EventStaff.objects.filter(event=self.object.event)
+        table = EventStaffTable(data=qs, request=self.request)
+
+        return HttpResponse(table.render())

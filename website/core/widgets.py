@@ -7,7 +7,6 @@ from django.template.context_processors import csrf
 
 from .utils import deep_getattr
 
-# Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
     def __init__(self, attrs=None):
         default_attrs = {
@@ -74,13 +73,17 @@ class TableCellWidget:
         return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
 
 class TemplateCellWidget:
-    def __init__(self, template=None, context=None, data=None):
+    def __init__(self, template=None, context=None, data=None, context_resolver=None):
         super().__init__()
         self.template = template
         self.context = context or {}
         self.data = data or {}
+        self.context_resolver = context_resolver
 
     def resolve_context(self, row):
+        if self.context_resolver:
+            return self.context_resolver(row)
+
         final_context = {}
         for key, value in self.context.items():
             if isinstance(value, str) and "{" in value and "}" in value:
@@ -137,3 +140,36 @@ def DeleteButton(pk="id", url=None):
         },
         data={"csrf": True}
     )
+
+class DeleteButtonHTMX(TemplateCellWidget):
+    def __init__(self, pk, url, htmx_attrs=None, extra_context=None):
+        self.pk = pk
+        self.url = url
+        self.htmx_attrs = htmx_attrs or {}
+        self.extra_context = extra_context or {}
+
+        super().__init__(
+            template='components/delete_button_widget.html',
+            context_resolver=self.resolve_context,
+            data={"csrf": True}
+        )
+
+    def resolve_context(self, row):
+        pk_value = getattr(row, self.pk)
+
+        url = self.url(pk_value) if callable(self.url) else self.url
+        resolved_url = url.replace(f"{{{self.pk}}}", str(pk_value))
+
+        resolved_attrs = {
+            key: val.replace(f"{{{self.pk}}}", str(pk_value))
+            for key, val in self.htmx_attrs.items()
+        }
+
+        context = {
+            "url": resolved_url,
+            "htmx_attrs": resolved_attrs,
+            "row": row,
+        }
+        context.update(self.extra_context)
+
+        return context

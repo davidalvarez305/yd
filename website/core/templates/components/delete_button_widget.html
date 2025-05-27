@@ -1,5 +1,13 @@
 <td class="p-3 text-center">
-    <form action="{% url view_lookup_name pk %}" method="post">
+    <form
+        method="post"
+        {% if not htmx_attrs %}
+            action="{% url view_lookup_name pk %}"
+        {% endif %}
+        {% for name, val in htmx_attrs.items %}
+            {{ name }}="{{ val }}"
+        {% endfor %}
+    >
         {% csrf_token %}
         <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 font-semibold leading-6 text-gray-800 hover:z-1 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:z-1 focus:ring focus:ring-gray-300/25 active:z-1 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="hi-micro hi-x-circle inline-block size-4">
