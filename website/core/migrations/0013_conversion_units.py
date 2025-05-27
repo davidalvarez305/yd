@@ -42,7 +42,7 @@ def populate_unit_conversions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0012_conversion_units'),
+        ('core', '0012_unitconversion'),
     ]
 
     operations = [

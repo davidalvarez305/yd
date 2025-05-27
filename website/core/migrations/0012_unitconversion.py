@@ -32,4 +32,14 @@ class Migration(migrations.Migration):
                 'unique_together': {('from_', 'to')},
             },
         ),
+        migrations.CreateModel(
+            name='Store',
+            fields=[
+                ('store_id', models.AutoField(primary_key=True, serialize=False)),
+                ('name', models.CharField(max_length=50)),
+            ],
+            options={
+                'db_table': 'store',
+            },
+        ),
     ]

@@ -616,13 +616,28 @@ class IngredientCategory(models.Model):
     class Meta:
         db_table = 'ingredient_category'
 
+class Store(models.Model):
+    store_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'store'
+
 class Ingredient(models.Model):
     ingredient_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     ingredient_category = models.ForeignKey(
         IngredientCategory,
         db_column='ingredient_category_id',
-        on_delete=models.CASCADE
+        on_delete=models.RESTRICT
+    )
+    store = models.ForeignKey(
+        Store,
+        db_column='store_id',
+        on_delete=models.RESTRICT
     )
 
     def __str__(self):
