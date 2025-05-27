@@ -11,14 +11,14 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, EventCocktail, EventStaff, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import CocktailIngredientForm, EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailTable, EventCocktailTable, EventStaffTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -359,8 +359,21 @@ class CocktailUpdateView(CRMBaseUpdateView):
     form_class = CocktailForm
 
 class CocktailDetailView(CRMDetailTemplateView):
+    template_name = 'crm/cocktail_detail.html'
+    context_object_name = 'cocktail'
     model = Cocktail
     form_class = CocktailForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        initial = { 'cocktail': self.object }
+        
+        context.update({
+            'cocktail_ingredients_form': CocktailIngredientForm(initial=initial),
+            'cocktail_ingredients_table': CocktailIngredientTable(data=CocktailIngredient.objects.filter(cocktail=self.object), request=self.request),
+        })
+
+        return context
 
 class CocktailDeleteView(CRMBaseDeleteView):
     model = Cocktail
@@ -624,5 +637,30 @@ class EventStaffDeleteView(CRMBaseDeleteView):
         self.object.delete()
         qs = EventStaff.objects.filter(event=self.object.event)
         table = EventStaffTable(data=qs, request=self.request)
+
+        return HttpResponse(table.render())
+    
+class CocktailIngredientCreateView(CRMCreateTemplateView):
+    model = CocktailIngredient
+    form_class = CocktailIngredientForm
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        cocktail = self.object.cocktail
+        qs = CocktailIngredient.objects.filter(cocktail=cocktail)
+        table = CocktailIngredientTable(data=qs, request=self.request)
+
+        return HttpResponse(table.render())
+
+class CocktailIngredientDeleteView(CRMBaseDeleteView):
+    model = CocktailIngredient
+    form_class = CocktailIngredientForm
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        qs = CocktailIngredient.objects.filter(cocktail=self.object.cocktail)
+        table = CocktailIngredientTable(data=qs, request=self.request)
 
         return HttpResponse(table.render())

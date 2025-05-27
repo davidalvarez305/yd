@@ -1,6 +1,6 @@
 from django.urls import reverse, reverse_lazy
 from core.tables import Table, TableField, TableCellWidget
-from core.models import EventCocktail, EventStaff, Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, Message, PhoneCall, Service, User, Cocktail, Event, Visit
 from core.widgets import DeleteButtonHTMX, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -217,3 +217,36 @@ class EventStaffTable(Table):
         model = EventStaff
         exclude=['event_staff_id', 'event', 'start_time', 'end_time']
         pk = 'event_staff_id'
+
+class CocktailIngredientTable(Table):
+    qty = TableField(
+        name='qty',
+        label='Qty.',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"{row.amount} {deep_getattr(row, 'unit.abbreviation')}"
+            }
+        )
+    )
+
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButtonHTMX(
+            pk='cocktail_ingredient_id',
+            url=lambda pk: reverse('cocktailingredient_delete', kwargs={'pk': pk}),
+            htmx_attrs={
+                'hx-post': '/crm/cocktail-ingredient/{cocktail_ingredient_id}/delete/',
+                'hx-target': '#cocktailIngredientsTable',
+                'hx-ext': "loading-states",
+                'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
+                'data-loading-target': '#submitButtonLoader',
+                'data-loading-class-remove': 'hidden',
+            }
+        )
+    )
+
+    class Meta:
+        model = CocktailIngredient
+        exclude=['cocktail_ingredient_id', 'cocktail', 'amount', 'unit']
+        pk = 'cocktail_ingredient_id'

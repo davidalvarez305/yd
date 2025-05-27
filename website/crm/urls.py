@@ -30,6 +30,10 @@ urlpatterns = [
     path('cocktail/<int:pk>/edit/', views.CocktailUpdateView.as_view(), name='cocktail_update'),
     path('cocktail/<int:pk>/delete/', views.CocktailDeleteView.as_view(), name='cocktail_delete'),
     path('cocktail/options/', views.CocktailOptionsListView.as_view(), name='cocktail_options'),
+
+    # Cocktail Ingredient
+    path('cocktail-ingredient/create/', views.CocktailIngredientCreateView.as_view(), name='cocktailingredient_create'),
+    path('cocktail-ingredient/<int:pk>/delete/', views.CocktailIngredientDeleteView.as_view(), name='cocktailingredient_delete'),
     
     # Service
     path('service/', views.ServiceListView.as_view(), name='service_list'),

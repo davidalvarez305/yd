@@ -607,7 +607,7 @@ class Visit(models.Model):
         ordering = ['-date_created']
 
 class Ingredient(models.Model):
-    ingredient_id = models.IntegerField(primary_key=True)
+    ingredient_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=50)
 
@@ -618,7 +618,7 @@ class Ingredient(models.Model):
         db_table = 'ingredient'
 
 class Unit(models.Model):
-    unit_id = models.IntegerField(primary_key=True)
+    unit_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=20)
 
@@ -629,6 +629,8 @@ class Unit(models.Model):
         db_table = 'unit'
 
 class CocktailIngredient(models.Model):
+    cocktail_ingredient_id = models.AutoField(primary_key=True)
+
     cocktail = models.ForeignKey(
         Cocktail,
         related_name='ingredients',

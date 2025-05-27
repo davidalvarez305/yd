@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, EventCocktail, EventStaff, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, Lead, LeadStatus, LeadInterest, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -508,4 +508,23 @@ class EventStaffForm(BaseModelForm):
             'user': forms.Select(),
             'event_role': forms.Select(),
             'event': forms.HiddenInput(),
+        }
+
+class CocktailIngredientForm(BaseModelForm):
+    amount = forms.FloatField(
+        label="Amount*",
+        widget=forms.NumberInput(attrs={
+            'required': True,
+            'name': 'amount',
+        }),
+        required=True
+    )
+
+    class Meta:
+        model = CocktailIngredient
+        fields = ['cocktail', 'ingredient', 'amount', 'unit']
+        widgets = {
+            'ingredient': forms.Select(),
+            'unit': forms.Select(),
+            'cocktail': forms.HiddenInput(),
         }
