@@ -606,10 +606,24 @@ class Visit(models.Model):
         db_table = 'visit'
         ordering = ['-date_created']
 
+class IngredientCategory(models.Model):
+    ingredient_category_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'ingredient_category'
+
 class Ingredient(models.Model):
     ingredient_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=50)
+    ingredient_category = models.ForeignKey(
+        IngredientCategory,
+        db_column='ingredient_category_id',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.name
