@@ -113,12 +113,12 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateV
                 if not self.trigger_alert:
                     return redirect(self.get_success_url())
 
-                return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS)
+                return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS, False)
             except Exception as e:
                 print(f'Error updating: {e}')
-                return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR)
+                return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR, False)
         else:
-            return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST)
+            return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST, False)
 
 class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
@@ -147,9 +147,6 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
-
-        """ if self.trigger_alert:
-            return self.alert(self.request, "Successfully created!", AlertStatus.SUCCESS) """
 
         if self.request.headers.get('HX-Request') == 'true':
             success_url = self.get_success_url()
@@ -325,12 +322,12 @@ class LeadMarketingUpdateView(CRMBaseUpdateView):
             try:
                 form.instance.lead = self.object.lead
                 form.save()
-                return self.alert(request, "Marketing info updated successfully.", AlertStatus.SUCCESS)
+                return self.alert(request, "Marketing info updated successfully.", AlertStatus.SUCCESS, False)
             except Exception as e:
                 print(f"Unexpected error occurred: {e}")
-                return self.alert(request, "An unexpected error occurred. Please try again.", AlertStatus.INTERNAL_ERROR)
+                return self.alert(request, "An unexpected error occurred. Please try again.", AlertStatus.INTERNAL_ERROR, False)
         else:
-            return self.alert(request, "There was a problem updating the marketing info. Please check the form.", AlertStatus.BAD_REQUEST)
+            return self.alert(request, "There was a problem updating the marketing info. Please check the form.", AlertStatus.BAD_REQUEST, False)
 
 class LeadArchiveView(CRMBaseUpdateView):
     model = Lead
@@ -590,80 +587,98 @@ class CocktailOptionsListView(LoginRequiredMixin, ListView):
 
         return HttpResponse(html)
 
-class EventCocktailCreateView(CRMCreateTemplateView):
+class EventCocktailCreateView(AlertMixin, CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 
     def form_valid(self, form):
-        self.object = form.save()
+        try:
+            self.object = form.save()
 
-        event = self.object.event
-        qs = EventCocktail.objects.filter(event=event)
-        table = EventCocktailTable(data=qs, request=self.request)
+            event = self.object.event
+            qs = EventCocktail.objects.filter(event=event)
+            table = EventCocktailTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
 
-class EventCocktailDeleteView(CRMBaseDeleteView):
+class EventCocktailDeleteView(AlertMixin, CRMBaseDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.delete()
-        qs = EventCocktail.objects.filter(event=self.object.event)
-        table = EventCocktailTable(data=qs, request=self.request)
+        try:
+            self.object = self.get_object()
+            self.object.delete()
+            qs = EventCocktail.objects.filter(event=self.object.event)
+            table = EventCocktailTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
 
-class EventStaffCreateView(CRMCreateTemplateView):
+class EventStaffCreateView(AlertMixin, CRMCreateTemplateView):
     model = EventStaff
     form_class = EventStaffForm
 
     def form_valid(self, form):
-        self.object = form.save()
+        try:
+            self.object = form.save()
 
-        event = self.object.event
-        qs = EventStaff.objects.filter(event=event)
-        table = EventStaffTable(data=qs, request=self.request)
+            event = self.object.event
+            qs = EventStaff.objects.filter(event=event)
+            table = EventStaffTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
 
-class EventStaffDeleteView(CRMBaseDeleteView):
+class EventStaffDeleteView(AlertMixin, CRMBaseDeleteView):
     model = EventStaff
     form_class = EventStaffForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.delete()
-        qs = EventStaff.objects.filter(event=self.object.event)
-        table = EventStaffTable(data=qs, request=self.request)
+        try:
+            self.object = self.get_object()
+            self.object.delete()
+            qs = EventStaff.objects.filter(event=self.object.event)
+            table = EventStaffTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
     
-class CocktailIngredientCreateView(CRMCreateTemplateView):
+class CocktailIngredientCreateView(AlertMixin, CRMCreateTemplateView):
     model = CocktailIngredient
     form_class = CocktailIngredientForm
 
     def form_valid(self, form):
-        self.object = form.save()
+        try:
+            self.object = form.save()
 
-        cocktail = self.object.cocktail
-        qs = CocktailIngredient.objects.filter(cocktail=cocktail)
-        table = CocktailIngredientTable(data=qs, request=self.request)
+            cocktail = self.object.cocktail
+            qs = CocktailIngredient.objects.filter(cocktail=cocktail)
+            table = CocktailIngredientTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
 
-class CocktailIngredientDeleteView(CRMBaseDeleteView):
+class CocktailIngredientDeleteView(AlertMixin, CRMBaseDeleteView):
     model = CocktailIngredient
     form_class = CocktailIngredientForm
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.delete()
-        qs = CocktailIngredient.objects.filter(cocktail=self.object.cocktail)
-        table = CocktailIngredientTable(data=qs, request=self.request)
+        try:
+            self.object = self.get_object()
+            self.object.delete()
+            qs = CocktailIngredient.objects.filter(cocktail=self.object.cocktail)
+            table = CocktailIngredientTable(data=qs, request=self.request)
 
-        return HttpResponse(table.render())
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
 
 class IngredientListView(CRMTableView):
     model = Ingredient
