@@ -11,14 +11,14 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, HTTPLog, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import CocktailIngredientForm, EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import CocktailIngredientForm, EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -664,3 +664,23 @@ class CocktailIngredientDeleteView(CRMBaseDeleteView):
         table = CocktailIngredientTable(data=qs, request=self.request)
 
         return HttpResponse(table.render())
+
+class IngredientListView(CRMTableView):
+    model = Ingredient
+    table_class = IngredientTable
+
+class IngredientCreateView(CRMCreateTemplateView):
+    model = Ingredient
+    form_class = IngredientForm
+
+class IngredientUpdateView(CRMBaseUpdateView):
+    model = Ingredient
+    form_class = IngredientForm
+
+class IngredientDetailView(CRMDetailTemplateView):
+    model = Ingredient
+    form_class = IngredientForm
+
+class IngredientDeleteView(CRMBaseDeleteView):
+    model = Ingredient
+    form_class = IngredientForm

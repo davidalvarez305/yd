@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -527,4 +527,13 @@ class CocktailIngredientForm(BaseModelForm):
             'ingredient': forms.Select(),
             'unit': forms.Select(),
             'cocktail': forms.HiddenInput(),
+        }
+
+class IngredientForm(BaseModelForm):
+    class Meta:
+        model = Ingredient
+        fields = '__all__'
+        widgets = {
+            'store': forms.Select(),
+            'ingredient_category': forms.Select(),
         }

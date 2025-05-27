@@ -86,4 +86,11 @@ urlpatterns = [
     path('lead-note/<int:pk>/', views.LeadNoteDetailView.as_view(), name='leadnote_detail'),
     path('lead-note/<int:pk>/edit/', views.LeadNoteUpdateView.as_view(), name='leadnote_update'),
     path('lead-note/<int:pk>/delete/', views.LeadNoteDeleteView.as_view(), name='leadnote_delete'),
+    
+    # Ingredient
+    path('ingredient/', views.IngredientListView.as_view(), name='ingredient_list'),
+    path('ingredient/create/', views.IngredientCreateView.as_view(), name='ingredient_create'),
+    path('ingredient/<int:pk>/', views.IngredientDetailView.as_view(), name='ingredient_detail'),
+    path('ingredient/<int:pk>/edit/', views.IngredientUpdateView.as_view(), name='ingredient_update'),
+    path('ingredient/<int:pk>/delete/', views.IngredientDeleteView.as_view(), name='ingredient_delete'),
 ]
