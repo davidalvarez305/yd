@@ -11,11 +11,11 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import CocktailIngredientForm, EventCocktailForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
@@ -699,3 +699,41 @@ class IngredientDetailView(CRMDetailTemplateView):
 class IngredientDeleteView(CRMBaseDeleteView):
     model = Ingredient
     form_class = IngredientForm
+
+class CreateShoppingListView(CRMBaseCreateView):
+    model = EventShoppingList
+    form_class = EventShoppingListForm
+
+    def form_valid(self, form):
+        try:
+            event_shopping_list = form.save()
+            event = getattr(event_shopping_list, 'event')
+            guests = getattr(event, 'guests')
+            hours = getattr(event, 'hours')
+
+            expected_consumed_cocktails = guests * hours
+            event_cocktails = EventCocktail.objects.filter(event=event)
+            expected_consumption_per_cocktail = expected_consumed_cocktails / event_cocktails.count()
+
+            ingredients = []
+            for event_cocktail in event_cocktails.all():
+                cocktail_ingredients = CocktailIngredient.objects.filter(cocktail=event_cocktail.cocktail)
+                for cocktail_ingredient in cocktail_ingredients:
+                    name = cocktail_ingredient.ingredient.name
+                    store = name = cocktail_ingredient.ingredient.store
+                    unit = cocktail_ingredient.unit.abbreviation
+                    qty = expected_consumption_per_cocktail * cocktail_ingredient.amount
+
+                    ingredients.push({
+                        'name': name,
+                        'store': store,
+                        'unit': unit,
+                        'quantity': qty,
+                    })
+            
+            extras = []
+            # Handle ice, coca cola, etc...
+
+            return ingredients
+        except Exception as e:
+            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR) 

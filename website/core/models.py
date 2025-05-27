@@ -691,14 +691,12 @@ class CocktailIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        related_name='used_in_cocktails',
         db_column='ingredient_id',
         null=True,
         on_delete=models.SET_NULL
     )
     unit = models.ForeignKey(
         Unit,
-        related_name='used_in_cocktails',
         db_column='unit_id',
         null=True,
         on_delete=models.SET_NULL

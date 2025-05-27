@@ -547,7 +547,7 @@ class IngredientForm(BaseModelForm):
             'ingredient_category': forms.Select(),
         }
         
-class EventShoppingList(BaseModelForm):
+class EventShoppingListForm(BaseModelForm):
     event = forms.HiddenInput()
     external_id = forms.HiddenInput()
 
