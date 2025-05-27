@@ -17,12 +17,12 @@ pg_ctl.exe -D "C:\Program Files\PostgreSQL\17\data" start
 # Populating DB Sample
 
 # Create Empty Migration File
-```
+```shell
 python manage.py makemigrations core --empty --name populate_units
 ```
 
 # Add Data
-```
+```python
 from django.db import migrations
 
 def populate_units(apps, schema_editor):
@@ -72,4 +72,6 @@ class Migration(migrations.Migration):
 ```
 
 # Apply Migrations
+```shell
 python manage.py migrate core
+```
