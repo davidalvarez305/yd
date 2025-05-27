@@ -1,28 +1,3 @@
-# On Windows (Command Prompt)
-env\Scripts\activate
-
-# On Windows (PowerShell)
-Set-ExecutionPolicy Unrestricted -Scope Process
-
-env\Scripts\Activate.ps1
-
-# On Unix
-source env/bin/activate
-
-# Windows PG
-cd "Program Files\PostgreSQL\17\bin"
-
-pg_ctl.exe -D "C:\Program Files\PostgreSQL\17\data" start
-
-# Populating DB Sample
-
-# Create Empty Migration File
-```
-python manage.py makemigrations core --empty --name populate_units
-```
-
-# Add Data
-```
 from django.db import migrations
 
 def populate_units(apps, schema_editor):
@@ -63,13 +38,9 @@ def populate_units(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cocktails", "XXXX_previous_migration_name"),  # adjust accordingly
+        ('core', '0008_ingredient_unit_cocktailingredient'),
     ]
 
     operations = [
         migrations.RunPython(populate_units),
     ]
-```
-
-# Apply Migrations
-python manage.py migrate core
