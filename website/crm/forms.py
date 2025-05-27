@@ -185,6 +185,13 @@ class EventForm(BaseModelForm):
         required=False
     )
 
+    street_address_two = forms.CharField(
+        max_length=255,
+        label="Street Address",
+        widget=forms.TextInput(attrs={'name': 'street_address'}),
+        required=False
+    )
+
     city = forms.CharField(
         max_length=100,
         label="City",
@@ -220,12 +227,14 @@ class EventForm(BaseModelForm):
         required=True
     )
 
+    special_instructions = forms.Textarea(label="Special Instructions", required=False)
+
     class Meta:
         model = Event
         fields = [
             'start_time', 'end_time', 'date_paid', 'lead',
-            'street_address', 'city', 'zip_code',
-            'amount', 'tip', 'guests'
+            'street_address', 'street_address_two', 'city', 'zip_code',
+            'amount', 'tip', 'guests', 'special_instructions'
         ]
 
 class LeadMarketingForm(BaseModelForm):
