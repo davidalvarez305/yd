@@ -2,6 +2,7 @@ from enum import Enum
 import json
 import os
 from typing import Union
+import uuid
 from django.db import models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
@@ -707,3 +708,38 @@ class CocktailIngredient(models.Model):
     class Meta:
         db_table = 'cocktail_ingredient'
         unique_together = ('cocktail', 'ingredient', 'unit')
+
+class EventShoppingList(models.Model):
+    event_shopping_list_id = models.AutoField(primary_key=True)
+    external_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    event = models.OneToOneField(
+        Event,
+        related_name='shopping_list',
+        db_column='event_id',
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f'{self.event} Shopping List'
+
+    class Meta:
+        db_table = 'event_shopping_list'
+
+class EventShoppingListEntry(models.Model):
+    event_shopping_list_entry_id = models.AutoField(primary_key=True)
+    item = models.TextField()
+    quantity = models.FloatField()
+
+    unit = models.ForeignKey(
+        Unit,
+        db_column='unit_id',
+        on_delete=models.RESTRICT
+    )
+
+    event_shopping_list = models.ForeignKey(
+        EventShoppingList,
+        related_name='entries',
+        db_column='event_shopping_list_id',
+        on_delete=models.CASCADE
+    )

@@ -546,3 +546,11 @@ class IngredientForm(BaseModelForm):
             'store': forms.Select(),
             'ingredient_category': forms.Select(),
         }
+        
+class EventShoppingList(BaseModelForm):
+    event = forms.HiddenInput()
+    external_id = forms.HiddenInput()
+
+    class Meta:
+        model = Event
+        fields = ['event', 'external_id']
