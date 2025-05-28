@@ -621,7 +621,7 @@ class Store(models.Model):
 class StoreItem(models.Model):
     store_item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to=media_upload_path, null=True)
+    image = models.ImageField(upload_to='uploads/images/', null=True)
     product_quantity = models.FloatField(null=True)
     unit = models.ForeignKey(
         'Unit',
