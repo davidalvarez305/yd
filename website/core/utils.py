@@ -90,3 +90,17 @@ def format_phone_number(phone_number: str) -> str:
         return f"({digits[:3]}) {digits[3:6]} - {digits[6:]}"
     
     return phone_number
+
+def get_first_field_error(form):
+    """
+    Returns the first field-specific error message from a Django form,
+    excluding non-field (__all__) errors.
+
+    Returns:
+        str: The first error message, or empty string if none found.
+    """
+    for _, errors in form.errors.items():
+        if getattr(errors, 'as_text', None):
+            return errors.as_text()
+
+    return ''

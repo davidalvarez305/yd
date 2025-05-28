@@ -187,7 +187,7 @@ class EventForm(BaseModelForm):
 
     street_address_two = forms.CharField(
         max_length=255,
-        label="Street Address",
+        label="Apt/Unit",
         widget=forms.TextInput(attrs={'name': 'street_address'}),
         required=False
     )

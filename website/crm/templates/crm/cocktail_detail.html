@@ -19,32 +19,6 @@
                 <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
                     General information
                 </p>
-                <div class="flex sm:flex-col gap-2 items-center md:items-start">
-                    <form
-                        hx-post="{% url 'create_shopping_list' %}"
-                        hx-target-error="#alertModal"
-                        hx-swap="outerHTML"
-                        hx-ext="loading-states"
-                        data-loading-target="#submitButtonLoader"
-                        data-loading-class-remove="hidden"
-                    >
-                        {% csrf_token %}
-                        {{ create_shopping_list_form.as_p }}
-                        <button type="submit" data-loading-disable
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-sm font-semibold leading-5 text-white hover:border-emerald-600 hover:bg-emerald-600 hover:text-white focus:ring focus:ring-emerald-400/50 active:border-emerald-700 active:bg-emerald-700 dark:focus:ring-emerald-400/90 max-w-[150px] w-full">
-                            <svg id="submitButtonLoader" data-loading-class="animate-spin" class="hidden lucide lucide-loader-circle inline-block size-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
-                                fill="currentColor" class="h-5 w-5 hi-micro hi-phone inline-block size-4">
-                                <path fill-rule="evenodd"
-                                    d="m3.855 7.286 1.067-.534a1 1 0 0 0 .542-1.046l-.44-2.858A1 1 0 0 0 4.036 2H3a1 1 0 0 0-1 1v2c0 .709.082 1.4.238 2.062a9.012 9.012 0 0 0 6.7 6.7A9.024 9.024 0 0 0 11 14h2a1 1 0 0 0 1-1v-1.036a1 1 0 0 0-.848-.988l-2.858-.44a1 1 0 0 0-1.046.542l-.534 1.067a7.52 7.52 0 0 1-4.86-4.859Z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Create Shopping List
-                        </button>
-                    </form>
-                </div>
             </div>
             <div class="md:w-2/3 md:pl-24">
                 <form class="space-y-6 xl:w-2/3"

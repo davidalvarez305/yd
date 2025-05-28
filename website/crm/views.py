@@ -20,7 +20,7 @@ from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
 from core.tables import Table
-from core.utils import format_phone_number, is_mobile
+from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 
 class CRMContextMixin:
@@ -601,7 +601,10 @@ class EventCocktailCreateView(AlertMixin, CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+
+    def form_invalid(self, form):
+        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class EventCocktailDeleteView(AlertMixin, CRMBaseDeleteView):
     model = EventCocktail
@@ -616,7 +619,7 @@ class EventCocktailDeleteView(AlertMixin, CRMBaseDeleteView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class EventStaffCreateView(AlertMixin, CRMCreateTemplateView):
     model = EventStaff
@@ -631,8 +634,8 @@ class EventStaffCreateView(AlertMixin, CRMCreateTemplateView):
             table = EventStaffTable(data=qs, request=self.request)
 
             return HttpResponse(table.render())
-        except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+        except BaseException as e:
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class EventStaffDeleteView(AlertMixin, CRMBaseDeleteView):
     model = EventStaff
@@ -647,7 +650,7 @@ class EventStaffDeleteView(AlertMixin, CRMBaseDeleteView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
     
 class CocktailIngredientCreateView(AlertMixin, CRMCreateTemplateView):
     model = CocktailIngredient
@@ -663,7 +666,7 @@ class CocktailIngredientCreateView(AlertMixin, CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class CocktailIngredientDeleteView(AlertMixin, CRMBaseDeleteView):
     model = CocktailIngredient
@@ -678,7 +681,7 @@ class CocktailIngredientDeleteView(AlertMixin, CRMBaseDeleteView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR, reswap=True)
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class IngredientListView(CRMTableView):
     model = Ingredient
@@ -736,4 +739,4 @@ class CreateShoppingListView(CRMBaseCreateView):
 
             return ingredients
         except Exception as e:
-            return self.alert(request=self.request, message=f"Error during action. {e}", status=AlertStatus.ERROR) 
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR) 

@@ -93,4 +93,6 @@ urlpatterns = [
     path('ingredient/<int:pk>/', views.IngredientDetailView.as_view(), name='ingredient_detail'),
     path('ingredient/<int:pk>/edit/', views.IngredientUpdateView.as_view(), name='ingredient_update'),
     path('ingredient/<int:pk>/delete/', views.IngredientDeleteView.as_view(), name='ingredient_delete'),
+
+    path('shopping-list/create/', views.CreateShoppingListView.as_view(), name='create_shopping_list'),
 ]

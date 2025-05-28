@@ -15,8 +15,6 @@ from .models import LeadMarketing, LeadStatus, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .enums import AlertHTTPCodes, AlertStatus
-from .conversions import conversion_service
-
 
 class BaseView(TemplateView):
     page_title = settings.COMPANY_NAME
