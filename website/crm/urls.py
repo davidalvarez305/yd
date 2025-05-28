@@ -96,4 +96,11 @@ urlpatterns = [
 
     path('shopping-list/create/', views.CreateShoppingListView.as_view(), name='eventshoppinglist_create'),
     path('shopping-list/external/<str:external_id>/', views.EventShoppingListExternalDetailView.as_view(), name='eventshoppinglist_external_detail'),
+
+    # Ingredient
+    path('store-item/', views.StoreItemListView.as_view(), name='storeitem_list'),
+    path('store-item/create/', views.StoreItemCreateView.as_view(), name='storeitem_create'),
+    path('store-item/<int:pk>/', views.StoreItemDetailView.as_view(), name='storeitem_detail'),
+    path('store-item/<int:pk>/edit/', views.StoreItemUpdateView.as_view(), name='storeitem_update'),
+    path('store-item/<int:pk>/delete/', views.StoreItemDeleteView.as_view(), name='storeitem_delete'),
 ]

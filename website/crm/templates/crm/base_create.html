@@ -26,6 +26,7 @@
                     data-loading-class-remove="hidden"
                     hx-ext="loading-states"
                     hx-target-error="#alertModal"
+                    enctype="multipart/form-data"
                 >
                     {% csrf_token %}
                     {{ form.as_p }}

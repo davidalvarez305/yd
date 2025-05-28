@@ -12,14 +12,14 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, VisitFilterForm, VisitForm
+from crm.forms import CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -792,3 +792,23 @@ class EventShoppingListExternalDetailView(CRMBaseDetailView):
     def get_object(self, queryset=None):
         external_id = self.kwargs.get("external_id")
         return get_object_or_404(EventShoppingList, external_id=external_id)
+
+class StoreItemListView(CRMTableView):
+    model = StoreItem
+    table_class = StoreItemTable
+
+class StoreItemCreateView(CRMCreateTemplateView):
+    model = StoreItem
+    form_class = StoreItemForm
+
+class StoreItemUpdateView(CRMBaseUpdateView):
+    model = StoreItem
+    form_class = StoreItemForm
+
+class StoreItemDetailView(CRMDetailTemplateView):
+    model = StoreItem
+    form_class = StoreItemForm
+
+class StoreItemDeleteView(CRMBaseDeleteView):
+    model = StoreItem
+    form_class = StoreItemForm

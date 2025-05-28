@@ -26,6 +26,7 @@
                     hx-ext="loading-states"
                     data-loading-target="#submitButtonLoader"
                     data-loading-class-remove="hidden"
+                    enctype="multipart/form-data"
                 >
                     {% csrf_token %}
                     {{ form.as_p }}

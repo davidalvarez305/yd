@@ -1,6 +1,6 @@
 from django.urls import reverse, reverse_lazy
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Service, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButtonHTMX, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -276,3 +276,19 @@ class IngredientTable(Table):
         model = Ingredient
         exclude=['ingredient_id']
         pk = 'ingredient_id'
+
+class StoreItemTable(Table):
+    image = TableField(
+        label='Image',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'file.url', '')
+            }
+        )
+    )
+
+    class Meta:
+        model = StoreItem
+        exclude = ['store_item_id']
+        extra_fields = ['view', 'delete']
+        pk = 'store_item_id'

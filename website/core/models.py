@@ -11,6 +11,7 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
+from .utils import media_upload_path
 from .signals import lead_status_changed
 
 class UserManager(BaseUserManager):
@@ -335,18 +336,6 @@ class Message(models.Model):
     def audios(self):
         return self.media.filter(content_type__startswith="audio/")
 
-def media_upload_path(instance, filename):
-    if instance.content_type.startswith("image/"):
-        subdir = "images"
-    elif instance.content_type.startswith("audio/"):
-        subdir = "audio"
-    elif instance.content_type.startswith("video/"):
-        subdir = "videos"
-    else:
-        subdir = "other"
-
-    return os.path.join("uploads", subdir, filename)
-
 class MessageMedia(models.Model):
     message_media_id = models.AutoField(primary_key=True)
     message = models.ForeignKey(Message, related_name="media", on_delete=models.CASCADE)
@@ -629,6 +618,30 @@ class Store(models.Model):
     class Meta:
         db_table = 'store'
 
+class StoreItem(models.Model):
+    store_item_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to=media_upload_path, null=True)
+    product_quantity = models.FloatField(null=True)
+    unit = models.ForeignKey(
+        'Unit',
+        db_column='unit_id',
+        on_delete=models.RESTRICT,
+        null=True
+    )
+
+    store = models.ForeignKey(
+        Store,
+        db_column='store_id',
+        on_delete=models.RESTRICT
+    )
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        db_table = 'store_item'
+
 class Ingredient(models.Model):
     ingredient_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
@@ -728,20 +741,7 @@ class EventShoppingList(models.Model):
 
 class EventShoppingListEntry(models.Model):
     event_shopping_list_entry_id = models.AutoField(primary_key=True)
-    item = models.TextField()
     quantity = models.FloatField()
-
-    store = models.ForeignKey(
-        Store,
-        db_column='store_id',
-        on_delete=models.RESTRICT
-    )
-
-    unit = models.ForeignKey(
-        Unit,
-        db_column='unit_id',
-        on_delete=models.RESTRICT
-    )
 
     event_shopping_list = models.ForeignKey(
         EventShoppingList,
@@ -750,8 +750,20 @@ class EventShoppingListEntry(models.Model):
         on_delete=models.CASCADE
     )
 
+    store_item = models.ForeignKey(
+        StoreItem,
+        db_column='store_item_id',
+        on_delete=models.CASCADE
+    )
+
+    unit = models.ForeignKey(
+        Unit,
+        db_column='unit_id',
+        on_delete=models.RESTRICT
+    )
+
     def __str__(self):
-        return f'{self.item}'
+        return f'{self.store_item.name} ({self.quantity})'
 
     class Meta:
         db_table = 'event_shopping_list_entry'

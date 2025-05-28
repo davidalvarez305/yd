@@ -1,3 +1,4 @@
+import os
 import re
 import uuid
 import mimetypes
@@ -104,3 +105,15 @@ def get_first_field_error(form):
             return errors.as_text()
 
     return ''
+
+def media_upload_path(instance, filename):
+    if instance.content_type.startswith("image/"):
+        subdir = "images"
+    elif instance.content_type.startswith("audio/"):
+        subdir = "audio"
+    elif instance.content_type.startswith("video/"):
+        subdir = "videos"
+    else:
+        subdir = "other"
+
+    return os.path.join("uploads", subdir, filename)

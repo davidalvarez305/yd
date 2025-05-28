@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -558,3 +558,10 @@ class EventShoppingListForm(BaseModelForm):
             'event': forms.HiddenInput(),
             'external_id': forms.HiddenInput(),
         }
+
+class StoreItemForm(BaseModelForm):
+    image = forms.ImageField(required=False)
+
+    class Meta:
+        model = StoreItem
+        fields = '__all__'
