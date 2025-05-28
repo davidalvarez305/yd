@@ -21,28 +21,31 @@ def populate_unit_conversions(apps, schema_editor):
     ]
 
     for from_abbr, to_abbr, multiplier in conversions:
-        from_unit = Unit.objects.get(abbreviation=from_abbr)
-        to_unit = Unit.objects.get(abbreviation=to_abbr)
+        from_unit = Unit.objects.filter(abbreviation=from_abbr).first()
+        to_unit = Unit.objects.filter(abbreviation=to_abbr).first()
+
+        if not from_unit or not to_unit:
+            continue
 
         # Forward conversion
         UnitConversion.objects.update_or_create(
-            from_=from_unit,
-            to=to_unit,
+            from_unit=from_unit,
+            to_unit=to_unit,
             defaults={'multiplier': multiplier}
         )
 
         # Reverse conversion
         reverse_multiplier = round(1 / multiplier, 6)
         UnitConversion.objects.update_or_create(
-            from_=to_unit,
-            to=from_unit,
+            from_unit=to_unit,
+            to_unit=from_unit,
             defaults={'multiplier': reverse_multiplier}
         )
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0012_unitconversion'),
+        ('core', '0012_store_event_special_instructions_and_more'),
     ]
 
     operations = [

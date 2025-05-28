@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -227,7 +227,10 @@ class EventForm(BaseModelForm):
         required=True
     )
 
-    special_instructions = forms.Textarea(label="Special Instructions", required=False)
+    special_instructions = forms.Textarea(attrs={
+        'label': "Special Instructions",
+        'required': False
+    })
 
     class Meta:
         model = Event
@@ -552,5 +555,5 @@ class EventShoppingListForm(BaseModelForm):
     external_id = forms.HiddenInput()
 
     class Meta:
-        model = Event
-        fields = ['event', 'external_id']
+        model = EventShoppingList
+        fields = ['event']

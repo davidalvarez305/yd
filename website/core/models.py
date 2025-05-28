@@ -662,23 +662,25 @@ class Unit(models.Model):
 
 class UnitConversion(models.Model):
     unit_conversion_id = models.AutoField(primary_key=True)
-    from_ = models.ForeignKey(
+    from_unit = models.ForeignKey(
         Unit,
-        db_column='from',
+        db_column='from_unit',
+        related_name='unit_conversions_from',
         on_delete=models.CASCADE
     )
-    to = models.ForeignKey(
+    to_unit = models.ForeignKey(
         Unit,
-        db_column='to',
+        db_column='to_unit',
+        related_name='unit_conversions_to',
         on_delete=models.CASCADE
     )
     multiplier = models.FloatField()
 
     def __str__(self):
-        return f'{self.from_} to {self.to}'
+        return f'{self.from_unit} to {self.to_unit}'
 
     class Meta:
-        db_table = 'unit'
+        db_table = 'unit_conversion'
 
 class CocktailIngredient(models.Model):
     cocktail_ingredient_id = models.AutoField(primary_key=True)
