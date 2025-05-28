@@ -60,6 +60,8 @@ class EventTable(Table):
             'start_time',
             'end_time',
             'street_address',
+            'street_address_two',
+            'special_instrucions',
             'city',
             'zip_code',
             'amount',

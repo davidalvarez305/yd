@@ -551,9 +551,10 @@ class IngredientForm(BaseModelForm):
         }
         
 class EventShoppingListForm(BaseModelForm):
-    event = forms.HiddenInput()
-    external_id = forms.HiddenInput()
-
     class Meta:
         model = EventShoppingList
         fields = ['event']
+        widgets = {
+            'event': forms.HiddenInput(),
+            'external_id': forms.HiddenInput(),
+        }

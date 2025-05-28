@@ -731,6 +731,12 @@ class EventShoppingListEntry(models.Model):
     item = models.TextField()
     quantity = models.FloatField()
 
+    store = models.ForeignKey(
+        Store,
+        db_column='store_id',
+        on_delete=models.RESTRICT
+    )
+
     unit = models.ForeignKey(
         Unit,
         db_column='unit_id',
@@ -743,3 +749,9 @@ class EventShoppingListEntry(models.Model):
         db_column='event_shopping_list_id',
         on_delete=models.CASCADE
     )
+
+    def __str__(self):
+        return f'{self.item}'
+
+    class Meta:
+        db_table = 'event_shopping_list_entry'

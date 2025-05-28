@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.http import HttpResponse
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -11,7 +12,7 @@ from django.utils.timezone import now
 from django.http import HttpResponseRedirect
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
@@ -445,6 +446,7 @@ class EventDetailView(CRMDetailTemplateView):
             'event_cocktail_table': EventCocktailTable(data=EventCocktail.objects.filter(event=self.object), request=self.request),
             'event_staff_form': EventStaffForm(initial=initial),
             'event_staff_table': EventStaffTable(data=EventStaff.objects.filter(event=self.object), request=self.request),
+            'create_shopping_list_form': EventShoppingListForm(initial=initial),
         })
 
         return context
@@ -703,40 +705,74 @@ class IngredientDeleteView(CRMBaseDeleteView):
     model = Ingredient
     form_class = IngredientForm
 
-class CreateShoppingListView(CRMBaseCreateView):
+class CreateShoppingListView(AlertMixin, CRMBaseCreateView):
     model = EventShoppingList
     form_class = EventShoppingListForm
+
+    def get_object(self, queryset=None):
+        event_id = self.request.POST.get('event')
+
+        if not event_id:
+            return None
+
+        event = Event.objects.filter(pk=event_id).first()
+
+        if not event:
+            return None
+
+        return getattr(event, 'shopping_list', None)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        instance = self.get_object()
+        if instance:
+            kwargs['instance'] = instance
+        return kwargs
 
     def form_valid(self, form):
         try:
             event_shopping_list = form.save()
-            event = getattr(event_shopping_list, 'event')
-            guests = getattr(event, 'guests')
-            hours = getattr(event, 'hours')
+            event = event_shopping_list.event
 
-            expected_consumed_cocktails = guests * hours
+            if not event.guests or not event.start_time or not event.end_time:
+                raise ValidationError('Fill out event details before creating a shopping list.')
+            
+            duration = event.end_time - event.start_time
+            hours = duration.total_seconds() / 3600
+
+            expected_consumed_cocktails = event.guests * hours
             event_cocktails = EventCocktail.objects.filter(event=event)
+
+            if event_cocktails.count() == 0:
+                raise ValidationError('There must be at least one cocktail before creating a shopping list.')
+
             expected_consumption_per_cocktail = expected_consumed_cocktails / event_cocktails.count()
 
-            ingredients = []
-            for event_cocktail in event_cocktails.all():
+            for event_cocktail in event_cocktails:
                 cocktail_ingredients = CocktailIngredient.objects.filter(cocktail=event_cocktail.cocktail)
+
+                if cocktail_ingredients.count() == 0:
+                    raise ValidationError(f'Assign cocktail ingredients in order to create shopping list for {event_cocktail.cocktail}')
+
                 for cocktail_ingredient in cocktail_ingredients:
                     name = cocktail_ingredient.ingredient.name
-                    store = name = cocktail_ingredient.ingredient.store
-                    unit = cocktail_ingredient.unit.abbreviation
+                    store = cocktail_ingredient.ingredient.store
                     qty = expected_consumption_per_cocktail * cocktail_ingredient.amount
 
-                    ingredients.push({
-                        'name': name,
-                        'store': store,
-                        'unit': unit,
-                        'quantity': qty,
-                    })
-            
-            extras = []
-            # Handle ice, coca cola, etc...
+                    entry = EventShoppingListEntry(
+                        item=name,
+                        store=store,
+                        quantity=qty,
+                        unit=cocktail_ingredient.unit,
+                        event_shopping_list=event_shopping_list,
+                    )
 
-            return ingredients
+                    entry.save()
+
+            return HttpResponse()
         except Exception as e:
-            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR) 
+            return self.alert(
+                request=self.request,
+                message=str(e),
+                status=AlertStatus.INTERNAL_ERROR
+            )
