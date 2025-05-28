@@ -5,7 +5,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from django.utils.timezone import now
@@ -439,7 +439,7 @@ class EventDetailView(CRMDetailTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         initial = { 'event': self.object }
-        
+
         context.update({
             'cocktails': Cocktail.objects.all(),
             'event_cocktail_form': EventCocktailForm(initial=initial),
@@ -447,6 +447,7 @@ class EventDetailView(CRMDetailTemplateView):
             'event_staff_form': EventStaffForm(initial=initial),
             'event_staff_table': EventStaffTable(data=EventStaff.objects.filter(event=self.object), request=self.request),
             'create_shopping_list_form': EventShoppingListForm(initial=initial),
+            'event_shopping_list': EventShoppingList.objects.filter(event=self.object).first()
         })
 
         return context
@@ -732,6 +733,12 @@ class CreateShoppingListView(AlertMixin, CRMBaseCreateView):
     def form_valid(self, form):
         try:
             event_shopping_list = form.save()
+
+            entries = event_shopping_list.entries.count()
+
+            if entries > 0:
+                event_shopping_list.entries.all().delete()
+
             event = event_shopping_list.event
 
             if not event.guests or not event.start_time or not event.end_time:
@@ -776,3 +783,12 @@ class CreateShoppingListView(AlertMixin, CRMBaseCreateView):
                 message=str(e),
                 status=AlertStatus.INTERNAL_ERROR
             )
+
+class EventShoppingListExternalDetailView(CRMBaseDetailView):
+    model = EventShoppingList
+    template_name = 'crm/shopping_list_detail.html'
+    context_object_name = 'event_shopping_list'
+
+    def get_object(self, queryset=None):
+        external_id = self.kwargs.get("external_id")
+        return get_object_or_404(EventShoppingList, external_id=external_id)
