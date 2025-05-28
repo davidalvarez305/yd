@@ -11,7 +11,7 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
-from .utils import media_upload_path
+from .utils import media_upload_path, save_image_path
 from .signals import lead_status_changed
 
 class UserManager(BaseUserManager):
@@ -621,7 +621,7 @@ class Store(models.Model):
 class StoreItem(models.Model):
     store_item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='uploads/images/', null=True)
+    image = models.ImageField(upload_to=save_image_path, null=True)
     product_quantity = models.FloatField(null=True)
     unit = models.ForeignKey(
         'Unit',

@@ -282,7 +282,7 @@ class StoreItemTable(Table):
         label='Image',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: deep_getattr(row, 'file.url', '')
+                'value': lambda row: deep_getattr(row, 'image.url', '')
             }
         )
     )

@@ -117,3 +117,7 @@ def media_upload_path(instance, filename):
         subdir = "other"
 
     return os.path.join("uploads", subdir, filename)
+
+def save_image_path(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    return os.path.join('uploads/images/', f"{uuid.uuid4()}{ext}")
