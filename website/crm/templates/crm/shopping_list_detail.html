@@ -35,14 +35,14 @@
         <table class="min-w-full align-middle text-sm whitespace-nowrap">
           <thead>
             <tr class="border-b border-gray-100 dark:border-gray-700/50">
-              <th class="bg-gray-100/75 px-3 py-4 text-left font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+              <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                 Product
               </th>
               <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                 Qty
               </th>
-              <th class="bg-gray-100/75 px-3 py-4 text-right font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                Shop
+              <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                Store
               </th>
             </tr>
           </thead>
@@ -52,11 +52,11 @@
           <tbody>
             {% for item in event_shopping_list.entries.all %}
             <tr class="border-b border-gray-100 dark:border-gray-700/50">
-              <td class="p-3">
+              <td class="p-3 text-center">
                 <p class="mb-1 font-semibold">{{ item.item }}</p>
               </td>
-              <td class="p-3 text-right">{{ item.quantity }} {{ item.unit.abbreviation }}</td>
-              <td class="p-3 text-right">{{ item.store }}</td>
+              <td class="p-3 text-center">{{ item.quantity }} {{ item.unit.abbreviation }}</td>
+              <td class="p-3 text-center">{{ item.store }}</td>
             </tr>
             {% endfor %}
           </tbody>
