@@ -103,24 +103,22 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateV
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
     
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+            
+            if self.request.headers.get('HX-Request') == 'true':
+                success_url = self.get_success_url()
+                return HttpResponse(status=200, headers={'HX-Redirect': success_url})
 
-        if form.is_valid():
-            try:
-                form.save()
+            if self.trigger_alert:
+                return self.alert(self.request, "Successfully updated!", AlertStatus.SUCCESS, False)
 
-                if not self.trigger_alert:
-                    return redirect(self.get_success_url())
+            return super().form_valid(form)
 
-                return self.alert(request, "Successfully updated!", AlertStatus.SUCCESS, False)
-            except Exception as e:
-                print(f'Error updating: {e}')
-                return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR, False)
-        else:
-            return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST, False)
-    
+        except Exception as e:
+            return self.alert(self.request, str(e), AlertStatus.INTERNAL_ERROR, False)
+
     def form_invalid(self, form):
         return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=False)
 
