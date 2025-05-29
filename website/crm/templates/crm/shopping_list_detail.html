@@ -50,7 +50,7 @@
 
           <!-- Table Body -->
           <tbody>
-            {% for item in event_shopping_list.entries.all %}
+            {% for item in event.shopping_list.items.all|dictsort:"store" %}
             <tr class="border-b border-gray-100 dark:border-gray-700/50">
               <td class="p-3 text-center">
                 <p class="mb-1 font-semibold">{{ item.item }}</p>

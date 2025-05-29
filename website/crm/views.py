@@ -719,11 +719,16 @@ class CreateShoppingListView(AlertMixin, CRMCreateView):
 
                 for cocktail_ingredient in cocktail_ingredients:
                     name = cocktail_ingredient.ingredient.name
+                    store_item = StoreItem.objects.filter(name=name).first()
+
+                    if not store_item:
+                        raise ValidationError('Invalid store item.')
+
                     store = cocktail_ingredient.ingredient.store
                     qty = expected_consumption_per_cocktail * cocktail_ingredient.amount
 
                     entry = EventShoppingListEntry(
-                        item=name,
+                        store_item=store_item,
                         store=store,
                         quantity=qty,
                         unit=cocktail_ingredient.unit,
