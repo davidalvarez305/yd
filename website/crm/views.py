@@ -9,7 +9,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from django.utils.timezone import now
-from django.http import HttpResponseRedirect
 
 from website import settings
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, StoreItem, Visit
@@ -43,154 +42,112 @@ class CRMContextMixin:
         context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal/ModalHelper.js']
         return context
 
-class CRMBaseListView(LoginRequiredMixin, CRMContextMixin, ListView):
-    filter_form_class = None
-    create_form_class = None
-    paginate_by = 10
-    context_object_name = None
-
-    def get_filter_form_class(self):
-        return self.filter_form_class
-
-    def get_create_form_class(self):
-        return self.create_form_class
-
-    def get_queryset(self):
-        queryset = self.model.objects.all()
-
-        filter_form_class = self.get_filter_form_class()
-        if filter_form_class:
-            self.filter_form = filter_form_class(self.request.GET)
-
-            if self.filter_form.is_valid():
-                model_fields = {f.name for f in self.model._meta.get_fields()}
-
-                filters = {
-                    field_name: field_value
-                    for field_name, field_value in self.filter_form.cleaned_data.items()
-                    if field_name in model_fields and field_value not in [None, '']
-                }
-
-                queryset = queryset.filter(**filters)
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if not self.context_object_name:
-            self.context_object_name = f"{self.model._meta.model_name}s"
-
-        context[self.context_object_name] = context.get('object_list')
-
-        context.setdefault('js_files', [])
-        context['js_files'] += ['js/pagination.js', 'js/filter.js']
-
-        if hasattr(self, 'filter_form'):
-            context['filter_form'] = self.filter_form
-        elif self.filter_form_class:
-            context['filter_form'] = self.filter_form_class()
-
-        if self.create_form_class:
-            context['create_form'] = self.create_form_class()
-
-        return context
-
-class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateView):
+class CRMBaseView(LoginRequiredMixin, CRMContextMixin):
     success_url = None
     trigger_alert = False
-
-    def get_success_url(self):
-        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
-    
-    def form_valid(self, form):
-        try:
-            self.object = form.save()
-            
-            if self.request.headers.get('HX-Request') == 'true':
-                success_url = self.get_success_url()
-                return HttpResponse(status=200, headers={'HX-Redirect': success_url})
-
-            if self.trigger_alert:
-                return self.alert(self.request, "Successfully updated!", AlertStatus.SUCCESS, False)
-
-            return super().form_valid(form)
-
-        except Exception as e:
-            return self.alert(self.request, str(e), AlertStatus.INTERNAL_ERROR, False)
-
-    def form_invalid(self, form):
-        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=False)
-
-class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
-    success_url = None
-
-    def get_success_url(self):
-        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
-    
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.delete()
-        return redirect(self.get_success_url())
-
-class CRMBaseCreateView(LoginRequiredMixin, AlertMixin, CRMContextMixin, CreateView):
-    success_url = None
-    trigger_alert = False
+    template_name = None
 
     def get_success_url(self):
         return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
 
     def get_template_names(self):
-        """
-        Dynamically assigns the template name based on the model name.
-        """
-        model_name = self.model._meta.model_name
-        return [f"crm/{model_name}_form.html"]
-    
+        return [self.template_name or f"crm/{self.model._meta.model_name}_form.html"]
+
+    def handle_htmx_redirect(self):
+        if self.request.headers.get("HX-Request") == "true":
+            return HttpResponse(status=200, headers={"HX-Redirect": self.get_success_url()})
+        return None
+
+    def handle_form_exception(self, exc):
+        return self.alert(self.request, str(exc), AlertStatus.INTERNAL_ERROR, False)
+
+    def handle_form_invalid(self, form):
+        return self.alert(self.request, get_first_field_error(form), AlertStatus.BAD_REQUEST, reswap=False)
+
+class CRMCreateView(CRMBaseView, AlertMixin, CreateView):
     def form_valid(self, form):
-        response = super().form_valid(form)
+        try:
+            self.object = form.save()
+            htmx_redirect = self.handle_htmx_redirect()
+            if htmx_redirect:
+                return htmx_redirect
+            if self.trigger_alert:
+                return self.alert(self.request, "Successfully created!", AlertStatus.SUCCESS, False)
+            return super().form_valid(form)
+        except Exception as e:
+            return self.handle_form_exception(e)
 
-        if self.request.headers.get('HX-Request') == 'true':
-            success_url = self.get_success_url()
-            return HttpResponse(status=200, headers={'HX-Redirect': success_url})
-
-        return response
-    
     def form_invalid(self, form):
-        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=False)
+        return self.handle_form_invalid(form)
 
+class CRMUpdateView(CRMBaseView, AlertMixin, UpdateView):
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+            htmx_redirect = self.handle_htmx_redirect()
+            if htmx_redirect:
+                return htmx_redirect
+            if self.trigger_alert:
+                return self.alert(self.request, "Successfully updated!", AlertStatus.SUCCESS, False)
+            return super().form_valid(form)
+        except Exception as e:
+            return self.handle_form_exception(e)
 
-class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
-    success_url = None
-    form_class = None
+    def form_invalid(self, form):
+        return self.handle_form_invalid(form)
 
-    def get_success_url(self):
-        """
-        Returns the success URL after viewing the details. 
-        You can override this if you want to redirect to a custom URL.
-        Defaults to a model's list page.
-        """
-        return self.success_url or reverse_lazy(f"{self.model._meta.model_name}_list")
+class CRMDeleteView(CRMBaseView, DeleteView):
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return redirect(self.get_success_url())
+
+class CRMListView(CRMBaseView, ListView):
+    paginate_by = 10
+    context_object_name = None
+    filter_form_class = None
+    create_form_class = None
+
+    def get_queryset(self):
+        queryset = self.model.objects.all()
+        if self.filter_form_class:
+            self.filter_form = self.filter_form_class(self.request.GET)
+            if self.filter_form.is_valid():
+                model_fields = {f.name for f in self.model._meta.get_fields()}
+                filters = {
+                    k: v for k, v in self.filter_form.cleaned_data.items()
+                    if k in model_fields and v not in [None, '']
+                }
+                queryset = queryset.filter(**filters)
+        return queryset
 
     def get_context_data(self, **kwargs):
-        """
-        Add additional context to the template. 
-        The object is added under `context_object_name`, either default or overridden.
-        If a form_class is defined, include a form instance in context.
-        """
         context = super().get_context_data(**kwargs)
-
         if not self.context_object_name:
-            self.context_object_name = self.model._meta.model_name.lower()
+            self.context_object_name = f"{self.model._meta.model_name}s"
+        context[self.context_object_name] = context.get("object_list")
+        context.setdefault("js_files", [])
+        context["js_files"] += ["js/pagination.js", "js/filter.js"]
 
-        obj = self.get_object()
-
-        if self.form_class:
-            context['form'] = self.form_class(instance=obj)
+        if self.filter_form_class:
+            context["filter_form"] = getattr(self, "filter_form", self.filter_form_class())
+        if self.create_form_class:
+            context["create_form"] = self.create_form_class()
 
         return context
 
-class CRMDetailTemplateView(CRMBaseDetailView):
+class CRMDetailView(CRMBaseView, DetailView):
+    form_class = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.context_object_name:
+            self.context_object_name = self.model._meta.model_name
+        if self.form_class:
+            context["form"] = self.form_class(instance=self.object)
+        return context
+
+class CRMDetailTemplateView(CRMDetailView):
     template_name = "crm/base_detail.html"
     context_object_name = "object"
     update_url = None
@@ -215,7 +172,7 @@ class CRMDetailTemplateView(CRMBaseDetailView):
         context["pk"] = self.get_pk()
         return context
 
-class CRMCreateTemplateView(CRMBaseCreateView):
+class CRMCreateTemplateView(CRMCreateView):
     template_name = None
     create_url = None
 
@@ -235,33 +192,27 @@ class CRMCreateTemplateView(CRMBaseCreateView):
         context["create_url"] = self.get_create_url()
         return context
 
-class CRMTableView(CRMBaseListView):
+class CRMTableView(CRMListView):
     template_name = "crm/base_table.html"
     context_object_name = "table"
     table_class = None
     create_url = None
-    detail_url = None
-    delete_url = None
     show_add_button = True
 
     def get_create_url(self):
-        if self.create_url:
-            return self.create_url
-        model_name = self.model._meta.model_name
-        return f"{model_name}_create"
+        return self.create_url or f"{self.model._meta.model_name}_create"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        table = self.table_class(self.object_list)
-        table.request = self.request
-
-        context["table"] = table
+        if self.table_class:
+            table = self.table_class(self.object_list)
+            table.request = self.request
+            context["table"] = table
         context["create_url"] = self.get_create_url()
         context["show_add_button"] = self.show_add_button
         return context
 
-class LeadListView(CRMBaseListView):
+class LeadListView(CRMListView):
     model = Lead
     template_name = 'crm/lead_list.html'
     filter_form_class = LeadFilterForm
@@ -287,12 +238,12 @@ class LeadListView(CRMBaseListView):
         
         return queryset
 
-class LeadUpdateView(CRMBaseUpdateView):
+class LeadUpdateView(CRMUpdateView):
     model = Lead
     form_class = LeadForm
     trigger_alert = True
 
-class LeadDetailView(CRMBaseDetailView):
+class LeadDetailView(CRMDetailView):
     model = Lead
     template_name = 'crm/lead_detail.html'
     form_class = LeadForm
@@ -316,7 +267,7 @@ class LeadDetailView(CRMBaseDetailView):
 
         return context
 
-class LeadMarketingUpdateView(CRMBaseUpdateView):
+class LeadMarketingUpdateView(CRMUpdateView):
     model = LeadMarketing
     form_class = LeadMarketingForm
 
@@ -335,7 +286,7 @@ class LeadMarketingUpdateView(CRMBaseUpdateView):
         else:
             return self.alert(request, "There was a problem updating the marketing info. Please check the form.", AlertStatus.BAD_REQUEST, False)
 
-class LeadArchiveView(CRMBaseUpdateView):
+class LeadArchiveView(CRMUpdateView):
     model = Lead
     fields = []
 
@@ -357,7 +308,7 @@ class CocktailCreateView(CRMCreateTemplateView):
     model = Cocktail
     form_class = CocktailForm
 
-class CocktailUpdateView(CRMBaseUpdateView):
+class CocktailUpdateView(CRMUpdateView):
     model = Cocktail
     form_class = CocktailForm
 
@@ -378,7 +329,7 @@ class CocktailDetailView(CRMDetailTemplateView):
 
         return context
 
-class CocktailDeleteView(CRMBaseDeleteView):
+class CocktailDeleteView(CRMDeleteView):
     model = Cocktail
     form_class = CocktailForm
     
@@ -390,7 +341,7 @@ class ServiceCreateView(CRMCreateTemplateView):
     model = Service
     form_class = ServiceForm
 
-class ServiceUpdateView(CRMBaseUpdateView):
+class ServiceUpdateView(CRMUpdateView):
     model = Service
     form_class = ServiceForm
 
@@ -398,7 +349,7 @@ class ServiceDetailView(CRMDetailTemplateView):
     model = Service
     form_class = ServiceForm
 
-class ServiceDeleteView(CRMBaseDeleteView):
+class ServiceDeleteView(CRMDeleteView):
     model = Service
     form_class = ServiceForm
     
@@ -410,7 +361,7 @@ class UserCreateView(CRMCreateTemplateView):
     model = User
     form_class = UserForm
 
-class UserUpdateView(CRMBaseUpdateView):
+class UserUpdateView(CRMUpdateView):
     model = User
     form_class = UserForm
 
@@ -418,7 +369,7 @@ class UserDetailView(CRMDetailTemplateView):
     model = User
     form_class = UserForm
 
-class UserDeleteView(CRMBaseDeleteView):
+class UserDeleteView(CRMDeleteView):
     model = User
     form_class = UserForm
     
@@ -430,7 +381,7 @@ class EventCreateView(CRMCreateTemplateView):
     model = Event
     form_class = EventForm
 
-class EventUpdateView(CRMBaseUpdateView):
+class EventUpdateView(CRMUpdateView):
     model = Event
     form_class = EventForm
     trigger_alert = True
@@ -457,7 +408,7 @@ class EventDetailView(CRMDetailTemplateView):
 
         return context
 
-class EventDeleteView(CRMBaseDeleteView):
+class EventDeleteView(CRMDeleteView):
     model = Event
     form_class = EventForm
 
@@ -470,7 +421,7 @@ class MessageDetailView(CRMDetailTemplateView):
     model = Message
     form_class = MessageForm
 
-class MessageUpdateView(CRMBaseUpdateView):
+class MessageUpdateView(CRMUpdateView):
     model = Message
     form_class = MessageForm
 
@@ -483,11 +434,11 @@ class PhoneCallDetailView(CRMDetailTemplateView):
     model = PhoneCall
     form_class = PhoneCallForm
 
-class PhoneCallUpdateView(CRMBaseUpdateView):
+class PhoneCallUpdateView(CRMUpdateView):
     model = PhoneCall
     form_class = PhoneCallForm
 
-class HTTPLogListView(CRMBaseListView):
+class HTTPLogListView(CRMListView):
     model = HTTPLog
     context_object_name = "logs"
     filter_form_class = HTTPLogFilterForm
@@ -509,7 +460,7 @@ class CallTrackingNumberCreateView(CRMCreateTemplateView):
     model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
-class CallTrackingNumberUpdateView(CRMBaseUpdateView):
+class CallTrackingNumberUpdateView(CRMUpdateView):
     model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
@@ -517,7 +468,7 @@ class CallTrackingNumberDetailView(CRMDetailTemplateView):
     model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
-class CallTrackingNumberDeleteView(CRMBaseDeleteView):
+class CallTrackingNumberDeleteView(CRMDeleteView):
     model = CallTrackingNumber
     form_class = CallTrackingNumberForm
 
@@ -539,15 +490,15 @@ class LeadNoteDetailView(CRMDetailTemplateView):
     model = LeadNote
     form_class = LeadNoteForm
 
-class LeadNoteCreateView(CRMBaseCreateView):
+class LeadNoteCreateView(CRMCreateView):
     model = LeadNote
     form_class = LeadNoteForm
 
-class LeadNoteUpdateView(CRMBaseUpdateView):
+class LeadNoteUpdateView(CRMUpdateView):
     model = LeadNote
     form_class = LeadNoteForm
 
-class LeadNoteDeleteView(CRMBaseDeleteView):
+class LeadNoteDeleteView(CRMDeleteView):
     model = LeadNote
     form_class = LeadNoteForm
 
@@ -614,7 +565,7 @@ class EventCocktailCreateView(AlertMixin, CRMCreateTemplateView):
     def form_invalid(self, form):
         return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=True)
 
-class EventCocktailDeleteView(AlertMixin, CRMBaseDeleteView):
+class EventCocktailDeleteView(AlertMixin, CRMDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
 
@@ -645,7 +596,7 @@ class EventStaffCreateView(AlertMixin, CRMCreateTemplateView):
         except BaseException as e:
             return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class EventStaffDeleteView(AlertMixin, CRMBaseDeleteView):
+class EventStaffDeleteView(AlertMixin, CRMDeleteView):
     model = EventStaff
     form_class = EventStaffForm
 
@@ -676,7 +627,7 @@ class CocktailIngredientCreateView(AlertMixin, CRMCreateTemplateView):
         except Exception as e:
             return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class CocktailIngredientDeleteView(AlertMixin, CRMBaseDeleteView):
+class CocktailIngredientDeleteView(AlertMixin, CRMDeleteView):
     model = CocktailIngredient
     form_class = CocktailIngredientForm
 
@@ -699,7 +650,7 @@ class IngredientCreateView(CRMCreateTemplateView):
     model = Ingredient
     form_class = IngredientForm
 
-class IngredientUpdateView(CRMBaseUpdateView):
+class IngredientUpdateView(CRMUpdateView):
     model = Ingredient
     form_class = IngredientForm
 
@@ -707,11 +658,11 @@ class IngredientDetailView(CRMDetailTemplateView):
     model = Ingredient
     form_class = IngredientForm
 
-class IngredientDeleteView(CRMBaseDeleteView):
+class IngredientDeleteView(CRMDeleteView):
     model = Ingredient
     form_class = IngredientForm
 
-class CreateShoppingListView(AlertMixin, CRMBaseCreateView):
+class CreateShoppingListView(AlertMixin, CRMCreateView):
     model = EventShoppingList
     form_class = EventShoppingListForm
 
@@ -789,7 +740,7 @@ class CreateShoppingListView(AlertMixin, CRMBaseCreateView):
                 status=AlertStatus.INTERNAL_ERROR
             )
 
-class EventShoppingListExternalDetailView(CRMBaseDetailView):
+class EventShoppingListExternalDetailView(CRMDetailView):
     model = EventShoppingList
     template_name = 'crm/shopping_list_detail.html'
     context_object_name = 'event_shopping_list'
@@ -806,7 +757,7 @@ class StoreItemCreateView(CRMCreateTemplateView):
     model = StoreItem
     form_class = StoreItemForm
 
-class StoreItemUpdateView(CRMBaseUpdateView):
+class StoreItemUpdateView(CRMUpdateView):
     model = StoreItem
     form_class = StoreItemForm
 
@@ -814,6 +765,6 @@ class StoreItemDetailView(CRMDetailTemplateView):
     model = StoreItem
     form_class = StoreItemForm
 
-class StoreItemDeleteView(CRMBaseDeleteView):
+class StoreItemDeleteView(CRMDeleteView):
     model = StoreItem
     form_class = StoreItemForm
