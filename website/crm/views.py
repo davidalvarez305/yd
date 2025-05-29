@@ -690,59 +690,66 @@ class CreateShoppingListView(AlertMixin, CRMCreateView):
         try:
             event_shopping_list = form.save()
 
-            entries = event_shopping_list.entries.count()
-
-            if entries > 0:
-                event_shopping_list.entries.all().delete()
+            # Clear any previous entries
+            event_shopping_list.entries.all().delete()
 
             event = event_shopping_list.event
 
             if not event.guests or not event.start_time or not event.end_time:
                 raise ValidationError('Fill out event details before creating a shopping list.')
-            
+
             duration = event.end_time - event.start_time
             hours = duration.total_seconds() / 3600
-
             expected_consumed_cocktails = event.guests * hours
-            event_cocktails = EventCocktail.objects.filter(event=event)
 
-            if event_cocktails.count() == 0:
+            event_cocktails = EventCocktail.objects.filter(event=event)
+            if not event_cocktails.exists():
                 raise ValidationError('There must be at least one cocktail before creating a shopping list.')
 
             expected_consumption_per_cocktail = expected_consumed_cocktails / event_cocktails.count()
+
+            # Cache all StoreItems for quick lookup
+            store_items_by_name = {
+                item.name: item for item in StoreItem.objects.all()
+            }
+
+            # Cache new entries to avoid duplicate creations
+            new_entries_by_store_item_id = {}
 
             for event_cocktail in event_cocktails:
                 cocktail_ingredients = CocktailIngredient.objects.filter(cocktail=event_cocktail.cocktail)
 
                 if not cocktail_ingredients.exists():
-                    raise ValidationError(f'Assign cocktail ingredients in order to create shopping list for {event_cocktail.cocktail}')
+                    raise ValidationError(f'Assign cocktail ingredients to {event_cocktail.cocktail}.')
 
-                for cocktail_ingredient in cocktail_ingredients:
-                    name = cocktail_ingredient.ingredient.name
-                    store_item = StoreItem.objects.filter(name=name).first()
+                for ingredient in cocktail_ingredients:
+                    item_name = ingredient.ingredient.name
+                    store_item = store_items_by_name.get(item_name)
 
                     if not store_item:
-                        raise ValidationError('Invalid store item.')
+                        raise ValidationError(f'Invalid store item for ingredient: {item_name}')
 
-                    store = cocktail_ingredient.ingredient.store
-                    qty = expected_consumption_per_cocktail * cocktail_ingredient.amount
+                    qty = expected_consumption_per_cocktail * ingredient.amount
+                    store = ingredient.ingredient.store
 
-                    existing_entry = event_shopping_list.entries.filter(store_item=store_item).first()
+                    existing_entry = new_entries_by_store_item_id.get(store_item.id)
+
                     if existing_entry:
                         existing_entry.quantity += qty
-                        existing_entry.save()
                     else:
-                        entry = EventShoppingListEntry(
+                        new_entries_by_store_item_id[store_item.id] = EventShoppingListEntry(
                             store_item=store_item,
                             store=store,
                             quantity=qty,
-                            unit=cocktail_ingredient.unit,
+                            unit=ingredient.unit,
                             event_shopping_list=event_shopping_list,
                         )
 
-                        entry.save()
+            # Save all entries at once
+            EventShoppingListEntry.objects.bulk_create(new_entries_by_store_item_id.values())
 
             return HttpResponse()
+
         except Exception as e:
             return self.alert(
                 request=self.request,

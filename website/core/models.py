@@ -720,7 +720,7 @@ class CocktailIngredient(models.Model):
 
     class Meta:
         db_table = 'cocktail_ingredient'
-        unique_together = ('cocktail', 'ingredient', 'unit')
+        unique_together = ('cocktail', 'ingredient')
 
 class EventShoppingList(models.Model):
     event_shopping_list_id = models.AutoField(primary_key=True)
