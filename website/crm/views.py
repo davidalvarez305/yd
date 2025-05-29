@@ -120,6 +120,9 @@ class CRMBaseUpdateView(LoginRequiredMixin, CRMContextMixin, AlertMixin, UpdateV
                 return self.alert(request, "An unexpected error occurred while saving.", AlertStatus.INTERNAL_ERROR, False)
         else:
             return self.alert(request, "Form validation failed. Please correct the errors and try again.", AlertStatus.BAD_REQUEST, False)
+    
+    def form_invalid(self, form):
+        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=False)
 
 class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
     success_url = None
@@ -132,7 +135,7 @@ class CRMBaseDeleteView(LoginRequiredMixin, CRMContextMixin, DeleteView):
         self.object.delete()
         return redirect(self.get_success_url())
 
-class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
+class CRMBaseCreateView(LoginRequiredMixin, AlertMixin, CRMContextMixin, CreateView):
     success_url = None
     trigger_alert = False
 
@@ -154,6 +157,10 @@ class CRMBaseCreateView(LoginRequiredMixin, CRMContextMixin, CreateView):
             return HttpResponse(status=200, headers={'HX-Redirect': success_url})
 
         return response
+    
+    def form_invalid(self, form):
+        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=False)
+
 
 class CRMBaseDetailView(LoginRequiredMixin, CRMContextMixin, DetailView):
     success_url = None
@@ -604,10 +611,10 @@ class EventCocktailCreateView(AlertMixin, CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
     def form_invalid(self, form):
-        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+        return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=True)
 
 class EventCocktailDeleteView(AlertMixin, CRMBaseDeleteView):
     model = EventCocktail
