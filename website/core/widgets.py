@@ -2,7 +2,7 @@ from django import forms
 from django.forms.widgets import CheckboxInput
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.template.context_processors import csrf
 
 from .utils import deep_getattr
@@ -46,6 +46,7 @@ class ToggleSwitchWidget(CheckboxInput):
 class TableCellWidget:
     def __init__(self, data=None):
         self.data = data or {}
+        self.is_html = self.data.get("is_html", False)
 
     def get_value(self, obj):
         value = self.data.get("value")
@@ -70,6 +71,12 @@ class TableCellWidget:
     def render(self, row, **kwargs):
         value = self.get_value(row)
         attrs = self.get_attrs(row)
+
+        if not self.is_html:
+            value = escape(value)
+        else:
+            value = mark_safe(value)
+
         return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
 
 class TemplateCellWidget:

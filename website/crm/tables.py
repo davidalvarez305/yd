@@ -282,8 +282,12 @@ class StoreItemTable(Table):
         label='Image',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: deep_getattr(row, 'image.url', '')
-            }
+                'value': lambda row: (
+                    f'<a href="{deep_getattr(row, "image.url", "#")}" target="_blank">View Image</a>'
+                    if deep_getattr(row, 'image.url', '') else ''
+                )
+            },
+            is_html=True
         )
     )
 
