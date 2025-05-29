@@ -767,3 +767,9 @@ class EventShoppingListEntry(models.Model):
 
     class Meta:
         db_table = 'event_shopping_list_entry'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['event_shopping_list', 'store_item'],
+                name='unique_store_item_per_event_shopping_list'
+            )
+        ]

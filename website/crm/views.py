@@ -714,7 +714,7 @@ class CreateShoppingListView(AlertMixin, CRMCreateView):
             for event_cocktail in event_cocktails:
                 cocktail_ingredients = CocktailIngredient.objects.filter(cocktail=event_cocktail.cocktail)
 
-                if cocktail_ingredients.count() == 0:
+                if not cocktail_ingredients.exists():
                     raise ValidationError(f'Assign cocktail ingredients in order to create shopping list for {event_cocktail.cocktail}')
 
                 for cocktail_ingredient in cocktail_ingredients:
@@ -727,15 +727,20 @@ class CreateShoppingListView(AlertMixin, CRMCreateView):
                     store = cocktail_ingredient.ingredient.store
                     qty = expected_consumption_per_cocktail * cocktail_ingredient.amount
 
-                    entry = EventShoppingListEntry(
-                        store_item=store_item,
-                        store=store,
-                        quantity=qty,
-                        unit=cocktail_ingredient.unit,
-                        event_shopping_list=event_shopping_list,
-                    )
+                    existing_entry = event_shopping_list.entries.filter(store_item=store_item).first()
+                    if existing_entry:
+                        existing_entry.quantity += qty
+                        existing_entry.save()
+                    else:
+                        entry = EventShoppingListEntry(
+                            store_item=store_item,
+                            store=store,
+                            quantity=qty,
+                            unit=cocktail_ingredient.unit,
+                            event_shopping_list=event_shopping_list,
+                        )
 
-                    entry.save()
+                        entry.save()
 
             return HttpResponse()
         except Exception as e:
