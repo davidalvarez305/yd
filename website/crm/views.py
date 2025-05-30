@@ -102,11 +102,15 @@ class CRMDeleteView(CRMBaseView, DeleteView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
+
+        htmx_redirect = self.handle_htmx_redirect()
+        if htmx_redirect:
+            return htmx_redirect
+
         return redirect(self.get_success_url())
 
 class CRMListView(CRMBaseView, ListView):
     paginate_by = 10
-    context_object_name = None
     filter_form_class = None
     create_form_class = None
 
@@ -125,9 +129,6 @@ class CRMListView(CRMBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if not self.context_object_name:
-            self.context_object_name = f"{self.model._meta.model_name}s"
-        context[self.context_object_name] = context.get("object_list")
         context.setdefault("js_files", [])
         context["js_files"] += ["js/pagination.js", "js/filter.js"]
 
@@ -143,17 +144,13 @@ class CRMDetailView(CRMBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if not self.context_object_name:
-            self.context_object_name = self.model._meta.model_name
         if self.form_class:
             context["form"] = self.form_class(instance=self.object)
         return context
 
 class CRMDetailTemplateView(CRMDetailView):
     template_name = "crm/base_detail.html"
-    context_object_name = "object"
     update_url = None
-    pk = None
 
     def get_update_url(self):
         if self.update_url:
@@ -161,17 +158,9 @@ class CRMDetailTemplateView(CRMDetailView):
         model_name = self.model._meta.model_name
         return f"{model_name}_update"
 
-    def get_pk(self):
-        if hasattr(self, "pk") and self.pk is not None:
-            return self.pk
-        if hasattr(self, "object") and self.object is not None:
-            return getattr(self.object, self.object._meta.pk.name)
-        raise ValueError("Cannot determine PK: neither pk nor object is set.")
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["update_url"] = self.get_update_url()
-        context["pk"] = self.get_pk()
         return context
 
 class CRMCreateTemplateView(CRMCreateView):
@@ -248,6 +237,7 @@ class LeadDetailView(CRMDetailView):
     model = Lead
     template_name = 'crm/lead_detail.html'
     form_class = LeadForm
+    context_object_name = 'lead'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -22,7 +22,7 @@
             </div>
             <div class="md:w-2/3 md:pl-24">
                 <form class="space-y-6 xl:w-2/3"
-                    hx-post="{% url 'cocktail_update' pk=cocktail.pk %}"
+                    hx-post="{% url 'cocktail_update' pk=object.pk %}"
                     hx-target="#alertModal"
                     hx-swap="outerHTML"
                     hx-ext="loading-states"
