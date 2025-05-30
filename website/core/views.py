@@ -1,5 +1,7 @@
+from datetime import timedelta
 from django.views.generic import TemplateView, View
-from django.utils.timezone import now
+from django.views.generic.edit import CreateView
+from django.utils import timezone
 from django.http import HttpResponseServerError, HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -11,7 +13,7 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 
-from .models import LeadMarketing, LeadStatus, LeadStatusEnum
+from .models import Lead, LeadMarketing, LeadStatus, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -35,7 +37,7 @@ class BaseView(TemplateView):
             "meta_description": self.meta_description,
             "site_name": settings.SITE_NAME,
             "phone_number": format_phone_number(settings.COMPANY_PHONE_NUMBER),
-            "current_year": now().year,
+            "current_year": timezone.now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
@@ -191,19 +193,16 @@ class LogoutView(BaseWebsiteView):
         logout(request)
         return redirect(reverse('home'))
 
-class QuoteView(BaseWebsiteView):
-    def post(self, request, *args, **kwargs):
-        form = QuoteForm(request.POST)
+class QuoteView(BaseWebsiteView, CreateView):
+    model = Lead
+    form_class = QuoteForm
 
-        if not form.is_valid():
-            errors = '\n'.join([f"{', '.join(errors)}" for _, errors in form.errors.items()])
-            return self.alert(request, errors, AlertStatus.BAD_REQUEST)
-
+    def form_valid(self, form):
         try:
             with transaction.atomic():
                 lead = form.save()
 
-                helper = MarketingHelper(request)
+                helper = MarketingHelper(self.request)
                 marketing = LeadMarketing()
 
                 for key, value in helper.to_dict().items():
@@ -211,14 +210,35 @@ class QuoteView(BaseWebsiteView):
                         setattr(marketing, key, value)
 
                 marketing.button_clicked = form.cleaned_data.get('button_clicked')
-
                 marketing.lead = lead
-
                 marketing.save()
 
-            lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
+                lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
-            return self.alert(request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
+            return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
-        except Exception as e:
-            return self.alert(request, "Internal server error", AlertStatus.INTERNAL_ERROR)
+        except Exception:
+            return self.alert(self.request, "Internal server error", AlertStatus.INTERNAL_ERROR)
+
+    def form_invalid(self, form):
+        phone_errors = form.errors.get('phone_number')
+        if phone_errors and any('already submitted' in error for error in phone_errors):
+
+            phone_number = form.cleaned_data.get('phone_number')
+            lead = Lead.objects.filter(phone_number=phone_number).first()
+
+            if not lead:
+                return self.alert(self.request, 'Error while querying lead.', AlertStatus.INTERNAL_ERROR)
+            
+            if lead.is_inactive():
+                lead.change_lead_status(LeadStatusEnum.RE_ENGAGED)
+                return self.alert(self.request, "Welcome back, we'll be in touch soon!", AlertStatus.SUCCESS)
+
+            return self.alert(self.request, 'This phone number already exists in our system.', AlertStatus.BAD_REQUEST)
+
+        errors = '\n'.join([f"{', '.join(errors)}" for _, errors in form.errors.items()])
+        return self.alert(self.request, errors, AlertStatus.BAD_REQUEST)
+
+    def post(self, request, *args, **kwargs):
+        self.request = request
+        return super().post(request, *args, **kwargs)

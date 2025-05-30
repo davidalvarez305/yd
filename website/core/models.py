@@ -1,3 +1,4 @@
+from datetime import timedelta
 from enum import Enum
 import json
 import os
@@ -128,9 +129,24 @@ class Lead(models.Model):
     def phone_calls(self):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
     
-    def is_qualified(self):
-        total_duration = self.phone_calls().aggregate(total=Sum('duration'))
-        return total_duration.get('total', 0) > 120
+    def is_inactive(self):
+        two_weeks_ago = timezone.now() - timedelta(days=14)
+
+        if self.created_at > two_weeks_ago:
+            return False
+
+        last_msg = self.messages().order_by('-date_created').first()
+        last_call = self.phone_calls().order_by('-date_created').first()
+
+        latest_activity = None
+        if last_msg and last_call:
+            latest_activity = max(last_msg.date_created, last_call.date_created)
+        elif last_msg:
+            latest_activity = last_msg.date_created
+        elif last_call:
+            latest_activity = last_call.date_created
+
+        return not latest_activity or latest_activity < two_weeks_ago
     
     def messages(self):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')

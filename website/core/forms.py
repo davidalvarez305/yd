@@ -168,18 +168,26 @@ class QuoteForm(BaseModelForm):
     )
 
     def clean_phone_number(self):
-        phone_number = self.cleaned_data['phone_number']
+        phone_number = self.cleaned_data.get('phone_number')
 
-        exists = Lead.objects.filter(phone_number=phone_number).first()
+        if not phone_number:
+            raise forms.ValidationError('Phone number field cannot be empty.')
 
-        if exists:
+        cleaned_phone_number = re.sub(r'\D', '', phone_number)
+        if len(cleaned_phone_number) == 10:
+            cleaned_phone_number = f'+1{cleaned_phone_number}'
+        elif len(cleaned_phone_number) == 11 and cleaned_phone_number.startswith('1'):
+            cleaned_phone_number = f'+{cleaned_phone_number}'
+
+        if not re.match(r'^\+1\d{10}$', cleaned_phone_number):
+            raise forms.ValidationError(
+                'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
+            )
+
+        if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
             raise forms.ValidationError('Someone has already submitted a request from this phone number.')
 
-        if not re.match(r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
-            raise forms.ValidationError(
-                'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
-            )
-        return phone_number
+        return cleaned_phone_number
 
     class Meta:
         model = Lead
