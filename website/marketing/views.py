@@ -94,6 +94,9 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                 )
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
+            else:
+                lead.change_lead_status(status=LeadStatusEnum.RE_ENGAGED)
+
 
     response = {'status': 'received', 'leads_count': len(entries)}
     return HttpResponse(json.dumps(response), content_type='application/json', status=200)
