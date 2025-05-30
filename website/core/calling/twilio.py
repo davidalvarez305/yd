@@ -9,7 +9,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
-from core.models import Lead, LeadNote, Message, User
+from core.models import CallTracking, CallTrackingNumber, Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
 from .base import CallingServiceInterface
@@ -57,7 +57,7 @@ class TwilioCallingService(CallingServiceInterface):
         from_number = strip_country_code(call_from)
         to_number = strip_country_code(call_to)
 
-        forward = User.objects.filter(phone_number=to_number).first()
+        forward = CallTrackingNumber.objects.filter(call_tracking_number=to_number).first()
         if not forward:
             return HttpResponse("No matching phone number found", status=404)
 

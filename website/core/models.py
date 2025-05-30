@@ -502,13 +502,14 @@ class HTTPLog(models.Model):
 
 class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
-    call_tracking_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, unique=True)
+    forward_phone_number = models.CharField(max_length=15)
 
     def __str__(self):
-        return self.call_tracking_number
+        return self.phone_number
 
     class Meta:
-        db_table = 'call_tracking_number'
+        db_table = 'phone_number'
 
 class CallTracking(models.Model):
     call_tracking_id = models.AutoField(primary_key=True)
