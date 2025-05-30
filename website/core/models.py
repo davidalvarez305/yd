@@ -441,7 +441,7 @@ class LeadMarketing(models.Model):
     client_id = models.TextField(unique=True, null=True)
     button_clicked = models.CharField(max_length=255, null=True)
     ip = models.GenericIPAddressField(null=True)
-    external_id = models.CharField(max_length=255, db_index=True)
+    external_id = models.CharField(max_length=255, db_index=True, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True)
     instant_form = models.ForeignKey(InstantForm, null=True, related_name='lead_marketing', db_column='instant_form_id', on_delete=models.SET_NULL)
     marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, related_name='lead_marketing', db_column='marketing_campaign_id', on_delete=models.SET_NULL)
