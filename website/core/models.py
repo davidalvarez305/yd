@@ -145,8 +145,10 @@ class Lead(models.Model):
             latest_activity = last_msg.date_created
         elif last_call:
             latest_activity = last_call.date_created
+        
+        last_status = LeadStatusHistory.objects.filter(lead=self).order_by('-date_created').first()
 
-        return not latest_activity or latest_activity < two_weeks_ago
+        return (not latest_activity and last_status.date_changed < two_weeks_ago) or latest_activity < two_weeks_ago
     
     def messages(self):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
