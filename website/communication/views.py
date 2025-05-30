@@ -3,11 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
-from django.utils.timezone import now
 
-from twilio.twiml.voice_response import VoiceResponse, Dial
-
-from crm.views import CRMBaseCreateView
+from crm.views import CRMCreateView
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from core.models import Lead, Message
@@ -25,7 +22,7 @@ def handle_inbound_message(request: HttpRequest):
 def handle_message_status_callback(request: HttpRequest):
     return messaging_service.handle_message_status_callback(request)
 
-class MessageCreateView(CRMBaseCreateView, AlertMixin):
+class MessageCreateView(CRMCreateView):
     model = Message
     form_class = MessageForm
 

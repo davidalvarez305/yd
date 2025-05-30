@@ -285,9 +285,9 @@ class StoreItemTable(Table):
                 'value': lambda row: (
                     f'<a href="{deep_getattr(row, "image.url", "#")}" target="_blank">View Image</a>'
                     if deep_getattr(row, 'image.url', '') else ''
-                )
-            },
-            is_html=True
+                ),
+                'is_html': True,
+            }
         )
     )
 

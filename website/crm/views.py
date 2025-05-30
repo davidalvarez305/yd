@@ -68,11 +68,11 @@ class CRMCreateView(CRMBaseView, AlertMixin, CreateView):
     def form_valid(self, form):
         try:
             self.object = form.save()
+            if self.trigger_alert:
+                return self.alert(self.request, "Successfully created!", AlertStatus.SUCCESS, False)
             htmx_redirect = self.handle_htmx_redirect()
             if htmx_redirect:
                 return htmx_redirect
-            if self.trigger_alert:
-                return self.alert(self.request, "Successfully created!", AlertStatus.SUCCESS, False)
             return super().form_valid(form)
         except Exception as e:
             return self.handle_form_exception(e)
@@ -81,14 +81,16 @@ class CRMCreateView(CRMBaseView, AlertMixin, CreateView):
         return self.handle_form_invalid(form)
 
 class CRMUpdateView(CRMBaseView, AlertMixin, UpdateView):
+    trigger_alert = True
+
     def form_valid(self, form):
         try:
             self.object = form.save()
+            if self.trigger_alert:
+                return self.alert(self.request, "Successfully updated!", AlertStatus.SUCCESS, False)
             htmx_redirect = self.handle_htmx_redirect()
             if htmx_redirect:
                 return htmx_redirect
-            if self.trigger_alert:
-                return self.alert(self.request, "Successfully updated!", AlertStatus.SUCCESS, False)
             return super().form_valid(form)
         except Exception as e:
             return self.handle_form_exception(e)
@@ -241,7 +243,6 @@ class LeadListView(CRMListView):
 class LeadUpdateView(CRMUpdateView):
     model = Lead
     form_class = LeadForm
-    trigger_alert = True
 
 class LeadDetailView(CRMDetailView):
     model = Lead
@@ -270,21 +271,6 @@ class LeadDetailView(CRMDetailView):
 class LeadMarketingUpdateView(CRMUpdateView):
     model = LeadMarketing
     form_class = LeadMarketingForm
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-
-        if form.is_valid():
-            try:
-                form.instance.lead = self.object.lead
-                form.save()
-                return self.alert(request, "Marketing info updated successfully.", AlertStatus.SUCCESS, False)
-            except Exception as e:
-                print(f"Unexpected error occurred: {e}")
-                return self.alert(request, "An unexpected error occurred. Please try again.", AlertStatus.INTERNAL_ERROR, False)
-        else:
-            return self.alert(request, "There was a problem updating the marketing info. Please check the form.", AlertStatus.BAD_REQUEST, False)
 
 class LeadArchiveView(CRMUpdateView):
     model = Lead
@@ -546,7 +532,7 @@ class CocktailOptionsListView(LoginRequiredMixin, ListView):
 
         return HttpResponse(html)
 
-class EventCocktailCreateView(AlertMixin, CRMCreateTemplateView):
+class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
 
@@ -580,7 +566,7 @@ class EventCocktailDeleteView(AlertMixin, CRMDeleteView):
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class EventStaffCreateView(AlertMixin, CRMCreateTemplateView):
+class EventStaffCreateView(CRMCreateTemplateView):
     model = EventStaff
     form_class = EventStaffForm
 
@@ -611,7 +597,7 @@ class EventStaffDeleteView(AlertMixin, CRMDeleteView):
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
     
-class CocktailIngredientCreateView(AlertMixin, CRMCreateTemplateView):
+class CocktailIngredientCreateView(CRMCreateTemplateView):
     model = CocktailIngredient
     form_class = CocktailIngredientForm
 
@@ -662,7 +648,7 @@ class IngredientDeleteView(CRMDeleteView):
     model = Ingredient
     form_class = IngredientForm
 
-class CreateShoppingListView(AlertMixin, CRMCreateView):
+class CreateShoppingListView(CRMCreateView):
     model = EventShoppingList
     form_class = EventShoppingListForm
 
