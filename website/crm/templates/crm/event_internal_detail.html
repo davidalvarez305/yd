@@ -54,7 +54,7 @@
             </div>
             <div class="md:w-2/3 md:pl-24">
                 <form class="space-y-6 xl:w-2/3"
-                    hx-post="{% url update_url pk=pk %}"
+                    hx-post="{% url update_url pk=event.pk %}"
                     hx-target="#alertModal"
                     hx-swap="outerHTML"
                     hx-ext="loading-states"

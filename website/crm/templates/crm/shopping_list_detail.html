@@ -1,6 +1,4 @@
-{% extends 'crm/base.html' %}
-{% load static %}
-{% block content %}
+{% extends 'crm/base.html' %} {% load static %} {% block content %}
 <div
   class="mx-auto flex flex-col overflow-hidden rounded-lg bg-white shadow-sm xl:max-w-4xl dark:bg-gray-800 dark:text-gray-100 print:shadow-none">
   <div class="grow p-5 print:p-0">
@@ -35,14 +33,21 @@
         <table class="min-w-full align-middle text-sm whitespace-nowrap">
           <thead>
             <tr class="border-b border-gray-100 dark:border-gray-700/50">
-              <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+              <th
+                class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                 Product
               </th>
-              <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+              <th
+                class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                 Qty
               </th>
-              <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+              <th
+                class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                 Store
+              </th>
+              <th
+                class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                Image
               </th>
             </tr>
           </thead>
@@ -50,13 +55,28 @@
 
           <!-- Table Body -->
           <tbody>
-            {% for item in event.shopping_list.items.all|dictsort:"store" %}
+            {% for item in event_shopping_list.entries.all %}
             <tr class="border-b border-gray-100 dark:border-gray-700/50">
               <td class="p-3 text-center">
-                <p class="mb-1 font-semibold">{{ item.item }}</p>
+                <p class="mb-1 font-semibold">{{ item.store_item }}</p>
               </td>
-              <td class="p-3 text-center">{{ item.quantity }} {{ item.unit.abbreviation }}</td>
-              <td class="p-3 text-center">{{ item.store }}</td>
+              <td class="p-3 text-center">
+                {{ item.quantity }} {{ item.store_item.type }}{% if item.quantity > 1 %}s{% endif %} x {{ item.store_item.product_quantity }} {{ item.store_item.unit }}
+              </td>
+              <td class="p-3 text-center">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query={{ item.store_item.store|urlencode }}"
+                  class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                  {{ item.store_item.store }}
+                </a>
+              </td>
+              <td class="p-3 text-center">
+                <a
+                  href="{{ item.store_item.image.url }}"
+                  class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                  View
+                </a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>

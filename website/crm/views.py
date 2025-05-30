@@ -22,6 +22,7 @@ from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTabl
 from core.tables import Table
 from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
+from crm.utils import convert_to_item_quantity
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -499,24 +500,6 @@ class LeadChatMessagesView(LoginRequiredMixin, ListView):
         })
         return context
 
-class CocktailOptionsListView(LoginRequiredMixin, ListView):
-    model = Cocktail
-
-    def get(self, request, *args, **kwargs):
-        search = self.request.GET.get('search', '')
-
-        cocktails = Cocktail.objects.filter(name__icontains=search)
-        html = ''
-
-        for cocktail in cocktails:
-            html += f'''
-            <option class="group flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white" role="option" tabindex="-1" aria-selected="false">
-                <div class="grow truncate py-2 font-medium">{cocktail.name}</div>
-            </option>
-            '''
-
-        return HttpResponse(html)
-
 class EventCocktailCreateView(CRMCreateTemplateView):
     model = EventCocktail
     form_class = EventCocktailForm
@@ -701,17 +684,17 @@ class CreateShoppingListView(CRMCreateView):
                         raise ValidationError(f'Invalid store item for ingredient: {item_name}')
 
                     qty = expected_consumption_per_cocktail * ingredient.amount
-                    store = ingredient.ingredient.store
 
-                    existing_entry = new_entries_by_store_item_id.get(store_item.id)
+                    suggested_quantity = convert_to_item_quantity(ingredient, store_item, qty)
+
+                    existing_entry = new_entries_by_store_item_id.get(store_item.pk)
 
                     if existing_entry:
-                        existing_entry.quantity += qty
+                        existing_entry.quantity += suggested_quantity
                     else:
-                        new_entries_by_store_item_id[store_item.id] = EventShoppingListEntry(
+                        new_entries_by_store_item_id[store_item.pk] = EventShoppingListEntry(
                             store_item=store_item,
-                            store=store,
-                            quantity=qty,
+                            quantity=suggested_quantity,
                             unit=ingredient.unit,
                             event_shopping_list=event_shopping_list,
                         )
