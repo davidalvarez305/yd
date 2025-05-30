@@ -21,6 +21,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         'Lead Created': 'generate_lead',
         'Sales Prospect': 'invoice_sent',
         'Event Booking': 'event_booked',
+        'Re-Engaged': 're_engaged',
     }
 
     event_name = status_event_map.get(instance.lead_status.status)
