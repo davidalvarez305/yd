@@ -39,7 +39,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
     except json.JSONDecodeError:
         return HttpResponse('Invalid JSON', status=400)
 
-    leads = []
+    entries = []
 
     for entry in payload.get('entry', []):
         for change in entry.get('changes', []):
@@ -53,47 +53,47 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                     'ad_id': value.get('ad_id'),
                     'created_time': value.get('created_time'),
                 }
-                leads.append(lead)
+                entries.append(lead)
 
-    print('Extracted Leads:', leads)
+    print('Extracted Leads:', entries)
 
-    for lead in leads:
+    for entry in entries:
         with transaction.atomic():
-            new_lead, created = Lead.objects.update_or_create(
-                phone_number=lead.get('phone_number'),
+            lead, created = Lead.objects.update_or_create(
+                phone_number=entry.get('phone_number'),
                 defaults={
-                    'email': lead.get('email'),
-                    'full_name': lead.get('full_name'),
+                    'email': entry.get('email'),
+                    'full_name': entry.get('full_name'),
                 }
             )
 
-            instant_form, _ = InstantForm.objects.update_or_create(
-                instant_form_id=lead.get('form_id'),
+            instant_form, _ = InstantForm.objects.get_or_create(
+                instant_form_id=entry.get('form_id'),
                 defaults={
-                    'name': lead.get('form_name')
+                    'name': entry.get('form_name')
                 }
             )
 
-            campaign, _ = MarketingCampaign.objects.update_or_create(
-                marketing_campaign_id=lead.get('campaign_id'),
+            campaign, _ = MarketingCampaign.objects.get_or_create(
+                marketing_campaign_id=entry.get('campaign_id'),
                 defaults={
-                    'name': lead.get('campaign_name'),
+                    'name': entry.get('campaign_name'),
                     'platform_id': ConversionServiceType.FACEBOOK.value,
                 }
             )
 
             if created:
                 LeadMarketing.objects.create(
-                    instant_form_lead_id=lead.get('leadgen_id'),
-                    lead=new_lead,
+                    instant_form_lead_id=entry.get('leadgen_id'),
+                    lead=lead,
                     source='fb',
-                    medium='social',
-                    channel='fb',
+                    medium='paid',
+                    channel='social',
                     instant_form=instant_form,
                     marketing_campaign=campaign,
                 )
 
-                new_lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
+                lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
-    response = {'status': 'received', 'leads_count': len(leads)}
+    response = {'status': 'received', 'leads_count': len(entries)}
     return HttpResponse(json.dumps(response), content_type='application/json', status=200)
