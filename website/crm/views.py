@@ -164,13 +164,8 @@ class CRMDetailTemplateView(CRMDetailView):
         return context
 
 class CRMCreateTemplateView(CRMCreateView):
-    template_name = None
+    template_name = "crm/base_create.html"
     create_url = None
-
-    def get_template_names(self):
-        if self.template_name:
-            return [self.template_name]
-        return ["crm/base_create.html"]
 
     def get_create_url(self):
         if self.create_url:
