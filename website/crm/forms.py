@@ -4,7 +4,7 @@ import re
 
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
-from core.models import MarketingCampaign, LeadMarketing, InstantForm, Cocktail, Event
+from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 
 class LeadForm(BaseModelForm):
@@ -345,15 +345,6 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
-    instant_form = forms.ModelChoiceField(
-        queryset=InstantForm.objects.all(),
-        required=False,
-        label="Instant Form",
-        widget=forms.Select(attrs={
-            'placeholder': 'Select Instant Form'
-        })
-    )
-
     marketing_campaign = forms.ModelChoiceField(
         queryset=MarketingCampaign.objects.all(),
         required=False,
@@ -368,7 +359,7 @@ class LeadMarketingForm(BaseModelForm):
         fields = [
             'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
             'click_id', 'client_id', 'button_clicked', 'ip', 'external_id',
-            'instant_form_lead_id', 'instant_form', 'marketing_campaign'
+            'instant_form_lead_id', 'instant_form_id', 'marketing_campaign'
         ]
 
 class CallTrackingNumberForm(BaseModelForm):

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import InstantForm, Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
+from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
 from marketing.enums import ConversionServiceType
 from website import settings
 from marketing.utils import facebook_lead_retrieval
@@ -69,34 +69,29 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                         }
                     )
 
-                    instant_form, _ = InstantForm.objects.get_or_create(
-                        instant_form_id=data.get('form_id'),
-                        defaults={'name': data.get('form_name')}
-                    )
-
-                    marketing, _ = LeadMarketing.objects.get_or_create(
-                        instant_form_lead_id=entry.get('leadgen_id'),
-                        defaults={
-                            'lead': lead,
-                            'source': 'fb',
-                            'medium': 'paid',
-                            'channel': 'social',
-                            'instant_form': instant_form,
-                        }
-                    )
-
-                    if not data.get('is_organic'):
-                        campaign, _ = MarketingCampaign.objects.get_or_create(
-                            marketing_campaign_id=data.get('campaign_id'),
+                    if created:
+                        marketing, _ = LeadMarketing.objects.get_or_create(
+                            instant_form_lead_id=entry.get('leadgen_id'),
                             defaults={
-                                'name': data.get('campaign_name'),
-                                'platform_id': ConversionServiceType.FACEBOOK.value,
+                                'lead': lead,
+                                'source': data.get('platform'),
+                                'medium': 'paid',
+                                'channel': 'social',
+                                'instant_form_id': data.get('form_id'),
                             }
                         )
-                        marketing.marketing_campaign = campaign
-                        marketing.save()
 
-                    if created:
+                        if not data.get('is_organic'):
+                            campaign, _ = MarketingCampaign.objects.get_or_create(
+                                marketing_campaign_id=data.get('campaign_id'),
+                                defaults={
+                                    'name': data.get('campaign_name'),
+                                    'platform_id': ConversionServiceType.FACEBOOK.value,
+                                }
+                            )
+                            marketing.marketing_campaign = campaign
+                            marketing.save()
+
                         lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
                     elif lead.is_inactive():
                         lead.change_lead_status(status=LeadStatusEnum.RE_ENGAGED)
@@ -107,4 +102,5 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
             return HttpResponse(status=405)
 
     except Exception as e:
+        print(f'Error: {str(e)}')
         return JsonResponse({'error': str(e)}, status=500)

@@ -79,7 +79,7 @@ class LeadStatus(models.Model):
 class LeadStatusHistory(models.Model):
     lead_status_history_id = models.AutoField(primary_key=True)
     lead = models.ForeignKey('Lead', on_delete=models.CASCADE)
-    lead_status = models.ForeignKey('LeadStatus', on_delete=models.CASCADE)
+    lead_status = models.ForeignKey('LeadStatus', on_delete=models.RESTRICT)
     date_changed = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -431,10 +431,6 @@ AD_PLATFORMS = [
     (ConversionServiceType.FACEBOOK.value, "Facebook"),
 ]
 
-class InstantForm(models.Model):
-    instant_form_id = models.BigIntegerField()
-    name = models.CharField(max_length=255, null=True)
-
 class MarketingCampaign(models.Model):
     marketing_campaign_id = models.BigIntegerField()
     name = models.TextField()
@@ -462,7 +458,7 @@ class LeadMarketing(models.Model):
     ip = models.GenericIPAddressField(null=True)
     external_id = models.CharField(max_length=255, db_index=True, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
-    instant_form = models.ForeignKey(InstantForm, null=True, db_column='instant_form_id', on_delete=models.RESTRICT)
+    instant_form_id = models.BigIntegerField(null=True)
     marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, db_column='marketing_campaign_id', on_delete=models.RESTRICT)
 
     def __str__(self):

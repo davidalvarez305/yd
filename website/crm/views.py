@@ -203,6 +203,7 @@ class LeadListView(CRMListView):
     model = Lead
     template_name = 'crm/lead_list.html'
     filter_form_class = LeadFilterForm
+    context_object_name = 'leads'
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -216,13 +217,8 @@ class LeadListView(CRMListView):
                 rank=SearchRank(F('search_vector'), search_query)
             ).filter(search_vector=search_query)
 
-            print(queryset)
-            
             queryset = queryset.order_by('-rank')
 
-        else:
-            queryset = queryset.exclude(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
-        
         return queryset
 
 class LeadUpdateView(CRMUpdateView):
