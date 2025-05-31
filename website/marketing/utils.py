@@ -1,6 +1,8 @@
 from django.http import HttpRequest
+import requests
 from .enums import ConversionServiceType, MarketingParams
 from core.models import MarketingCampaign
+from website import settings
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -169,3 +171,43 @@ def get_marketing_params(request: HttpRequest) -> dict:
         "client_id": client_id,
         "platform_id": platform_id
     }
+
+def facebook_lead_retrieval(lead):
+    leadgen_id = lead.get('leadgen_id')
+    access_token = settings.FACEBOOK_ACCESS_TOKEN
+
+    if not leadgen_id:
+        raise ValueError('leadgen_id cannot be missing from entry.')
+    
+    if not access_token:
+        raise ValueError('access_token missing from settings.')
+
+    url = f'https://graph.facebook.com/v23.0/{leadgen_id}'
+    params = {
+        'access_token': access_token,
+        'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
+    }
+
+    response = requests.get(url, params=params)
+    
+    if response.status_code != 200:
+        raise Exception(f'Failed to retrieve Facebook lead. Status {response.status_code}: {response.text}')
+
+    data = response.json()
+    
+    if 'field_data' not in data:
+        raise Exception('Incorrectly formatted response: missing field_data.')
+
+    entry = lead.copy()
+
+    for field in data['field_data']:
+        name = field.get('name')
+        value = field.get('values', [None])[0]
+        if name and value and not entry.get(name):
+            entry[name] = value
+
+    for key in ['campaign_id', 'campaign_name', 'ad_id', 'ad_name', 'form_id', 'adset_id', 'adset_name', 'created_time', 'is_organic', 'platform']:
+        if key in data:
+            entry[key] = data[key]
+
+    return entry

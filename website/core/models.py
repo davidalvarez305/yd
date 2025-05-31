@@ -110,8 +110,8 @@ class NextAction(models.Model):
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
-    full_name = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=15, unique=True)
+    full_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=60, unique=True)
     opt_in_text_messaging = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     email = models.EmailField(null=True, unique=True)
@@ -461,12 +461,12 @@ class LeadMarketing(models.Model):
     button_clicked = models.CharField(max_length=255, null=True)
     ip = models.GenericIPAddressField(null=True)
     external_id = models.CharField(max_length=255, db_index=True, null=True)
-    instant_form_lead_id = models.BigIntegerField(null=True)
-    instant_form = models.ForeignKey(InstantForm, null=True, related_name='lead_marketing', db_column='instant_form_id', on_delete=models.SET_NULL)
-    marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, related_name='lead_marketing', db_column='marketing_campaign_id', on_delete=models.SET_NULL)
+    instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
+    instant_form = models.ForeignKey(InstantForm, null=True, db_column='instant_form_id', on_delete=models.RESTRICT)
+    marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, db_column='marketing_campaign_id', on_delete=models.RESTRICT)
 
     def __str__(self):
-        return f"Marketing info for Lead {self.lead_id}"
+        return f"Marketing info for Lead {self.lead.full_name}"
     
     def is_instant_form_lead(self):
         return bool(self.instant_form_lead_id)
