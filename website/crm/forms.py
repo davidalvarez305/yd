@@ -374,7 +374,7 @@ class LeadMarketingForm(BaseModelForm):
 class CallTrackingNumberForm(BaseModelForm):
     class Meta:
         model = CallTrackingNumber
-        fields = ['call_tracking_number']
+        fields = ['phone_number', 'forward_phone_number']
 
 class HTTPLogFilterForm(FilterFormMixin, BaseForm):
     status_code = forms.ChoiceField(
