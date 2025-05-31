@@ -12,8 +12,8 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
+from marketing.signals import lead_status_changed
 from .utils import media_upload_path, save_image_path
-from .signals import lead_status_changed
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -55,10 +55,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class LeadStatusEnum(Enum):
-    LEAD_CREATED = 'Lead Created'
-    INVOICE_SENT = 'Invoice Sent'
-    EVENT_BOOKED = 'Event Booked'
-    RE_ENGAGED = 'Re-Engaged'
+    LEAD_CREATED = 'LEAD_CREATED'
+    INVOICE_SENT = 'INVOICE_SENT'
+    EVENT_BOOKED = 'EVENT_BOOKED'
+    RE_ENGAGED = 'RE_ENGAGED'
 
     def __str__(self):
         return self.name

@@ -1,16 +1,17 @@
 from django.dispatch import receiver
+from django.db.models.signals import Signal
 
 from core.conversions import conversion_service
-from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign, PhoneCall
-from core.models import CallTracking
-from core.signals import lead_status_changed
+
+lead_status_changed = Signal()
 
 @receiver(lead_status_changed)
-def handle_lead_status_change(sender, instance: Lead, **kwargs):
+def handle_lead_status_change(sender, instance, **kwargs):
     """
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
     """
+    from core.models import LeadMarketing, LeadStatusEnum, MarketingCampaign, PhoneCall, CallTracking
     lead_marketing = LeadMarketing.objects.filter(lead=instance).first()
 
     if not lead_marketing:
@@ -18,13 +19,14 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     
     # Report Conversion Event
     status_event_map = {
-        'Lead Created': 'generate_lead',
-        'Sales Prospect': 'invoice_sent',
-        'Event Booking': 'event_booked',
-        'Re-Engaged': 're_engaged',
+        'LEAD_CREATED': 'generate_lead',
+        'INVOICE_SENT': 'invoice_sent',
+        'EVENT_BOOKED': 'event_booked',
+        'RE_ENGAGED': 're_engaged',
     }
 
-    event_name = status_event_map.get(instance.lead_status.status)
+    print(instance.lead_status.status)
+    event_name = status_event_map.get(instance.lead_status)
 
     if not event_name:
         raise ValueError('Invalid event name from lead status.')
