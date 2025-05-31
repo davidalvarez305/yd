@@ -25,8 +25,7 @@ def handle_lead_status_change(sender, instance, **kwargs):
         'RE_ENGAGED': 're_engaged',
     }
 
-    print(instance.lead_status.status)
-    event_name = status_event_map.get(instance.lead_status)
+    event_name = status_event_map.get(instance.lead_status.status)
 
     if not event_name:
         raise ValueError('Invalid event name from lead status.')
@@ -34,7 +33,6 @@ def handle_lead_status_change(sender, instance, **kwargs):
     data = {
         'event_name': event_name,
         'ip_address': lead_marketing.ip,
-        'user_agent': lead_marketing.user_agent,
         'event_time': instance.created_at,
     }
 
@@ -56,7 +54,8 @@ def handle_lead_status_change(sender, instance, **kwargs):
         if attr_value:
             data[attr] = attr_value
 
-    conversion_service.send_conservion(data=data)
+    print(data)
+    conversion_service.send_conversion(data=data)
 
     # Assign lead marketing data if lead came from phone call
     if lead_marketing.is_instant_form_lead():

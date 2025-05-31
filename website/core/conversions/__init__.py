@@ -26,7 +26,7 @@ class ConversionServiceLoader:
         keys = set(settings.CONVERSION_SERVICES.keys())
         return [self.get(key) for key in keys]
 
-    def report_conversions(self, data: dict):
+    def send_conversion(self, data: dict):
         """Send the conversion data to all registered services."""
         for service in self.all_services():
             service.send_conversion(data)
