@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+from urllib.parse import parse_qs, urlparse
 import requests
 from .enums import ConversionServiceType, MarketingParams
 from core.models import MarketingCampaign
@@ -10,20 +11,23 @@ class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
         
-        self.landing_page = self.request.build_absolute_uri()
+        self.landing_page = self.request.headers.get('Referer')
+        parsed_url = urlparse(self.landing_page)
+        self.params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
 
         self.external_id = self.request.session.get('external_id')
 
         self.referrer = self.request.META.get('HTTP_REFERER')
+
         self.ip = self.request.META.get('REMOTE_ADDR')
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
-        self.keywords = self.request.GET.get('keyword')
-        self.source = self.request.GET.get('source', self.get_source_from_referrer())
-        self.medium = self.request.GET.get('medium', self.generate_medium())
-        self.channel = self.request.GET.get('channel', self.get_channel())
+        self.keywords = self.params.get('keyword')
+        self.source = self.params.get('source', self.get_source_from_referrer())
+        self.medium = self.params.get('medium', self.generate_medium())
+        self.channel = self.params.get('channel', self.get_channel())
 
-        marketing_params = get_marketing_params(request=self.request)
+        marketing_params = self._get_marketing_params()
 
         self.click_id = marketing_params.get('click_id')
         self.platform_id = marketing_params.get('platform_id')
@@ -57,18 +61,18 @@ class MarketingHelper:
         """
         if not self.referrer:
             return "direct"
-        elif not self.request.GET:
+        elif not self.params:
             return "organic"
-        elif self.is_paid(self.request.GET):
+        elif self.is_paid():
             return "paid"
         else:
             return "referral"
 
-    def is_paid(self, query_params):
+    def is_paid(self):
         """
         Determines if the traffic is from a paid source (based on query params).
         """
-        return any(query_params.get(key) for key in CLICK_ID_KEYS)
+        return any(self.params.get(key) for key in CLICK_ID_KEYS)
 
     def get_source_from_referrer(self):
         """
@@ -124,8 +128,8 @@ class MarketingHelper:
         """
         Fetches or creates a marketing campaign based on URL parameters.
         """
-        campaign_id = self.request.GET.get("campaign_id")
-        campaign_name = self.request.GET.get("ad_campaign")
+        campaign_id = self.params.get("campaign_id")
+        campaign_name = self.params.get("ad_campaign")
 
         if not campaign_id or not self.platform_id:
             return None
@@ -137,40 +141,40 @@ class MarketingHelper:
         )
         return campaign
 
-def get_marketing_params(request: HttpRequest) -> dict:
-    """
-    Utility function to extract marketing parameters from the URL and cookies.
-    Extracts click_id from the URL, client_id from cookies, and platform_id based on the URL parameters.
-    """
-    # Step 1: Extract `click_id` and `platform_id` from the URL
-    click_id = None
-    platform_id = None
-    client_id = None
+    def _get_marketing_params(self) -> dict:
+        """
+        Utility function to extract marketing parameters from the URL and cookies.
+        Extracts click_id from the URL, client_id from cookies, and platform_id based on the URL parameters.
+        """
+        # Step 1: Extract `click_id` and `platform_id` from the URL
+        click_id = None
+        platform_id = None
+        client_id = None
 
-    for key in MarketingParams.GoogleURLClickIDKeys.value:
-        click_id = request.GET.get(key, None)
-        if click_id:
-            platform_id = ConversionServiceType.GOOGLE.value
-            break
+        for key in MarketingParams.GoogleURLClickIDKeys.value:
+            click_id = self.params.get(key)
+            if click_id:
+                platform_id = ConversionServiceType.GOOGLE.value
+                break
 
-    if not click_id:
-        fbclid = request.GET.get(MarketingParams.FacebookURLClickID.value, None)
-        if fbclid:
-            click_id = fbclid
-            platform_id = ConversionServiceType.FACEBOOK.value
+        if not click_id:
+            fbclid = self.params.get(MarketingParams.FacebookURLClickID.value, None)
+            if fbclid:
+                click_id = fbclid
+                platform_id = ConversionServiceType.FACEBOOK.value
 
-    # Step 2: Extract `client_id` from cookies based on `platform_id`
-    if platform_id == ConversionServiceType.GOOGLE.value:
-        client_id = request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
-    elif platform_id == ConversionServiceType.FACEBOOK.value:
-        client_id = request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
+        # Step 2: Extract `client_id` from cookies based on `platform_id`
+        if platform_id == ConversionServiceType.GOOGLE.value:
+            client_id = self.request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
+        elif platform_id == ConversionServiceType.FACEBOOK.value:
+            client_id = self.request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
 
-    # Step 3: Return the extracted values
-    return {
-        "click_id": click_id,
-        "client_id": client_id,
-        "platform_id": platform_id
-    }
+        # Step 3: Return the extracted values
+        return {
+            "click_id": click_id,
+            "client_id": client_id,
+            "platform_id": platform_id
+        }
 
 def facebook_lead_retrieval(lead):
     leadgen_id = lead.get('leadgen_id')

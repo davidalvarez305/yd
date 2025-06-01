@@ -1,20 +1,19 @@
 import re
-from marketing.enums import ConversionServiceType
 from website import settings
 from .base import ConversionService
 
 class FacebookConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
-        click_id = data.get('click_id')
-        if not click_id:
+        instant_form_lead_id = data.get('instant_form_lead_id')
+        if instant_form_lead_id:
             return {
                 'data': [
                     {
                         'event_name': data.get('event_name'),
                         'event_time': data.get('event_time'),
-                        'action_source': 'crm',
+                        'action_source': 'system_generated',
                         'user_data': {
-                            'lead_id': data.get('instant_form_lead_id')
+                            'lead_id': data.get('instant_form_lead_id'),
                         },
                         'custom_data': {
                             'lead_event_source': settings.COMPANY_NAME,
@@ -53,7 +52,7 @@ class FacebookConversionService(ConversionService):
             ]
         }
     
-    def _add_valid_property(target: dict, key: str, value):
+    def _add_valid_property(self, target: dict, key: str, value):
         if value:
             target[key] = value
 

@@ -9,7 +9,7 @@ from django.utils.dateparse import parse_datetime
 from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from website import settings
 
-from .utils import MarketingHelper, get_marketing_params
+from .utils import MarketingHelper
 from .enums import MarketingParams
 
 tracking_number = MarketingParams.CallTrackingNumberSessionValue.value

@@ -1,5 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import Signal
+from django.utils.timezone import now
 
 from core.conversions import conversion_service
 
@@ -33,7 +34,8 @@ def handle_lead_status_change(sender, instance, **kwargs):
     data = {
         'event_name': event_name,
         'ip_address': lead_marketing.ip,
-        'event_time': int(instance.created_at.timestamp()),
+        'user_agent': lead_marketing.user_agent,
+        'event_time': int(now().timestamp()),
     }
 
     value = instance.value()

@@ -12,6 +12,7 @@ class GoogleAnalyticsConversionService(ConversionService):
                 {
                     'name': data.get('event_name'),
                     'params': {
+                        'gclid': data.get('click_id'),
                         'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
                         'currency': data.get('currency', settings.DEFAULT_CURRENCY),
                     },
