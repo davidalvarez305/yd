@@ -1,6 +1,6 @@
 import hashlib
 from abc import ABC, abstractmethod
-from core.http import BaseHttpClient
+from core.http.base import BaseHttpClient
 
 class ConversionService(ABC):
     def __init__(self, **options):
@@ -31,7 +31,6 @@ class ConversionService(ABC):
         endpoint = self._get_endpoint()
 
         if not self._is_valid(data):
-            print(f'INVALID DATA: {data}')
             return
 
         try:

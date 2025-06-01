@@ -13,7 +13,7 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 
-from .models import Lead, LeadMarketing, LeadStatus, LeadStatusEnum
+from .models import Lead, LeadMarketing, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, QuoteForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -217,7 +217,8 @@ class QuoteView(BaseWebsiteView, CreateView):
 
             return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
-        except Exception:
+        except Exception as e:
+            print(f'ERROR: {str(e)}')
             return self.alert(self.request, "Internal server error", AlertStatus.INTERNAL_ERROR)
 
     def form_invalid(self, form):

@@ -54,7 +54,6 @@ def handle_lead_status_change(sender, instance, **kwargs):
         if attr_value:
             data[attr] = attr_value
 
-    print(data)
     conversion_service.send_conversion(data=data)
 
     # Assign lead marketing data if lead came from phone call
@@ -94,7 +93,6 @@ def handle_lead_status_change(sender, instance, **kwargs):
     if campaign_id and campaign_name:
         campaign, _ = MarketingCampaign.objects.get_or_create(
             marketing_campaign_id=campaign_id,
-            platform_id=lead_marketing.platform_id,
             defaults={'name': campaign_name}
         )
         lead_marketing.marketing_campaign = campaign

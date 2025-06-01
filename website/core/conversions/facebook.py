@@ -60,29 +60,25 @@ class FacebookConversionService(ConversionService):
     def _get_endpoint(self) -> str:
         pixel_id = self.options.get('pixel_id')
         access_token = self.options.get('access_token')
-        return f'https://graph.facebook.com/22.0/{pixel_id}/events?access_token={access_token}'
+        return f'https://graph.facebook.com/23.0/{pixel_id}/events?access_token={access_token}'
 
     def _get_service_name(self) -> str:
         return 'facebook'
     
     def _is_valid(self, data: dict) -> bool:
-        if getattr(self, 'platform_id', '') != ConversionServiceType.FACEBOOK.value:
-            return False
-        
+        lead_id = data.get('instant_form_lead_id')
+        if lead_id:
+            return True
+
         click_id = data.get('click_id')
         if not click_id:
-            return data.get('instant_form_lead_id') is not None
+            return False
 
         client_id = data.get('client_id')
         if not client_id or not self._is_valid_client_id(client_id):
             return False
         
-        client_id_parts = client_id.split('.')
-        if len(client_id_parts) != 4:
-            return False
-        
-        cookie_click_id = client_id_parts[3]
-        click_id = data.get('click_id')
+        cookie_click_id = client_id.split('.')[3]
 
         if cookie_click_id != click_id:
             return False

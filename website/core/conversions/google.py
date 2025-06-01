@@ -4,7 +4,7 @@ from marketing.enums import ConversionServiceType
 from website import settings
 from .base import ConversionService
 
-class GoogleConversionService(ConversionService):
+class GoogleAnalyticsConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
         return {
             'client_id': data.get('client_id'),
@@ -26,17 +26,14 @@ class GoogleConversionService(ConversionService):
     def _get_endpoint(self) -> str:
         return (
             'https://www.google-analytics.com/mp/collect'
-            f'?measurement_id={self.options.get('google_analytics_id')}'
-            f'&api_secret={self.options.get('google_analytics_api_key')}'
+            f"?measurement_id={self.options.get('google_analytics_id')}"
+            f"&api_secret={self.options.get('google_analytics_api_key')}"
         )
 
     def _get_service_name(self) -> str:
         return 'google_analytics_4'
     
     def _is_valid(self, data: dict) -> bool:
-        if getattr(self, 'platform_id', '') != ConversionServiceType.GOOGLE.value:
-            return False
-
         client_id = data.get('client_id')
         if not client_id or not self._is_valid_client_id(client_id):
             return False

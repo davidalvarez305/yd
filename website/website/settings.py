@@ -241,14 +241,14 @@ TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
 # Marketing Services
 CONVERSION_SERVICES = {
     "google": {
-        "BACKEND": "core.marketing.conversions.google.GoogleAnalyticsConversionService",
+        "BACKEND": "core.conversions.google.GoogleAnalyticsConversionService",
         "OPTIONS": {
             "google_analytics_id": GOOGLE_ANALYTICS_ID,
             "google_analytics_api_key": GOOGLE_ANALYTICS_API_KEY,
         },
     },
     "facebook": {
-        "BACKEND": "core.marketing.conversions.facebook.FacebookConversionService",
+        "BACKEND": "core.conversions.facebook.FacebookConversionService",
         "OPTIONS": {
             "pixel_id": FACEBOOK_DATASET_ID,
             "access_token": FACEBOOK_ACCESS_TOKEN,
