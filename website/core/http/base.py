@@ -1,5 +1,5 @@
 import time
-import requests
+from requests import request
 from datetime import datetime, date
 from requests.exceptions import RequestException
 from core.models import HTTPLog
@@ -7,35 +7,29 @@ from core.models import HTTPLog
 class BaseHttpClient:
     def request(self, method, url, payload=None, headers=None, params=None, **kwargs):
         start = time.time()
-        response = None
-        error = None
 
-        try:
-            response = requests.request(
-                method=method,
-                url=url,
-                json=self._safe_serialize(payload),
-                headers=headers,
-                params=params,
-                **kwargs
-            )
-            response.raise_for_status()
-        except RequestException as e:
-            error = str(e)
-        finally:
-            self.log_request(
-                method=method,
-                url=url,
-                payload=payload,
-                headers=headers,
-                params=params,
-                response=response,
-                start_time=start,
-                error=error
-            )
-
-        if error:
-            raise RequestException(error)
+        response = request(
+            method=method,
+            url=url,
+            json=self._safe_serialize(payload),
+            headers=headers,
+            params=params,
+            **kwargs
+        )
+        
+        response = response.json()
+        error = response.get('error')
+        
+        self.log_request(
+            method=method,
+            url=url,
+            payload=payload,
+            headers=headers,
+            params=params,
+            response=response,
+            start_time=start,
+            error=error
+        )
 
         return response
 
@@ -63,10 +57,8 @@ class BaseHttpClient:
                 service_name=self.__class__.__name__
             )
 
-            log.full_clean()
             log.save()
         except Exception as e:
-            print(f'Failed to save log to DB {str(e)}')
             raise Exception('Failed to save HTTP log to DB.')
 
     def _safe_serialize(self, value):

@@ -29,6 +29,10 @@ class ConversionServiceLoader:
     def send_conversion(self, data: dict):
         """Send the conversion data to all registered services."""
         for service in self.all_services():
-            service.send_conversion(data)
+            try:
+                service.send_conversion(data)
+            except Exception as e:
+                print(f'Error while sending conversion. {str(e)}')
+                continue
 
 conversion_service = ConversionServiceLoader()

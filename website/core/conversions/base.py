@@ -41,7 +41,7 @@ class ConversionService(ABC):
                 headers={"Content-Type": "application/json"}
             )
             return response
-        except Exception as err:
+        except Exception:
             raise Exception('Failed to log and/or send request.')
 
     def hash_to_sha256(self, value: str) -> str:
