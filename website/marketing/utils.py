@@ -179,6 +179,7 @@ class MarketingHelper:
 def facebook_lead_retrieval(lead):
     leadgen_id = lead.get('leadgen_id')
     access_token = settings.FACEBOOK_ACCESS_TOKEN
+    facebook_api_version = settings.FACEBOOK_API_VERSION
 
     if not leadgen_id:
         raise ValueError('leadgen_id cannot be missing from entry.')
@@ -186,7 +187,7 @@ def facebook_lead_retrieval(lead):
     if not access_token:
         raise ValueError('access_token missing from settings.')
 
-    url = f'https://graph.facebook.com/v23.0/{leadgen_id}'
+    url = f'https://graph.facebook.com/{facebook_api_version}/{leadgen_id}'
     params = {
         'access_token': access_token,
         'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'

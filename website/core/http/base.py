@@ -1,5 +1,5 @@
 import time
-from requests import request
+import requests
 from datetime import datetime, date
 from requests.exceptions import RequestException
 from core.models import HTTPLog
@@ -8,7 +8,7 @@ class BaseHttpClient:
     def request(self, method, url, payload=None, headers=None, params=None, **kwargs):
         start = time.time()
 
-        response = request(
+        response = requests.request(
             method=method,
             url=url,
             json=self._safe_serialize(payload),
@@ -17,8 +17,8 @@ class BaseHttpClient:
             **kwargs
         )
         
-        response = response.json()
-        error = response.get('error')
+        data = response.json()
+        error = data.get('error')
         
         self.log_request(
             method=method,
@@ -26,7 +26,7 @@ class BaseHttpClient:
             payload=payload,
             headers=headers,
             params=params,
-            response=response,
+            response=data,
             start_time=start,
             error=error
         )
@@ -38,18 +38,13 @@ class BaseHttpClient:
         status_code = getattr(response, "status_code", None)
 
         try:
-            response_json = response.json() if response else None
-        except Exception as e:
-            response_json = getattr(response, "text", None)
-
-        try:
             log = HTTPLog(
                 method=method,
                 url=url,
                 query_params=self._safe_serialize(params),
                 payload=self._safe_serialize(payload),
                 headers=self._safe_serialize(headers),
-                response=self._safe_serialize(response_json),
+                response=self._safe_serialize(response),
                 status_code=status_code or 500,
                 error={"message": error} if error else None,
                 duration_seconds=round(duration, 3),

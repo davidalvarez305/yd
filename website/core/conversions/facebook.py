@@ -59,7 +59,8 @@ class FacebookConversionService(ConversionService):
     def _get_endpoint(self) -> str:
         pixel_id = self.options.get('pixel_id')
         access_token = self.options.get('access_token')
-        return f'https://graph.facebook.com/23.0/{pixel_id}/events?access_token={access_token}'
+        version = self.options.get('version')
+        return f'https://graph.facebook.com/{version}/{pixel_id}/events?access_token={access_token}'
 
     def _get_service_name(self) -> str:
         return 'facebook'
