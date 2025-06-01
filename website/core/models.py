@@ -478,16 +478,16 @@ class HTTPLog(models.Model):
     http_log_id = models.AutoField(primary_key=True)
     date_created = models.DateTimeField(default=now)
     method = models.CharField(max_length=10)
-    url = models.URLField()
-    query_params = models.JSONField(null=True)
+    url = models.TextField()
+    query_params = models.JSONField(null=True, blank=True)
     payload = models.JSONField(null=True)
     headers = models.JSONField(null=True)
-    response = models.JSONField(null=True)
+    response = models.JSONField(null=True, blank=True)
     status_code = models.IntegerField(null=True)
-    error = models.JSONField(null=True)
+    error = models.JSONField(null=True, blank=True)
     duration_seconds = models.FloatField(null=True)
     retries = models.IntegerField(default=0)
-    service_name = models.CharField(max_length=100)
+    service_name = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return f"[{self.service_name}] {self.method} {self.url} ({self.status_code})"

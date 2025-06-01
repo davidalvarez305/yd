@@ -1,49 +1,43 @@
-import logging
 import time
 import requests
-from datetime import datetime
+from datetime import datetime, date
 from requests.exceptions import RequestException
 from core.models import HTTPLog
 
-logger = logging.getLogger(__name__)
-
 class BaseHttpClient:
-    max_retries = 3
-    backoff_seconds = 1
-
     def request(self, method, url, payload=None, headers=None, params=None, **kwargs):
-        attempt = 0
         start = time.time()
-        last_exception = None
+        response = None
+        error = None
 
-        while attempt < self.max_retries:
-            try:
-                response = requests.request(
-                    method=method,
-                    url=url,
-                    json=payload,
-                    headers=headers,
-                    params=params,
-                    **kwargs
-                )
-                response.raise_for_status()
-                self.log_request(method, url, payload, headers, params, response, start, retries=attempt)
-                return response
-            except RequestException as e:
-                last_exception = e
-                attempt += 1
-                logger.warning(f"Attempt {attempt} failed: {e}")
+        try:
+            response = requests.request(
+                method=method,
+                url=url,
+                json=self._safe_serialize(payload),
+                headers=headers,
+                params=params,
+                **kwargs
+            )
+            response.raise_for_status()
+        except RequestException as e:
+            error = str(e)
+        finally:
+            self.log_request(
+                method=method,
+                url=url,
+                payload=payload,
+                headers=headers,
+                params=params,
+                response=response,
+                start_time=start,
+                error=error
+            )
 
-                if attempt >= self.max_retries:
-                    self.log_request(
-                        method, url, payload, headers, params,
-                        response=None,
-                        start_time=start,
-                        error=str(e),
-                        retries=attempt
-                    )
-                    raise
-                time.sleep(self.backoff_seconds * (2 ** (attempt - 1)))
+        if error:
+            raise RequestException(error)
+
+        return response
 
     def log_request(self, method, url, payload, headers, params, response, start_time, error=None, retries=0):
         duration = time.time() - start_time
@@ -51,24 +45,35 @@ class BaseHttpClient:
 
         try:
             response_json = response.json() if response else None
-        except Exception:
+        except Exception as e:
             response_json = getattr(response, "text", None)
 
-        HTTPLog.objects.create(
-            method=method,
-            url=url,
-            query_params=params,
-            payload=payload,
-            headers=headers,
-            response=response_json,
-            status_code=status_code or 500,
-            error={"message": error} if error else None,
-            duration_seconds=round(duration, 3),
-            retries=retries,
-            service_name=self.__class__.__name__
-        )
+        try:
+            log = HTTPLog(
+                method=method,
+                url=url,
+                query_params=self._safe_serialize(params),
+                payload=self._safe_serialize(payload),
+                headers=self._safe_serialize(headers),
+                response=self._safe_serialize(response_json),
+                status_code=status_code or 500,
+                error={"message": error} if error else None,
+                duration_seconds=round(duration, 3),
+                retries=retries,
+                service_name=self.__class__.__name__
+            )
 
-        logger.info(
-            f"[{datetime.now().isoformat()}] HTTP {method.upper()} to {url} "
-            f"(status={status_code}, retries={retries}, duration={duration:.2f}s)"
-        )
+            log.full_clean()
+            log.save()
+        except Exception as e:
+            print(f'Failed to save log to DB {str(e)}')
+            raise Exception('Failed to save HTTP log to DB.')
+
+    def _safe_serialize(self, value):
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        if isinstance(value, dict):
+            return {k: self._safe_serialize(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._safe_serialize(v) for v in value]
+        return value

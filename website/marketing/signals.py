@@ -33,7 +33,7 @@ def handle_lead_status_change(sender, instance, **kwargs):
     data = {
         'event_name': event_name,
         'ip_address': lead_marketing.ip,
-        'event_time': instance.created_at,
+        'event_time': int(instance.created_at.timestamp()),
     }
 
     value = instance.value()

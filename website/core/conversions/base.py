@@ -38,13 +38,11 @@ class ConversionService(ABC):
                 method="POST",
                 url=endpoint,
                 payload=payload,
-                headers={"Content-Type": "application/json"},
-                extra_log_fields={"service_name": self._get_service_name()}
+                headers={"Content-Type": "application/json"}
             )
             return response
         except Exception as err:
-            print(f'ERROR SENDING CONV: {err}')
-            raise
+            raise Exception('Failed to log and/or send request.')
 
     def hash_to_sha256(self, value: str) -> str:
         return hashlib.sha256(value.encode("utf-8")).hexdigest() if value else None
