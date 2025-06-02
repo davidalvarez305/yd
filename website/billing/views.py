@@ -23,7 +23,11 @@ def handle_stripe_invoice_payment(request):
         event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
 
         if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
+            session = event.get('data', {}).get('object')
+
+            if not session:
+                raise Exception('Improperly formatted request.')
+
             external_id = session.get('metadata', {}).get('external_id')
 
             invoice = Invoice.objects.filter(external_id=external_id).first()
