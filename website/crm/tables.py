@@ -321,7 +321,7 @@ class QuoteServiceTable(Table):
         label='Delete',
         cell_widget=DeleteButtonHTMX(
             pk='quote_service_id',
-            url=lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk, 'quote_id': quote_id}),
+            url=lambda row: reverse('quoteservice_delete', kwargs={'pk': row.pk, 'quote_id': row.quote_id}),
             htmx_attrs={
                 'hx-post': 'quote/{quote_id}/service/{quote_service_id}/delete/',
                 'hx-target': '#quoteServiceTable',
@@ -330,7 +330,7 @@ class QuoteServiceTable(Table):
                 'data-loading-class-remove': 'hidden',
             },
             extra_context={
-                'quote_id': quote_id
+                'quote_id': lambda row: row.quote.pk
             }
         )
     )
