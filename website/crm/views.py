@@ -750,9 +750,8 @@ class QuoteCreateView(CRMCreateTemplateView):
         if not lead_id:
             return self.alert(self.request, 'Lead ID not found in URL.', status=AlertStatus.BAD_REQUEST)
 
-        try:
-            lead = Lead.objects.get(pk=lead_id)
-        except Lead.DoesNotExist:
+        lead = Lead.objects.filter(pk=lead_id).first()
+        if not lead:
             return self.alert(self.request, 'Lead ID not found in DB.', status=AlertStatus.BAD_REQUEST)
 
         form.instance.lead = lead
