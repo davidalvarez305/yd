@@ -14,10 +14,13 @@ STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 @csrf_exempt
 def handle_stripe_invoice_payment(request):
     payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    stripe_signature = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    if not stripe_signature:
+        return HttpResponse(status=400) 
 
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+        event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
 
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
