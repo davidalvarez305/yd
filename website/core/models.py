@@ -298,7 +298,7 @@ class Invoice(models.Model):
     due_date = models.DateTimeField()
     invoice_type = models.ForeignKey(InvoiceType, db_column='invoice_type_id', on_delete=models.RESTRICT)
     url = models.TextField(max_length=255)
-    stripe_invoice_id = models.CharField(max_length=100, unique=True)
+    external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
 
     class Meta:
         db_table = 'invoice'

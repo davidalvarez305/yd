@@ -19,11 +19,11 @@ def handle_stripe_invoice_payment(request):
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
 
-        if event['type'] == 'invoice.payment_succeeded':
-            invoice_data = event['data']['object']
-            stripe_invoice_id = invoice_data.get('id')
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            external_id = session.get('metadata', {}).get('external_id')
 
-            invoice = Invoice.objects.filter(stripe_invoice_id=stripe_invoice_id).first()
+            invoice = Invoice.objects.filter(external_id=external_id).first()
             if not invoice:
                 raise Exception('Could not find invoice by stripe invoice id in database.')
 
