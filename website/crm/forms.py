@@ -2,7 +2,7 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuoteService, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -563,4 +563,12 @@ class QuoteForm(BaseModelForm):
         fields = ['lead', 'guests', 'hours', 'event_date']
         widgets = {
             'lead': forms.HiddenInput(),
+        }
+
+class QuoteServiceForm(BaseModelForm):
+    class Meta:
+        model = QuoteService
+        fields = ['service', 'quote', 'units', 'price_per_unit']
+        widgets = {
+            'quote': forms.HiddenInput(),
         }
