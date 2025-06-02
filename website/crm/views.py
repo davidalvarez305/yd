@@ -18,7 +18,7 @@ from core.forms import ServiceForm, UserForm
 from crm.forms import QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -776,6 +776,29 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
     model = QuoteService
     form_class = QuoteServiceForm
 
-class QuoteServiceDeleteView(CRMDeleteView):
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+
+            quote = self.object.quote
+            qs = QuoteService.objects.filter(quote=quote)
+            table = QuoteServiceTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+
+class QuoteServiceDeleteView(AlertMixin, CRMDeleteView):
     model = QuoteService
     form_class = QuoteServiceForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            self.object = self.get_object()
+            self.object.delete()
+            qs = QuoteService.objects.filter(quote=self.object.quote)
+            table = QuoteServiceTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
