@@ -1,105 +1,75 @@
-import json
-import hmac
-import hashlib
-
+import stripe
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.db import transaction
+from django.conf import settings
+from django.utils.timezone import now
 
-from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
-from marketing.enums import ConversionServiceType
-from website import settings
+from core.models import Event, Invoice, LeadStatusEnum, Message, User
+from billing.enums import InvoiceTypeChoices
+from core.messaging import messaging_service
+
+stripe.api_key = settings.STRIPE_API_KEY
+STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 
 @csrf_exempt
-def handle_successful_payment(request: HttpRequest) -> HttpResponse:
+def handle_stripe_invoice_payment(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
     try:
-        if request.method == 'GET':
-            verify_token = request.GET.dict().get('hub.verify_token')
-            challenge = request.GET.dict().get('hub.challenge')
-            internal_verify_token = settings.FACEBOOK_APP_VERIFY_TOKEN
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
 
-            if not internal_verify_token == verify_token:
-                return HttpResponse('Unauthorized', status=401)
+        if event['type'] == 'invoice.payment_succeeded':
+            invoice_data = event['data']['object']
+            stripe_invoice_id = invoice_data.get('id')
 
-            return HttpResponse(challenge, status=200)
+            invoice = Invoice.objects.filter(stripe_invoice_id=stripe_invoice_id).first()
+            if not invoice:
+                raise Exception('Could not find invoice by stripe invoice id in database.')
 
-        elif request.method == 'POST':
-            app_secret = settings.FACEBOOK_APP_SECRET
-            signature_header = request.headers.get('X-Hub-Signature-256')
+            invoice.date_paid = now()
+            invoice.save()
 
-            if not signature_header:
-                return HttpResponse('Missing signature', status=400)
+			# Create event on successful payment
+            if invoice.invoice_type in [InvoiceTypeChoices.DEPOSIT, InvoiceTypeChoices.FULL]:
+                event = Event(
+                    lead=invoice.quote.lead,
+                    date_created=now(),
+                    date_paid=now(),
+                    amount=invoice.quote.amount,
+                    guests=invoice.quote.guests,
+                )
+                event.save()
 
-            received_signature = signature_header.split('sha256=')[1]
-            expected_signature = hmac.new(
-                key=app_secret.encode('utf-8'),
-                msg=request.body,
-                digestmod=hashlib.sha256
-            ).hexdigest()
+				# Report conversion
+                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
-            if not hmac.compare_digest(received_signature, expected_signature):
-                return HttpResponse('Invalid signature', status=403)
-
-            payload = json.loads(request.body)
-            entries = []
-
-            for entry in payload.get('entry', []):
-                for change in entry.get('changes', []):
-                    if change.get('field') == 'leadgen':
-                        value = change.get('value', {})
-                        entries.append({
-                            'leadgen_id': value.get('leadgen_id'),
-                            'page_id': value.get('page_id'),
-                            'form_id': value.get('form_id'),
-                            'adgroup_id': value.get('adgroup_id'),
-                            'ad_id': value.get('ad_id'),
-                            'created_time': value.get('created_time'),
-                        })
-
-            for entry in entries:
-                data = facebook_lead_retrieval(entry)
-
-                with transaction.atomic():
-                    lead, created = Lead.objects.get_or_create(
-                        phone_number=data.get('phone_number'),
-                        defaults={
-                            'email': data.get('email'),
-                            'full_name': data.get('full_name'),
-                        }
-                    )
-
-                    if created:
-                        marketing, _ = LeadMarketing.objects.get_or_create(
-                            instant_form_lead_id=entry.get('leadgen_id'),
-                            defaults={
-                                'lead': lead,
-                                'source': data.get('platform'),
-                                'medium': 'paid',
-                                'channel': 'social',
-                                'instant_form_id': data.get('form_id'),
-                            }
+                # Notify via text messages
+                admins = User.objects.filter(is_admin=True)
+                notify_list = [invoice.quote.lead.phone_number] + [admin.forward_phone_number for admin in admins]
+                for phone_number in notify_list:
+                    try:
+                        text = (
+                            f"EVENT BOOKED:\n\nDate: {invoice.quote.event_date.strftime('%b %d, %Y')},\nFull Name: {quote.full_name}"
                         )
 
-                        if not data.get('is_organic'):
-                            campaign, _ = MarketingCampaign.objects.get_or_create(
-                                marketing_campaign_id=data.get('campaign_id'),
-                                defaults={
-                                    'name': data.get('campaign_name'),
-                                    'platform_id': ConversionServiceType.FACEBOOK.value,
-                                }
-                            )
-                            marketing.marketing_campaign = campaign
-                            marketing.save()
+                        message = Message(
+                            text=text,
+                            date_created=now(),
+                            text_from=settings.COMPANY_PHONE_NUMBER,
+                            text_to=phone_number,
+                            is_inbound=False,
+                            status='sent',
+                            is_read=True,
+                        )
+                        message.save()
 
-                        lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
-                    elif lead.is_inactive():
-                        lead.change_lead_status(status=LeadStatusEnum.RE_ENGAGED)
+                        messaging_service.send_text_message(phone_number, message)
+                    except Exception as e:
+                        print(f'Failed to send event booking notification: {str(e)}')
+                        continue
 
-            return JsonResponse({'status': 'received'}, status=200)
-
-        else:
-            return HttpResponse(status=405)
+        return HttpResponse(status=200)
 
     except Exception as e:
-        print(f'Error: {str(e)}')
-        return JsonResponse({'error': str(e)}, status=500)
+        return HttpResponse(status=400)
