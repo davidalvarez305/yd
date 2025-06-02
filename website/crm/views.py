@@ -11,14 +11,14 @@ from django.db.models import F
 from django.utils.timezone import now
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Quote, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -735,3 +735,40 @@ class StoreItemDetailView(CRMDetailTemplateView):
 class StoreItemDeleteView(CRMDeleteView):
     model = StoreItem
     form_class = StoreItemForm
+
+class QuoteCreateView(CRMCreateTemplateView):
+    model = Quote
+    form_class = QuoteForm
+    success_url = 'quote_detail'
+    trigger_alert = False
+
+    def get_success_url(self):
+        return reverse_lazy(self.success_url, kwargs={'pk': self.pk})
+
+    def form_valid(self, form):
+        lead_id = self.kwargs.get('lead_id')
+        if not lead_id:
+            return self.alert(self.request, 'Lead ID not found in URL.', status=AlertStatus.BAD_REQUEST)
+
+        try:
+            lead = Lead.objects.get(pk=lead_id)
+        except Lead.DoesNotExist:
+            return self.alert(self.request, 'Lead ID not found in DB.', status=AlertStatus.BAD_REQUEST)
+
+        form.instance.lead = lead
+        response = super().form_valid(form)
+
+        self.pk = form.instance.pk
+        return response
+    
+class QuoteUpdateView(CRMUpdateView):
+    model = Quote
+    form_class = QuoteForm
+
+class QuoteDetailView(CRMDetailTemplateView):
+    model = Quote
+    form_class = QuoteForm
+
+class QuoteDeleteView(CRMDeleteView):
+    model = Quote
+    form_class = QuoteForm

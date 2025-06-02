@@ -43,7 +43,7 @@ def handle_stripe_invoice_payment(request):
                     lead=invoice.quote.lead,
                     date_created=now(),
                     date_paid=now(),
-                    amount=invoice.quote.amount,
+                    amount=invoice.quote.amount(),
                     guests=invoice.quote.guests,
                 )
                 event.save()

@@ -93,13 +93,20 @@ urlpatterns = [
     path('ingredient/<int:pk>/edit/', views.IngredientUpdateView.as_view(), name='ingredient_update'),
     path('ingredient/<int:pk>/delete/', views.IngredientDeleteView.as_view(), name='ingredient_delete'),
 
+    # Shopping List
     path('shopping-list/create/', views.CreateShoppingListView.as_view(), name='eventshoppinglist_create'),
     path('shopping-list/external/<str:external_id>/', views.EventShoppingListExternalDetailView.as_view(), name='eventshoppinglist_external_detail'),
 
-    # Ingredient
+    # Store Item
     path('store-item/', views.StoreItemListView.as_view(), name='storeitem_list'),
     path('store-item/create/', views.StoreItemCreateView.as_view(), name='storeitem_create'),
     path('store-item/<int:pk>/', views.StoreItemDetailView.as_view(), name='storeitem_detail'),
     path('store-item/<int:pk>/edit/', views.StoreItemUpdateView.as_view(), name='storeitem_update'),
     path('store-item/<int:pk>/delete/', views.StoreItemDeleteView.as_view(), name='storeitem_delete'),
+
+    # Quote
+    path('lead/<int:lead_id>/quote/create/', views.QuoteCreateView.as_view(), name='quote_create'),
+    path('quote/<int:pk>/', views.QuoteDetailView.as_view(), name='quote_detail'),
+    path('quote/<int:pk>/edit/', views.QuoteUpdateView.as_view(), name='quote_update'),
+    path('quote/<int:pk>/delete/', views.QuoteDeleteView.as_view(), name='quote_delete'),
 ]

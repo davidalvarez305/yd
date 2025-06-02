@@ -1,6 +1,6 @@
 from django.urls import reverse, reverse_lazy
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButtonHTMX, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -296,3 +296,21 @@ class StoreItemTable(Table):
         exclude = ['store_item_id']
         extra_fields = ['view', 'delete']
         pk = 'store_item_id'
+
+class QuoteTable(Table):
+    external = TableField(
+        label='External',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    f'<a href="{row.external_id}" target="_blank">External</a>'
+                ),
+                'is_html': True,
+            }
+        )
+    )
+
+    class Meta:
+        model = Quote
+        exclude = ['quote_id', 'lead', 'external_id']
+        extra_fields = ['view', 'delete']

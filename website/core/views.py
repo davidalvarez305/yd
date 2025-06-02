@@ -15,7 +15,7 @@ from marketing.utils import MarketingHelper
 
 from .models import Lead, LeadMarketing, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
-from .forms import ContactForm, LoginForm, QuoteForm
+from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
 
 class BaseView(TemplateView):
@@ -55,7 +55,7 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
         if external_id is None or visit_id is None:
             return HttpResponseServerError("Error retrieving external or visit ID.")
         
-        form = QuoteForm()
+        form = LeadForm()
 
         context.update({
             "quote_form": form,
@@ -193,9 +193,9 @@ class LogoutView(BaseWebsiteView):
         logout(request)
         return redirect(reverse('home'))
 
-class QuoteView(BaseWebsiteView, CreateView):
+class LeadCreateView(BaseWebsiteView, CreateView):
     model = Lead
-    form_class = QuoteForm
+    form_class = LeadForm
 
     def form_valid(self, form):
         try:

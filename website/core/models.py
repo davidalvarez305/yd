@@ -238,11 +238,11 @@ class UnitType(models.Model):
 
 class Quote(models.Model):
     quote_id = models.AutoField(primary_key=True)
-    external_id = models.CharField(max_length=100)
+    external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, related_name='quotes', db_column='lead_id', on_delete=models.CASCADE)
     guests = models.IntegerField()
     hours = models.FloatField()
-    event_date = models.DateTimeField()
+    event_date = models.DateField()
 
     services = models.ManyToManyField('core.Service', related_name='quote_services', through='QuoteService')
 
@@ -318,7 +318,7 @@ class LeadNote(models.Model):
 
 class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
-    external_id = models.CharField(max_length=255, unique=True)
+    external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
     text = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
     text_from = models.CharField(max_length=10)
@@ -388,7 +388,7 @@ class MessageMedia(models.Model):
 
 class PhoneCall(models.Model):
     phone_call_id = models.AutoField(primary_key=True)
-    external_id = models.CharField(max_length=255, unique=True)
+    external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
     call_duration = models.IntegerField()
     date_created = models.DateTimeField()
     call_from = models.CharField(max_length=10)
@@ -415,7 +415,7 @@ class PhoneCall(models.Model):
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
     phone_call = models.ForeignKey(PhoneCall, related_name='transcriptions', on_delete=models.CASCADE, db_column='phone_call_id')
-    external_id = models.CharField(max_length=255, unique=True)
+    external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
     text = models.TextField()
     audio = models.FileField(upload_to='audio/')
     job = models.JSONField(null=True)
@@ -456,7 +456,7 @@ class LeadMarketing(models.Model):
     client_id = models.TextField(unique=True, null=True)
     button_clicked = models.CharField(max_length=255, null=True)
     ip = models.GenericIPAddressField(null=True)
-    external_id = models.CharField(max_length=255, db_index=True, null=True)
+    external_id = models.UUIDField(unique=True, db_index=True, editable=False)
     user_agent = models.CharField(max_length=255, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
     instant_form_id = models.BigIntegerField(null=True)
@@ -519,7 +519,7 @@ class CallTracking(models.Model):
     date_assigned = models.DateTimeField()
     date_expires = models.DateTimeField()
     metadata = models.JSONField(null=True)
-    external_id = models.CharField(max_length=255)
+    external_id = models.UUIDField(unique=True, db_index=True, editable=False)
 
     def __str__(self):
         return str(self.call_tracking_number)
@@ -597,7 +597,7 @@ class EventStaff(models.Model):
 
 class Visit(models.Model):
     visit_id = models.AutoField(primary_key=True)
-    external_id = models.CharField(max_length=255, db_index=True)
+    external_id = models.UUIDField(editable=False)
     referrer = models.URLField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     url = models.URLField()
@@ -742,7 +742,7 @@ class CocktailIngredient(models.Model):
 
 class EventShoppingList(models.Model):
     event_shopping_list_id = models.AutoField(primary_key=True)
-    external_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
 
     event = models.OneToOneField(
         Event,
