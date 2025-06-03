@@ -320,10 +320,26 @@ class QuoteTable(Table):
         )
     )
 
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButtonHTMX(
+            pk='quote_id',
+            url=lambda pk: reverse('quote_delete', kwargs={'pk': pk}),
+            htmx_attrs={
+                'hx-post': '/crm/quote/{quote_id}/delete/',
+                'hx-target': '#quotesTable',
+                'hx-ext': "loading-states",
+                'data-loading-target': '#submitButtonLoader',
+                'data-loading-class-remove': 'hidden',
+            }
+        )
+    )
+
     class Meta:
         model = Quote
         exclude = ['quote_id', 'lead', 'external_id', 'services']
-        extra_fields = ['view', 'delete']
+        extra_fields = ['view']
 
 class QuoteServiceTable(Table):
     delete = TableField(
