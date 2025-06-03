@@ -1,12 +1,12 @@
 import stripe
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from django.utils.timezone import now
 
 from core.models import Event, Invoice, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
+from website import settings
 
 stripe.api_key = settings.STRIPE_API_KEY
 STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET

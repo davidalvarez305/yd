@@ -328,15 +328,6 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
-    external_id = forms.CharField(
-        label="External ID",
-        required=True,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'External visit or session ID',
-            'required': True
-        })
-    )
-
     instant_form_lead_id = forms.IntegerField(
         label="Instant Form Lead ID",
         required=False,
@@ -358,8 +349,7 @@ class LeadMarketingForm(BaseModelForm):
         model = LeadMarketing
         fields = [
             'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
-            'click_id', 'client_id', 'button_clicked', 'ip', 'external_id',
-            'instant_form_lead_id', 'instant_form_id', 'marketing_campaign'
+            'click_id', 'client_id', 'button_clicked', 'ip', 'instant_form_lead_id', 'instant_form_id', 'marketing_campaign'
         ]
 
 class CallTrackingNumberForm(BaseModelForm):
