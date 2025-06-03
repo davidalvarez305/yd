@@ -138,21 +138,11 @@ def ViewButton(pk="id", url=None):
         }
     )
 
-def DeleteButton(pk="id", url=None):
-    return TemplateCellWidget(
-        template="components/delete_button_widget.html",
-        context={
-            "pk": f"{{{pk}}}",
-            "view_lookup_name": url
-        },
-        data={"csrf": True}
-    )
-
-class DeleteButtonHTMX(TemplateCellWidget):
-    def __init__(self, pk, url, htmx_attrs=None, extra_context=None):
+class DeleteButton(TemplateCellWidget):
+    def __init__(self, pk="id", url=None, attrs=None, extra_context=None):
         self.pk = pk
         self.url = url
-        self.htmx_attrs = htmx_attrs or {}
+        self.attrs = attrs or {}
         self.extra_context = extra_context or {}
 
         super().__init__(
@@ -162,21 +152,27 @@ class DeleteButtonHTMX(TemplateCellWidget):
         )
 
     def resolve_context(self, row):
-        pk_value = getattr(row, self.pk)
+        if not self.pk:
+            raise ValueError('Primary key not found in context for row.')
 
-        url = self.url(pk_value) if callable(self.url) else self.url
-        resolved_url = url.replace(f"{{{self.pk}}}", str(pk_value))
+        url = self.url(self.pk) if callable(self.url) else self.url or ""
+        final_url = url.replace(f"{{{self.pk}}}", self.pk)
 
-        resolved_attrs = {
-            key: val.replace(f"{{{self.pk}}}", str(pk_value))
-            for key, val in self.htmx_attrs.items()
-        }
+        final_attrs = {}
+        for key, val in self.attrs.items():
+            if callable(val):
+                resolved_val = val(self.pk)
+            else:
+                resolved_val = val.replace(f"{{{self.pk}}}", self.pk)
+            final_attrs[key] = resolved_val
 
         context = {
-            "url": resolved_url,
-            "htmx_attrs": resolved_attrs,
+            "pk": self.pk,
+            "url": final_url,
+            "attrs": final_attrs,
             "row": row,
         }
+
         context.update(self.extra_context)
 
         return context

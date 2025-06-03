@@ -5,6 +5,7 @@ import mimetypes
 from pathlib import Path
 import requests
 
+from django.urls import reverse
 from django.db import models
 
 from website import settings
@@ -121,3 +122,33 @@ def media_upload_path(instance, filename):
 def save_image_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     return os.path.join('uploads/images/', f"{uuid.uuid4()}{ext}")
+
+def reverse_with_placeholder(viewname, kwargs):
+    """
+    Reverse a Django URL, allowing placeholder values in kwargs
+    like '{pk}' which won't be resolved but remain as placeholders.
+
+    Args:
+        viewname (str): The name of the URL pattern.
+        kwargs (dict): Dictionary of kwargs for reverse. Values can
+                       be either actual values or placeholders (strings
+                       with curly braces).
+
+    Returns:
+        str: The reversed URL with placeholders in place.
+    """
+
+    dummy_placeholder = "__PLACEHOLDER__"
+
+    dummy_kwargs = {
+        k: (dummy_placeholder if re.match(r"^{.*}$", str(v)) else v)
+        for k, v in kwargs.items()
+    }
+
+    url = reverse(viewname, kwargs=dummy_kwargs)
+
+    for k, v in kwargs.items():
+        if re.match(r"^{.*}$", str(v)):
+            url = url.replace(dummy_placeholder, v)
+
+    return url

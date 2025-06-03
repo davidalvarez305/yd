@@ -1,8 +1,8 @@
 from django.urls import reverse, reverse_lazy
 from core.tables import Table, TableField, TableCellWidget
 from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
-from core.widgets import DeleteButtonHTMX, PriceCellWidget
-from core.utils import deep_getattr
+from core.widgets import DeleteButton, PriceCellWidget
+from core.utils import deep_getattr, reverse_with_placeholder
 
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import localtime, make_aware, get_current_timezone
@@ -159,11 +159,11 @@ class EventCocktailTable(Table):
     delete = TableField(
         name='delete',
         label='Delete',
-        cell_widget=DeleteButtonHTMX(
+        cell_widget=DeleteButton(
             pk='event_cocktail_id',
             url=lambda pk: reverse('eventcocktail_delete', kwargs={'pk': pk}),
-            htmx_attrs={
-                'hx-post': '/crm/event-cocktails/{event_cocktail_id}/delete/',
+            attrs={
+                'hx-post': lambda pk: reverse('eventcocktail_delete', kwargs={'pk': pk}),
                 'hx-target': '#eventCocktailsTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
@@ -202,11 +202,11 @@ class EventStaffTable(Table):
     delete = TableField(
         name='delete',
         label='Delete',
-        cell_widget=DeleteButtonHTMX(
+        cell_widget=DeleteButton(
             pk='event_staff_id',
             url=lambda pk: reverse('eventstaff_delete', kwargs={'pk': pk}),
-            htmx_attrs={
-                'hx-post': '/crm/event-staffs/{event_staff_id}/delete/',
+            attrs={
+                'hx-post': lambda pk: reverse('eventstaff_delete', kwargs={'pk': pk}),
                 'hx-target': '#eventStaffTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
@@ -235,11 +235,11 @@ class CocktailIngredientTable(Table):
     delete = TableField(
         name='delete',
         label='Delete',
-        cell_widget=DeleteButtonHTMX(
+        cell_widget=DeleteButton(
             pk='cocktail_ingredient_id',
             url=lambda pk: reverse('cocktailingredient_delete', kwargs={'pk': pk}),
-            htmx_attrs={
-                'hx-post': '/crm/cocktail-ingredient/{cocktail_ingredient_id}/delete/',
+            attrs={
+                'hx-post': lambda pk: reverse('cocktailingredient_delete', kwargs={'pk': pk}),
                 'hx-target': '#cocktailIngredientsTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
@@ -323,11 +323,11 @@ class QuoteTable(Table):
     delete = TableField(
         name='delete',
         label='Delete',
-        cell_widget=DeleteButtonHTMX(
+        cell_widget=DeleteButton(
             pk='quote_id',
             url=lambda pk: reverse('quote_delete', kwargs={'pk': pk}),
-            htmx_attrs={
-                'hx-post': '/crm/quote/{quote_id}/delete/',
+            attrs={
+                'hx-post': lambda pk: reverse('quote_delete', kwargs={'pk': pk}),
                 'hx-target': '#quotesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
@@ -345,11 +345,11 @@ class QuoteServiceTable(Table):
     delete = TableField(
         name='delete',
         label='Delete',
-        cell_widget=DeleteButtonHTMX(
+        cell_widget=DeleteButton(
             pk='quote_service_id',
             url=lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk}),
-            htmx_attrs={
-                'hx-post': '/crm/quote-service/{quote_service_id}/delete/',
+            attrs={
+                'hx-post': lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk}),
                 'hx-target': '#quoteServicesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
