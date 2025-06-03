@@ -349,7 +349,7 @@ class QuoteServiceTable(Table):
             pk='quote_service_id',
             url=lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk}),
             htmx_attrs={
-                'hx-post': 'quote-service/{quote_service_id}/delete/',
+                'hx-post': '/crm/quote-service/{quote_service_id}/delete/',
                 'hx-target': '#quoteServicesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
