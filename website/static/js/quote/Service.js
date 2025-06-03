@@ -2,7 +2,27 @@
 // unit type = per person, ratio, hourly, etc...
 const BASELINE_HOURS = 4;
 
-export default class Service {
+function assert(value, name) {
+    if (value === null || value === undefined) {
+        throw new Error(`${name} cannot be null or undefined.`);
+    }
+}
+
+export function createServiceFactory({
+    type,
+    unit,
+    id,
+    price = null,
+    ratio = null
+}) {
+    assert(type, 'Service type');
+    assert(unit, 'Unit type');
+    assert(id, 'Service ID');
+
+    return new Service(type, unit, id, price, ratio);
+}
+
+export class Service {
     constructor(type, unit, id, price, ratio) {
         this.type = type;
         this.unit = unit;
@@ -23,6 +43,10 @@ export default class Service {
                 let price = this.price * hours;
                 let ratioAdjustment = Math.ceil(guests / this.ratio); // round up to nearest int
                 return price * ratioAdjustment;
+            case 'FIXED':
+                return this.price;
+            case 'AD_HOC':
+                return this.price;
         }
     }
 }

@@ -2,8 +2,8 @@ from http import HTTPStatus
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuoteService, StoreItem, Visit
-from core.forms import BaseModelForm, BaseForm, FilterFormMixin
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuoteService, Service, StoreItem, Visit
+from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 
@@ -559,6 +559,23 @@ class QuoteForm(BaseModelForm):
         }
 
 class QuoteServiceForm(BaseModelForm):
+    service = forms.ModelChoiceField(
+        queryset=Service.objects.all(),
+        required=False,
+        label="Service",
+        widget=DataAttributeModelSelect(attrs={
+            'placeholder': 'Select a status',
+            'id': 'service'
+        },
+        apply_attrs=lambda instance: {
+            'data-id': instance.pk,
+            'data-service': instance.service_type,
+            'data-unit': instance.unit_type,
+            'data-price': instance.suggested_price,
+            'data-ratio': instance.guest_ratio,
+        }),
+    )
+
     class Meta:
         model = QuoteService
         fields = ['service', 'quote', 'units', 'price_per_unit']

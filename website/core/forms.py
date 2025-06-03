@@ -28,6 +28,18 @@ class MultiFileField(forms.FileField):
         if self.required and not files:
             raise forms.ValidationError(self.error_messages['required'], code='required')
         return files
+    
+class DataAttributeModelSelect(forms.Select):
+    def __init__(self, attrs=None, apply_attrs=None):
+        super().__init__(attrs)
+        self.apply_attrs = apply_attrs or (lambda instance: {})
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if hasattr(value, 'instance'):
+            extra_attrs = self.apply_attrs(value.instance)
+            option['attrs'].update(extra_attrs)
+        return option
 
 class StyledFormMixin:
     def apply_styling(self):
