@@ -756,15 +756,26 @@ class QuoteCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            return self.alert(request=self.request, message='Error while adding quote service.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuoteUpdateView(CRMUpdateView):
     model = Quote
     form_class = QuoteForm
 
 class QuoteDetailView(CRMDetailTemplateView):
+    template_name = 'crm/quote_detail.html'
     model = Quote
     form_class = QuoteForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['quote_service_table'] = QuoteServiceTable(data=self.object.quote_services.all())
+        context['quote_service_form'] = QuoteServiceForm(initial={
+            'quote': self.object
+        })
+
+        return context
 
 class QuoteDeleteView(CRMDeleteView):
     model = Quote
@@ -789,8 +800,7 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
         try:
             self.object = form.save()
 
-            quote = self.object.quote
-            qs = QuoteService.objects.filter(quote=quote)
+            qs = QuoteService.objects.filter(quote=self.object.quote)
             table = QuoteServiceTable(data=qs, request=self.request)
 
             return HttpResponse(table.render())

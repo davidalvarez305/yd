@@ -111,6 +111,6 @@ urlpatterns = [
     path('quote/<int:pk>/delete/', views.QuoteDeleteView.as_view(), name='quote_delete'),
 
     # Quote Services
-    path('quote/<int:quote_id>/service/<int:pk>/create/', views.QuoteServiceCreateView.as_view(), name='quoteservice_create'),
-    path('quote/<int:quote_id>/service/<int:pk>/delete/', views.QuoteServiceDeleteView.as_view(), name='quoteservice_delete'),
+    path('quote-service/create/', views.QuoteServiceCreateView.as_view(), name='quoteservice_create'),
+    path('quote-service/<int:pk>/delete/', views.QuoteServiceDeleteView.as_view(), name='quoteservice_delete'),
 ]
