@@ -12,9 +12,13 @@ export default class Service {
     }
 
     calculate(guests, hours) {
-        switch (this.type) {
+        switch (this.unit) {
             case 'PER_PERSON':
                 return this.price * guests * (hours / BASELINE_HOURS);
+            case 'HOURLY':
+                let rate = this.price * hours;
+                if (this.ratio) rate *= Math.ceil(guests / this.ratio);
+                return rate;
             case 'HOURLY':
                 let price = this.price * hours;
                 let ratioAdjustment = Math.ceil(guests / this.ratio); // round up to nearest int
