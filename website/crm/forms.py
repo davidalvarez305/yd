@@ -553,6 +553,7 @@ class QuoteForm(BaseModelForm):
         fields = ['lead', 'guests', 'hours', 'event_date']
         widgets = {
             'lead': forms.HiddenInput(),
+            'event_date': forms.DateInput(),
         }
 
 class QuoteServiceForm(BaseModelForm):

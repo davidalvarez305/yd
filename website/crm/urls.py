@@ -105,7 +105,7 @@ urlpatterns = [
     path('store-item/<int:pk>/delete/', views.StoreItemDeleteView.as_view(), name='storeitem_delete'),
 
     # Quote
-    path('lead/<int:lead_id>/quote/create/', views.QuoteCreateView.as_view(), name='quote_create'),
+    path('quote/create/', views.QuoteCreateView.as_view(), name='quote_create'),
     path('quote/<int:pk>/', views.QuoteDetailView.as_view(), name='quote_detail'),
     path('quote/<int:pk>/edit/', views.QuoteUpdateView.as_view(), name='quote_update'),
     path('quote/<int:pk>/delete/', views.QuoteDeleteView.as_view(), name='quote_delete'),

@@ -5,7 +5,8 @@ from core.widgets import DeleteButtonHTMX, PriceCellWidget
 from core.utils import deep_getattr
 
 from django.contrib.auth.models import AbstractUser
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, make_aware, get_current_timezone
+from datetime import datetime, time
 
 class CocktailTable(Table):
     class Meta:
@@ -303,16 +304,25 @@ class QuoteTable(Table):
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f'<a href="{row.external_id}" target="_blank">External</a>'
+                    f'<a href="/external/{row.external_id}" target="_blank">External</a>'
                 ),
                 'is_html': True,
             }
         )
     )
 
+    event_date = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(make_aware(datetime.combine(row.event_date, time.min), get_current_timezone())).strftime("%B %d, %Y")
+            }
+        )
+    )
+
     class Meta:
         model = Quote
-        exclude = ['quote_id', 'lead', 'external_id']
+        exclude = ['quote_id', 'lead', 'external_id', 'services']
         extra_fields = ['view', 'delete']
 
 class QuoteServiceTable(Table):
@@ -324,7 +334,7 @@ class QuoteServiceTable(Table):
             url=lambda row: reverse('quoteservice_delete', kwargs={'pk': row.pk, 'quote_id': row.quote_id}),
             htmx_attrs={
                 'hx-post': 'quote/{quote_id}/service/{quote_service_id}/delete/',
-                'hx-target': '#quoteServiceTable',
+                'hx-target': '#quoteServicesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
                 'data-loading-class-remove': 'hidden',

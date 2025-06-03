@@ -248,6 +248,11 @@ class LeadDetailView(CRMDetailView):
             'to_': lead.phone_number
         })
 
+        context['quote_table'] = QuoteTable(data=self.object.quotes.all())
+        context['quote_form'] = QuoteForm(initial={
+            'lead': self.object
+        })
+
         return context
 
 class LeadMarketingUpdateView(CRMUpdateView):
@@ -742,24 +747,17 @@ class QuoteCreateView(CRMCreateTemplateView):
     success_url = 'quote_detail'
     trigger_alert = False
 
-    def get_success_url(self):
-        return reverse_lazy(self.success_url, kwargs={'pk': self.pk})
-
     def form_valid(self, form):
-        lead_id = self.kwargs.get('lead_id')
-        if not lead_id:
-            return self.alert(self.request, 'Lead ID not found in URL.', status=AlertStatus.BAD_REQUEST)
+        try:
+            self.object = form.save()
 
-        lead = Lead.objects.filter(pk=lead_id).first()
-        if not lead:
-            return self.alert(self.request, 'Lead ID not found in DB.', status=AlertStatus.BAD_REQUEST)
+            qs = Quote.objects.filter(lead=self.object.lead)
+            table = QuoteTable(data=qs, request=self.request)
 
-        form.instance.lead = lead
-        response = super().form_valid(form)
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-        self.pk = form.instance.pk
-        return response
-    
 class QuoteUpdateView(CRMUpdateView):
     model = Quote
     form_class = QuoteForm
