@@ -1,5 +1,6 @@
 from django import forms
 from django.forms.widgets import CheckboxInput
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.utils.html import format_html, escape
@@ -68,7 +69,7 @@ class TableCellWidget:
             parts.append(f'{key}="{value}"')
         return " ".join(parts)
 
-    def render(self, row, **kwargs):
+    def render(self, row, request):
         value = self.get_value(row)
         attrs = self.get_attrs(row)
 
@@ -101,9 +102,11 @@ class TemplateCellWidget:
                     if nested_value is not None:
                         value = value.replace(f"{{{match}}}", str(nested_value))
             final_context[key] = value
+
+        final_context["row"] = row
         return final_context
 
-    def render(self, value=None, row=None, request=None):
+    def render(self, row=None, request=None):
         context = self.resolve_context(row)
 
         if request and self.data.get("csrf", False):
@@ -122,9 +125,8 @@ class TableHeaderWidget:
         )
 
 class PriceCellWidget(TableCellWidget):
-    def render(self, value=None, row=None, request=None):
-        if value is None:
-            value = getattr(row, self.data.get("value"), None)
+    def render(self, row=None, request=None):
+        value = getattr(row, self.data.get("value"), None)
         if value is not None:
             return format_html(f"<td>${value:.2f}</td>")
         return "<td>$0.00</td>"
@@ -139,40 +141,32 @@ def ViewButton(pk="id", url=None):
     )
 
 class DeleteButton(TemplateCellWidget):
-    def __init__(self, pk="id", url=None, attrs=None, extra_context=None):
-        self.pk = pk
-        self.url = url
-        self.attrs = attrs or {}
-        self.extra_context = extra_context or {}
+    def __init__(self, view_name, attrs=None, **kwargs):
+        self.view_name = view_name
+        self.attrs_template = attrs or {}
 
         super().__init__(
-            template='components/delete_button_widget.html',
-            context_resolver=self.resolve_context,
-            data={"csrf": True}
+            template="components/delete_button_widget.html",
+            context={},
+            data={},
+            context_resolver=self.context_resolver
         )
 
-    def resolve_context(self, row):
-        if not self.pk:
-            raise ValueError('Primary key not found in context for row.')
+    def context_resolver(self, row):
+        if not row.pk:
+            raise ValueError('Primary key not found in row.')
 
-        url = self.url(self.pk) if callable(self.url) else self.url or ""
-        final_url = url.replace(f"{{{self.pk}}}", self.pk)
+        pk = row.pk
 
-        final_attrs = {}
-        for key, val in self.attrs.items():
-            if callable(val):
-                resolved_val = val(self.pk)
-            else:
-                resolved_val = val.replace(f"{{{self.pk}}}", self.pk)
-            final_attrs[key] = resolved_val
+        url = reverse(self.view_name, kwargs={'pk': pk})
 
-        context = {
-            "pk": self.pk,
-            "url": final_url,
-            "attrs": final_attrs,
-            "row": row,
+        attrs = {
+            key: (value.format(url=url, pk=pk) if isinstance(value, str) else value)
+            for key, value in self.attrs_template.items()
         }
 
-        context.update(self.extra_context)
-
-        return context
+        return {
+            "url": url,
+            "attrs": attrs,
+            "row": row,
+        }

@@ -129,7 +129,7 @@ class DeclarativeTableMeta(type):
         if "delete" in extra_fields:
             _declared_fields["delete"] = TableField(
                 name="Delete",
-                cell_widget=DeleteButton(pk=pk, url=delete_url)
+                cell_widget=DeleteButton(view_name=delete_url)
             )
 
         new_class._declared_fields = _declared_fields

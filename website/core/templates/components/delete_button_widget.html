@@ -2,7 +2,7 @@
     <form
         method="post"
         {% if not htmx_attrs %}
-            action="{% url view_lookup_name pk %}"
+            action="{{ url }}"
         {% endif %}
         {% for name, val in htmx_attrs.items %}
             {{ name }}="{{ val }}"

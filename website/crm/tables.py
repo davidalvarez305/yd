@@ -1,8 +1,8 @@
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
 from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButton, PriceCellWidget
-from core.utils import deep_getattr, reverse_with_placeholder
+from core.utils import deep_getattr
 
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import localtime, make_aware, get_current_timezone
@@ -160,10 +160,9 @@ class EventCocktailTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            pk='event_cocktail_id',
-            url=lambda pk: reverse('eventcocktail_delete', kwargs={'pk': pk}),
+            view_name='eventcocktail_delete',
             attrs={
-                'hx-post': lambda pk: reverse('eventcocktail_delete', kwargs={'pk': pk}),
+                'hx-post': '{url}',
                 'hx-target': '#eventCocktailsTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
@@ -203,10 +202,9 @@ class EventStaffTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            pk='event_staff_id',
-            url=lambda pk: reverse('eventstaff_delete', kwargs={'pk': pk}),
+            view_name='eventstaff_delete',
             attrs={
-                'hx-post': lambda pk: reverse('eventstaff_delete', kwargs={'pk': pk}),
+                'hx-post': '{url}',
                 'hx-target': '#eventStaffTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
@@ -236,10 +234,9 @@ class CocktailIngredientTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            pk='cocktail_ingredient_id',
-            url=lambda pk: reverse('cocktailingredient_delete', kwargs={'pk': pk}),
+            view_name='cocktailingredient_delete',
             attrs={
-                'hx-post': lambda pk: reverse('cocktailingredient_delete', kwargs={'pk': pk}),
+                'hx-post': '{url}',
                 'hx-target': '#cocktailIngredientsTable',
                 'hx-ext': "loading-states",
                 'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
@@ -324,10 +321,9 @@ class QuoteTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            pk='quote_id',
-            url=lambda pk: reverse('quote_delete', kwargs={'pk': pk}),
+            view_name='quote_delete',
             attrs={
-                'hx-post': lambda pk: reverse('quote_delete', kwargs={'pk': pk}),
+                'hx-post': '{url}',
                 'hx-target': '#quotesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
@@ -346,12 +342,11 @@ class QuoteServiceTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            pk='quote_service_id',
-            url=lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk}),
+            view_name='quoteservice_delete',
             attrs={
-                'hx-post': lambda pk: reverse('quoteservice_delete', kwargs={'pk': pk}),
+                'hx-post': '{url}',
                 'hx-target': '#quoteServicesTable',
-                'hx-ext': "loading-states",
+                'hx-ext': 'loading-states',
                 'data-loading-target': '#submitButtonLoader',
                 'data-loading-class-remove': 'hidden',
             }
