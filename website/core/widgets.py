@@ -143,7 +143,7 @@ def ViewButton(pk="id", url=None):
 class DeleteButton(TemplateCellWidget):
     def __init__(self, view_name, attrs=None, **kwargs):
         self.view_name = view_name
-        self.attrs_template = attrs or {}
+        self.attrs = attrs or {}
 
         super().__init__(
             template="components/delete_button_widget.html",
@@ -156,13 +156,11 @@ class DeleteButton(TemplateCellWidget):
         if not row.pk:
             raise ValueError('Primary key not found in row.')
 
-        pk = row.pk
-
-        url = reverse(self.view_name, kwargs={'pk': pk})
+        url = reverse(self.view_name, kwargs={'pk': row.pk})
 
         attrs = {
-            key: (value.format(url=url, pk=pk) if isinstance(value, str) else value)
-            for key, value in self.attrs_template.items()
+            key: (value.format(url=url, pk=row.pk) if isinstance(value, str) else value)
+            for key, value in self.attrs.items()
         }
 
         return {
