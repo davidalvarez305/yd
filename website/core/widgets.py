@@ -6,6 +6,8 @@ from django.template.loader import render_to_string
 from django.utils.html import format_html, escape
 from django.template.context_processors import csrf
 
+from core.mixins import ContextResolverMixin
+
 from .utils import deep_getattr
 
 class ToggleSwitchWidget(CheckboxInput):
@@ -89,7 +91,6 @@ class TableCellWidget:
 
 class TemplateCellWidget:
     def __init__(self, template=None, context=None, data=None, context_resolver=None):
-        super().__init__()
         self.template = template
         self.context = context or {}
         self.data = data or {}
@@ -150,31 +151,25 @@ def ViewButton(pk, view_name):
         }
     )
 
-class DeleteButton(TemplateCellWidget):
-    def __init__(self, view_name, attrs=None, **kwargs):
+class DeleteButton(TemplateCellWidget, ContextResolverMixin):
+    def __init__(self, view_name, attrs=None, context=None, context_resolver=None):
         self.view_name = view_name
         self.attrs = attrs or {}
 
-        super().__init__(
+        base_context = {
+            "attrs": self.attrs,
+        }
+
+        TemplateCellWidget.__init__(
+            self,
             template="components/delete_button_widget.html",
-            context={},
+            context=base_context,
             data={},
-            context_resolver=self.context_resolver
+            context_resolver=context_resolver
         )
 
-    def context_resolver(self, row):
-        if not row.pk:
-            raise ValueError('Primary key not found in row.')
-
-        url = reverse(self.view_name, kwargs={'pk': row.pk})
-
-        attrs = {
-            key: (value.format(url=url, pk=row.pk) if isinstance(value, str) else value)
-            for key, value in self.attrs.items()
-        }
-
-        return {
-            "url": url,
-            "attrs": attrs,
-            "row": row,
-        }
+        ContextResolverMixin.__init__(
+            self,
+            context=base_context,
+            context_resolver=context_resolver
+        )

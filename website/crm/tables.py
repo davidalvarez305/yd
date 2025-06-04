@@ -323,7 +323,7 @@ class QuoteTable(Table):
         cell_widget=DeleteButton(
             view_name='quote_delete',
             attrs={
-                'hx-post': '{url}',
+                'hx-post': lambda row, request: reverse('quote_detail', kwargs={ 'pk': row.pk }),
                 'hx-target': '#quotesTable',
                 'hx-ext': "loading-states",
                 'data-loading-target': '#submitButtonLoader',
