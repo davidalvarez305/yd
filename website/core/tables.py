@@ -1,39 +1,7 @@
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from .widgets import DeleteButton, TableCellWidget, TableHeaderWidget, ViewButton
-
-# Example Use
-""" 
-class CocktailTable(Table):
-    class Meta:
-        model = Cocktail
-        fields = ['name']
-
-CocktailTable = Table.from_model(Cocktail, exclude=["created_at", "updated_at"])
-
-full_name = TableField(
-    label='Full Name',
-    cell_widget=TableCellWidget(
-        data={'value': lambda row: f"{row.first_name} {row.last_name}"}
-    )
-)
-
-cell_widget=TableField(
-    name="delete",
-    header_widget=TableHeaderWidget("Delete"),
-    cell_widget=TemplateCellWidget(
-        template="components/delete_button_widget.html",
-        context={
-            "pk": "{id}",
-            "delete_url_name": "cocktail_delete"
-        },
-        data={"csrf": True}
-    )
-))
-
-ViewButton(pk="cocktail_id", url="cocktail_detail")
-"""
+from core.widgets import DeleteButton, TableCellWidget, TableHeaderWidget, ViewButton
 
 class TableField:
     def __init__(self, name=None, label=None, header_widget=None, cell_widget=None):
@@ -89,23 +57,19 @@ class DeclarativeTableMeta(type):
             return new_class
 
         model = getattr(meta, 'model', None)
+        pk = model._meta.pk.name
+
         include_fields = getattr(meta, 'fields', None)
         exclude_fields = getattr(meta, 'exclude', [])
         extra_fields = getattr(meta, 'extra_fields', [])
 
         prefix = f"{model.__name__.lower()}_"
-        pk = getattr(meta, 'pk', prefix + "id")
         detail_url = getattr(meta, 'detail_url', prefix + "detail")
         delete_url = getattr(meta, 'delete_url', prefix + "delete")
 
         _declared_fields = {}
 
-        if "view" in extra_fields:
-            _declared_fields["view"] = TableField(
-                name="View",
-                cell_widget=ViewButton(pk=pk, url=detail_url)
-            )
-
+        # Fields coming from model
         if model:
             if include_fields:
                 field_names = include_fields
@@ -120,11 +84,19 @@ class DeclarativeTableMeta(type):
                 else:
                     _declared_fields[field_name] = declared_fields[field_name]
 
+        # Fields declaratively defined even if not in model
         for key, field in declared_fields.items():
             if include_fields and key not in include_fields:
                 continue
             if key not in _declared_fields:
                 _declared_fields[key] = field
+
+        # Commonly used dynamic fields
+        if "view" in extra_fields:
+            _declared_fields["view"] = TableField(
+                name="View",
+                cell_widget=ViewButton(pk=pk, view_name=detail_url)
+            )
 
         if "delete" in extra_fields:
             _declared_fields["delete"] = TableField(
@@ -184,6 +156,9 @@ class Table(metaclass=DeclarativeTableMeta):
     @classmethod
     def from_model(cls, model, fields=None, exclude=None, extra_fields=None, meta_attrs=None):
         _declared_fields = {}
+
+        if model is None:
+            raise ValueError('You must pass a model to from_model()')
 
         if fields is None:
             fields = [f.name for f in model._meta.get_fields() if f.concrete and not f.auto_created]

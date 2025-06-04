@@ -131,12 +131,15 @@ class PriceCellWidget(TableCellWidget):
             return format_html(f"<td>${value:.2f}</td>")
         return "<td>$0.00</td>"
 
-def ViewButton(pk="id", url=None):
+def ViewButton(pk, view_name):
+    if not pk or not view_name:
+        raise TypeError('Missing primary key or view name in view button.')
+
     return TemplateCellWidget(
         template="components/view_button_widget.html",
         context={
             "pk": f"{{{pk}}}",
-            "view_lookup_name": url
+            "view_lookup_name": view_name
         }
     )
 
