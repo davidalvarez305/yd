@@ -46,6 +46,16 @@ class ToggleSwitchWidget(CheckboxInput):
         """
         return value is True or value == 'on'
 
+class TableHeaderWidget:
+    def __init__(self, label):
+        self.label = label
+
+    def render(self):
+        return format_html(
+            '<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">{}</th>',
+            self.label.title()
+        )
+
 class TableCellWidget:
     def __init__(self, data=None):
         self.data = data or {}
@@ -89,48 +99,20 @@ class TableCellWidget:
 
         return format_html('<td {}>{}</td>', mark_safe(attrs), value)
 
-class TemplateCellWidget:
+class TemplateCellWidget(ContextResolverMixin):
     def __init__(self, template=None, context=None, data=None, context_resolver=None):
         self.template = template
-        self.context = context or {}
         self.data = data or {}
-        self.context_resolver = context_resolver
 
-    def resolve_context(self, row):
-        if self.context_resolver:
-            return self.context_resolver(row)
-
-        final_context = {}
-        for key, value in self.context.items():
-            if isinstance(value, str) and "{" in value and "}" in value:
-                import re
-                matches = re.findall(r"{(.*?)}", value)
-                for match in matches:
-                    nested_value = deep_getattr(row, match)
-                    if nested_value is not None:
-                        value = value.replace(f"{{{match}}}", str(nested_value))
-            final_context[key] = value
-
-        final_context["row"] = row
-        return final_context
+        super().__init__(context=context, context_resolver=context_resolver)
 
     def render(self, row=None, request=None):
-        context = self.resolve_context(row)
+        context = self.resolve_context(base=row, request=request)
 
         if request and self.data.get("csrf", False):
             context.update(csrf(request))
 
         return mark_safe(render_to_string(self.template, context))
-
-class TableHeaderWidget:
-    def __init__(self, label):
-        self.label = label
-
-    def render(self):
-        return format_html(
-            '<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">{}</th>',
-            self.label.title()
-        )
 
 class PriceCellWidget(TableCellWidget):
     def render(self, row=None, request=None):
@@ -139,19 +121,15 @@ class PriceCellWidget(TableCellWidget):
             return format_html(f"<td>${value:.2f}</td>")
         return "<td>$0.00</td>"
 
-def ViewButton(pk, view_name):
-    if not pk or not view_name:
-        raise TypeError('Missing primary key or view name in view button.')
+class ViewButton(TemplateCellWidget):
+    def __init__(self, view_name, attrs=None, context={}, context_resolver=None):
+        super().__init__(
+            template="components/view_button_widget.html",
+            context=context,
+            context_resolver=context_resolver
+        )
 
-    return TemplateCellWidget(
-        template="components/view_button_widget.html",
-        context={
-            "pk": f"{{{pk}}}",
-            "view_lookup_name": view_name
-        }
-    )
-
-class DeleteButton(TemplateCellWidget, ContextResolverMixin):
+class DeleteButton(TemplateCellWidget):
     def __init__(self, view_name, attrs=None, context=None, context_resolver=None):
         self.view_name = view_name
         self.attrs = attrs or {}
@@ -160,16 +138,9 @@ class DeleteButton(TemplateCellWidget, ContextResolverMixin):
             "attrs": self.attrs,
         }
 
-        TemplateCellWidget.__init__(
-            self,
+        super().__init__(
             template="components/delete_button_widget.html",
             context=base_context,
             data={},
-            context_resolver=context_resolver
-        )
-
-        ContextResolverMixin.__init__(
-            self,
-            context=base_context,
             context_resolver=context_resolver
         )
