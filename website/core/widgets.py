@@ -123,6 +123,8 @@ class PriceCellWidget(TableCellWidget):
 
 class ViewButton(TemplateCellWidget):
     def __init__(self, view_name, attrs=None, context={}, context_resolver=None):
+        self.view_name = view_name
+
         super().__init__(
             template="components/view_button_widget.html",
             context=context,

@@ -95,7 +95,7 @@ class DeclarativeTableMeta(type):
         if "view" in extra_fields:
             _declared_fields["view"] = TableField(
                 name="View",
-                cell_widget=ViewButton(pk=pk, view_name=detail_url)
+                cell_widget=ViewButton(view_name=detail_url)
             )
 
         if "delete" in extra_fields:

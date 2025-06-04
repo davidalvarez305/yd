@@ -148,8 +148,8 @@ class LoginView(BaseWebsiteView):
         form = LoginForm(request.POST)
 
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
 
             try:
                 user = authenticate(request, username=username, password=password)
@@ -157,10 +157,12 @@ class LoginView(BaseWebsiteView):
                 if user is not None:
                     login(request, user)
 
-                    if request.user.is_superuser:
-                        return redirect(reverse('lead_list'))
+                    redirect_url = reverse('lead_list') if request.user.is_superuser else reverse('home')
 
-                    return redirect(reverse('home'))
+                    if self.request.headers.get("HX-Request") == "true":
+                        return HttpResponse(status=200, headers={"HX-Redirect": redirect_url})
+
+                    return redirect(redirect_url)
 
                 else:
                     return self.alert(request, "Invalid username or password.", AlertStatus.BAD_REQUEST)
