@@ -59,14 +59,21 @@ class TableCellWidget:
 
     def get_attrs(self, row=None):
         attrs = self.data.get("attrs", {})
-        parts = []
+        formatted_attrs = {}
+
         for key, value in attrs.items():
             if isinstance(value, str) and row:
                 try:
                     value = value.format(**row.__dict__)
                 except Exception:
                     pass
-            parts.append(f'{key}="{value}"')
+            formatted_attrs[key] = value
+
+        # Add default class if not provided
+        if "class" not in formatted_attrs:
+            formatted_attrs["class"] = "p-3 text-center"
+
+        parts = [f'{key}="{value}"' for key, value in formatted_attrs.items()]
         return " ".join(parts)
 
     def render(self, row, request):
@@ -78,7 +85,7 @@ class TableCellWidget:
         else:
             value = mark_safe(value)
 
-        return format_html('<td {} class="p-3 text-center">{}</td>', mark_safe(attrs), value)
+        return format_html('<td {}>{}</td>', mark_safe(attrs), value)
 
 class TemplateCellWidget:
     def __init__(self, template=None, context=None, data=None, context_resolver=None):
