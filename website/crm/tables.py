@@ -161,13 +161,15 @@ class EventCocktailTable(Table):
         label='Delete',
         cell_widget=DeleteButton(
             view_name='eventcocktail_delete',
-            attrs={
-                'hx-post': '{url}',
-                'hx-target': '#eventCocktailsTable',
-                'hx-ext': "loading-states",
-                'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
-                'data-loading-target': '#submitButtonLoader',
-                'data-loading-class-remove': 'hidden',
+            context={
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('eventcocktail_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#eventCocktailsTable',
+                    'hx-ext': "loading-states",
+                    'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
+                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-class-remove': 'hidden',
+                }
             }
         )
     )
@@ -203,13 +205,15 @@ class EventStaffTable(Table):
         label='Delete',
         cell_widget=DeleteButton(
             view_name='eventstaff_delete',
-            attrs={
-                'hx-post': '{url}',
-                'hx-target': '#eventStaffTable',
-                'hx-ext': "loading-states",
-                'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
-                'data-loading-target': '#submitButtonLoader',
-                'data-loading-class-remove': 'hidden',
+            context={
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('eventstaff_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#eventStaffTable',
+                    'hx-ext': "loading-states",
+                    'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
+                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-class-remove': 'hidden',
+                }
             }
         )
     )
@@ -235,13 +239,15 @@ class CocktailIngredientTable(Table):
         label='Delete',
         cell_widget=DeleteButton(
             view_name='cocktailingredient_delete',
-            attrs={
-                'hx-post': '{url}',
-                'hx-target': '#cocktailIngredientsTable',
-                'hx-ext': "loading-states",
-                'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
-                'data-loading-target': '#submitButtonLoader',
-                'data-loading-class-remove': 'hidden',
+            context={
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('cocktailingredient_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#cocktailIngredientsTable',
+                    'hx-ext': "loading-states",
+                    'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
+                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-class-remove': 'hidden',
+                }
             }
         )
     )
@@ -322,12 +328,14 @@ class QuoteTable(Table):
         label='Delete',
         cell_widget=DeleteButton(
             view_name='quote_delete',
-            attrs={
-                'hx-post': lambda row, request: reverse('quote_detail', kwargs={ 'pk': row.pk }),
-                'hx-target': '#quotesTable',
-                'hx-ext': "loading-states",
-                'data-loading-target': '#submitButtonLoader',
-                'data-loading-class-remove': 'hidden',
+            context={
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('quote_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#quotesTable',
+                    'hx-ext': "loading-states",
+                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-class-remove': 'hidden',
+                }
             }
         )
     )
@@ -343,12 +351,14 @@ class QuoteServiceTable(Table):
         label='Delete',
         cell_widget=DeleteButton(
             view_name='quoteservice_delete',
-            attrs={
-                'hx-post': '{url}',
-                'hx-target': '#quoteServicesTable',
-                'hx-ext': 'loading-states',
-                'data-loading-target': '#submitButtonLoader',
-                'data-loading-class-remove': 'hidden',
+            context = {
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('quoteservice_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#quoteServicesTable',
+                    'hx-ext': 'loading-states',
+                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-class-remove': 'hidden',
+                }
             }
         )
     )

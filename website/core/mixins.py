@@ -24,6 +24,15 @@ class ContextResolverMixin:
             return self.context_resolver(base=base, extra=extra, request=request)
 
         return self.build_context(base, extra, request)
+    
+    def resolve_value(self, value, base=None, request=None):
+        if callable(value):
+            return value(base, request)
+        elif isinstance(value, dict):
+            return {k: self.resolve_value(v, base, request) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self.resolve_value(v, base, request) for v in value]
+        return value
 
     def build_context(self, base=None, extra=None, request=None):
         context = dict(self.context)  # default static context
@@ -35,8 +44,8 @@ class ContextResolverMixin:
         # Dynamically resolve string-based placeholders (supports nested attr access)
         resolved_context = {}
         for key, value in context.items():
-            if callable(value):
-                resolved_context[key] = value(base, request)
+            if callable(value) or isinstance(value, (dict, list)):
+                resolved_context[key] = self.resolve_value(value, base, request)
             elif isinstance(value, str) and "{" in value:
                 try:
                     resolved_context[key] = value.format(**vars(base))

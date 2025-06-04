@@ -130,17 +130,12 @@ class ViewButton(TemplateCellWidget):
         )
 
 class DeleteButton(TemplateCellWidget):
-    def __init__(self, view_name, attrs=None, context=None, context_resolver=None):
+    def __init__(self, view_name, context={}, context_resolver=None):
         self.view_name = view_name
-        self.attrs = attrs or {}
-
-        base_context = {
-            "attrs": self.attrs,
-        }
 
         super().__init__(
             template="components/delete_button_widget.html",
-            context=base_context,
+            context=context,
             data={},
             context_resolver=context_resolver
         )
