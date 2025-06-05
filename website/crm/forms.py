@@ -1,4 +1,5 @@
 from http import HTTPStatus
+import json
 from django import forms
 import re
 
@@ -548,6 +549,11 @@ class StoreItemForm(BaseModelForm):
         fields = '__all__'
 
 class QuoteForm(BaseModelForm):
+    quote_services = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+
     class Meta:
         model = Quote
         fields = ['lead', 'guests', 'hours', 'event_date']
@@ -559,6 +565,22 @@ class QuoteForm(BaseModelForm):
             'guests': forms.NumberInput(attrs={'id': 'guests'}),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
+    
+    def clean_quote_services(self):
+        data = self.cleaned_data['quote_services']
+        if not data:
+            return []
+
+        try:
+            parsed = json.loads(data)
+            if not isinstance(parsed, list):
+                raise forms.ValidationError("Expected a list of services.")
+            for item in parsed:
+                if not isinstance(item, dict):
+                    raise forms.ValidationError("Each service must be a dictionary.")
+            return parsed
+        except json.JSONDecodeError:
+            raise forms.ValidationError("Invalid JSON format in quote services.")
 
 class QuoteServiceForm(BaseModelForm):
     service = forms.ModelChoiceField(
