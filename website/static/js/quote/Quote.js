@@ -1,36 +1,36 @@
 import { createServiceFactory } from "./Service.js";
 
+const FORM_MAPPER = {
+    unit: {
+        html: 'unit',
+        model: 'units',
+    },
+    price: {
+        html: 'price',
+        model: 'price_per_unit',
+    },
+    service: {
+        html: 'service',
+        model: 'service',
+    }
+};
+
 export default class Quote {
     constructor() {
         this.services = [];
         this.state = new Map();
 
-        this._inputFields = ['hours', 'guests'];
-        this._editableFields = ['unit', 'price'];
-        this.formMapper = {
-            unit: {
-                html: 'unit',
-                model: 'units',
-            },
-            price: {
-                html: 'price',
-                model: 'price_per_unit',
-            },
-            service: {
-                html: 'service',
-                model: 'service',
-            }
-        };
+        
 
-        this._cachedFields = new Map();
-        this._editableFields.forEach(id => {
+        this._variableFormFields = new Map();
+        ['unit', 'price'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) this._cachedFields.set(id, el);
+            if (el) this._variableFormFields.set(id, el);
         });
     }
 
     _scanWebPage() {
-        this._inputFields.forEach(key => {
+        ['hours', 'guests'].forEach(key => {
             const el = document.getElementById(key);
             if (el) {
                 this.state.set(key, el);
@@ -52,7 +52,7 @@ export default class Quote {
                 this.state.get('guests')?.value,
                 this.state.get('hours')?.value
             );
-            this._updateFormFields(service);
+            this._adjustVariableInputs(service);
         });
     }
 
@@ -64,26 +64,24 @@ export default class Quote {
         const service = createServiceFactory({ ...option.dataset });
 
         this.services.push(service);
-        this._updateFormFields(service);
+        this._adjustVariableInputs(service);
     }
 
-    _updateFormFields(service) {
-        for (const [key, field] of this._cachedFields.entries()) {
+    _adjustVariableInputs(service) {
+        for (const [key, field] of this._variableFormFields.entries()) {
             const value = service[key];
-            if (value != null) field.value = String(value);
+            if (value) field.value = String(value);
         }
     }
 
     _serializeService(service) {
         const obj = {};
 
-        for (const [key, mapping] of Object.entries(this.formMapper)) {
-            const modelField = mapping.model;
+        for (const [key, mapping] of Object.entries(FORM_MAPPER)) {
+            const field = mapping.model;
             const value = service[key];
 
-            if (value != null) {
-                obj[modelField] = value;
-            }
+            if (value) obj[field] = value;
         }
 
         return obj;
@@ -93,13 +91,11 @@ export default class Quote {
         const data = new FormData();
 
         for (const [key, input] of this.state.entries()) {
-            if (input?.value != null) {
-                data.set(key, input.value);
-            }
+            if (input.value) data.set(key, input.value);
         }
 
-        const serialized = this.services.map(service => this._serializeService(service));
-        data.set('quote_services', JSON.stringify(serialized));
+        const serializedServices = this.services.map(service => this._serializeService(service));
+        data.set('quote_services', JSON.stringify(serializedServices));
 
         return data;
     }
