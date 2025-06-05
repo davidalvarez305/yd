@@ -160,7 +160,6 @@ class EventCocktailTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            view_name='eventcocktail_delete',
             context={
                 'attrs': {
                     'hx-post': lambda row, request: reverse('eventcocktail_delete', kwargs={ 'pk': row.pk }),
@@ -204,7 +203,6 @@ class EventStaffTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            view_name='eventstaff_delete',
             context={
                 'attrs': {
                     'hx-post': lambda row, request: reverse('eventstaff_delete', kwargs={ 'pk': row.pk }),
@@ -238,7 +236,6 @@ class CocktailIngredientTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            view_name='cocktailingredient_delete',
             context={
                 'attrs': {
                     'hx-post': lambda row, request: reverse('cocktailingredient_delete', kwargs={ 'pk': row.pk }),
@@ -327,7 +324,6 @@ class QuoteTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            view_name='quote_delete',
             context={
                 'attrs': {
                     'hx-post': lambda row, request: reverse('quote_delete', kwargs={ 'pk': row.pk }),
@@ -350,7 +346,6 @@ class QuoteServiceTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            view_name='quoteservice_delete',
             context = {
                 'attrs': {
                     'hx-post': lambda row, request: reverse('quoteservice_delete', kwargs={ 'pk': row.pk }),

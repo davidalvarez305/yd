@@ -1,10 +1,10 @@
 <td class="p-3 text-center">
     <form
         method="post"
-        {% if not htmx_attrs %}
+        {% if not attrs %}
             action="{{ url }}"
         {% endif %}
-        {% for name, val in htmx_attrs.items %}
+        {% for name, val in attrs.items %}
             {{ name }}="{{ val }}"
         {% endfor %}
     >

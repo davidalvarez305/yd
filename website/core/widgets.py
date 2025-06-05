@@ -122,19 +122,16 @@ class PriceCellWidget(TableCellWidget):
         return "<td>$0.00</td>"
 
 class ViewButton(TemplateCellWidget):
-    def __init__(self, view_name, attrs=None, context={}, context_resolver=None):
-        self.view_name = view_name
-
+    def __init__(self, context={}, context_resolver=None):
         super().__init__(
             template="components/view_button_widget.html",
             context=context,
+            data={},
             context_resolver=context_resolver
         )
 
 class DeleteButton(TemplateCellWidget):
-    def __init__(self, view_name, context={}, context_resolver=None):
-        self.view_name = view_name
-
+    def __init__(self, context={}, context_resolver=None):
         super().__init__(
             template="components/delete_button_widget.html",
             context=context,

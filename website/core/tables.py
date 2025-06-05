@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -67,7 +68,15 @@ class DeclarativeTableMeta(type):
         detail_url = getattr(meta, 'detail_url', prefix + "detail")
         delete_url = getattr(meta, 'delete_url', prefix + "delete")
 
+        # This goes here to ensure it's always the first column
         _declared_fields = {}
+        if "view" in extra_fields:
+            _declared_fields["view"] = TableField(
+                name="View",
+                cell_widget=ViewButton(context={
+                    'url': lambda row, request: reverse(detail_url, kwargs={ 'pk': row.pk })
+                })
+            )
 
         # Fields coming from model
         if model:
@@ -92,16 +101,13 @@ class DeclarativeTableMeta(type):
                 _declared_fields[key] = field
 
         # Commonly used dynamic fields
-        if "view" in extra_fields:
-            _declared_fields["view"] = TableField(
-                name="View",
-                cell_widget=ViewButton(view_name=detail_url)
-            )
 
         if "delete" in extra_fields:
             _declared_fields["delete"] = TableField(
                 name="Delete",
-                cell_widget=DeleteButton(view_name=delete_url)
+                cell_widget=DeleteButton(context={
+                    'url': lambda row, request: reverse(delete_url, kwargs={ 'pk': row.pk })
+                })
             )
 
         new_class._declared_fields = _declared_fields
