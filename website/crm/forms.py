@@ -556,6 +556,8 @@ class QuoteForm(BaseModelForm):
             'event_date': forms.DateInput(attrs={
                 'type': 'date'
             }),
+            'guests': forms.NumberInput(attrs={'id': 'guests'}),
+            'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
 
 class QuoteServiceForm(BaseModelForm):
@@ -567,9 +569,9 @@ class QuoteServiceForm(BaseModelForm):
             'placeholder': 'Select a status',
             'id': 'service'
         },
-        apply_attrs=lambda instance: {
+        opt_attrs=lambda instance: {
             'data-id': instance.pk,
-            'data-service': instance.service_type,
+            'data-type': instance.service_type,
             'data-unit': instance.unit_type,
             'data-price': instance.suggested_price,
             'data-ratio': instance.guest_ratio,

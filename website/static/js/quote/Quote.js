@@ -5,15 +5,13 @@ export default class Quote {
         this.services = [];
         this.hours = null;
         this.guests = null;
-
-        this._scan();
     }
 
     addService(service) {
         this.services.push(service);
     }
 
-    _scan() {
+    _scanWebPage() {
         const hours = document.getElementById('hours');
         if (hours) this.hours = hours;
         
@@ -40,11 +38,20 @@ export default class Quote {
         // Adjust price based on guests
     }
 
-    handleChangeService(element) {
-        let id = element.dataset.serviceId;
+    handleChangeService(input) {
+        let index = input.selectedIndex;
 
-        let service = createServiceFactory({ ...element.dataset });
+        if (!index) return;
+
+        const option = input.options[index];
+
+        const service = createServiceFactory({ ...option.dataset });
 
         this.addService(service);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const quote = new Quote();
+    quote._scanWebPage();
+});
