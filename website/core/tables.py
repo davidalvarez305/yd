@@ -130,10 +130,7 @@ class Table(metaclass=DeclarativeTableMeta):
             row_html = ""
             for field in self.get_fields():
                 if hasattr(field.cell_widget, 'render'):
-                    try:
-                        cell_html = field.cell_widget.render(row=row, request=self.request)
-                    except TypeError:
-                        cell_html = field.cell_widget.render(row)
+                    cell_html = field.cell_widget.render(row=row, request=self.request)
                 else:
                     cell_html = str(row)
                 row_html += cell_html

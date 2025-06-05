@@ -135,6 +135,6 @@ class DeleteButton(TemplateCellWidget):
         super().__init__(
             template="components/delete_button_widget.html",
             context=context,
-            data={},
+            data={"csrf": True},
             context_resolver=context_resolver
         )
