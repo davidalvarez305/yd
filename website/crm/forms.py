@@ -583,4 +583,6 @@ class QuoteServiceForm(BaseModelForm):
         fields = ['service', 'quote', 'units', 'price_per_unit']
         widgets = {
             'quote': forms.HiddenInput(),
+            'units': forms.NumberInput(attrs={'id': 'units'}),
+            'price_per_unit': forms.NumberInput(attrs={'id': 'price'})
         }

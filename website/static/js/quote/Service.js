@@ -41,7 +41,7 @@ export class Service {
                 return rate;
             case 'HOURLY':
                 let price = this.price * hours;
-                let ratioAdjustment = Math.ceil(guests / this.ratio); // round up to nearest int
+                let ratioAdjustment = Math.ceil(guests / this.ratio);
                 return price * ratioAdjustment;
             case 'FIXED':
                 return this.price;
