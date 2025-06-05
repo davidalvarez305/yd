@@ -581,6 +581,32 @@ class QuoteForm(BaseModelForm):
             return parsed
         except json.JSONDecodeError:
             raise forms.ValidationError("Invalid JSON format in quote services.")
+    
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+
+        quote_services = self.cleaned_data.get('quote_services', [])
+
+        if commit:
+            existing_services = { qs.pk: qs for qs in instance.quote_services.all() }
+
+            for service in quote_services:
+                service_id = service.get('id')
+                if service_id and service_id in existing_services:
+                    # Update existing services
+                    qs = existing_services.pop(service_id)
+                    for key, value in service.items():
+                        setattr(qs, key, value)
+                    qs.save()
+                else:
+                    # Create new service
+                    QuoteService.objects.create(quote=instance, **service)
+
+            # Delete services that were removed
+            for qs in existing_services.values():
+                qs.delete()
+
+        return instance
 
 class QuoteServiceForm(BaseModelForm):
     service = forms.ModelChoiceField(
