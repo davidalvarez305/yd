@@ -1,32 +1,28 @@
-import { createServiceFactory, Service } from "./Service.js";
+import { createServiceFactory } from "./Service.js";
 
 export default class Quote {
     constructor() {
         this.services = [];
-        this.hours = null;
-        this.guests = null;
+        this.state = new Map();
 
+        this._inputFields = ['hours', 'guests'];
         this._editableFields = ['unit', 'price'];
         this._cachedFields = new Map();
 
         this._editableFields.forEach(id => {
             const el = document.getElementById(id);
-            this._cachedFields.set(id, el);
+            if (el) this._cachedFields.set(id, el);
         });
     }
 
     _scanWebPage() {
-        const hours = document.getElementById('hours');
-        if (hours) {
-            this.hours = hours;
-            hours.addEventListener('change', event => this.handleChangeHours(event.target.value));
-        }
-
-        const guests = document.getElementById('guests');
-        if (guests) {
-            this.guests = guests;
-            guests.addEventListener('change', event => this.handleChangeGuests(event.target.value));
-        }
+        this._inputFields.forEach(key => {
+            const el = document.getElementById(key);
+            if (el) {
+                this.state.set(key, el);
+                el.addEventListener('change', () => this._handleFieldChange(key, el.value));
+            }
+        });
 
         const service = document.getElementById('service');
         if (service) {
@@ -34,14 +30,13 @@ export default class Quote {
         }
     }
 
-    handleChangeHours(value) {
-        if (value === this.hours?.value) return;
-        // Adjust prices based on hours
-    }
+    _handleFieldChange(key, value) {
+        this.state.set(key, value);
 
-    handleChangeGuests(value) {
-        if (value === this.guests?.value) return;
-        // Adjust price based on guests
+        this.services.forEach(service => {
+            service.calculate(this.state.guests.value, this.state.hours.value);
+            this._handleAppendFormValues(service);
+        });
     }
 
     handleChangeService(input) {
@@ -51,15 +46,19 @@ export default class Quote {
         const option = input.options[index];
         const service = createServiceFactory({ ...option.dataset });
 
-        for (const [key, field] of Object.entries(this._cachedFields)) {
+        this.services.push(service);
+        this._handleAppendFormValues(service);
+    }
+
+    _handleAppendFormValues(service) {
+        for (const [key, field] of this._cachedFields.entries()) {
             const value = service[key];
-            if (value) field.value = String(value);
+            if (value != null) field.value = String(value);
         }
     }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     const quote = new Quote();
-
     quote._scanWebPage();
 });
