@@ -762,9 +762,6 @@ class QuoteUpdateView(CRMUpdateView):
     model = Quote
     form_class = QuoteForm
 
-    def form_valid(self, form):
-        return super().form_valid(form)
-
 class QuoteDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_detail.html'
     model = Quote
