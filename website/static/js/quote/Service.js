@@ -8,32 +8,30 @@ function assert(value, name) {
 }
 
 export function createServiceOptionFactory({
-    serviceType,
-    unitType,
+    service,
+    unit,
     id,
     price = null,
     ratio = null,
 }) {
-    assert(serviceType, 'Service type');
-    assert(unitType, 'Unit type');
+    assert(service, 'Service type');
+    assert(unit, 'Unit type');
     assert(id, 'Service ID');
 
-    return new ServiceOption(serviceType, unitType, id, price, ratio);
+    return new ServiceOption(service, unit, id, price, ratio);
 }
 
 export class ServiceOption {
-    constructor(serviceType, unitType, id, price, ratio) {
-        this.serviceType = serviceType;
-        this.unitType = unitType;
+    constructor(service, unit, id, price, ratio) {
+        this.service = service;
+        this.unit = unit;
         this.id = id;
         this.price = price;
         this.ratio = ratio;
     }
 
     calculate(guests, hours) {
-        let form = new QuoteService();
-
-        switch (this.unitType) {
+        switch (this.unit) {
             case 'PER_PERSON':
                 return this.price * guests * (hours / BASELINE_HOURS);
             case 'HOURLY':

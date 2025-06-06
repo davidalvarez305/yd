@@ -619,8 +619,8 @@ class QuoteServiceForm(BaseModelForm):
         },
         opt_attrs=lambda instance: {
             'data-id': instance.pk,
-            'data-service-type': instance.service_type,
-            'data-unit-type': instance.unit_type,
+            'data-service': instance.service_type,
+            'data-unit': instance.unit_type,
             'data-price': instance.suggested_price,
             'data-ratio': instance.guest_ratio,
         }),
