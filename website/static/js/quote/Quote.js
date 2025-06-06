@@ -50,8 +50,10 @@ export default class Quote {
             let guests = this.state.get('guests')?.value;
             let hours = this.state.get('hours')?.value;
 
-            service.calculate(guests, hours);
-            this._adjustVariableInputs(service);
+            const { units, price } = service.calculate(guests, hours);
+            let quoteService = createQuoteServiceFactory({  });
+            this.quoteServices.push(quoteService);
+            this._adjustVariableInputs({ units, price });
         });
     }
 

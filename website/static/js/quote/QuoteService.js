@@ -1,3 +1,12 @@
+export function createQuoteServiceFactory({ service = null, quote = null, units = 0, price = 0.00 }) {
+    return new QuoteService({
+        service: service,
+        quote: quote,
+        units: units,
+        price_per_unit: price,
+    });
+};
+
 export class QuoteService {
     constructor({ service = null, quote = null, units = 0, price_per_unit = 0.00 }) {
         this.service = service;
