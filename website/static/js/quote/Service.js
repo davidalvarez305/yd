@@ -9,39 +9,42 @@ function assert(value, name) {
 }
 
 export function createServiceFactory({
-    type,
-    unit,
+    serviceType,
+    unitType,
     id,
     price = null,
-    ratio = null
+    ratio = null,
+    units = 0,
 }) {
-    assert(type, 'Service type');
-    assert(unit, 'Unit type');
+    assert(serviceType, 'Service type');
+    assert(unitType, 'Unit type');
     assert(id, 'Service ID');
 
-    return new Service(type, unit, id, price, ratio);
+    return new Service(serviceType, unitType, id, price, ratio, units);
 }
 
 export class Service {
-    constructor(type, unit, id, price, ratio) {
-        this.type = type;
-        this.unit = unit;
+    constructor(serviceType, unitType, id, price, ratio) {
+        this.serviceType = serviceType;
+        this.unitType = unitType;
         this.id = id;
         this.price = price;
         this.ratio = ratio;
+        this.units = 0;
     }
 
     calculate(guests, hours) {
-        switch (this.unit) {
+        switch (this.unitType) {
             case 'PER_PERSON':
                 return this.price * guests * (hours / BASELINE_HOURS);
             case 'HOURLY':
-                let rate = this.price * hours;
-                if (this.ratio) rate *= Math.ceil(guests / this.ratio);
-                return rate;
-            case 'HOURLY':
                 let price = this.price * hours;
-                let ratioAdjustment = Math.ceil(guests / this.ratio);
+                let units = Math.ceil(guests / this.ratio);
+                if (this.ratio) price *= Math.ceil(guests / this.ratio);
+                return { units, price };
+            case 'HOURLY':
+                this.price = this.price * hours;
+                this.units = Math.ceil(guests / this.ratio);
                 return price * ratioAdjustment;
             case 'FIXED':
                 return this.price;

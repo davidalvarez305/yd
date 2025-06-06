@@ -1,16 +1,16 @@
 import { createServiceFactory } from "./Service.js";
 
 const FORM_MAPPER = {
-    unit: {
-        html: 'unit',
+    units: {
+        html: 'unitType',
         model: 'units',
     },
     price: {
         html: 'price',
-        model: 'price_per_unit',
+        model: 'price_per_units',
     },
     service: {
-        html: 'service',
+        html: 'serviceType',
         model: 'service',
     }
 };
@@ -20,10 +20,8 @@ export default class Quote {
         this.services = [];
         this.state = new Map();
 
-        
-
         this._variableFormFields = new Map();
-        ['unit', 'price'].forEach(id => {
+        ['units', 'price'].forEach(id => {
             const el = document.getElementById(id);
             if (el) this._variableFormFields.set(id, el);
         });
@@ -69,7 +67,7 @@ export default class Quote {
 
     _adjustVariableInputs(service) {
         for (const [key, field] of this._variableFormFields.entries()) {
-            const value = service[key];
+            const value = service.calculate(guests, hours);
             if (value) field.value = String(value);
         }
     }
