@@ -87,7 +87,7 @@ export default class Quote {
         const { units, price } = service.calculate(guests, hours);
         let quoteService = createQuoteServiceFactory({ 
             service: service.id,
-            quote: quote.id,
+            quote: this.quoteId,
             units: units,
             price: price,
             });
