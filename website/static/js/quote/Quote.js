@@ -1,5 +1,5 @@
 import { createServiceOptionFactory } from "./Service.js";
-import { QuoteService } from "./QuoteService.js";
+import { createQuoteServiceFactory } from "./QuoteService.js";
 
 const FORM_MAPPER = {
     units: {
@@ -51,9 +51,14 @@ export default class Quote {
             let hours = this.state.get('hours')?.value;
 
             const { units, price } = service.calculate(guests, hours);
-            let quoteService = createQuoteServiceFactory({  });
+            let quoteService = createQuoteServiceFactory({ 
+                service: service.id,
+                quote: quote.id,
+                units: units,
+                price: price,
+             });
             this.quoteServices.push(quoteService);
-            this._adjustVariableInputs({ units, price });
+            this._fillFormFields({ units, price });
         });
     }
 
@@ -62,16 +67,24 @@ export default class Quote {
         if (!index) return;
 
         const option = input.options[index];
-        const service = createServiceOptionFactory({ ...option.dataset });
 
-        this.quoteServices.push(service);
-        this._adjustVariableInputs(service);
+        let guests = this.state.get('guests')?.value;
+        let hours = this.state.get('hours')?.value;
+        const service = createServiceOptionFactory({ ...option.dataset });
+        const { units, price } = service.calculate(guests, hours);
+        let quoteService = createQuoteServiceFactory({ 
+            service: service.id,
+            quote: quote.id,
+            units: units,
+            price: price,
+            });
+        this.quoteServices.push(quoteService);
+        this._fillFormFields({ units, price });
     }
 
-    _adjustVariableInputs(service) {
+    _fillFormFields(data) {
         for (const [key, field] of this._variableFormFields.entries()) {
-            const value = service.calculate(guests, hours);
-            if (value) field.value = String(value);
+            if (data[key]) field.value = String(value);
         }
     }
 
