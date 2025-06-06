@@ -1,5 +1,5 @@
 import { createServiceOptionFactory } from "./Service.js";
-import { QuoteServiceForm } from "./QuoteService.js";
+import { QuoteService } from "./QuoteService.js";
 
 const FORM_MAPPER = {
     units: {
@@ -19,7 +19,6 @@ const FORM_MAPPER = {
 export default class Quote {
     constructor() {
         this.services = [];
-        this.form = new QuoteServiceForm();
         this.state = new Map();
 
         this._variableFormFields = new Map();
@@ -71,7 +70,6 @@ export default class Quote {
         for (const [key, field] of this._variableFormFields.entries()) {
             const value = service.calculate(guests, hours);
             if (value) field.value = String(value);
-            this.form.set(key, value);
         }
     }
 

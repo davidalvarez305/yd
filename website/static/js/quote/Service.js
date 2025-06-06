@@ -1,5 +1,4 @@
-// service type = hourly, general, food, rental, alcohol, etc...
-// unit type = per person, ratio, hourly, etc...
+import { QuoteService } from "./QuoteService.js";
 const BASELINE_HOURS = 4;
 
 function assert(value, name) {
@@ -32,7 +31,7 @@ export class ServiceOption {
     }
 
     calculate(guests, hours) {
-        let form = new QuoteServiceForm();
+        let form = new QuoteService();
 
         switch (this.unitType) {
             case 'PER_PERSON':
