@@ -3,7 +3,7 @@ import { QuoteService } from "./QuoteService.js";
 
 const FORM_MAPPER = {
     units: {
-        html: 'unitType',
+        html: 'unit',
         model: 'units',
     },
     price: {
@@ -11,17 +11,17 @@ const FORM_MAPPER = {
         model: 'price_per_units',
     },
     service: {
-        html: 'serviceType',
+        html: 'service',
         model: 'service',
     }
 };
 
 export default class Quote {
     constructor() {
-        this.services = [];
+        this.quoteServices = [];
         this.state = new Map();
-
         this._variableFormFields = new Map();
+
         ['units', 'price'].forEach(id => {
             const el = document.getElementById(id);
             if (el) this._variableFormFields.set(id, el);
@@ -31,26 +31,26 @@ export default class Quote {
     _scanWebPage() {
         ['hours', 'guests'].forEach(key => {
             const el = document.getElementById(key);
-            if (el) {
-                this.state.set(key, el);
-                el.addEventListener('change', () => this._handleFieldChange(key, el.value));
-            }
+
+            if (!el) return;
+
+            this.state.set(key, el);
+            el.addEventListener('change', () => this._handleFieldChange(key, el.value));
         });
 
         const service = document.getElementById('service');
-        if (service) {
-            service.addEventListener('change', event => this._handleChangeService(event.target));
-        }
+
+        if (service) service.addEventListener('change', event => this._handleChangeService(event.target));
     }
 
     _handleFieldChange(key, value) {
         this.state.set(key, value);
 
-        this.services.forEach(service => {
-            service.calculate(
-                this.state.get('guests')?.value,
-                this.state.get('hours')?.value
-            );
+        this.quoteServices.forEach(service => {
+            let guests = this.state.get('guests')?.value;
+            let hours = this.state.get('hours')?.value;
+
+            service.calculate(guests, hours);
             this._adjustVariableInputs(service);
         });
     }
@@ -62,7 +62,7 @@ export default class Quote {
         const option = input.options[index];
         const service = createServiceOptionFactory({ ...option.dataset });
 
-        this.services.push(service);
+        this.quoteServices.push(service);
         this._adjustVariableInputs(service);
     }
 
@@ -93,7 +93,7 @@ export default class Quote {
             if (input.value) data.set(key, input.value);
         }
 
-        const serializedServices = this.services.map(service => this._serializeService(service));
+        const serializedServices = this.quoteServices.map(service => this._serializeService(service));
         data.set('quote_services', JSON.stringify(serializedServices));
 
         return data;
