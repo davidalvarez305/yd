@@ -21,6 +21,7 @@ export default class Quote {
         this.quoteServices = [];
         this.state = new Map();
         this._variableFormFields = new Map();
+        this.quoteId = this._extractQuoteIdFromUrl();
 
         ['units', 'price'].forEach(id => {
             const el = document.getElementById(id);
@@ -43,6 +44,18 @@ export default class Quote {
         if (service) service.addEventListener('change', event => this._handleChangeService(event.target));
     }
 
+    _extractQuoteIdFromUrl() {
+        const path = window.location.pathname;
+        const regex = /\/crm\/quote\/(\d+)/;
+        const match = path.match(regex);
+
+        if (match && match[1]) {
+            return match[1];
+        }
+
+        return null;
+    }
+
     _handleFieldChange(key, value) {
         this.state.set(key, value);
 
@@ -53,7 +66,7 @@ export default class Quote {
             const { units, price } = service.calculate(guests, hours);
             let quoteService = createQuoteServiceFactory({ 
                 service: service.id,
-                quote: quote.id,
+                quote: this.quoteId,
                 units: units,
                 price: price,
              });
