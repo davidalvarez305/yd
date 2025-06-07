@@ -550,7 +550,9 @@ class StoreItemForm(BaseModelForm):
 
 class QuoteForm(BaseModelForm):
     quote_services = forms.CharField(
-        widget=forms.HiddenInput(),
+        widget=forms.HiddenInput(attrs={
+            'id': 'quote_services'
+        }),
         required=False
     )
 
@@ -591,10 +593,11 @@ class QuoteForm(BaseModelForm):
             existing_services = { qs.pk: qs for qs in instance.quote_services.all() }
 
             for service in quote_services:
-                service_id = service.get('quote_service_id')
-                if service_id and service_id in existing_services:
+                service_id = service.get('service_id')
+                entry = instance.quote_services.filter(service_id=service_id, quote_id=instance.pk).first()
+                if entry:
                     # Update existing services
-                    qs = existing_services.pop(service_id)
+                    qs = existing_services.pop(entry.pk)
                     for key, value in service.items():
                         setattr(qs, key, value)
                     qs.save()

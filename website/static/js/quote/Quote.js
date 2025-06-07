@@ -1,25 +1,11 @@
 import { createServiceOptionFactory } from "./Service.js";
 import { createQuoteServiceFactory } from "./QuoteService.js";
 
-const FORM_MAPPER = {
-    units: {
-        html: 'unit',
-        model: 'units',
-    },
-    price: {
-        html: 'price',
-        model: 'price_per_units',
-    },
-    service: {
-        html: 'service',
-        model: 'service',
-    }
-};
-
 export default class Quote {
     constructor() {
         this.quoteId = this._extractQuoteIdFromUrl();
         this.quoteServices = [];
+        this.serviceOptions = new Map();
         this.state = new Map();
         this._variableFormFields = new Map();
 
@@ -40,13 +26,20 @@ export default class Quote {
             if (!el) throw new Error(`Could not find ${key} element.`);
 
             this.state.set(key, el);
-            el.addEventListener('change', () => this._handleFieldChange(key, el.value));
+            el.addEventListener('change', () => this._handleFieldChange());
         });
 
         const service = document.getElementById('service');
         
         if (!service) throw new Error('Could not find service input.');
-        
+
+        for (const [_, option] of Object.entries(service.options)) {
+           if (!option.dataset.id) continue;
+
+            const serviceOption = createServiceOptionFactory({ ...option.dataset });
+            this.serviceOptions.set(option.dataset.id, serviceOption);
+        }
+
         service.addEventListener('change', event => this._handleChangeService(event.target));
 
         let services = JSON.parse(document.getElementById('quoteServices').textContent);
@@ -68,20 +61,18 @@ export default class Quote {
         return match?.[1] ?? null;
     }
 
-    _handleFieldChange(key, value) {
-        this.state.set(key, value);
+    _handleFieldChange() {
+        const guests = this.state.get('guests').value;
+        const hours = this.state.get('hours').value;
 
-        const guests = this.state.get('guests')?.value;
-        const hours = this.state.get('hours')?.value;
+        this.quoteServices = this.quoteServices.map(service => {
+            let serviceOption = this.serviceOptions.get(String(service.service_id));
 
-        this.quoteServices.forEach(service => {
-            let quoteService = this._processServiceCalculation(service, guests, hours);
+            if (!serviceOption) throw new Error('Invalid service option.');
 
-            console.log(this.quoteServices);
+            let quoteService = this._processServiceCalculation(serviceOption, guests, hours);
 
-            service = quoteService;
-
-            console.log(this.quoteServices);
+            return quoteService;
         });
 
         this._attachQuoteServices();
@@ -95,6 +86,7 @@ export default class Quote {
         const hours = this.state.get('hours').value;
 
         const service = createServiceOptionFactory({ ...option.dataset });
+
         const { units, price_per_unit } = this._processServiceCalculation(service, guests, hours);
 
         this._fillFormFields({ units, price: price_per_unit });
@@ -104,8 +96,7 @@ export default class Quote {
         const { units, price } = service.calculate(guests, hours);
 
         const quoteService = createQuoteServiceFactory({
-            id: service.id,
-            service: service.service,
+            service: service.id,
             quote: this.quoteId,
             units,
             price
@@ -118,17 +109,6 @@ export default class Quote {
         for (const [key, field] of this._variableFormFields.entries()) {
             if (data[key]) field.value = String(data[key]);
         }
-    }
-
-    _serializeServices() {
-        const obj = {};
-
-        for (const [key, { model }] of Object.entries(FORM_MAPPER)) {
-            const value = service[key];
-            if (value) obj[model] = value;
-        }
-
-        return obj;
     }
 
     _attachQuoteServices() {

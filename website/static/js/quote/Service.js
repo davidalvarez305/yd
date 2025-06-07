@@ -36,7 +36,7 @@ export class ServiceOption {
                 let units = guests;
                 let price = this.price;
 
-                if (this.service === "Add On") price *= (1 + (hours / BASELINE_HOURS));
+                if (this.service === "Add On") price *= (hours / BASELINE_HOURS);
 
                 return { units, price };
             case 'Hourly': {
