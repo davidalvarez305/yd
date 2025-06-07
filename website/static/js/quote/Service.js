@@ -32,21 +32,20 @@ export class ServiceOption {
 
     calculate(guests, hours) {
         switch (this.unit) {
-            case 'PER_PERSON':
-                return this.price * guests * (hours / BASELINE_HOURS);
-            case 'HOURLY':
-                let price = this.price * hours;
-                let units = Math.ceil(guests / this.ratio);
-                if (this.ratio) price *= Math.ceil(guests / this.ratio);
+            case 'Per Person':
+                let units = guests;
+                let price = this.price;
+
+                if (this.service === "Add On") price *= (1 + (hours / BASELINE_HOURS));
+
                 return { units, price };
-            case 'HOURLY':
-                this.price = this.price * hours;
-                this.units = Math.ceil(guests / this.ratio);
-                return price * ratioAdjustment;
-            case 'FIXED':
-                return this.price;
-            case 'AD_HOC':
-                return this.price;
+            case 'Hourly': {
+                let units = this.ratio ? Math.ceil(guests / this.ratio) * hours : hours;
+                let price = this.price;
+                return { units, price };
+            }
+            default:
+                return {};
         }
     }
 }

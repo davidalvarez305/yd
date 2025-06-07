@@ -18,11 +18,15 @@ const FORM_MAPPER = {
 
 export default class Quote {
     constructor() {
+        this.quoteId = this._extractQuoteIdFromUrl();
         this.quoteServices = [];
         this.state = new Map();
         this._variableFormFields = new Map();
-        this.quoteId = this._extractQuoteIdFromUrl();
 
+        this._initFormFields();
+    }
+
+    _initFormFields() {
         ['units', 'price'].forEach(id => {
             const el = document.getElementById(id);
             if (el) this._variableFormFields.set(id, el);
@@ -32,7 +36,6 @@ export default class Quote {
     _scanWebPage() {
         ['hours', 'guests'].forEach(key => {
             const el = document.getElementById(key);
-
             if (!el) return;
 
             this.state.set(key, el);
@@ -40,75 +43,65 @@ export default class Quote {
         });
 
         const service = document.getElementById('service');
-
-        if (service) service.addEventListener('change', event => this._handleChangeService(event.target));
+        if (service) {
+            service.addEventListener('change', event => this._handleChangeService(event.target));
+        }
     }
 
     _extractQuoteIdFromUrl() {
-        const path = window.location.pathname;
-        const regex = /\/crm\/quote\/(\d+)/;
-        const match = path.match(regex);
-
-        if (match && match[1]) {
-            return match[1];
-        }
-
-        return null;
+        const match = window.location.pathname.match(/\/crm\/quote\/(\d+)/);
+        return match?.[1] ?? null;
     }
 
     _handleFieldChange(key, value) {
         this.state.set(key, value);
 
-        this.quoteServices.forEach(service => {
-            let guests = this.state.get('guests')?.value;
-            let hours = this.state.get('hours')?.value;
+        const guests = this.state.get('guests')?.value;
+        const hours = this.state.get('hours')?.value;
 
-            const { units, price } = service.calculate(guests, hours);
-            let quoteService = createQuoteServiceFactory({ 
-                service: service.id,
-                quote: this.quoteId,
-                units: units,
-                price: price,
-             });
-            this.quoteServices.push(quoteService);
-            this._fillFormFields({ units, price });
+        this.quoteServices.forEach(service => {
+            this._processServiceCalculation(service, guests, hours);
         });
     }
 
     _handleChangeService(input) {
-        const index = input.selectedIndex;
-        if (!index) return;
+        const option = input.options[input.selectedIndex];
+        if (!option?.dataset?.id) return;
 
-        const option = input.options[index];
+        const guests = this.state.get('guests')?.value;
+        const hours = this.state.get('hours')?.value;
 
-        let guests = this.state.get('guests')?.value;
-        let hours = this.state.get('hours')?.value;
         const service = createServiceOptionFactory({ ...option.dataset });
+        this.quoteServices.push(service);
+        this._processServiceCalculation(service, guests, hours);
+    }
+
+    _processServiceCalculation(service, guests, hours) {
         const { units, price } = service.calculate(guests, hours);
-        let quoteService = createQuoteServiceFactory({ 
+
+        const quoteService = createQuoteServiceFactory({
             service: service.id,
             quote: this.quoteId,
-            units: units,
-            price: price,
-            });
+            units,
+            price
+        });
+
         this.quoteServices.push(quoteService);
         this._fillFormFields({ units, price });
     }
 
     _fillFormFields(data) {
         for (const [key, field] of this._variableFormFields.entries()) {
-            if (data[key]) field.value = String(value);
+            if (data[key]) field.value = String(data[key]);
         }
     }
 
     _serializeService(service) {
         const obj = {};
 
-        for (const [key, mapping] of Object.entries(FORM_MAPPER)) {
-            const field = mapping.model;
+        for (const [key, { model }] of Object.entries(FORM_MAPPER)) {
             const value = service[key];
-
-            if (value) obj[field] = value;
+            if (value) obj[model] = value;
         }
 
         return obj;
@@ -121,7 +114,7 @@ export default class Quote {
             if (input.value) data.set(key, input.value);
         }
 
-        const serializedServices = this.quoteServices.map(service => this._serializeService(service));
+        const serializedServices = this.quoteServices.map(s => this._serializeService(s));
         data.set('quote_services', JSON.stringify(serializedServices));
 
         return data;
