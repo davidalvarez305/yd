@@ -36,16 +36,18 @@ export default class Quote {
     _scanWebPage() {
         ['hours', 'guests'].forEach(key => {
             const el = document.getElementById(key);
-            if (!el) return;
+            
+            if (!el) throw new Error(`Could not find ${key} element.`);
 
             this.state.set(key, el);
             el.addEventListener('change', () => this._handleFieldChange(key, el.value));
         });
 
         const service = document.getElementById('service');
-        if (service) {
-            service.addEventListener('change', event => this._handleChangeService(event.target));
-        }
+        
+        if (!service) throw new Error('Could not find service input.');
+        
+        service.addEventListener('change', event => this._handleChangeService(event.target));
 
         let services = JSON.parse(document.getElementById('quoteServices').textContent);
         
@@ -59,8 +61,6 @@ export default class Quote {
                 })
             );
         });
-
-        console.log(this.quoteServices);
     }
 
     _extractQuoteIdFromUrl() {
@@ -81,13 +81,12 @@ export default class Quote {
 
     _handleChangeService(input) {
         const option = input.options[input.selectedIndex];
-        if (!option?.dataset?.id) return;
+        if (!option.dataset.id) throw new Error('Could not find selected option.');
 
-        const guests = this.state.get('guests')?.value;
-        const hours = this.state.get('hours')?.value;
+        const guests = this.state.get('guests').value;
+        const hours = this.state.get('hours').value;
 
         const service = createServiceOptionFactory({ ...option.dataset });
-        this.quoteServices.push(service);
         this._processServiceCalculation(service, guests, hours);
     }
 
