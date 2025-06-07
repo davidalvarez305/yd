@@ -21,13 +21,12 @@
                 </p>
             </div>
             <div class="md:w-2/3 md:pl-24">
-                <form
-                class="space-y-6 xl:w-2/3"
-                hx-post="{% url 'quote_update' pk=quote.pk %}"
-                hx-target-error="#alertModal"
-                hx-ext="loading-states"
-                data-loading-target="#submitButtonLoader"
-                data-loading-class-remove="hidden"
+                <form class="space-y-6 xl:w-2/3"
+                    hx-post="{% url 'quote_update' pk=quote.pk %}"
+                    hx-target-error="#alertModal"
+                    hx-ext="loading-states"
+                    data-loading-target="#submitButtonLoader"
+                    data-loading-class-remove="hidden"
                 >
                     {% csrf_token %}
                     {{ form.as_p }}

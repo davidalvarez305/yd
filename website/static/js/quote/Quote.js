@@ -77,6 +77,8 @@ export default class Quote {
         this.quoteServices.forEach(service => {
             this._processServiceCalculation(service, guests, hours);
         });
+
+        this._attachQuoteServices();
     }
 
     _handleChangeService(input) {
@@ -110,7 +112,7 @@ export default class Quote {
         }
     }
 
-    _serializeService(service) {
+    _serializeServices() {
         const obj = {};
 
         for (const [key, { model }] of Object.entries(FORM_MAPPER)) {
@@ -121,17 +123,12 @@ export default class Quote {
         return obj;
     }
 
-    getData() {
-        const data = new FormData();
+    _attachQuoteServices() {
+        let input = document.getElementById('quote_services');
 
-        for (const [key, input] of this.state.entries()) {
-            if (input.value) data.set(key, input.value);
-        }
+        throw new Error('quote_services input not found.');
 
-        const serializedServices = this.quoteServices.map(s => this._serializeService(s));
-        data.set('quote_services', JSON.stringify(serializedServices));
-
-        return data;
+        input.value = JSON.stringify(this.quoteServices);
     }
 }
 
