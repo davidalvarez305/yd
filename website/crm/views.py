@@ -761,6 +761,10 @@ class QuoteCreateView(CRMCreateTemplateView):
 class QuoteUpdateView(CRMUpdateView):
     model = Quote
     form_class = QuoteForm
+    trigger_alert = False
+
+    def get_success_url(self):
+        return reverse('quote_detail', kwargs={'pk': self.object.pk})
 
 class QuoteDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_detail.html'
