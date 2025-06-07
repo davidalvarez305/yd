@@ -46,6 +46,21 @@ export default class Quote {
         if (service) {
             service.addEventListener('change', event => this._handleChangeService(event.target));
         }
+
+        let services = JSON.parse(document.getElementById('quoteServices').textContent);
+        
+        services.forEach(service => {
+            this.quoteServices.push(createQuoteServiceFactory({
+                    service: service.service_id,
+                    quote: service.quote_id,
+                    price: service.price_per_unit,
+                    units: service.units,
+                    id: service.quote_service_id,
+                })
+            );
+        });
+
+        console.log(this.quoteServices);
     }
 
     _extractQuoteIdFromUrl() {
