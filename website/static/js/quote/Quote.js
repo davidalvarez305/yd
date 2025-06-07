@@ -90,6 +90,8 @@ export default class Quote {
 
         const service = createServiceOptionFactory({ ...option.dataset });
         this._processServiceCalculation(service, guests, hours);
+
+        this._fillFormFields({ units, price });
     }
 
     _processServiceCalculation(service, guests, hours) {
@@ -101,9 +103,6 @@ export default class Quote {
             units,
             price
         });
-
-        this.quoteServices.push(quoteService);
-        this._fillFormFields({ units, price });
     }
 
     _fillFormFields(data) {
@@ -126,7 +125,7 @@ export default class Quote {
     _attachQuoteServices() {
         let input = document.getElementById('quote_services');
 
-        throw new Error('quote_services input not found.');
+        if (!input) throw new Error('quote_services input not found.');
 
         input.value = JSON.stringify(this.quoteServices);
     }
