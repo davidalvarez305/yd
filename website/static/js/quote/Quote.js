@@ -75,7 +75,13 @@ export default class Quote {
         const hours = this.state.get('hours')?.value;
 
         this.quoteServices.forEach(service => {
-            this._processServiceCalculation(service, guests, hours);
+            let quoteService = this._processServiceCalculation(service, guests, hours);
+
+            console.log(this.quoteServices);
+
+            service = quoteService;
+
+            console.log(this.quoteServices);
         });
 
         this._attachQuoteServices();
@@ -89,9 +95,9 @@ export default class Quote {
         const hours = this.state.get('hours').value;
 
         const service = createServiceOptionFactory({ ...option.dataset });
-        this._processServiceCalculation(service, guests, hours);
+        const { units, price_per_unit } = this._processServiceCalculation(service, guests, hours);
 
-        this._fillFormFields({ units, price });
+        this._fillFormFields({ units, price: price_per_unit });
     }
 
     _processServiceCalculation(service, guests, hours) {
@@ -105,13 +111,7 @@ export default class Quote {
             price
         });
 
-        console.log(this.quoteServices);
-
-        this.quoteServices.forEach(service => {
-            if (service.quote_service_id === quoteService.quote_service_id) service = quoteService;
-        });
-
-        console.log(this.quoteServices);
+        return quoteService;
     }
 
     _fillFormFields(data) {
