@@ -567,7 +567,7 @@ class QuoteForm(BaseModelForm):
         }
     
     def clean_quote_services(self):
-        data = self.cleaned_data['quote_services']
+        data = self.cleaned_data.get('quote_services')
         if not data:
             return []
 
@@ -591,7 +591,7 @@ class QuoteForm(BaseModelForm):
             existing_services = { qs.pk: qs for qs in instance.quote_services.all() }
 
             for service in quote_services:
-                service_id = service.get('id')
+                service_id = service.get('quote_service_id')
                 if service_id and service_id in existing_services:
                     # Update existing services
                     qs = existing_services.pop(service_id)

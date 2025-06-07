@@ -98,11 +98,20 @@ export default class Quote {
         const { units, price } = service.calculate(guests, hours);
 
         const quoteService = createQuoteServiceFactory({
-            service: service.id,
+            id: service.id,
+            service: service.service,
             quote: this.quoteId,
             units,
             price
         });
+
+        console.log(this.quoteServices);
+
+        this.quoteServices.forEach(service => {
+            if (service.quote_service_id === quoteService.quote_service_id) service = quoteService;
+        });
+
+        console.log(this.quoteServices);
     }
 
     _fillFormFields(data) {
