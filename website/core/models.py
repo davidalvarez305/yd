@@ -277,7 +277,7 @@ class QuoteService(models.Model):
     price_per_unit = models.FloatField()
 
     def __str__(self):
-        return self.service
+        return self.service.service
 
     class Meta:
         db_table = 'quote_service'

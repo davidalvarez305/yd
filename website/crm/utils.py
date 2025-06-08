@@ -28,3 +28,22 @@ def convert_to_item_quantity(cocktail_ingredient: CocktailIngredient, store_item
     total = quantity * conversion_multiplier
 
     return round_up_to_nearest(total, store_item.product_quantity)
+
+BASELINE_HOURS = 4.00
+def calculate_quote_service_values(guests, hours, suggested_price, unit_type, service_type, guest_ratio):
+    if unit_type == 'Per Person':
+        units = guests
+        price = suggested_price
+
+        if service_type == "Add On":
+            price *= (hours / BASELINE_HOURS)
+
+        return {'units': units, 'price': price}
+
+    elif unit_type == 'Hourly':
+        units = (math.ceil(guests / guest_ratio) * hours) if guest_ratio else hours
+        price = suggested_price
+        return {'units': units, 'price': price}
+
+    else:
+        return {}

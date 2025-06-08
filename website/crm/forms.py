@@ -7,6 +7,7 @@ from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, E
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
+from crm.utils import calculate_quote_service_values
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -587,27 +588,19 @@ class QuoteForm(BaseModelForm):
     def save(self, commit=True):
         instance = super().save(commit=commit)
 
-        quote_services = self.cleaned_data.get('quote_services', [])
-
-        if commit:
-            existing_services = { qs.pk: qs for qs in instance.quote_services.all() }
-
-            for service in quote_services:
-                service_id = service.get('service_id')
-                entry = instance.quote_services.filter(service_id=service_id, quote_id=instance.pk).first()
-                if entry:
-                    # Update existing services
-                    qs = existing_services.pop(entry.pk)
-                    for key, value in service.items():
-                        setattr(qs, key, value)
-                    qs.save()
-                else:
-                    # Create new service
-                    QuoteService.objects.create(quote=instance, **service)
-
-            # Delete services that were removed
-            for qs in existing_services.values():
-                qs.delete()
+        quote_services = instance.quote_services.all()
+        for quote_service in quote_services:
+            service = Service.objects.filter(pk=quote_service.service_id)
+            data = calculate_quote_service_values(
+                guests=instance.guests,
+                hours=instance.hours,
+                suggested_price=quote_service.price_per_unit,
+                unit_type=service.unit_type,
+                service_type=service.service_type,
+                guest_ratio=service.guest_ratio,
+            )
+            quote_service.price_per_unit = data.get('price')
+            quote_service.units = data.get('units')
 
         return instance
 

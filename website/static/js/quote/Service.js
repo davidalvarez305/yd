@@ -1,4 +1,3 @@
-import { QuoteService } from "./QuoteService.js";
 const BASELINE_HOURS = 4;
 
 function assert(value, name) {

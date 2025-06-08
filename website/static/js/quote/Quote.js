@@ -1,11 +1,7 @@
 import { createServiceOptionFactory } from "./Service.js";
-import { createQuoteServiceFactory } from "./QuoteService.js";
 
 export default class Quote {
     constructor() {
-        this.quoteId = this._extractQuoteIdFromUrl();
-        this.quoteServices = [];
-        this.serviceOptions = new Map();
         this.state = new Map();
         this._variableFormFields = new Map();
 
@@ -26,56 +22,13 @@ export default class Quote {
             if (!el) throw new Error(`Could not find ${key} element.`);
 
             this.state.set(key, el);
-            el.addEventListener('change', () => this._handleFieldChange());
         });
 
         const service = document.getElementById('service');
         
         if (!service) throw new Error('Could not find service input.');
 
-        for (const [_, option] of Object.entries(service.options)) {
-           if (!option.dataset.id) continue;
-
-            const serviceOption = createServiceOptionFactory({ ...option.dataset });
-            this.serviceOptions.set(option.dataset.id, serviceOption);
-        }
-
         service.addEventListener('change', event => this._handleChangeService(event.target));
-
-        let services = JSON.parse(document.getElementById('quoteServices').textContent);
-        
-        services.forEach(service => {
-            this.quoteServices.push(createQuoteServiceFactory({
-                    service: service.service_id,
-                    quote: service.quote_id,
-                    price: service.price_per_unit,
-                    units: service.units,
-                    id: service.quote_service_id,
-                })
-            );
-        });
-    }
-
-    _extractQuoteIdFromUrl() {
-        const match = window.location.pathname.match(/\/crm\/quote\/(\d+)/);
-        return match?.[1] ?? null;
-    }
-
-    _handleFieldChange() {
-        const guests = this.state.get('guests').value;
-        const hours = this.state.get('hours').value;
-
-        this.quoteServices = this.quoteServices.map(service => {
-            let serviceOption = this.serviceOptions.get(String(service.service_id));
-
-            if (!serviceOption) throw new Error('Invalid service option.');
-
-            let quoteService = this._processServiceCalculation(serviceOption, guests, hours);
-
-            return quoteService;
-        });
-
-        this._attachQuoteServices();
     }
 
     _handleChangeService(input) {
@@ -87,36 +40,15 @@ export default class Quote {
 
         const service = createServiceOptionFactory({ ...option.dataset });
 
-        const { units, price_per_unit } = this._processServiceCalculation(service, guests, hours);
-
-        this._fillFormFields({ units, price: price_per_unit });
-    }
-
-    _processServiceCalculation(service, guests, hours) {
         const { units, price } = service.calculate(guests, hours);
 
-        const quoteService = createQuoteServiceFactory({
-            service: service.id,
-            quote: this.quoteId,
-            units,
-            price
-        });
-
-        return quoteService;
+        this._fillFormFields({ units, price });
     }
 
     _fillFormFields(data) {
         for (const [key, field] of this._variableFormFields.entries()) {
             if (data[key]) field.value = String(data[key]);
         }
-    }
-
-    _attachQuoteServices() {
-        let input = document.getElementById('quote_services');
-
-        if (!input) throw new Error('quote_services input not found.');
-
-        input.value = JSON.stringify(this.quoteServices);
     }
 }
 
