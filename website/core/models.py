@@ -794,3 +794,26 @@ class EventShoppingListEntry(models.Model):
                 name='unique_store_item_per_event_shopping_list'
             )
         ]
+
+class QuotePreset(models.Model):
+    quote_preset_id = models.AutoField(primary_key=True)
+    services = models.ManyToManyField('core.Service', related_name='services', through='QuotePresetService')
+    name = models.CharField(max_length=255)
+    text_content = models.TextField()
+
+    class Meta:
+        db_table = 'quote_preset'
+
+class QuotePresetService(models.Model):
+    quote_preset_service_id = models.AutoField(primary_key=True)
+    quote_preset = models.ForeignKey(QuotePreset, db_column='quote_preset_id', on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
+
+    class Meta:
+        db_table = 'quote_preset_service'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['quote_preset', 'service'],
+                name='unique_quote_preset_service'
+            )
+        ]

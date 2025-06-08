@@ -3,7 +3,7 @@ import json
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuoteService, Service, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -630,3 +630,8 @@ class QuoteServiceForm(BaseModelForm):
             'units': forms.NumberInput(attrs={'id': 'units'}),
             'price_per_unit': forms.NumberInput(attrs={'id': 'price'})
         }
+
+class QuotePresetForm(BaseModelForm):
+    class Meta:
+        model = QuotePreset
+        fields = '__all__'

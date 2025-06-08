@@ -113,4 +113,11 @@ urlpatterns = [
     # Quote Services
     path('quote-service/create/', views.QuoteServiceCreateView.as_view(), name='quoteservice_create'),
     path('quote-service/<int:pk>/delete/', views.QuoteServiceDeleteView.as_view(), name='quoteservice_delete'),
+
+    # Quote Preset
+    path('quote-preset/', views.QuotePresetListView.as_view(), name='quotepreset_list'),
+    path('quote-preset/create/', views.QuotePresetCreateView.as_view(), name='quotepreset_create'),
+    path('quote-preset/<int:pk>/', views.QuotePresetDetailView.as_view(), name='quotepreset_detail'),
+    path('quote-preset/<int:pk>/edit/', views.QuotePresetUpdateView.as_view(), name='quotepreset_update'),
+    path('quote-preset/<int:pk>/delete/', views.QuotePresetDeleteView.as_view(), name='quotepreset_delete'),
 ]

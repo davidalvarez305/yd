@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButton, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -361,3 +361,9 @@ class QuoteServiceTable(Table):
     class Meta:
         model = QuoteService
         exclude = ['quote_service_id', 'quote']
+
+class QuotePresetTable(Table):
+    class Meta:
+        model = QuotePreset
+        exclude = ['quote_preset_id', 'preset', 'text_content']
+        extra_fields = ['view', 'delete']
