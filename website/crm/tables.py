@@ -324,11 +324,11 @@ class QuoteTable(Table):
         name='delete',
         label='Delete',
         cell_widget=DeleteButton(
-            context={
+            context = {
                 'attrs': {
                     'hx-post': lambda row, request: reverse('quote_delete', kwargs={ 'pk': row.pk }),
                     'hx-target': '#quotesTable',
-                    'hx-ext': "loading-states",
+                    'hx-ext': 'loading-states',
                     'data-loading-target': '#submitButtonLoader',
                     'data-loading-class-remove': 'hidden',
                 }

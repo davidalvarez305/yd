@@ -22,7 +22,7 @@ from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTabl
 from core.tables import Table
 from core.utils import format_phone_number, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
-from crm.utils import convert_to_item_quantity
+from crm.utils import calculate_quote_service_values, convert_to_item_quantity
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -249,11 +249,10 @@ class LeadDetailView(CRMDetailView):
         })
 
         context['quote_table'] = QuoteTable(data=self.object.quotes.all())
-        context['quote_form'] = QuoteForm(initial={
-            'lead': self.object
-        })
 
-        context['quick_quote_form'] = QuickQuoteForm()
+        initial={ 'lead': self.object }
+        context['quote_form'] = QuoteForm(initial)
+        context['quick_quote_form'] = QuickQuoteForm(initial)
 
         return context
 
@@ -746,7 +745,6 @@ class StoreItemDeleteView(CRMDeleteView):
 class QuoteCreateView(CRMCreateTemplateView):
     model = Quote
     form_class = QuoteForm
-    success_url = 'quote_detail'
     trigger_alert = False
 
     def form_valid(self, form):
@@ -847,6 +845,22 @@ class QuotePresetDeleteView(CRMDeleteView):
     model = QuotePreset
     form_class = QuotePresetForm
 
-class QuotePresetCreateView(CRMCreateTemplateView):
-    model = QuotePreset
-    form_class = QuotePresetForm
+class QuickQuoteCreateView(CRMCreateTemplateView):
+    model = Quote
+    form_class = QuickQuoteForm
+    trigger_alert = False
+
+    def form_valid(self, form):
+        try:
+            form.save()
+            lead = form.cleaned_data.get('lead')
+
+            if not lead:
+                raise ValueError('Lead not found.')
+
+            qs = Quote.objects.filter(lead=lead)
+            table = QuoteTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)

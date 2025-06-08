@@ -120,4 +120,6 @@ urlpatterns = [
     path('quote-preset/<int:pk>/', views.QuotePresetDetailView.as_view(), name='quotepreset_detail'),
     path('quote-preset/<int:pk>/edit/', views.QuotePresetUpdateView.as_view(), name='quotepreset_update'),
     path('quote-preset/<int:pk>/delete/', views.QuotePresetDeleteView.as_view(), name='quotepreset_delete'),
+
+    path('quick-quote/create/', views.QuickQuoteCreateView.as_view(), name='quickquote_create'),
 ]

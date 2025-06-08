@@ -551,13 +551,6 @@ class StoreItemForm(BaseModelForm):
         fields = '__all__'
 
 class QuoteForm(BaseModelForm):
-    quote_services = forms.CharField(
-        widget=forms.HiddenInput(attrs={
-            'id': 'quote_services'
-        }),
-        required=False
-    )
-
     class Meta:
         model = Quote
         fields = ['lead', 'guests', 'hours', 'event_date']
@@ -569,22 +562,6 @@ class QuoteForm(BaseModelForm):
             'guests': forms.NumberInput(attrs={'id': 'guests'}),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
-    
-    def clean_quote_services(self):
-        data = self.cleaned_data.get('quote_services')
-        if not data:
-            return []
-
-        try:
-            parsed = json.loads(data)
-            if not isinstance(parsed, list):
-                raise forms.ValidationError("Expected a list of services.")
-            for item in parsed:
-                if not isinstance(item, dict):
-                    raise forms.ValidationError("Each service must be a dictionary.")
-            return parsed
-        except json.JSONDecodeError:
-            raise forms.ValidationError("Invalid JSON format in quote services.")
     
     def save(self, commit=True):
         instance = super().save(commit=commit)
@@ -637,7 +614,7 @@ class QuotePresetForm(BaseModelForm):
         model = QuotePreset
         fields = '__all__'
 
-class QuickQuoteForm(BaseForm):
+class QuickQuoteForm(BaseModelForm):
     presets = forms.ModelMultipleChoiceField(
         queryset=QuotePreset.objects.all(),
         label="Seleccionar Paquetes",
@@ -646,10 +623,56 @@ class QuickQuoteForm(BaseForm):
 
     def clean_presets(self):
         presets = self.cleaned_data.get('presets')
+        empty_presets = "You must select at least one preset."
         if not presets:
-            raise forms.ValidationError("You must select at least one preset.")
+            raise forms.ValidationError(empty_presets)
+        if len(presets) == 0:
+            raise forms.ValidationError(empty_presets)
         return presets
+    
+    def save(self):
+        lead = self.cleaned_data.get('lead')
+        guests = self.cleaned_data.get('guests')
+        hours = self.cleaned_data.get('hours')
+        event_date = self.cleaned_data.get('event_date')
 
-    def clean(self):
-        cleaned_data = super().clean()
-        return cleaned_data
+        presets = self.cleaned_data.get('presets')
+        for preset in presets:
+            quote_services = []
+            quote = Quote(
+                lead=lead,
+                guests=guests,
+                hours=hours,
+                event_date=event_date,
+            )
+            quote.save()
+            services = preset.services.all()
+            for service in services:
+                values = calculate_quote_service_values(
+                    guests=guests,
+                    hours=hours,
+                    suggested_price=service.suggested_price,
+                    service_type=service.service_type.type,
+                    guest_ratio=service.guest_ratio,
+                    unit_type=service.unit_type.type,
+                )
+                quote_service = QuoteService(
+                    service = service,
+                    quote = quote,
+                    units = values.get('units'),
+                    price_per_unit = values.get('price'),
+                )
+                quote_services.append(quote_service)
+            QuoteService.objects.bulk_create(quote_services)
+    
+    class Meta:
+        model = Quote
+        fields = ['lead', 'guests', 'hours', 'event_date']
+        widgets = {
+            'lead': forms.HiddenInput(),
+            'event_date': forms.DateInput(attrs={
+                'type': 'date'
+            }),
+            'guests': forms.NumberInput(attrs={'id': 'guests'}),
+            'hours': forms.NumberInput(attrs={'id': 'hours'})
+        }
