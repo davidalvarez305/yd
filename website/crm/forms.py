@@ -590,14 +590,13 @@ class QuoteForm(BaseModelForm):
 
         quote_services = instance.quote_services.all()
         for quote_service in quote_services:
-            service = Service.objects.filter(pk=quote_service.service_id).first()
             data = calculate_quote_service_values(
                 guests=instance.guests,
                 hours=instance.hours,
                 suggested_price=quote_service.price_per_unit,
-                unit_type=service.unit_type.type,
-                service_type=service.service_type.type,
-                guest_ratio=service.guest_ratio,
+                unit_type=quote_service.service.unit_type.type,
+                service_type=quote_service.service.service_type.type,
+                guest_ratio=quote_service.service.guest_ratio,
             )
             quote_service.price_per_unit = data.get('price')
             quote_service.units = data.get('units')
