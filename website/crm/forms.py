@@ -8,6 +8,7 @@ from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, Filter
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 from crm.utils import calculate_quote_service_values
+from core.widgets import BoxedCheckboxSelectMultiple
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -635,3 +636,20 @@ class QuotePresetForm(BaseModelForm):
     class Meta:
         model = QuotePreset
         fields = '__all__'
+
+class QuickQuoteForm(BaseForm):
+    presets = forms.ModelMultipleChoiceField(
+        queryset=QuotePreset.objects.all(),
+        label="Seleccionar Paquetes",
+        widget=BoxedCheckboxSelectMultiple(),
+    )
+
+    def clean_presets(self):
+        presets = self.cleaned_data.get('presets')
+        if not presets:
+            raise forms.ValidationError("You must select at least one preset.")
+        return presets
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data

@@ -15,7 +15,7 @@ from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, E
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -252,6 +252,8 @@ class LeadDetailView(CRMDetailView):
         context['quote_form'] = QuoteForm(initial={
             'lead': self.object
         })
+
+        context['quick_quote_form'] = QuickQuoteForm()
 
         return context
 
@@ -773,7 +775,6 @@ class QuoteDetailView(CRMDetailTemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['quote_services'] = list(self.object.quote_services.all().values())
         context['quote_service_table'] = QuoteServiceTable(data=self.object.quote_services.all(), request=self.request)
         context['quote_service_form'] = QuoteServiceForm(initial={
             'quote': self.object
@@ -843,5 +844,9 @@ class QuotePresetDetailView(CRMDetailTemplateView):
     form_class = QuotePresetForm
 
 class QuotePresetDeleteView(CRMDeleteView):
+    model = QuotePreset
+    form_class = QuotePresetForm
+
+class QuotePresetCreateView(CRMCreateTemplateView):
     model = QuotePreset
     form_class = QuotePresetForm

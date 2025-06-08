@@ -365,5 +365,5 @@ class QuoteServiceTable(Table):
 class QuotePresetTable(Table):
     class Meta:
         model = QuotePreset
-        exclude = ['quote_preset_id', 'preset', 'text_content']
+        exclude = ['quote_preset_id', 'preset', 'text_content', 'services']
         extra_fields = ['view', 'delete']

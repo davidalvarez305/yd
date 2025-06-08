@@ -1,0 +1,7 @@
+<div class="grid grid-cols-1 gap-2">
+  {% for group, options, index in widget.optgroups %}
+    {% for option in options %}
+      {% include widget.option_template_name %}
+    {% endfor %}
+  {% endfor %}
+</div>

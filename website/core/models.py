@@ -801,6 +801,9 @@ class QuotePreset(models.Model):
     name = models.CharField(max_length=255)
     text_content = models.TextField()
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         db_table = 'quote_preset'
 
