@@ -5,7 +5,7 @@ import re
 
 from django.urls import reverse
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, LeadStatusEnum, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -697,6 +697,9 @@ class QuickQuoteForm(BaseModelForm):
             message.external_id = resp.sid
             message.status = resp.status
             message.save()
+
+            if lead.lead_status.status == LeadStatusEnum.LEAD_CREATED.value:
+                lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)
         except Exception as e:
             print(f'ERROR: {e}')
             raise Exception('Error saving quick quote form.')
