@@ -10,10 +10,6 @@ from django.db import models
 
 from website import settings
 
-TEXT_LINE_BREAK = f"""
-
-"""
-
 def format_phone_number(phone_number):
     if phone_number is None:
         raise TypeError('Phone number string cannot be NoneType')
@@ -126,3 +122,12 @@ def media_upload_path(instance, filename):
 def save_image_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     return os.path.join('uploads/images/', f"{uuid.uuid4()}{ext}")
+
+def format_text_message(text):
+    final = ''
+
+    for line in text.split("\n"):
+        final += f"""
+{line}
+"""
+    return final

@@ -13,7 +13,7 @@ from crm.utils import calculate_quote_service_values
 from core.widgets import BoxedCheckboxSelectMultiple
 from core.messaging import messaging_service
 from website import settings
-from core.utils import TEXT_LINE_BREAK
+from core.utils import format_text_message
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -636,66 +636,70 @@ class QuickQuoteForm(BaseModelForm):
         return presets
     
     def save(self):
-        lead = self.cleaned_data.get('lead')
-        guests = self.cleaned_data.get('guests')
-        hours = self.cleaned_data.get('hours')
-        event_date = self.cleaned_data.get('event_date')
+        try:
+            lead = self.cleaned_data.get('lead')
+            guests = self.cleaned_data.get('guests')
+            hours = self.cleaned_data.get('hours')
+            event_date = self.cleaned_data.get('event_date')
 
-        text_messages = []
+            text_messages = []
 
-        presets = self.cleaned_data.get('presets')
-        for preset in presets:
-            quote_services = []
-            quote = Quote(
-                lead=lead,
-                guests=guests,
-                hours=hours,
-                event_date=event_date,
-            )
-            quote.save()
-            services = preset.services.all()
-            for service in services:
-                values = calculate_quote_service_values(
+            presets = self.cleaned_data.get('presets')
+            for preset in presets:
+                quote_services = []
+                quote = Quote(
+                    lead=lead,
                     guests=guests,
                     hours=hours,
-                    suggested_price=service.suggested_price,
-                    service_type=service.service_type.type,
-                    guest_ratio=service.guest_ratio,
-                    unit_type=service.unit_type.type,
+                    event_date=event_date,
                 )
-                quote_service = QuoteService(
-                    service = service,
-                    quote = quote,
-                    units = values.get('units'),
-                    price_per_unit = values.get('price'),
-                )
-                quote_services.append(quote_service)
-            QuoteService.objects.bulk_create(quote_services)
-            text_messages.append({ 'message': preset.text_content, 'external_id': quote.external_id })
-        
-        text_content = ''
-        for i, text in enumerate(text_messages):
-            preset_content = text.get('message')
-            external_id = text.get('external_id')
+                quote.save()
+                services = preset.services.all()
+                for service in services:
+                    values = calculate_quote_service_values(
+                        guests=guests,
+                        hours=hours,
+                        suggested_price=service.suggested_price,
+                        service_type=service.service_type.type,
+                        guest_ratio=service.guest_ratio,
+                        unit_type=service.unit_type.type,
+                    )
+                    quote_service = QuoteService(
+                        service = service,
+                        quote = quote,
+                        units = values.get('units'),
+                        price_per_unit = values.get('price'),
+                    )
+                    quote_services.append(quote_service)
+                QuoteService.objects.bulk_create(quote_services)
+                text_messages.append({ 'message': preset.text_content, 'external_id': str(quote.external_id) })
+            
+            text_content = ''
+            for i, text in enumerate(text_messages):
+                preset_content = text.get('message')
+                external_id = text.get('external_id')
+                path = reverse(viewname='external_quote_view', kwargs={'external_id': external_id})
 
-            text_content += f"""
-            {preset_content}:
-            {settings.ROOT_URL}{reverse(viewname='external_quote_view', kwargs={'external_id': external_id})}
-            """
+                text_content += f"{preset_content}\n{settings.ROOT_DOMAIN}{path}"
 
-            if i < len(text_messages) - 1:
-                text_content += TEXT_LINE_BREAK
+                if i < len(text_messages) - 1:
+                    text_content += "\n\n"
 
-        message = Message(
-            text=text_content,
-            text_from=settings.COMPANY_PHONE_NUMBER,
-            text_to=lead.phone_number,
-            is_inbound=False,
-            status='Sent',
-            is_read=True,
-        )
-        message.save()
-        messaging_service.send_text_message(message=message)
+            message = Message(
+                text=format_text_message(text_content),
+                text_from=settings.COMPANY_PHONE_NUMBER,
+                text_to=lead.phone_number,
+                is_inbound=False,
+                status='Sent',
+                is_read=True,
+            )
+            resp = messaging_service.send_text_message(message=message)
+            message.external_id = resp.sid
+            message.status = resp.status
+            message.save()
+        except Exception as e:
+            print(f'ERROR: {e}')
+            raise Exception('Error saving quick quote form.')
 
     class Meta:
         model = Quote
