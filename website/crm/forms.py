@@ -3,12 +3,17 @@ import json
 from django import forms
 import re
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from django.urls import reverse
+
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 from crm.utils import calculate_quote_service_values
 from core.widgets import BoxedCheckboxSelectMultiple
+from core.messaging import messaging_service
+from website import settings
+from core.utils import TEXT_LINE_BREAK
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -636,6 +641,8 @@ class QuickQuoteForm(BaseModelForm):
         hours = self.cleaned_data.get('hours')
         event_date = self.cleaned_data.get('event_date')
 
+        text_messages = []
+
         presets = self.cleaned_data.get('presets')
         for preset in presets:
             quote_services = []
@@ -664,7 +671,32 @@ class QuickQuoteForm(BaseModelForm):
                 )
                 quote_services.append(quote_service)
             QuoteService.objects.bulk_create(quote_services)
-    
+            text_messages.append({ 'message': preset.text_content, 'external_id': quote.external_id })
+        
+        text_content = ''
+        for i, text in enumerate(text_messages):
+            preset_content = text.get('message')
+            external_id = text.get('external_id')
+
+            text_content += f"""
+            {preset_content}:
+            {settings.ROOT_URL}{reverse(viewname='external_quote_view', kwargs={'external_id': external_id})}
+            """
+
+            if i < len(text_messages) - 1:
+                text_content += TEXT_LINE_BREAK
+
+        message = Message(
+            text=text_content,
+            text_from=settings.COMPANY_PHONE_NUMBER,
+            text_to=lead.phone_number,
+            is_inbound=False,
+            status='Sent',
+            is_read=True,
+        )
+        message.save()
+        messaging_service.send_text_message(message=message)
+
     class Meta:
         model = Quote
         fields = ['lead', 'guests', 'hours', 'event_date']

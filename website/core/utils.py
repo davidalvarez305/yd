@@ -10,6 +10,10 @@ from django.db import models
 
 from website import settings
 
+TEXT_LINE_BREAK = f"""
+
+"""
+
 def format_phone_number(phone_number):
     if phone_number is None:
         raise TypeError('Phone number string cannot be NoneType')

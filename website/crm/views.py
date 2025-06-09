@@ -36,7 +36,6 @@ class CRMContextMixin:
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
-            "assumed_base_hours_for_per_person_pricing": settings.ASSUMED_BASE_HOURS,
             "unread_messages": Message.objects.filter(is_read=False).count(),
         })
         context.setdefault('js_files', [])
@@ -713,7 +712,7 @@ class CreateShoppingListView(CRMCreateView):
                 status=AlertStatus.INTERNAL_ERROR
             )
 
-class EventShoppingListExternalDetailView(CRMDetailView):
+class EventShoppingListExternalDetailView(DetailView):
     model = EventShoppingList
     template_name = 'crm/shopping_list_detail.html'
     context_object_name = 'event_shopping_list'
@@ -864,3 +863,16 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
             return HttpResponse(table.render())
         except Exception as e:
             return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)
+
+class ExternalQuoteView(CRMContextMixin, DetailView):
+    template_name = 'crm/quote_detail.html'
+    model = Quote
+
+    def get_object(self, queryset=None):
+        external_id = self.kwargs.get('external_id')
+        return get_object_or_404(Quote, external_id=external_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['quote_service_table'] = QuoteServiceTable(data=self.object.quote_services.all(), request=self.request)
+        return context
