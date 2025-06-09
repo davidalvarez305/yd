@@ -865,14 +865,10 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
             return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)
 
 class ExternalQuoteView(CRMContextMixin, DetailView):
-    template_name = 'crm/quote_detail.html'
+    template_name = 'crm/external_quote_view.html'
     model = Quote
+    context_object_name = 'quote'
 
     def get_object(self, queryset=None):
         external_id = self.kwargs.get('external_id')
         return get_object_or_404(Quote, external_id=external_id)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['quote_service_table'] = QuoteServiceTable(data=self.object.quote_services.all(), request=self.request)
-        return context
