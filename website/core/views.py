@@ -3,7 +3,7 @@ from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
 from django.utils import timezone
 from django.http import HttpResponseServerError, HttpResponse, Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
@@ -13,7 +13,7 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 
-from .models import Lead, LeadMarketing, LeadStatusEnum
+from .models import Invoice, Lead, LeadMarketing, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -44,7 +44,6 @@ class BaseView(TemplateView):
         })
 
         return context
-
 
 class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
@@ -245,3 +244,13 @@ class LeadCreateView(BaseWebsiteView, CreateView):
     def post(self, request, *args, **kwargs):
         self.request = request
         return super().post(request, *args, **kwargs)
+    
+class SuccessPaymentView(BaseWebsiteView):
+    template_name = "core/thank_you.html"
+    page_title = "Thank You — " + settings.COMPANY_NAME
+    model = Invoice
+    context_object_name = 'invoice'
+
+    def get_object(self, queryset=None):
+        external_id = self.kwargs.get('external_id')
+        return get_object_or_404(Invoice, external_id=external_id)

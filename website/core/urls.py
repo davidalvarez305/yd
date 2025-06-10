@@ -9,5 +9,7 @@ urlpatterns = [
     path('terms-and-conditions', views.TermsAndConditionsView.as_view(), name='terms_and_conditions'),
     path('robots.txt', views.RobotsTxtView.as_view(), name='robots_txt'),
     path('lead', views.LeadCreateView.as_view(), name='lead_create'),
-    path('logout', views.LogoutView.as_view(), name='logout')
+    path('logout', views.LogoutView.as_view(), name='logout'),
+    path('thank-you/<str:external_id>/', views.SuccessPaymentView.as_view(), name='success_payment'),
+    path('cancel', views.SuccessPaymentView.as_view(), name='cancel_payment'),
 ]
