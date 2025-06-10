@@ -4,7 +4,7 @@ from django.urls import reverse
 import stripe
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from core.models import Invoice, InvoiceType, Quote
+from core.models import Invoice, InvoiceType, InvoiceTypeEnum, Quote
 
 @receiver(post_save, sender=Quote)
 def quote_created_or_updated(sender, instance, created, **kwargs):
@@ -44,6 +44,12 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
             )
             invoice.save()
     else:
-        for service in instance.quote_services.all():
-            print('service')
-        # adjust invoice price
+        deposit_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.DEPOSIT).first()
+        
+        for invoice in instance.invoices.all():
+            if invoice.date_paid:
+                continue
+
+            # adjust prices based on deposit_invoice
+
+
