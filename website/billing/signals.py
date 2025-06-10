@@ -56,5 +56,3 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
             # adjust stripe checkout amount
 
             # adjust invoice amounts
-
-
