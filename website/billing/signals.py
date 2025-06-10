@@ -10,24 +10,27 @@ from core.models import Invoice, InvoiceType, Quote
 def quote_created_or_updated(sender, instance, created, **kwargs):
     if created:
         invoice_types = InvoiceType.objects.all()
-        invoice_amount = instance.amount() * 100
+        full_amount = instance.amount() * 100
         due_date = instance.event_date - timedelta(hours=48)
 
         for invoice_type in invoice_types:
+            invoice_amount = full_amount * invoice_type.amount_percentage * 100
             invoice_external_id = uuid.uuid4()
             session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': f'Invoice ID: {str(invoice_external_id)}',
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': f'Invoice ID: {str(invoice_external_id)}',
+                            },
+                            'unit_amount': invoice_amount,
                         },
-                        'unit_amount': invoice_amount,
+                        'quantity': 1,
                     },
-                    'quantity': 1,
-                }],
+                ],
                 mode='payment',
+                ui_mode='hosted',
                 success_url=reverse('success_payment', kwargs={'external_id': str(invoice_external_id)}),
                 cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice_external_id)}),
             )

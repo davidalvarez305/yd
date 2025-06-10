@@ -282,9 +282,20 @@ class QuoteService(models.Model):
     class Meta:
         db_table = 'quote_service'
 
+class InvoiceTypeEnum(Enum):
+    DEPOSIT = 'DEPOSIT'
+    REMAINING = 'REMAINING'
+    FULL = 'FULL'
+
+    def __str__(self):
+        return self.name
+
 class InvoiceType(models.Model):
     invoice_type_id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100)
+    type = models.CharField(
+        max_length=50,
+        choices=[(type.name, type.value) for type in InvoiceTypeEnum]
+    )
     amount_percentage = models.FloatField()
 
     def __str__(self):
