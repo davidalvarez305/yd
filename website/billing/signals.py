@@ -44,12 +44,17 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
             )
             invoice.save()
     else:
+        new_amount = instance.amount()
         deposit_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.DEPOSIT).first()
+        if deposit_invoice.date_paid:
+            new_amount =- deposit_invoice.amount_paid
         
         for invoice in instance.invoices.all():
             if invoice.date_paid:
                 continue
 
-            # adjust prices based on deposit_invoice
+            # adjust stripe checkout amount
+
+            # adjust invoice amounts
 
 
