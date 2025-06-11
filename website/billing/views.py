@@ -1,9 +1,11 @@
+from django.urls import reverse
 import stripe
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 
-from core.models import Event, Invoice, LeadStatusEnum, Message, User
+from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
 from website import settings
@@ -80,3 +82,41 @@ def handle_stripe_invoice_payment(request):
 
     except Exception as e:
         return HttpResponse(status=400)
+
+@login_required
+def handle_initiate_checkout(request):
+    lead_id = request.GET.get('lead_id')
+    invoice_id = request.GET.get('invoice_id')
+
+    if not lead_id or not invoice_id:
+        return HttpResponseBadRequest("Missing lead_id or invoice_id.")
+    
+    lead = Lead.objects.filter(pk=lead_id).first()
+    invoice = Invoice.objects.filter(pk=invoice_id).first()
+
+    if not lead or not invoice:
+        return HttpResponseBadRequest("Could not query lead or invoice.")
+
+    try:
+        session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f'Invoice #{invoice.external_id}',
+                        },
+                        'unit_amount': invoice.amount * 100,
+                    },
+                    'quantity': 1,
+                }
+            ],
+            mode='payment',
+            ui_mode='hosted',
+            success_url=reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
+            cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
+        )
+
+        return HttpResponse(session.url, status=200)
+    except Exception:
+        return HttpResponseServerError(f"Unexpected error.")
