@@ -41,8 +41,9 @@ def handle_stripe_invoice_payment(request):
 
 			# Create event on successful payment
             if invoice.invoice_type in [InvoiceTypeChoices.DEPOSIT, InvoiceTypeChoices.FULL]:
+                lead = invoice.quote.lead
                 event = Event(
-                    lead=invoice.quote.lead,
+                    lead=lead,
                     date_created=now(),
                     date_paid=now(),
                     amount=invoice.quote.amount(),
@@ -51,11 +52,12 @@ def handle_stripe_invoice_payment(request):
                 event.save()
 
 				# Report conversion
-                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
+                if lead.lead_status.status == LeadStatusEnum.INVOICE_SENT:
+                    lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
                 # Notify via text messages
                 admins = User.objects.filter(is_admin=True)
-                notify_list = [invoice.quote.lead.phone_number] + [admin.forward_phone_number for admin in admins]
+                notify_list = [lead.phone_number] + [admin.forward_phone_number for admin in admins]
                 for phone_number in notify_list:
                     try:
                         text = (
