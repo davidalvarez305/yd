@@ -7,14 +7,14 @@ from django.dispatch import receiver
 from core.models import Invoice, InvoiceType, InvoiceTypeEnum, Quote
 
 @receiver(post_save, sender=Quote)
-def quote_created_or_updated(sender, instance, created, **kwargs):
+def handle_quote_actions(sender, instance, created, **kwargs):
     if created:
         invoice_types = InvoiceType.objects.all()
-        full_amount = instance.amount() * 100
+        full_amount = instance.amount()
         due_date = instance.event_date - timedelta(hours=48)
 
         for invoice_type in invoice_types:
-            invoice_amount = full_amount * invoice_type.amount_percentage * 100
+            invoice_amount = full_amount * invoice_type.amount_percentage
             invoice_external_id = uuid.uuid4()
 
             invoice = Invoice(
@@ -30,7 +30,7 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
         deposit_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.DEPOSIT).first()
         if deposit_invoice.date_paid:
             remaining_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.REMAINING).first()
-            remaining_invoice.amount_due = new_amount - deposit_invoice.amount_due
+            remaining_invoice.amount = new_amount - deposit_invoice.amount
             remaining_invoice.save()
         else:
             for invoice in instance.invoices.all():
