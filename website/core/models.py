@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum
 import json
 import os
@@ -254,6 +254,44 @@ class Quote(models.Model):
 
     def amount(self) -> float:
         return sum(float(qs.units) * float(qs.price_per_unit) for qs in self.quote_services.all())
+    
+    def is_within_week(self) -> bool:
+        deposit_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.DEPOSIT).first()
+
+        if not deposit_invoice:
+            raise Exception('No deposit invoice.')
+
+        one_week_before_due = deposit_invoice.due_date - timedelta(days=7)
+        now = datetime.now(timezone.utc)
+        
+        return now >= one_week_before_due
+    
+    def is_deposit_paid(self) -> bool:
+        deposit_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.DEPOSIT).first()
+
+        if not deposit_invoice:
+            raise Exception('No deposit invoice.')
+
+        return deposit_invoice.date_paid is not None
+    
+    def get_deposit_paid_amount(self) -> bool:
+        deposit_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.DEPOSIT).first()
+
+        if not deposit_invoice:
+            raise Exception('No deposit invoice.')
+        
+        if not deposit_invoice.date_paid:
+            raise ValueError("Deposit isn't paid.")
+
+        return deposit_invoice.amount
+    
+    def get_deposit_due(self) -> bool:
+        deposit_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.DEPOSIT).first()
+
+        if not deposit_invoice:
+            raise Exception('No deposit invoice.')
+
+        return deposit_invoice.amount
 
 class Service(models.Model):
     service_id = models.AutoField(primary_key=True)

@@ -117,6 +117,6 @@ def handle_initiate_checkout(request):
             cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
         )
 
-        return HttpResponse(session.url, status=200)
+        return HttpResponse(status=200, headers={ "HX-Redirect": session.url })
     except Exception:
         return HttpResponseServerError(f"Unexpected error.")
