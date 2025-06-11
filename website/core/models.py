@@ -309,7 +309,7 @@ class Invoice(models.Model):
     quote = models.ForeignKey(Quote, related_name='invoices', db_column='quote_id', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     date_paid = models.DateTimeField(null=True)
-    amount_paid = models.FloatField(null=True)
+    amount_due = models.FloatField(null=True)
     due_date = models.DateTimeField()
     invoice_type = models.ForeignKey(InvoiceType, db_column='invoice_type_id', on_delete=models.RESTRICT)
     url = models.CharField(max_length=255)
