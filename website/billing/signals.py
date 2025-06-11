@@ -25,10 +25,9 @@ def handle_quote_actions(sender, instance, created, **kwargs):
             invoice.save()
     else:
         new_amount = instance.amount()
-        deposit_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.DEPOSIT).first()
-        if deposit_invoice.date_paid:
+        if instance.is_deposit_paid():
             remaining_invoice = instance.invoices.filter(invoice_type==InvoiceTypeEnum.REMAINING).first()
-            remaining_invoice.amount = new_amount - deposit_invoice.amount
+            remaining_invoice.amount = new_amount - instance.get_deposit_paid_amount()
             remaining_invoice.save()
         else:
             for invoice in instance.invoices.all():
