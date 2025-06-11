@@ -16,31 +16,13 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
         for invoice_type in invoice_types:
             invoice_amount = full_amount * invoice_type.amount_percentage * 100
             invoice_external_id = uuid.uuid4()
-            session = stripe.checkout.Session.create(
-                line_items=[
-                    {
-                        'price_data': {
-                            'currency': 'usd',
-                            'product_data': {
-                                'name': f'Invoice ID: {str(invoice_external_id)}',
-                            },
-                            'unit_amount': invoice_amount,
-                        },
-                        'quantity': 1,
-                    },
-                ],
-                mode='payment',
-                ui_mode='hosted',
-                success_url=reverse('success_payment', kwargs={'external_id': str(invoice_external_id)}),
-                cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice_external_id)}),
-            )
 
             invoice = Invoice(
                 quote=instance,
                 due_date=due_date,
                 invoice_type=invoice_type,
                 external_id=invoice_external_id,
-                url=session.url,
+                amount=invoice_amount,
             )
             invoice.save()
     else:
@@ -52,5 +34,5 @@ def quote_created_or_updated(sender, instance, created, **kwargs):
             remaining_invoice.save()
         else:
             for invoice in instance.invoices.all():
-                invoice.amount_due = new_amount * invoice.invoice_type.amount_percentage
+                invoice.amount = new_amount * invoice.invoice_type.amount_percentage
                 invoice.save()
