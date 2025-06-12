@@ -350,7 +350,7 @@ class Invoice(models.Model):
     amount = models.FloatField(null=True)
     due_date = models.DateTimeField()
     invoice_type = models.ForeignKey(InvoiceType, db_column='invoice_type_id', on_delete=models.RESTRICT)
-    url = models.CharField(max_length=255, null=True)
+    session_id = models.CharField(max_length=255, null=True)
     external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
 
     class Meta:

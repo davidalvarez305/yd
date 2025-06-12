@@ -24,17 +24,18 @@ def handle_stripe_invoice_payment(request):
     try:
         event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SECRET)
 
-        if event['type'] == 'checkout.session.completed':
+        if event.get('type') == 'checkout.session.completed':
             session = event.get('data', {}).get('object')
 
             if not session:
                 raise Exception('Improperly formatted request.')
 
+            session_id = session.id
             external_id = session.get('metadata', {}).get('external_id')
 
-            invoice = Invoice.objects.filter(external_id=external_id).first()
+            invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
             if not invoice:
-                raise Exception('Could not find invoice by stripe invoice id in database.')
+                raise Exception('Could not find invoice in database.')
 
             invoice.date_paid = now()
             invoice.save()
@@ -118,6 +119,8 @@ def handle_initiate_checkout(request):
             success_url=reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
             cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
         )
+        invoice.session_id = session.id
+        invoice.save()
 
         return HttpResponse(status=200, headers={ "HX-Redirect": session.url })
     except Exception:
