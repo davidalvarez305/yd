@@ -1,8 +1,10 @@
-from django.urls import reverse
 import stripe
+
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.utils.timezone import now
 
 from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
@@ -14,6 +16,7 @@ stripe.api_key = settings.STRIPE_API_KEY
 STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 
 @csrf_exempt
+@require_POST
 def handle_stripe_invoice_payment(request):
     payload = request.body
     stripe_signature = request.META.get('HTTP_STRIPE_SIGNATURE')
@@ -87,9 +90,10 @@ def handle_stripe_invoice_payment(request):
         return HttpResponse(status=400)
 
 @login_required
+@require_POST
 def handle_initiate_checkout(request):
-    lead_id = request.GET.get('lead_id')
-    invoice_id = request.GET.get('invoice_id')
+    lead_id = request.POST.get('lead_id')
+    invoice_id = request.POST.get('invoice_id')
 
     if not lead_id or not invoice_id:
         return HttpResponseBadRequest("Missing lead_id or invoice_id.")
