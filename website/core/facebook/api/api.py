@@ -85,6 +85,3 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         token.save()
 
         self.page_access_token = token
-    
-    def _should_refresh(self):
-        return token.refresh_needed

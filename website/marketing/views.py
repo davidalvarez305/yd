@@ -10,6 +10,7 @@ from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
 from marketing.enums import ConversionServiceType
 from website import settings
 from marketing.utils import facebook_lead_retrieval
+from core.facebook.api import FacebookAPIService
 
 @csrf_exempt
 def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
@@ -57,8 +58,10 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                             'created_time': value.get('created_time'),
                         })
 
+            facebook_api_service = FacebookAPIService()
+
             for entry in entries:
-                data = facebook_lead_retrieval(entry)
+                data = facebook_api_service.get_lead_data(lead=entry)
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(

@@ -8,7 +8,3 @@ class FacebookAPIServiceInterface(ABC):
     @abstractmethod
     def _refresh_access_token(self):
         pass
-
-    @abstractmethod
-    def refresh_needed(self):
-        pass
