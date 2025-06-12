@@ -307,7 +307,9 @@ class QuoteTable(Table):
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f'<a href="/external/{row.external_id}" target="_blank">External</a>'
+                    f'<a href="{reverse("external_quote_view", kwargs={ "external_id": row.external_id })}" target="_blank"'
+                    f'class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700"'
+                    f'>External</a>'
                 ),
                 'is_html': True,
             }
