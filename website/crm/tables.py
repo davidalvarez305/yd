@@ -304,7 +304,7 @@ class QuoteTable(Table):
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f'<a href="/external/{row.external_id}" target="_blank">External</a>'
+                    f"""<a href="{reverse('external_quote_view', kwargs={'external_id': row.external_id})}" target="_blank">External</a>"""
                 ),
                 'is_html': True,
             }

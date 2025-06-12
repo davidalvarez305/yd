@@ -292,6 +292,17 @@ class Quote(models.Model):
             raise Exception('No deposit invoice.')
 
         return deposit_invoice.amount
+    
+    def get_remaining_amount(self) -> float:
+        if self.is_deposit_paid():
+            return self.amount() - self.get_deposit_paid_amount()
+
+        remaining_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.REMAINING).first()
+
+        if not remaining_invoice:
+            raise Exception('No remaining invoice.')
+        
+        return remaining_invoice.amount
 
 class Service(models.Model):
     service_id = models.AutoField(primary_key=True)
@@ -316,6 +327,10 @@ class QuoteService(models.Model):
 
     def __str__(self):
         return self.service.service
+    
+    @property
+    def total(self):
+        return self.units * self.price_per_unit
 
     class Meta:
         db_table = 'quote_service'
