@@ -1,11 +1,13 @@
+from datetime import timedelta
 from http import HTTPStatus
 import json
+import uuid
 from django import forms
 import re
 
 from django.urls import reverse
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Lead, LeadStatus, LeadInterest, LeadStatusEnum, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -674,6 +676,20 @@ class QuickQuoteForm(BaseModelForm):
                 QuoteService.objects.bulk_create(quote_services)
                 text_messages.append({ 'message': preset.text_content, 'external_id': str(quote.external_id) })
             
+            invoice_types = InvoiceType.objects.all()
+            full_amount = quote.amount()
+            due_date = quote.event_date - timedelta(hours=48)
+
+            for invoice_type in invoice_types:
+                invoice = Invoice(
+                    quote=quote,
+                    due_date=due_date,
+                    invoice_type=invoice_type,
+                    external_id=uuid.uuid4(),
+                    amount=full_amount * invoice_type.amount_percentage,
+                )
+                invoice.save()
+
             text_content = ''
             for i, text in enumerate(text_messages):
                 preset_content = text.get('message')

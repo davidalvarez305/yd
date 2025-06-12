@@ -1,28 +1,7 @@
-from datetime import timedelta
-import uuid
-
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from core.models import Invoice, InvoiceType, InvoiceTypeEnum, Quote, QuoteService
-
-def create_invoices_for_quote(quote: Quote):
-    """Creates deposit and remaining invoices for a new quote."""
-    invoice_types = InvoiceType.objects.all()
-    full_amount = quote.amount()
-    due_date = quote.event_date - timedelta(hours=48)
-
-    for invoice_type in invoice_types:
-        invoice_amount = full_amount * invoice_type.amount_percentage
-        invoice_external_id = uuid.uuid4()
-
-        Invoice.objects.create(
-            quote=quote,
-            due_date=due_date,
-            invoice_type=invoice_type,
-            external_id=invoice_external_id,
-            amount=invoice_amount,
-        )
+from core.models import InvoiceTypeEnum, Quote, QuoteService
 
 def update_quote_invoices(quote: Quote):
     """Updates invoice amounts when a quote or its services change."""
