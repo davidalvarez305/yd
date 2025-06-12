@@ -166,7 +166,8 @@ class EventCocktailTable(Table):
                     'hx-target': '#eventCocktailsTable',
                     'hx-ext': "loading-states",
                     'hx-on--after-request': "modalHelper.get('eventCocktailsModal').close();",
-                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
                     'data-loading-class-remove': 'hidden',
                 }
             }
@@ -209,7 +210,8 @@ class EventStaffTable(Table):
                     'hx-target': '#eventStaffTable',
                     'hx-ext': "loading-states",
                     'hx-on--after-request': "modalHelper.get('eventStaffModal').close();",
-                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
                     'data-loading-class-remove': 'hidden',
                 }
             }
@@ -242,7 +244,8 @@ class CocktailIngredientTable(Table):
                     'hx-target': '#cocktailIngredientsTable',
                     'hx-ext': "loading-states",
                     'hx-on--after-request': "modalHelper.get('cocktailIngredientsModal').close();",
-                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
                     'data-loading-class-remove': 'hidden',
                 }
             }
@@ -329,7 +332,8 @@ class QuoteTable(Table):
                     'hx-post': lambda row, request: reverse('quote_delete', kwargs={ 'pk': row.pk }),
                     'hx-target': '#quotesTable',
                     'hx-ext': 'loading-states',
-                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
                     'data-loading-class-remove': 'hidden',
                 }
             }
@@ -351,7 +355,8 @@ class QuoteServiceTable(Table):
                     'hx-post': lambda row, request: reverse('quoteservice_delete', kwargs={ 'pk': row.pk }),
                     'hx-target': '#quoteServicesTable',
                     'hx-ext': 'loading-states',
-                    'data-loading-target': '#submitButtonLoader',
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
                     'data-loading-class-remove': 'hidden',
                 }
             }
