@@ -34,8 +34,9 @@ class EnvConfig:
         "AWS_SECRET_ACCESS_KEY",
 
         # Facebook
-        "FACEBOOK_ACCESS_TOKEN",
+        "FACEBOOK_PAGE_ACCESS_TOKEN",
         "FACEBOOK_CAPI_ACCESS_TOKEN",
+        "FACEBOOK_APP_USER_TOKEN",
         "FACEBOOK_DATASET_ID",
         "FACEBOOK_APP_VERIFY_TOKEN",
         "FACEBOOK_APP_ID",

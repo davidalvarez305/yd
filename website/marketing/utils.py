@@ -178,7 +178,7 @@ class MarketingHelper:
 
 def facebook_lead_retrieval(lead):
     leadgen_id = lead.get('leadgen_id')
-    access_token = settings.FACEBOOK_ACCESS_TOKEN
+    access_token = settings.FACEBOOK_PAGE_ACCESS_TOKEN
     facebook_api_version = settings.FACEBOOK_API_VERSION
 
     if not leadgen_id:
@@ -216,3 +216,29 @@ def facebook_lead_retrieval(lead):
             entry[key] = data[key]
 
     return entry
+
+def refresh_facebook_access_token():
+    """
+    Refreshes the Facebook long-lived access token and returns the new token.
+    Logs and raises errors if the refresh fails.
+    """
+    params = {
+        'grant_type': 'fb_exchange_token',
+        'client_id': settings.FACEBOOK_APP_ID,
+        'client_secret': settings.FACEBOOK_APP_SECRET,
+        'fb_exchange_token': settings.FACEBOOK_APP_USER_TOKEN,
+    }
+
+    try:
+        response = requests.get('https://graph.facebook.com/oauth/access_token', params=params)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        raise Exception('Error during request.')
+
+    data = response.json()
+    token = data.get('access_token')
+
+    if not token:
+        raise ValueError('Access token not found in response.')
+
+    return token
