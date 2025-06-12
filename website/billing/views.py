@@ -56,8 +56,7 @@ def handle_stripe_invoice_payment(request):
                 event.save()
 
 				# Report conversion
-                if lead.lead_status.status == LeadStatusEnum.INVOICE_SENT:
-                    lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
+                lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
                 # Notify via text messages
                 admins = User.objects.filter(is_admin=True)
