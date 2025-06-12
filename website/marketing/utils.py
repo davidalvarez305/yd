@@ -1,9 +1,7 @@
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
-import requests
 from .enums import ConversionServiceType, MarketingParams
 from core.models import MarketingCampaign
-from website import settings
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -175,70 +173,3 @@ class MarketingHelper:
             "client_id": client_id,
             "platform_id": platform_id
         }
-
-def facebook_lead_retrieval(lead):
-    leadgen_id = lead.get('leadgen_id')
-    access_token = settings.FACEBOOK_PAGE_ACCESS_TOKEN
-    facebook_api_version = settings.FACEBOOK_API_VERSION
-
-    if not leadgen_id:
-        raise ValueError('leadgen_id cannot be missing from entry.')
-    
-    if not access_token:
-        raise ValueError('access_token missing from settings.')
-
-    url = f'https://graph.facebook.com/{facebook_api_version}/{leadgen_id}'
-    params = {
-        'access_token': access_token,
-        'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
-    }
-
-    response = requests.get(url, params=params)
-    
-    if response.status_code != 200:
-        raise Exception(f'Failed to retrieve Facebook lead. Status {response.status_code}: {response.text}')
-
-    data = response.json()
-    
-    if 'field_data' not in data:
-        raise Exception('Incorrectly formatted response: missing field_data.')
-
-    entry = lead.copy()
-
-    for field in data['field_data']:
-        name = field.get('name')
-        value = field.get('values', [None])[0]
-        if name and value and not entry.get(name):
-            entry[name] = value
-
-    for key in ['campaign_id', 'campaign_name', 'ad_id', 'ad_name', 'form_id', 'adset_id', 'adset_name', 'created_time', 'is_organic', 'platform']:
-        if key in data:
-            entry[key] = data[key]
-
-    return entry
-
-def refresh_facebook_access_token():
-    """
-    Refreshes the Facebook long-lived access token and returns the new token.
-    Logs and raises errors if the refresh fails.
-    """
-    params = {
-        'grant_type': 'fb_exchange_token',
-        'client_id': settings.FACEBOOK_APP_ID,
-        'client_secret': settings.FACEBOOK_APP_SECRET,
-        'fb_exchange_token': settings.FACEBOOK_APP_USER_TOKEN,
-    }
-
-    try:
-        response = requests.get('https://graph.facebook.com/oauth/access_token', params=params)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        raise Exception('Error during request.')
-
-    data = response.json()
-    token = data.get('access_token')
-
-    if not token:
-        raise ValueError('Access token not found in response.')
-
-    return token

@@ -870,3 +870,22 @@ class QuotePresetService(models.Model):
                 name='unique_quote_preset_service'
             )
         ]
+
+class FacebookAccessToken(models.Model):
+    facebook_access_token_id = models.AutoField(primary_key=True)
+    access_token = models.TextField()
+    date_expires = models.DateTimeField()
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.access_token
+    
+    def is_expired(self) -> bool:
+        return now() > self.date_expires
+
+    @property
+    def refresh_needed(self) -> bool:
+        return self.is_expired() or self.date_expires - now() < timedelta(days=5)
+    
+    class Meta:
+        db_table = 'facebook_access_token'

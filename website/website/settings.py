@@ -236,6 +236,7 @@ MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
 CALLING_SERVICE = 'core.calling.twilio.TwilioCallingService'
 AI_AGENT_SERVICE = 'core.ai.openai.OpenAIAgentService'
 EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
+FACEBOOK_API_SERVICE = 'core.facebook.api.FacebookAPIService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
