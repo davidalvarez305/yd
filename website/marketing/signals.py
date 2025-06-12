@@ -1,8 +1,10 @@
 from django.dispatch import receiver
 from django.db.models.signals import Signal
 from django.utils.timezone import now
+from django.db.models import Q
 
 from core.conversions import conversion_service
+from core.models import LeadStatusHistory
 
 lead_status_changed = Signal()
 
@@ -56,7 +58,13 @@ def handle_lead_status_change(sender, instance, **kwargs):
         if attr_value:
             data[attr] = attr_value
 
-    conversion_service.send_conversion(data=data)
+    status_counts = LeadStatusHistory.objects.filter(
+        Q(lead_status__status=LeadStatusEnum.INVOICE_SENT) |
+        Q(lead_status__status=LeadStatusEnum.EVENT_BOOKED)
+    ).count()
+
+    if instance.lead_status.status != LeadStatusEnum.RE_ENGAGED and status_counts == 0:
+        conversion_service.send_conversion(data=data)
 
     # Assign lead marketing data if lead came from phone call
     if lead_marketing.is_instant_form_lead():
