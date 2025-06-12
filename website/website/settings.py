@@ -18,7 +18,7 @@ LOGIN_URL = "/login"
 
 # Application definition
 INSTALLED_APPS = [
-    'crm',
+    'crm.apps.CrmConfig',
     'core.apps.CoreConfig',
     'marketing.apps.MarketingConfig',
     'communication',

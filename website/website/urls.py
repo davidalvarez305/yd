@@ -9,6 +9,7 @@ urlpatterns = [
     path('crm/', include('crm.urls')),
     path('communication/', include('communication.urls')),
     path('marketing/', include('marketing.urls')),
+    path('billing/', include('billing.urls')),
 ] 
 
 if settings.DEBUG:

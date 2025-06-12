@@ -871,5 +871,4 @@ class ExternalQuoteView(CRMContextMixin, DetailView):
 
     def get_object(self, queryset=None):
         external_id = self.kwargs.get('external_id')
-        quote = Quote.objects.filter(external_id=external_id).first()
         return get_object_or_404(Quote, external_id=external_id)
