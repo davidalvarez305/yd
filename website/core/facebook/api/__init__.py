@@ -11,7 +11,6 @@ class FacebookAPIService(LazyObject):
             api_version = settings.FACEBOOK_API_VERSION,
             app_id = settings.FACEBOOK_APP_ID,
             app_secret = settings.FACEBOOK_APP_SECRET,
-            app_user_token = settings.FACEBOOK_APP_USER_TOKEN,
         )
 
 facebook_api_service = FacebookAPIService()

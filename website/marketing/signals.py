@@ -1,7 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import Signal
 from django.utils.timezone import now
-from django.db.models import Q
 
 from core.conversions import conversion_service
 from core.models import LeadStatusHistory

@@ -7,12 +7,11 @@ from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
 
 class FacebookAPIService(FacebookAPIServiceInterface):
-    def __init__(self, api_version: str, app_id: str, app_secret: str, app_user_token: str):
+    def __init__(self, api_version: str, app_id: str, app_secret: str):
         self.page_access_token = FacebookAccessToken.objects.order_by('-date_created').first()
         self.api_version = api_version
         self.app_id = app_id
         self.app_secret = app_secret
-        self.app_user_token = app_user_token
 
     def get_lead_data(self, lead):
         leadgen_id = lead.get('leadgen_id')
@@ -25,7 +24,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
         url = f'https://graph.facebook.com/{self.api_version}/{leadgen_id}'
         params = {
-            'access_token': self.access_token,
+            'access_token': self.page_access_token.access_token,
             'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
         }
 
@@ -63,7 +62,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             'grant_type': 'fb_exchange_token',
             'client_id': self.app_id,
             'client_secret': self.app_secret,
-            'fb_exchange_token': self.app_user_token,
+            'fb_exchange_token': self.page_access_token,
         }
 
         try:

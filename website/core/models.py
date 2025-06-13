@@ -12,7 +12,6 @@ from django.db.models import Q, Sum
 from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
-from marketing.signals import lead_status_changed
 from .utils import media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -176,6 +175,7 @@ class Lead(models.Model):
         return SearchVector('full_name') + SearchVector('phone_number')
 
     def change_lead_status(self, status: Union[str, LeadStatusEnum]):
+        from marketing.signals import lead_status_changed
         if isinstance(status, LeadStatusEnum):
             status = status.name
 

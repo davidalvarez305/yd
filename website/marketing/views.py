@@ -9,7 +9,6 @@ from django.db import transaction
 from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
 from marketing.enums import ConversionServiceType
 from website import settings
-from marketing.utils import facebook_lead_retrieval
 from core.facebook.api import FacebookAPIService
 
 @csrf_exempt
