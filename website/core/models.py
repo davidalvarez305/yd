@@ -303,7 +303,7 @@ class Quote(models.Model):
             raise Exception('No remaining invoice.')
         
         return remaining_invoice.amount
-
+    
 class Service(models.Model):
     service_id = models.AutoField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)
