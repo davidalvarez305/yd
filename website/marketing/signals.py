@@ -58,8 +58,6 @@ def handle_lead_status_change(sender, instance, **kwargs):
         if attr_value:
             data[attr] = attr_value
 
-    status = data.get('event_name')
-
     # Statuses that require checking count == 0
     statuses_requiring_zero_count = {
         LeadStatusEnum.INVOICE_SENT.value,
@@ -67,12 +65,12 @@ def handle_lead_status_change(sender, instance, **kwargs):
     }
 
     # Always send conversion for LEAD_CREATED
-    if status == LeadStatusEnum.LEAD_CREATED.value:
+    if event_name == LeadStatusEnum.LEAD_CREATED.value:
         conversion_service.send_conversion(data=data)
 
     # Only send conversion if count == 0 for these
-    elif status in statuses_requiring_zero_count:
-        if not LeadStatusHistory.objects.filter(lead_status__status=status).exists():
+    elif event_name in statuses_requiring_zero_count:
+        if not LeadStatusHistory.objects.filter(lead_status__status=event_name).exists():
             conversion_service.send_conversion(data=data)
 
     # Assign lead marketing data if lead came from phone call
