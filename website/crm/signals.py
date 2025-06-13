@@ -16,6 +16,14 @@ def update_quote_invoices(quote: Quote):
             invoice.amount = new_amount * invoice.invoice_type.amount_percentage
             invoice.save()
 
+@receiver(post_save, sender=Quote)
+def handle_quote_saved(sender, instance, created, **kwargs):
+    """Triggered when a Quote is created or updated."""
+    if created:
+        create_invoices_for_quote(instance)
+    else:
+        update_quote_invoices(instance)
+
 @receiver(post_save, sender=QuoteService)
 def handle_quote_service_saved(sender, instance, created, **kwargs):
     """Triggered when a QuoteService is created or updated."""

@@ -64,7 +64,7 @@ def handle_stripe_invoice_payment(request):
                 for phone_number in notify_list:
                     try:
                         text = (
-                            f"EVENT BOOKED:\n\nDate: {invoice.quote.event_date.strftime('%b %d, %Y')},\nFull Name: {quote.full_name}"
+                            f"EVENT BOOKED:\n\nDate: {invoice.quote.event_date.strftime('%b %d, %Y')},\nFull Name: {invoice.quote.full_name}"
                         )
 
                         message = Message(
@@ -112,19 +112,20 @@ def handle_initiate_checkout(request):
                         'product_data': {
                             'name': f'Invoice #{invoice.external_id}',
                         },
-                        'unit_amount': invoice.amount * 100,
+                        'unit_amount': int(invoice.amount * 100),
                     },
                     'quantity': 1,
                 }
             ],
             mode='payment',
             ui_mode='hosted',
-            success_url=reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
-            cancel_url=reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
+            success_url=settings.ROOT_DOMAIN + reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
+            cancel_url=settings.ROOT_DOMAIN + reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
         )
         invoice.session_id = session.id
         invoice.save()
 
         return HttpResponse(status=200, headers={ "HX-Redirect": session.url })
-    except Exception:
+    except Exception as e:
+        print(f'ERROR: {e}')
         return HttpResponseServerError(f"Unexpected error.")
