@@ -371,6 +371,13 @@ class Invoice(models.Model):
     class Meta:
         db_table = 'invoice'
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            invoice = Invoice.objects.get(pk=self.pk)
+            if invoice.date_paid is not None:
+                raise Exception("Invoice cannot be modified because it has already been paid.")
+        super().save(*args, **kwargs)
+
 class LeadNote(models.Model):
     lead_note_id = models.AutoField(primary_key=True)
     note = models.TextField()
@@ -524,7 +531,7 @@ class LeadMarketing(models.Model):
     client_id = models.TextField(unique=True, null=True)
     button_clicked = models.CharField(max_length=255, null=True)
     ip = models.GenericIPAddressField(null=True)
-    external_id = models.UUIDField(unique=True, db_index=True, editable=False)
+    external_id = models.UUIDField(unique=True, db_index=True, editable=False, null=True)
     user_agent = models.CharField(max_length=255, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
     instant_form_id = models.BigIntegerField(null=True)
