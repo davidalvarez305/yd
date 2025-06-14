@@ -755,7 +755,8 @@ class QuoteCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message='Error while adding quote service.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            print(f'ERROR ADDING QUOTE: {e}')
+            return self.alert(request=self.request, message='Error while creating quote.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuoteUpdateView(CRMUpdateView):
     model = Quote

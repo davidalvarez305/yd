@@ -24,9 +24,11 @@ def update_quote_invoices(quote: Quote):
 def handle_quote_saved(sender, instance, created, **kwargs):
     """Triggered when a Quote is created or updated."""
     if created:
-        handle_create_quote(instance)
+        if not getattr(instance, '_quick_quote', False):
+            handle_create_quote(instance)
     else:
         update_quote_invoices(instance)
+        
 
 @receiver(post_save, sender=QuoteService)
 def handle_quote_service_saved(sender, instance, created, **kwargs):
@@ -38,19 +40,17 @@ def handle_quote_service_deleted(sender, instance, **kwargs):
     """Triggered when a QuoteService is deleted."""
     update_quote_invoices(instance.quote)
 
-@receiver(post_save, sender=Quote)
-def handle_create_quote(sender, instance: Quote, created, **kwargs):
-    if created:
-        text_content = 'BARTENDING QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_detail', kwargs={ 'external_id': instance.external_id })
-        message = Message(
-                text=format_text_message(text_content),
-                text_from=settings.COMPANY_PHONE_NUMBER,
-                text_to=instance.lead.phone_number,
-                is_inbound=False,
-                status='sent',
-                is_read=True,
-            )
-        resp = messaging_service.send_text_message(message=message)
-        message.external_id = resp.sid
-        message.status = resp.status
-        message.save()
+def handle_create_quote(instance: Quote):
+    text_content = 'BARTENDING QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_view', kwargs={ 'external_id': instance.external_id })
+    message = Message(
+            text=format_text_message(text_content),
+            text_from=settings.COMPANY_PHONE_NUMBER,
+            text_to=instance.lead.phone_number,
+            is_inbound=False,
+            status='sent',
+            is_read=True,
+        )
+    resp = messaging_service.send_text_message(message=message)
+    message.external_id = resp.sid
+    message.status = resp.status
+    message.save()

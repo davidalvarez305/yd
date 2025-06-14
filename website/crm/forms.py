@@ -655,6 +655,7 @@ class QuickQuoteForm(BaseModelForm):
                     hours=hours,
                     event_date=event_date,
                 )
+                quote._quick_quote = True # prevent signal from triggering
                 quote.save()
                 services = preset.services.all()
                 for service in services:
