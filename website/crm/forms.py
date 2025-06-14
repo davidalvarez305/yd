@@ -676,20 +676,6 @@ class QuickQuoteForm(BaseModelForm):
                     quote_services.append(quote_service)
                 QuoteService.objects.bulk_create(quote_services)
                 text_messages.append({ 'message': preset.text_content, 'external_id': str(quote.external_id) })
-            
-            invoice_types = InvoiceType.objects.all()
-            full_amount = quote.amount()
-            due_date = quote.event_date - timedelta(hours=48)
-
-            for invoice_type in invoice_types:
-                invoice = Invoice(
-                    quote=quote,
-                    due_date=due_date,
-                    invoice_type=invoice_type,
-                    external_id=uuid.uuid4(),
-                    amount=full_amount * invoice_type.amount_percentage,
-                )
-                invoice.save()
 
             text_content = ''
             for i, text in enumerate(text_messages):

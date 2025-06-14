@@ -1,6 +1,6 @@
 import stripe
 from website import settings
-from core.billing import BillingServiceInterface
+from core.billing.base import BillingServiceInterface
 
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -21,8 +21,6 @@ class StripeBillingService(BillingServiceInterface):
 
         stripe.api_key = self.api_key
 
-    @csrf_exempt
-    @require_POST
     def handle_payment_webhook(self, request):
         payload = request.body
         stripe_signature = request.META.get('HTTP_STRIPE_SIGNATURE')
@@ -94,11 +92,9 @@ class StripeBillingService(BillingServiceInterface):
         except Exception as e:
             return HttpResponse(status=400)
 
-    @login_required
-    @require_POST
     def handle_initiate_payment(self, request):
-        lead_id = request.POST.get('lead_id')
-        invoice_id = request.POST.get('invoice_id')
+        lead_id = request.GET.get('lead_id')
+        invoice_id = request.GET.get('invoice_id')
 
         if not lead_id or not invoice_id:
             return HttpResponseBadRequest("Missing lead_id or invoice_id.")

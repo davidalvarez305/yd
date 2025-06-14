@@ -149,6 +149,7 @@ TWILIO_ACCOUNT_SID = env.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = env.get("TWILIO_AUTH_TOKEN")
 
 STRIPE_API_KEY = env.get("STRIPE_API_KEY")
+STRIPE_TEST_API_KEY = env.get("STRIPE_TEST_API_KEY")
 STRIPE_WEBHOOK_SECRET = env.get("STRIPE_WEBHOOK_SECRET")
 
 FACEBOOK_LEADS_SPREADSHEET_ID = env.get("FACEBOOK_LEADS_SPREADSHEET_ID")
@@ -237,6 +238,7 @@ CALLING_SERVICE = 'core.calling.twilio.TwilioCallingService'
 AI_AGENT_SERVICE = 'core.ai.openai.OpenAIAgentService'
 EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
 FACEBOOK_API_SERVICE = 'core.facebook.api.client.FacebookAPIService'
+BILLING_SERVICE = 'core.billing.stripe.StripeBillingService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'

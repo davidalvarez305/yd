@@ -256,7 +256,7 @@ class Quote(models.Model):
         return sum(float(qs.units) * float(qs.price_per_unit) for qs in self.quote_services.all())
     
     def is_within_week(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type=InvoiceTypeEnum.DEPOSIT).first()
+        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT).first()
 
         if not deposit_invoice:
             raise Exception('No deposit invoice.')
@@ -267,7 +267,7 @@ class Quote(models.Model):
         return now >= one_week_before_due
     
     def is_deposit_paid(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT)).first()
+        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT.value)).first()
 
         if not deposit_invoice:
             raise Exception('No deposit invoice.')
@@ -275,7 +275,7 @@ class Quote(models.Model):
         return deposit_invoice.date_paid is not None
     
     def get_deposit_paid_amount(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT)).first()
+        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT.value)).first()
 
         if not deposit_invoice:
             raise Exception('No deposit invoice.')
@@ -286,7 +286,7 @@ class Quote(models.Model):
         return deposit_invoice.amount
     
     def get_deposit_due(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT)).first()
+        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT.value)).first()
 
         if not deposit_invoice:
             raise Exception('No deposit invoice.')
@@ -297,7 +297,7 @@ class Quote(models.Model):
         if self.is_deposit_paid():
             return self.amount() - self.get_deposit_paid_amount()
 
-        remaining_invoice = self.invoices.filter(invoice_type=InvoiceType.objects.get(type=InvoiceTypeEnum.REMAINING)).first()
+        remaining_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.REMAINING.value)).first()
 
         if not remaining_invoice:
             raise Exception('No remaining invoice.')

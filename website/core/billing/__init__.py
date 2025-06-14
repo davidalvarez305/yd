@@ -8,7 +8,7 @@ class BillingService(LazyObject):
         cls = import_string(settings.BILLING_SERVICE)
 
         self._wrapped = cls(
-            api_key=settings.STRIPE_API_KEY,
+            api_key=settings.STRIPE_API_KEY if not settings.DEBUG else settings.STRIPE_TEST_API_KEY,
             webhook_secret=settings.STRIPE_WEBHOOK_SECRET,
         )
 
