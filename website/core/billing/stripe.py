@@ -63,7 +63,7 @@ class StripeBillingService(BillingServiceInterface):
                     lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
                     # Notify via text messages
-                    admins = User.objects.filter(is_admin=True)
+                    admins = User.objects.filter(is_superuser=True)
                     notify_list = [lead.phone_number] + [admin.forward_phone_number for admin in admins]
                     for phone_number in notify_list:
                         try:
@@ -102,6 +102,9 @@ class StripeBillingService(BillingServiceInterface):
         
         lead = Lead.objects.filter(pk=lead_id).first()
         invoice = Invoice.objects.filter(pk=invoice_id).first()
+
+        if invoice.date_paid is not None:
+            return HttpResponseBadRequest("Invoice already paid, cannot initiate session.")
 
         if not lead or not invoice:
             return HttpResponseBadRequest("Could not query lead or invoice.")

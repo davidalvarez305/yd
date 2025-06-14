@@ -60,7 +60,12 @@ class LeadStatusEnum(Enum):
     RE_ENGAGED = 'RE_ENGAGED'
 
     def __str__(self):
-        return self.name
+        return self.value
+    
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
 
 class LeadStatus(models.Model):
     lead_status_id = models.AutoField(primary_key=True)

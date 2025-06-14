@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.urls import reverse
 
-from core.models import Invoice, InvoiceType, InvoiceTypeEnum, Message, Quote, QuoteService
+from core.models import Invoice, InvoiceType, InvoiceTypeEnum, LeadStatusEnum, Message, Quote, QuoteService
 from core.utils import format_text_message
 from core.messaging import messaging_service
 from website import settings
@@ -14,7 +14,7 @@ def update_quote_invoices(quote: Quote):
         """Updates invoice amounts when a quote or its services change."""
         new_amount = quote.amount()
         if quote.is_deposit_paid():
-            remaining_invoice = quote.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING.value).first()
+            remaining_invoice = quote.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING).first()
             if remaining_invoice:
                 remaining_invoice.amount = new_amount - quote.get_deposit_paid_amount()
                 remaining_invoice.save()
@@ -30,8 +30,7 @@ def update_quote_invoices(quote: Quote):
 def handle_quote_saved(sender, instance, created, **kwargs):
     """Triggered when a Quote is created or updated."""
     if created:
-        if not getattr(instance, '_quick_quote', False):
-            handle_create_quote(instance)
+        handle_create_quote(instance, getattr(instance, '_quick_quote', False))
     update_quote_invoices(instance)
         
 
@@ -45,7 +44,7 @@ def handle_quote_service_deleted(sender, instance, **kwargs):
     """Triggered when a QuoteService is deleted."""
     update_quote_invoices(instance.quote)
 
-def handle_create_quote(quote: Quote):
+def handle_create_quote(quote: Quote, is_quick_quote: bool):
     invoice_types = InvoiceType.objects.all()
     full_amount = quote.amount()
     due_date = quote.event_date - timedelta(days=2)
@@ -60,6 +59,9 @@ def handle_create_quote(quote: Quote):
         )
         invoice.save()
     
+    if is_quick_quote:
+        return
+
     text_content = 'BARTENDING QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_view', kwargs={ 'external_id': quote.external_id })
     message = Message(
             text=format_text_message(text_content),
@@ -73,3 +75,5 @@ def handle_create_quote(quote: Quote):
     message.external_id = resp.sid
     message.status = resp.status
     message.save()
+
+    quote.lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)

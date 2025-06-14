@@ -1,7 +1,15 @@
 from enum import Enum
 
 class InvoiceTypeChoices(Enum):
-    DEPOSIT = "Deposit"
-    REMAINING = "Remaining"
-    FULL = "Full"
-    SERVICE_EXTENSION = 'Service Extension'
+    DEPOSIT = "DEPOSIT"
+    REMAINING = "REMAINING"
+    FULL = "FULL"
+    EXTEND = 'EXTEND'
+
+    def __str__(self):
+        return self.name
+    
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)

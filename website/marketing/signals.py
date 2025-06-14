@@ -27,7 +27,8 @@ def handle_lead_status_change(sender, instance, **kwargs):
         'RE_ENGAGED': 're_engaged',
     }
 
-    event_name = status_event_map.get(instance.lead_status.status)
+    lead_status = instance.lead_status.status
+    event_name = status_event_map.get(lead_status)
 
     if not event_name:
         raise ValueError('Invalid event name from lead status.')
@@ -57,19 +58,17 @@ def handle_lead_status_change(sender, instance, **kwargs):
         if attr_value:
             data[attr] = attr_value
 
-    # Statuses that require checking count == 0
-    statuses_requiring_zero_count = {
-        LeadStatusEnum.INVOICE_SENT.value,
-        LeadStatusEnum.EVENT_BOOKED.value,
-    }
-
-    # Always send conversion for LEAD_CREATED
-    if event_name == LeadStatusEnum.LEAD_CREATED.value:
+    # Always send conversion for LEAD_CREATED and EVENT BOOKED
+    if lead_status == LeadStatusEnum.LEAD_CREATED or lead_status == LeadStatusEnum.EVENT_BOOKED:
         conversion_service.send_conversion(data=data)
-
-    # Only send conversion if count == 0 for these
-    elif event_name in statuses_requiring_zero_count:
-        if not LeadStatusHistory.objects.filter(lead_status__status=event_name).exists():
+    
+    # Only need to report invoice sent once because
+    # We use this as a proxy for qualified lead
+    # If we already know that the lead is qualified because we sent an invoice
+    # Additional conversion events are unnecessary
+    if lead_status == LeadStatusEnum.INVOICE_SENT:
+        count = LeadStatusHistory.objects.filter(lead_status__status=lead_status).count()
+        if count == 1:
             conversion_service.send_conversion(data=data)
 
     # Assign lead marketing data if lead came from phone call
