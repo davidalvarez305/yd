@@ -7,7 +7,7 @@ from core.billing import billing_service
 @csrf_exempt
 @require_POST
 def handle_payment_webhook(request):
-    return billing_service.handle_payment_webook(request=request)
+    return billing_service.handle_payment_webhook(request=request)
 
 @login_required
 @require_POST

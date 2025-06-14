@@ -23,7 +23,7 @@ class StripeBillingService(BillingServiceInterface):
 
     def handle_payment_webhook(self, request):
         payload = request.body
-        stripe_signature = request.META.get('HTTP_STRIPE_SIGNATURE')
+        stripe_signature = request.headers.get('Stripe-Signature')
 
         if not stripe_signature:
             return HttpResponse(status=400) 
@@ -48,7 +48,7 @@ class StripeBillingService(BillingServiceInterface):
                 invoice.save()
 
                 # Create event on successful payment
-                if invoice.invoice_type in [InvoiceTypeChoices.DEPOSIT, InvoiceTypeChoices.FULL]:
+                if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
                     lead = invoice.quote.lead
                     event = Event(
                         lead=lead,
@@ -90,6 +90,7 @@ class StripeBillingService(BillingServiceInterface):
             return HttpResponse(status=200)
 
         except Exception as e:
+            print(f'ERROR PAYMENT WEBHOOK: {e}')
             return HttpResponse(status=400)
 
     def handle_initiate_payment(self, request):
@@ -123,6 +124,9 @@ class StripeBillingService(BillingServiceInterface):
                 ui_mode='hosted',
                 success_url=settings.ROOT_DOMAIN + reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
                 cancel_url=settings.ROOT_DOMAIN + reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
+                metadata={
+                    'external_id': str(invoice.external_id),
+                },
             )
             invoice.session_id = session.id
             invoice.save()

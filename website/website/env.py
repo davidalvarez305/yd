@@ -59,6 +59,7 @@ class EnvConfig:
         "STRIPE_API_KEY",
         "STRIPE_WEBHOOK_SECRET",
         "STRIPE_TEST_API_KEY",
+        "STRIPE_TEST_WEBHOOK_SECRET",
 
         # Facebook Leads Sheet
         "FACEBOOK_LEADS_SPREADSHEET_ID",
