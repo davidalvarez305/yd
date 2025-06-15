@@ -248,7 +248,7 @@ class LeadDetailView(CRMDetailView):
             'to_': lead.phone_number
         })
 
-        context['quote_table'] = QuoteTable(data=self.object.quotes.all())
+        context['quote_table'] = QuoteTable(data=self.object.quotes.all(), request=self.request)
 
         initial={ 'lead': self.object }
         context['quote_form'] = QuoteForm(initial)
