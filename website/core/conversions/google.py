@@ -6,16 +6,27 @@ from .base import ConversionService
 
 class GoogleAnalyticsConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
+        event_name = data.get('event_name')
+
+        params = {
+            'gclid': data.get('click_id'),
+            'user_id': data.get('user_id'),
+            'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
+            'currency': settings.DEFAULT_CURRENCY,
+        }
+
+        if event_name == 'event_booked':
+            params.update({
+                'order_id': data.get('event_id'),
+                'value': data.get('value'), # Overwrite default lead value if for whatever reason
+            })
+
         return {
             'client_id': data.get('client_id'),
             'events': [
                 {
-                    'name': data.get('event_name'),
-                    'params': {
-                        'gclid': data.get('click_id'),
-                        'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
-                        'currency': data.get('currency', settings.DEFAULT_CURRENCY),
-                    },
+                    'name': event_name,
+                    'params': params,
                 }
             ],
             'user_data': {
