@@ -31,7 +31,7 @@ def update_quote_invoices(quote: Quote):
 def handle_quote_saved(sender, instance, created, **kwargs):
     """Triggered when a Quote is created or updated."""
     if created:
-        handle_create_quote(instance, getattr(instance, '_quick_quote', False))
+        handle_create_quote(instance)
     update_quote_invoices(instance)
 
 @receiver(post_save, sender=QuoteService)
@@ -48,7 +48,7 @@ def handle_quote_service_deleted(sender, instance: QuoteService, **kwargs):
         return
     update_quote_invoices(instance.quote)
 
-def handle_create_quote(quote: Quote, is_quick_quote: bool):
+def handle_create_quote(quote: Quote):
     invoice_types = InvoiceType.objects.all()
     full_amount = quote.amount()
     due_date = quote.event_date - timedelta(days=2)
@@ -62,22 +62,3 @@ def handle_create_quote(quote: Quote, is_quick_quote: bool):
             amount=full_amount * invoice_type.amount_percentage,
         )
         invoice.save()
-    
-    if is_quick_quote:
-        return
-
-    text_content = 'BARTENDING QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_view', kwargs={ 'external_id': quote.external_id })
-    message = Message(
-            text=format_text_message(text_content),
-            text_from=settings.COMPANY_PHONE_NUMBER,
-            text_to=quote.lead.phone_number,
-            is_inbound=False,
-            status='sent',
-            is_read=True,
-        )
-    resp = messaging_service.send_text_message(message=message)
-    message.external_id = resp.sid
-    message.status = resp.status
-    message.save()
-
-    quote.lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)

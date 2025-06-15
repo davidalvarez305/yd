@@ -589,6 +589,12 @@ class QuoteForm(BaseModelForm):
 
         return instance
 
+class QuoteSendForm(forms.Form):
+    quote = forms.ModelChoiceField(
+        queryset=Quote.objects.all(),
+        widget=forms.HiddenInput()
+    )
+
 class QuoteServiceForm(BaseModelForm):
     service = forms.ModelChoiceField(
         queryset=Service.objects.all(),
@@ -655,7 +661,6 @@ class QuickQuoteForm(BaseModelForm):
                     hours=hours,
                     event_date=event_date,
                 )
-                quote._quick_quote = True # prevent signal from triggering
                 quote.save()
                 services = preset.services.all()
                 for service in services:

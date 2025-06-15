@@ -1,7 +1,7 @@
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django.views.generic import ListView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,18 +11,19 @@ from django.db.models import F
 from django.utils.timezone import now
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, IngredientTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
-from core.utils import format_phone_number, get_first_field_error, is_mobile
+from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
-from crm.utils import calculate_quote_service_values, convert_to_item_quantity
+from crm.utils import convert_to_item_quantity
+from core.messaging import messaging_service
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -773,10 +774,10 @@ class QuoteDetailView(CRMDetailTemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['quote_service_table'] = QuoteServiceTable(data=self.object.quote_services.all(), request=self.request)
-        context['quote_service_form'] = QuoteServiceForm(initial={
-            'quote': self.object
-        })
+        quote = self.object
+        context['quote_service_table'] = QuoteServiceTable(data=quote.quote_services.all(), request=self.request)
+        context['quote_service_form'] = QuoteServiceForm(initial={ 'quote': quote })
+        context['quote_send_form'] = QuoteSendForm(initial={ 'quote': quote })
 
         return context
 
@@ -873,3 +874,35 @@ class ExternalQuoteView(CRMContextMixin, DetailView):
     def get_object(self, queryset=None):
         external_id = self.kwargs.get('external_id')
         return get_object_or_404(Quote, external_id=external_id)
+
+class QuoteSendView(CRMBaseView, AlertMixin, FormView):
+    model = Quote
+    form_class = QuoteSendForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                quote = form.cleaned_data.get('quote')
+                if not quote:
+                    return self.alert(request=self.request, message="Quote cannot be none!", status=AlertStatus.BAD_REQUEST, reswap=True)
+                text_content = settings.COMPANY_NAME + ' QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_view', kwargs={ 'external_id': quote.external_id })
+                message = Message(
+                        text=format_text_message(text_content),
+                        text_from=settings.COMPANY_PHONE_NUMBER,
+                        text_to=quote.lead.phone_number,
+                        is_inbound=False,
+                        status='sent',
+                        is_read=True,
+                    )
+                resp = messaging_service.send_text_message(message=message)
+                message.external_id = resp.sid
+                message.status = resp.status
+                message.save()
+
+                quote.lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)
+                return self.alert(request=self.request, message="Quote sent!", status=AlertStatus.SUCCESS, reswap=True)
+            else:
+                return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)
+        except Exception as e:
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)

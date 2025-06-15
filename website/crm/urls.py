@@ -110,6 +110,9 @@ urlpatterns = [
     path('quote/<int:pk>/edit/', views.QuoteUpdateView.as_view(), name='quote_update'),
     path('quote/<int:pk>/delete/', views.QuoteDeleteView.as_view(), name='quote_delete'),
 
+    # Send Quote Text
+    path('quote/<int:pk>/send/', views.QuoteSendView.as_view(), name='quote_send'),
+
     # External Quote View
     path('external/<str:external_id>/', views.ExternalQuoteView.as_view(), name='external_quote_view'),
 
@@ -124,5 +127,6 @@ urlpatterns = [
     path('quote-preset/<int:pk>/edit/', views.QuotePresetUpdateView.as_view(), name='quotepreset_update'),
     path('quote-preset/<int:pk>/delete/', views.QuotePresetDeleteView.as_view(), name='quotepreset_delete'),
 
+    # Quick Quote
     path('quick-quote/create/', views.QuickQuoteCreateView.as_view(), name='quickquote_create'),
 ]
