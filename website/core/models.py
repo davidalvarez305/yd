@@ -1,7 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum
-import json
-import os
 from typing import Union
 import uuid
 from django.db import models
@@ -9,7 +7,6 @@ from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 from django.db.models import Q, Sum
-from django.utils.timezone import now
 
 from marketing.enums import ConversionServiceType
 from .utils import media_upload_path, save_image_path
@@ -260,16 +257,22 @@ class Quote(models.Model):
     def amount(self) -> float:
         return sum(float(qs.units) * float(qs.price_per_unit) for qs in self.quote_services.all())
     
+    def total_due(self) -> float:
+        invoices_due = self.amount()
+
+        for invoice in self.invoices.all():
+            if invoice.date_paid:
+                invoices_due -= invoice.amount
+
+        return invoices_due
+    
     def is_within_week(self) -> bool:
         deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT).first()
 
         if not deposit_invoice:
             raise Exception('No deposit invoice.')
 
-        one_week_before_due = deposit_invoice.due_date - timedelta(days=7)
-        now = datetime.now(timezone.utc)
-        
-        return now >= one_week_before_due
+        return timezone.now() >= deposit_invoice.due_date - timedelta(days=7)
     
     def is_deposit_paid(self) -> bool:
         deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT.value)).first()
@@ -557,7 +560,7 @@ class LeadMarketing(models.Model):
 
 class HTTPLog(models.Model):
     http_log_id = models.AutoField(primary_key=True)
-    date_created = models.DateTimeField(default=now)
+    date_created = models.DateTimeField(default=timezone.now)
     method = models.CharField(max_length=10)
     url = models.TextField()
     query_params = models.JSONField(null=True, blank=True)
@@ -908,11 +911,11 @@ class FacebookAccessToken(models.Model):
         return self.access_token
     
     def is_expired(self) -> bool:
-        return now() > self.date_expires
+        return timezone.now() > self.date_expires
 
     @property
     def refresh_needed(self) -> bool:
-        return self.is_expired() or self.date_expires - now() < timedelta(days=5)
+        return self.is_expired() or self.date_expires - timezone.now() < timedelta(days=5)
     
     class Meta:
         db_table = 'facebook_access_token'

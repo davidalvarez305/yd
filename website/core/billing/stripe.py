@@ -3,10 +3,7 @@ from website import settings
 from core.billing.base import BillingServiceInterface
 
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from django.utils.timezone import now
 
 from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
@@ -52,7 +49,6 @@ class StripeBillingService(BillingServiceInterface):
                     lead = invoice.quote.lead
                     event = Event(
                         lead=lead,
-                        date_created=now(),
                         date_paid=now(),
                         amount=invoice.quote.amount(),
                         guests=invoice.quote.guests,
@@ -64,25 +60,25 @@ class StripeBillingService(BillingServiceInterface):
 
                     # Notify via text messages
                     admins = User.objects.filter(is_superuser=True)
-                    notify_list = [lead.phone_number] + [admin.forward_phone_number for admin in admins]
-                    for phone_number in notify_list:
+                    for user in admins:
                         try:
-                            text = (
-                                f"EVENT BOOKED:\n\nDate: {invoice.quote.event_date.strftime('%b %d, %Y')},\nFull Name: {invoice.quote.full_name}"
-                            )
+                            text = "\n".join([
+                                f"EVENT BOOKED:",
+                                f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
+                                f"Full Name: {invoice.quote.lead.full_name}"
+                            ])
 
                             message = Message(
                                 text=text,
-                                date_created=now(),
                                 text_from=settings.COMPANY_PHONE_NUMBER,
-                                text_to=phone_number,
+                                text_to=user.forward_phone_number,
                                 is_inbound=False,
                                 status='sent',
                                 is_read=True,
                             )
                             message.save()
 
-                            messaging_service.send_text_message(phone_number, message)
+                            messaging_service.send_text_message(message)
                         except Exception as e:
                             print(f'Failed to send event booking notification: {str(e)}')
                             continue
