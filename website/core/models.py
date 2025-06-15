@@ -120,7 +120,6 @@ class Lead(models.Model):
     lead_status = models.ForeignKey(LeadStatus, null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
     lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
     actions = models.ManyToManyField('NextAction', through='LeadNextAction')
-    stripe_customer_id = models.CharField(max_length=255, unique=True, null=True)
 
     search_vector = SearchVectorField(null=True)
 
