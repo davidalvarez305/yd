@@ -1,18 +1,14 @@
 import re
 from django.shortcuts import render
-from core.enums import AlertStatus, AlertHTTPCodes
-from core.utils import deep_getattr
+from core.enums import AlertStatus
+from core.utils import default_alert_handler
 
 class AlertMixin:
-    def alert(self, request, message, status: AlertStatus, reswap = False):
-        template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
-        status_code = AlertHTTPCodes.get_http_code(status)
+    alert_handler = None
 
-        response = render(request, template_name=template, context={'message': message}, status=status_code)
-        if reswap:
-            response['HX-Reswap'] = 'outerHTML'
-            response['HX-Retarget'] = '#alertModal'
-        return response
+    def alert(self, request, message, status: AlertStatus, reswap=False):
+        handler = self.alert_handler or default_alert_handler
+        return handler(request=request, message=message, status=status, reswap=reswap)
 
 class ContextResolverMixin:
     def __init__(self, context=None, context_resolver=None):

@@ -10,11 +10,14 @@ from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
 from website import settings
+from core.enums import AlertStatus
+from core.utils import default_alert_handler
 
 class StripeBillingService(BillingServiceInterface):
     def __init__(self, api_key: str, webhook_secret: str):
         self.api_key = api_key
         self.webhook_secret = webhook_secret
+        self.alert = default_alert_handler
 
         stripe.api_key = self.api_key
 
@@ -80,30 +83,28 @@ class StripeBillingService(BillingServiceInterface):
 
                             messaging_service.send_text_message(message)
                         except Exception as e:
-                            print(f'Failed to send event booking notification: {str(e)}')
-                            continue
+                            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
             return HttpResponse(status=200)
 
         except Exception as e:
-            print(f'ERROR PAYMENT WEBHOOK: {e}')
-            return HttpResponse(status=400)
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
     def handle_initiate_payment(self, request):
         lead_id = request.GET.get('lead_id')
         invoice_id = request.GET.get('invoice_id')
 
         if not lead_id or not invoice_id:
-            return HttpResponseBadRequest("Missing lead_id or invoice_id.")
+            return self.alert(request=self.request, message="Missing lead_id or invoice_id.", status=AlertStatus.BAD_REQUEST, reswap=True)
         
         lead = Lead.objects.filter(pk=lead_id).first()
         invoice = Invoice.objects.filter(pk=invoice_id).first()
 
         if invoice.date_paid is not None:
-            return HttpResponseBadRequest("Invoice already paid, cannot initiate session.")
+            return self.alert(request=self.request, message="Invoice already paid, cannot initiate session.", status=AlertStatus.BAD_REQUEST, reswap=True)
 
         if not lead or not invoice:
-            return HttpResponseBadRequest("Could not query lead or invoice.")
+            return self.alert(request=self.request, message="Could not query lead or invoice.", status=AlertStatus.BAD_REQUEST, reswap=True)
 
         try:
             session = stripe.checkout.Session.create(
@@ -132,5 +133,5 @@ class StripeBillingService(BillingServiceInterface):
 
             return HttpResponse(status=200, headers={ "HX-Redirect": session.url })
         except Exception as e:
-            print(f'ERROR: {e}')
-            return HttpResponseServerError(f"Unexpected error.")
+            print(f'FAILED TO INITIATE PAYMENT: {e}')
+            return self.alert(request=self.request, message="Failed to initiate payment.", status=AlertStatus.INTERNAL_ERROR, reswap=True)

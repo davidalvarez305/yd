@@ -3,12 +3,14 @@ import re
 import uuid
 import mimetypes
 from pathlib import Path
+from django.shortcuts import render
 import requests
 
 from django.urls import reverse
 from django.db import models
 
 from website import settings
+from core.enums import AlertHTTPCodes, AlertStatus
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -131,3 +133,13 @@ def format_text_message(text):
 {line}
 """
     return final
+
+def default_alert_handler(request, message, status: AlertStatus, reswap=False):
+    template = 'core/success_alert.html' if status == AlertStatus.SUCCESS else 'core/error_alert.html'
+    status_code = AlertHTTPCodes.get_http_code(status)
+
+    response = render(request, template_name=template, context={'message': message}, status=status_code)
+    if reswap:
+        response['HX-Reswap'] = 'outerHTML'
+        response['HX-Retarget'] = '#alertModal'
+    return response
