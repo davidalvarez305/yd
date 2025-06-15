@@ -8,7 +8,7 @@ from core.models import LeadStatusHistory
 lead_status_changed = Signal()
 
 @receiver(lead_status_changed)
-def handle_lead_status_change(sender, instance, **kwargs):
+def handle_lead_status_change(sender, instance: LeadStatusHistory, **kwargs):
     """
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
@@ -40,10 +40,12 @@ def handle_lead_status_change(sender, instance, **kwargs):
         'event_time': int(now().timestamp()),
     }
 
-    value = instance.value()
-    if value > 0.0:
-        data['value'] = value
-        data['currency'] = 'USD'
+    if event_name == 'event_booked':
+        last_event = instance.lead.events.order_by('-event_id').first()
+        data.update({
+            'event_id': last_event.pk,
+            'value': last_event.amount,
+        })
 
     attributes = [
         'client_id',

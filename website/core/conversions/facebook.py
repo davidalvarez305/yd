@@ -5,51 +5,73 @@ from .base import ConversionService
 class FacebookConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
         instant_form_lead_id = data.get('instant_form_lead_id')
+
         if instant_form_lead_id:
-            return {
-                'data': [
-                    {
-                        'event_name': data.get('event_name'),
-                        'event_time': data.get('event_time'),
-                        'action_source': 'system_generated',
-                        'user_data': {
-                            'lead_id': data.get('instant_form_lead_id'),
-                        },
-                        'custom_data': {
-                            'lead_event_source': settings.COMPANY_NAME,
-                            'event_source': 'crm'
-                        }
-                    }
-                ]
-            }
-        
+            return self._build_conversion_leads_payload(data)
+        else:
+            return self._build_website_leads_payload(data)
+
+    def _build_conversion_leads_payload(self, data: dict) -> dict:
+        event_name = data.get('event_name')
+
+        custom_data = {
+            'lead_event_source': settings.COMPANY_NAME,
+            'event_source': 'crm',
+        }
+
+        if event_name == 'event_booked':
+            custom_data.update({
+                'currency': settings.DEFAULT_CURRENCY,
+                'value': data.get('value'),
+                'order_id': data.get('event_id'),
+            })
+
+        return {
+            'data': [
+                {
+                    'event_name': event_name,
+                    'event_time': data.get('event_time'),
+                    'action_source': 'system_generated',
+                    'user_data': {
+                        'lead_id': data.get('instant_form_lead_id'),
+                        'em': [self.hash_to_sha256(data.get('email'))],
+                        'ph': [self.hash_to_sha256(data.get('phone_number'))],
+                    },
+                    'custom_data': custom_data,
+                }
+            ]
+        }
+
+    def _build_website_leads_payload(self, data: dict) -> dict:
+        event_name = data.get('event_name')
         user_data = {
             'em': [self.hash_to_sha256(data.get('email'))],
             'ph': [self.hash_to_sha256(data.get('phone_number'))],
             'client_ip_address': data.get('ip_address'),
             'client_user_agent': data.get('user_agent'),
-            'fbc': data.get('click_id')
-        }
-
-        custom_data = {
-            'currency': data.get('currency', settings.DEFAULT_CURRENCY),
-            'value': data.get('value', settings.DEFAULT_LEAD_VALUE)
+            'fbc': data.get('click_id'),
         }
 
         event = {
-            'event_name': data.get('event_name'),
+            'event_name': event_name,
             'event_time': data.get('event_time'),
             'action_source': 'website',
             'user_data': user_data,
-            'custom_data': custom_data,
         }
+
+        if event_name == 'event_booked':
+            event.update({
+                'custom_data': {
+                    'currency': settings.DEFAULT_CURRENCY,
+                    'value': data.get('value'),
+                    'order_id': data.get('event_id'),
+                }
+            })
 
         self._add_valid_property(event, 'event_source_url', data.get('event_source_url'))
 
         return {
-            'data': [
-                event
-            ]
+            'data': [event]
         }
     
     def _add_valid_property(self, target: dict, key: str, value):

@@ -196,8 +196,14 @@ class Lead(models.Model):
         lead_status_changed.send(sender=self.__class__, instance=self)
 
     def value(self) -> float:
-        result = self.events.aggregate(total=Sum('amount'))
-        return result.get('total') or 0.0
+        total = 0.0
+
+        for quote in self.quotes.all():
+            for invoice in quote.invoices.all():
+                if invoice.date_paid:
+                    value += invoice.amount
+
+        return total
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
