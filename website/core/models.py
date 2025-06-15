@@ -344,7 +344,7 @@ class Service(models.Model):
 class QuoteService(models.Model):
     quote_service_id = models.AutoField(primary_key=True)
     service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
-    quote = models.ForeignKey(Quote, related_name='quote_services', db_column='quote_id', on_delete=models.RESTRICT)
+    quote = models.ForeignKey(Quote, related_name='quote_services', db_column='quote_id', on_delete=models.CASCADE)
     units = models.FloatField()
     price_per_unit = models.FloatField()
 

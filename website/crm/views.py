@@ -99,7 +99,7 @@ class CRMUpdateView(CRMBaseView, AlertMixin, UpdateView):
     def form_invalid(self, form):
         return self.handle_form_invalid(form)
 
-class CRMDeleteView(CRMBaseView, DeleteView):
+class CRMDeleteView(CRMBaseView, AlertMixin, DeleteView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
@@ -521,7 +521,7 @@ class EventCocktailCreateView(CRMCreateTemplateView):
     def form_invalid(self, form):
         return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.BAD_REQUEST, reswap=True)
 
-class EventCocktailDeleteView(AlertMixin, CRMDeleteView):
+class EventCocktailDeleteView(CRMDeleteView):
     model = EventCocktail
     form_class = EventCocktailForm
 
@@ -552,7 +552,7 @@ class EventStaffCreateView(CRMCreateTemplateView):
         except BaseException as e:
             return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class EventStaffDeleteView(AlertMixin, CRMDeleteView):
+class EventStaffDeleteView(CRMDeleteView):
     model = EventStaff
     form_class = EventStaffForm
 
@@ -583,7 +583,7 @@ class CocktailIngredientCreateView(CRMCreateTemplateView):
         except Exception as e:
             return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class CocktailIngredientDeleteView(AlertMixin, CRMDeleteView):
+class CocktailIngredientDeleteView(CRMDeleteView):
     model = CocktailIngredient
     form_class = CocktailIngredientForm
 
@@ -811,7 +811,7 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class QuoteServiceDeleteView(AlertMixin, CRMDeleteView):
+class QuoteServiceDeleteView(CRMDeleteView):
     model = QuoteService
     form_class = QuoteServiceForm
 
