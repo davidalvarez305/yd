@@ -808,7 +808,7 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuoteServiceDeleteView(AlertMixin, CRMDeleteView):
     model = QuoteService

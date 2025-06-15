@@ -312,6 +312,16 @@ class Quote(models.Model):
         
         return remaining_invoice.amount
     
+    def is_paid_off(self) -> bool:
+        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value).first()
+        remaining_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING.value).first()
+        full_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.FULL.value).first()
+
+        return any([
+            deposit_invoice and remaining_invoice and deposit_invoice.date_paid and remaining_invoice.date_paid,
+            full_invoice and full_invoice.date_paid,
+        ])
+    
 class Service(models.Model):
     service_id = models.AutoField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)
@@ -339,6 +349,22 @@ class QuoteService(models.Model):
     @property
     def total(self):
         return self.units * self.price_per_unit
+    
+    def is_extend_service(self):
+        return self.service.service_type.type == 'Extend'
+
+    def can_modify_quote(self):
+        return self.is_extend_service() or not self.quote.is_paid_off()
+
+    def save(self, *args, **kwargs):
+        if not self.can_modify_quote():
+            raise Exception('Cannot modify quote which is paid off')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.can_modify_quote():
+            raise Exception('Cannot modify quote which is paid off')
+        return super().delete(*args, **kwargs)
 
     class Meta:
         db_table = 'quote_service'
@@ -347,15 +373,23 @@ class InvoiceTypeEnum(Enum):
     DEPOSIT = 'DEPOSIT'
     REMAINING = 'REMAINING'
     FULL = 'FULL'
+    EXTEND = 'EXTEND'
 
     def __str__(self):
         return self.name
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.value == other
+        return super().__eq__(other)
 
 class InvoiceType(models.Model):
     invoice_type_id = models.AutoField(primary_key=True)
     type = models.CharField(
         max_length=50,
-        choices=[(type.name, type.value) for type in InvoiceTypeEnum]
+        choices=[(type.name, type.value) for type in InvoiceTypeEnum],
+        db_index=True,
+        unique=True
     )
     amount_percentage = models.FloatField()
 
