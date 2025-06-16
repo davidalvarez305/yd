@@ -698,6 +698,10 @@ class Event(models.Model):
     def __str__(self):
         return f"{self.lead}: {self.start_time.strftime('%B %d, %Y')} - {self.start_time.strftime('%#I %p')}"
     
+    @property
+    def full_address(self):
+        return f"{self.street_address}, {self.street_address_two}, {self.city}, {self.zip_code}, FL"
+
     class Meta:
         db_table = 'event'
 
