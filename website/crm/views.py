@@ -22,7 +22,7 @@ from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTabl
 from core.tables import Table
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
-from crm.utils import convert_to_item_quantity
+from crm.utils import convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
 
 class CRMContextMixin:
@@ -819,6 +819,8 @@ class QuoteServiceDeleteView(CRMDeleteView):
         try:
             self.object = self.get_object()
             self.object.delete()
+            if self.object.quote.can_modify_quote():
+                update_quote_invoices(quote=self.object.quote)
             qs = QuoteService.objects.filter(quote=self.object.quote)
             table = QuoteServiceTable(data=qs, request=self.request)
 

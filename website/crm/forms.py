@@ -11,7 +11,7 @@ from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, E
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
-from crm.utils import calculate_quote_service_values
+from crm.utils import calculate_quote_service_values, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple
 from core.messaging import messaging_service
 from website import settings
@@ -561,6 +561,12 @@ class QuoteForm(BaseModelForm):
             'guests': forms.NumberInput(attrs={'id': 'guests'}),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk and not self.instance.can_modify_quote():
+            raise forms.ValidationError('Quote cannot be modified.')
+        return cleaned_data
     
     def save(self, commit=True):
         instance = super().save(commit=commit)
@@ -578,6 +584,9 @@ class QuoteForm(BaseModelForm):
             quote_service.price_per_unit = data.get('price')
             quote_service.units = data.get('units')
             quote_service.save()
+        
+        # Need to figure out how to do this
+        update_quote_invoices(quote=instance)
 
         return instance
 
@@ -613,6 +622,12 @@ class QuoteServiceForm(BaseModelForm):
             'units': forms.NumberInput(attrs={'id': 'units'}),
             'price_per_unit': forms.NumberInput(attrs={'id': 'price'})
         }
+    
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if not instance.quote.is_paid_off():
+            update_quote_invoices(quote=instance.quote)
+        return instance
 
 class QuotePresetForm(BaseModelForm):
     class Meta:

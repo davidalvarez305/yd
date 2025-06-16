@@ -1,7 +1,7 @@
 import math
 
 from django.forms import ValidationError
-from core.models import CocktailIngredient, Service, StoreItem, UnitConversion
+from core.models import CocktailIngredient, InvoiceTypeEnum, Quote, Service, StoreItem, UnitConversion
 
 def round_up_to_nearest(quantity: float, step: float) -> int:
     if step <= 0:
@@ -47,3 +47,21 @@ def calculate_quote_service_values(guests, hours, suggested_price, unit_type, se
 
     else:
         return {}
+
+def update_quote_invoices(quote: Quote):
+    try:
+        """Updates invoice amounts when a quote or its services change."""
+        amount_due = quote.amount()
+        if quote.is_deposit_paid():
+            remaining_invoice = quote.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING).first()
+            if not remaining_invoice:
+                raise Exception('No remaining invoice found.')
+            remaining_invoice.amount = amount_due - quote.get_deposit_paid_amount()
+            remaining_invoice.save()
+        else:
+            for invoice in quote.invoices.all():
+                invoice.amount = amount_due * invoice.invoice_type.amount_percentage
+                invoice.save()
+    except Exception as e:
+        print(f'ERROR UPDATING QUOTE PRICES: {e}')
+        raise Exception('Error updating quote services.')
