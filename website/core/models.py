@@ -335,7 +335,7 @@ class Quote(models.Model):
         return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
-        if self.is_paid_off():
+        if self.is_paid_off() or self.is_deposit_paid():
             raise Exception('Quote cannot be modified if it is already paid off.')
         return super().delete(*args, **kwargs)
     
