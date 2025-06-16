@@ -756,7 +756,6 @@ class QuoteCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
-            print(f'ERROR ADDING QUOTE: {e}')
             return self.alert(request=self.request, message='Error while creating quote.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuoteUpdateView(CRMUpdateView):
@@ -766,6 +765,11 @@ class QuoteUpdateView(CRMUpdateView):
 
     def get_success_url(self):
         return reverse('quote_detail', kwargs={'pk': self.object.pk})
+    
+    def form_valid(self, form):
+        if not self.object.is_paid_off():
+            return super().form_valid(form)
+        return self.alert(request=self.request, message='Cannot update quote which has been paid off.', status=AlertStatus.BAD_REQUEST, reswap=True)
 
 class QuoteDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_detail.html'
@@ -788,6 +792,8 @@ class QuoteDeleteView(CRMDeleteView):
     def post(self, request, *args, **kwargs):
         try:
             self.object = self.get_object()
+            if self.object.is_paid_off():
+                return self.alert(request=self.request, message='Quote is already paid off.', status=AlertStatus.BAD_REQUEST, reswap=True)
             self.object.delete()
             qs = Quote.objects.filter(lead=self.object.lead)
             table = QuoteTable(data=qs, request=self.request)
@@ -802,8 +808,11 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
 
     def form_valid(self, form):
         try:
+            if not self.object.can_modify_quote():
+                raise Exception('Cannot modify quote which has been paid off.')
             self.object = form.save()
-
+            if not self.object.quote.is_paid_off():
+                update_quote_invoices(quote=self.object.quote)
             qs = QuoteService.objects.filter(quote=self.object.quote)
             table = QuoteServiceTable(data=qs, request=self.request)
 
@@ -818,8 +827,10 @@ class QuoteServiceDeleteView(CRMDeleteView):
     def post(self, request, *args, **kwargs):
         try:
             self.object = self.get_object()
+            if not self.object.can_modify_quote():
+                raise Exception('Cannot modify quote which has been paid off.')
             self.object.delete()
-            if self.object.quote.can_modify_quote():
+            if not self.object.quote.is_paid_off():
                 update_quote_invoices(quote=self.object.quote)
             qs = QuoteService.objects.filter(quote=self.object.quote)
             table = QuoteServiceTable(data=qs, request=self.request)
