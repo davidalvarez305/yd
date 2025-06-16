@@ -569,6 +569,7 @@ class QuoteForm(BaseModelForm):
         return cleaned_data
     
     def save(self, commit=True):
+        is_new = self.instance.pk is None
         instance = super().save(commit=commit)
 
         quote_services = instance.quote_services.all()
@@ -585,8 +586,8 @@ class QuoteForm(BaseModelForm):
             quote_service.units = data.get('units')
             quote_service.save()
         
-        # Need to figure out how to do this
-        update_quote_invoices(quote=instance)
+        if not is_new:
+            update_quote_invoices(quote=instance)
 
         return instance
 
