@@ -55,6 +55,9 @@ urlpatterns = [
     path('event/<int:pk>/edit/', views.EventUpdateView.as_view(), name='event_update'),
     path('event/<int:pk>/delete/', views.EventDeleteView.as_view(), name='event_delete'),
 
+    # External Event Detail
+    path('event/external/<str:external_id>/', views.ExternalQuoteView.as_view(), name='event_external_detail'),
+
     # Event Cocktails
     path('event-cocktails/create/', views.EventCocktailCreateView.as_view(), name='eventcocktail_create'),
     path('event-cocktails/<int:pk>/delete/', views.EventCocktailDeleteView.as_view(), name='eventcocktail_delete'),

@@ -66,6 +66,30 @@
         <!-- END Body -->
     </div>
     <!-- END Event Address -->
+     <!-- Divider: With Heading -->
+    <h3 class="my-8 flex items-center">
+        <span aria-hidden="true" class="h-0.5 grow rounded bg-gray-200 dark:bg-gray-700/75"></span>
+        <span class="mx-3 text-lg font-medium">Cocteles</span>
+        <span aria-hidden="true" class="h-0.5 grow rounded bg-gray-200 dark:bg-gray-700/75"></span>
+    </h3>
+    <!-- END Divider: With Heading -->
+    <!-- Event Cocktails -->
+    <div id="eventCocktailsTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        {{ event_cocktail_table.render }}
+    </div>
+    <!-- END Event Cocktails -->
+    <!-- Divider: With Heading -->
+        <h3 class="my-8 flex items-center">
+            <span aria-hidden="true" class="h-0.5 grow rounded bg-gray-200 dark:bg-gray-700/75"></span>
+            <span class="mx-3 text-lg font-medium">Staff</span>
+            <span aria-hidden="true" class="h-0.5 grow rounded bg-gray-200 dark:bg-gray-700/75"></span>
+        </h3>
+    <!-- END Divider: With Heading -->
+    <!-- Event Staff -->
+    <div id="eventStaffTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        {{ event_staff_table.render }}
+    </div>
+<!-- END Event Staff -->
 </div>
 <!-- END External Event View -->
 {% endblock %}

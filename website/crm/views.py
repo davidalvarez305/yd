@@ -916,3 +916,12 @@ class QuoteSendView(CRMBaseView, AlertMixin, FormView):
                 return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+
+class ExternalQuoteView(DetailView):
+    template_name = 'crm/external_event_view.html'
+    model = Event
+    context_object_name = 'event'
+
+    def get_object(self, queryset=None):
+        external_id = self.kwargs.get("external_id")
+        return get_object_or_404(Event, external_id=external_id)
