@@ -11,7 +11,7 @@ from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, E
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
-from crm.utils import calculate_quote_service_values, update_quote_invoices
+from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple
 from core.messaging import messaging_service
 from website import settings
@@ -628,6 +628,8 @@ class QuoteServiceForm(BaseModelForm):
         instance = super().save(commit)
         if not instance.quote.is_paid_off():
             update_quote_invoices(quote=instance.quote)
+        elif instance.can_modify_quote():
+            create_extension_invoice(quote_service=instance)
         return instance
 
 class QuotePresetForm(BaseModelForm):

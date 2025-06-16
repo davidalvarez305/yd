@@ -1,7 +1,9 @@
+from datetime import timedelta
 import math
 
 from django.forms import ValidationError
-from core.models import CocktailIngredient, InvoiceTypeEnum, Quote, Service, StoreItem, UnitConversion
+from django.utils.timezone import now
+from core.models import CocktailIngredient, Invoice, InvoiceType, InvoiceTypeEnum, Quote, QuoteService, Service, StoreItem, UnitConversion
 
 def round_up_to_nearest(quantity: float, step: float) -> int:
     if step <= 0:
@@ -65,3 +67,24 @@ def update_quote_invoices(quote: Quote):
     except Exception as e:
         print(f'ERROR UPDATING QUOTE PRICES: {e}')
         raise Exception('Error updating quote services.')
+
+def create_extension_invoice(quote_service: QuoteService):
+    try:
+        amount = quote_service.units * quote_service.price_per_unit
+        extension_invoice = quote_service.quote.invoices.filter(invoice_type__type=InvoiceTypeEnum.EXTEND.value).first()
+        if extension_invoice:
+            extension_invoice += amount
+            extension_invoice.save()
+            return
+        
+        invoice_type = InvoiceType.objects.get(type=InvoiceTypeEnum.EXTEND.value)
+        invoice = Invoice(
+            quote=quote_service.quote,
+            invoice_type=invoice_type,
+            amount=amount,
+            due_date=now() + timedelta(hours=24),
+        )
+        invoice.save()
+    except Exception as e:
+        print(f'ERROR CREATING EXTENSION INVOICE: {e}')
+        raise Exception('Failed to create extension invoice.')
