@@ -689,6 +689,7 @@ class QuickQuoteForm(BaseModelForm):
                     quote_services.append(quote_service)
                 QuoteService.objects.bulk_create(quote_services)
                 text_messages.append({ 'message': preset.text_content, 'external_id': str(quote.external_id) })
+                update_quote_invoices(quote=quote)
 
             text_content = ''
             for i, text in enumerate(text_messages):
