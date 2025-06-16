@@ -763,9 +763,17 @@ class QuoteUpdateView(CRMUpdateView):
     form_class = QuoteForm
     trigger_alert = False
 
-    def get_success_url(self):
-        return reverse('quote_detail', kwargs={'pk': self.object.pk})
-    
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+
+            qs = Quote.objects.filter(lead=self.object.lead)
+            table = QuoteTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message='Error while updating quote.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
+
 class QuoteDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_detail.html'
     model = Quote
