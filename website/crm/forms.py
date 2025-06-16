@@ -564,7 +564,7 @@ class QuoteForm(BaseModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if self.instance.pk and not self.instance.can_modify_quote():
+        if self.instance.pk and not self.instance.is_paid_off():
             raise forms.ValidationError('Quote cannot be modified.')
         return cleaned_data
     
