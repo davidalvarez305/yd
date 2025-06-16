@@ -9,7 +9,7 @@ from core.models import Invoice, InvoiceType, Quote
 def handle_quote_saved(sender, instance: Quote, created, **kwargs):
     """Triggered when a Quote is created or updated."""
     if created:
-        invoice_types = InvoiceType.objects.all()
+        invoice_types = InvoiceType.get_primary_invoices()
         full_amount = instance.amount()
         due_date = instance.event_date - timedelta(days=2)
 

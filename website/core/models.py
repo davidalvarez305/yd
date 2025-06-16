@@ -413,6 +413,9 @@ class InvoiceType(models.Model):
     def __str__(self):
         return self.type
 
+    def get_primary_invoices(self):
+        return self.objects.filter(pk__lt=4)
+
     class Meta:
         db_table = 'invoice_type'
 
