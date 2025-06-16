@@ -327,6 +327,18 @@ class Quote(models.Model):
             full_invoice and full_invoice.date_paid,
         ])
     
+    def save(self, *args, **kwargs):
+        if self.pk:
+            if self.is_paid_off():
+                raise Exception('Quote cannot be modified if it is already paid off.')
+        
+        return super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        if self.is_paid_off():
+            raise Exception('Quote cannot be modified if it is already paid off.')
+        return super().delete(*args, **kwargs)
+    
 class Service(models.Model):
     service_id = models.AutoField(primary_key=True)
     service_type = models.ForeignKey(ServiceType, db_column='service_type_id', on_delete=models.RESTRICT)
