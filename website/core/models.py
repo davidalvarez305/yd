@@ -197,11 +197,18 @@ class Lead(models.Model):
 
     def value(self) -> float:
         total = 0.0
+        referrals = self.lead_marketing.referrals.all()
 
         for quote in self.quotes.all():
             for invoice in quote.invoices.all():
                 if invoice.date_paid:
-                    value += invoice.amount
+                    total += invoice.amount
+
+        for referral in referrals:
+            for quote in referral.quotes.all():
+                for invoice in quote.invoices.all():
+                    if invoice.date_paid:
+                        total += invoice.amount
 
         return total
 
@@ -590,7 +597,6 @@ class LeadMarketing(models.Model):
     referred_by = models.ForeignKey(
         'self',
         null=True,
-        blank=True,
         on_delete=models.SET_NULL,
         related_name='referrals'
     )
