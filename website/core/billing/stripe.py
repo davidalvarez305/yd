@@ -64,13 +64,15 @@ class StripeBillingService(BillingServiceInterface):
 
         if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
             if not Event.objects.filter(lead=invoice.quote.lead).exists():
-                Event.objects.create(
+                event = Event(
                     lead=invoice.quote.lead,
                     date_paid=now,
                     amount=invoice.quote.amount(),
                     guests=invoice.quote.guests,
                 )
-                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
+                event.save()
+                
+                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
 
                 users_to_notify = self.phone_numbers
                 users_to_notify += invoice.quote.lead.phone_number
@@ -95,7 +97,6 @@ class StripeBillingService(BillingServiceInterface):
                         message.save()
                     except Exception as e:
                         return HttpResponse(status=500)
-
         return HttpResponse(status=200)
 
     def _handle_charge_updated(self, charge):

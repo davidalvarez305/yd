@@ -27,12 +27,13 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         'RE_ENGAGED': 're_engaged',
     }
 
-    lead_status = instance.lead_status.status
-    event_name = status_event_map.get(lead_status)
+    event = kwargs.get('event')
+    lead_status = instance.lead_status
+    event_name = status_event_map.get(lead_status.status)
 
     if not event_name:
         raise ValueError('Invalid event name from lead status.')
-    
+
     data = {
         'event_name': event_name,
         'ip_address': lead_marketing.ip,
@@ -41,11 +42,11 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     }
 
     if event_name == 'event_booked':
-        last_event = instance.events.order_by('-event_id').first()
-        data.update({
-            'event_id': last_event.pk,
-            'value': last_event.amount,
-        })
+        if event:
+            data.update({
+                'event_id': event.pk,
+                'value': event.amount,
+            })
 
     attributes = [
         'client_id',
@@ -61,15 +62,15 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
             data[attr] = attr_value
 
     # Always send conversion for LEAD_CREATED and EVENT BOOKED
-    if lead_status == LeadStatusEnum.LEAD_CREATED or lead_status == LeadStatusEnum.EVENT_BOOKED:
+    if lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_status.status == LeadStatusEnum.EVENT_BOOKED:
         conversion_service.send_conversion(data=data)
     
     # Only need to report invoice sent once because
     # We use this as a proxy for qualified lead
-    # If we already know that the lead is qualified because we sent an invoice
+    # If we already know that the lead is qualified because we sent an invoice once
     # Additional conversion events are unnecessary
-    if lead_status == LeadStatusEnum.INVOICE_SENT:
-        count = LeadStatusHistory.objects.filter(lead_status__status=lead_status).count()
+    if lead_status.status == LeadStatusEnum.INVOICE_SENT:
+        count = LeadStatusHistory.objects.filter(lead_status=lead_status, lead=instance).count()
         if count == 1:
             conversion_service.send_conversion(data=data)
 
@@ -78,7 +79,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         return
     
     # Only apply marketing data the first time the lead is assigned to lead created
-    if instance.lead_status.status != LeadStatusEnum.LEAD_CREATED:
+    if lead_status.status != LeadStatusEnum.LEAD_CREATED:
         return
 
     first_inbound_call = PhoneCall.objects.filter(call_from=instance.phone_number).order_by('date_created').first()

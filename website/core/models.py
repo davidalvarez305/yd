@@ -175,7 +175,7 @@ class Lead(models.Model):
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
 
-    def change_lead_status(self, status: Union[str, LeadStatusEnum]):
+    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None):
         from marketing.signals import lead_status_changed
         if isinstance(status, LeadStatusEnum):
             status = status.name
@@ -193,7 +193,7 @@ class Lead(models.Model):
             lead_status=lead_status
         )
 
-        lead_status_changed.send(sender=self.__class__, instance=self)
+        lead_status_changed.send(sender=self.__class__, instance=self, event=event)
 
     def value(self) -> float:
         total = 0.0
