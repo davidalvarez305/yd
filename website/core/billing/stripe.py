@@ -1,15 +1,17 @@
+import requests
 import stripe
 from website import settings
 from core.billing.base import BillingServiceInterface
 
 from django.urls import reverse
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponse
 from django.utils.timezone import now
+from django.core.files.base import ContentFile
+import logging
 
 from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
-from website import settings
 from core.enums import AlertStatus
 from core.utils import default_alert_handler
 
@@ -18,6 +20,7 @@ class StripeBillingService(BillingServiceInterface):
         self.api_key = api_key
         self.webhook_secret = webhook_secret
         self.alert = default_alert_handler
+        self.admins = User.objects.filter(is_superuser=True)
 
         stripe.api_key = self.api_key
 
@@ -26,85 +29,139 @@ class StripeBillingService(BillingServiceInterface):
         stripe_signature = request.headers.get('Stripe-Signature')
 
         if not stripe_signature:
-            return HttpResponse(status=400) 
+            return HttpResponse(status=400)
 
         try:
             event = stripe.Webhook.construct_event(payload, stripe_signature, self.webhook_secret)
+            event_type = event.get('type')
+            data = event.get('data', {}).get('object')
 
-            if event.get('type') == 'checkout.session.completed':
-                session = event.get('data', {}).get('object')
+            if event_type == 'checkout.session.completed':
+                return self._handle_checkout_completed(data)
 
-                if not session:
-                    raise Exception('Improperly formatted request.')
+            if event_type == 'charge.updated':
+                return self._handle_charge_updated(data)
 
-                session_id = session.id
-                external_id = session.get('metadata', {}).get('external_id')
+            return HttpResponse(status=200)
 
-                invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
-                if not invoice:
-                    raise Exception('Could not find invoice in database.')
+        except Exception as e:
+            return HttpResponse(status=500)
 
-                invoice.date_paid = now()
-                invoice.save()
+    def _handle_checkout_completed(self, session):
+        session_id = session.get('id')
+        external_id = session.get('metadata', {}).get('external_id')
 
-                # Create event on successful payment
-                if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
-                    lead = invoice.quote.lead
-                    event = Event(
-                        lead=lead,
-                        date_paid=now(),
-                        amount=invoice.quote.amount(),
-                        guests=invoice.quote.guests,
-                    )
-                    event.save()
+        if not session_id or not external_id:
+            return HttpResponse(status=400)
 
-                    # Report conversion
-                    lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
+        invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
+        if not invoice:
+            return HttpResponse(status=404)
 
-                    # Notify via text messages
-                    admins = User.objects.filter(is_superuser=True)
-                    for user in admins:
-                        try:
-                            text = "\n".join([
-                                f"EVENT BOOKED:",
-                                f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
-                                f"Full Name: {invoice.quote.lead.full_name}"
-                            ])
+        if not invoice.date_paid:
+            invoice.date_paid = now()
+            invoice.save()
 
-                            message = Message(
-                                text=text,
+        if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
+            if not Event.objects.filter(lead=invoice.quote.lead).exists():
+                Event.objects.create(
+                    lead=invoice.quote.lead,
+                    date_paid=now(),
+                    amount=invoice.quote.amount(),
+                    guests=invoice.quote.guests,
+                )
+                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
+
+                for user in self.admins:
+                    try:
+                        text = "\n".join([
+                            f"EVENT BOOKED:",
+                            f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
+                            f"Full Name: {invoice.quote.lead.full_name}",
+                        ])
+                        message = Message.objects.create(
+                            text=text,
+                            text_from=settings.COMPANY_PHONE_NUMBER,
+                            text_to=user.forward_phone_number,
+                            is_inbound=False,
+                            status='sent',
+                            is_read=True,
+                        )
+                        response = messaging_service.send_text_message(message)
+                        message.external_id = response.sid
+                        message.save()
+                    except Exception as e:
+                        return HttpResponse(status=500)
+
+        return HttpResponse(status=200)
+
+    def _handle_charge_updated(self, charge):
+        if not (charge.get("paid") and charge.get("status") == "succeeded"):
+            return HttpResponse(status=200)
+
+        payment_intent_id = charge.get("payment_intent")
+        if not payment_intent_id:
+            return HttpResponse(status=200)
+
+        try:
+            sessions = stripe.checkout.Session.list(payment_intent=payment_intent_id, limit=1).get('data', [])
+            if not sessions:
+                return HttpResponse(status=200)
+
+            session = sessions[0]
+            external_id = session.get('metadata', {}).get('external_id')
+            session_id = session.get('id')
+
+            if not external_id or not session_id:
+                return HttpResponse(status=200)
+
+            invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
+            if not invoice:
+                return HttpResponse(status=200)
+
+            receipt_url = charge.get("receipt_url")
+            if receipt_url:
+                try:
+                    response = requests.get(receipt_url)
+                    if response.status_code == 200:
+                        filename = f"{invoice.external_id}.html"
+                        invoice.receipt.save(filename, ContentFile(response.content), save=True)
+
+                        for user in self.admins:
+                            message = Message.objects.create(
+                                text=f"RECEIPT: {invoice.receipt.url}",
                                 text_from=settings.COMPANY_PHONE_NUMBER,
                                 text_to=user.forward_phone_number,
                                 is_inbound=False,
                                 status='sent',
                                 is_read=True,
                             )
+                            response = messaging_service.send_text_message(message)
+                            message.external_id = response.sid
                             message.save()
-
-                            messaging_service.send_text_message(message)
-                        except Exception as e:
-                            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
-
-            return HttpResponse(status=200)
+                except Exception as e:
+                    print(f"Receipt download failed: {e}")
 
         except Exception as e:
-            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            print(f"Charge.updated processing failed: {e}")
+
+        return HttpResponse(status=200)
 
     def handle_initiate_payment(self, request):
         lead_id = request.GET.get('lead_id')
         invoice_id = request.GET.get('invoice_id')
 
         if not lead_id or not invoice_id:
-            return self.alert(request=self.request, message="Missing lead_id or invoice_id.", status=AlertStatus.BAD_REQUEST, reswap=True)
-        
+            return self.alert(request=request, message="Missing lead_id or invoice_id.", status=AlertStatus.BAD_REQUEST, reswap=True)
+
         lead = Lead.objects.filter(pk=lead_id).first()
         invoice = Invoice.objects.filter(pk=invoice_id).first()
 
         if invoice.date_paid is not None:
-            return self.alert(request=self.request, message="Invoice already paid, cannot initiate session.", status=AlertStatus.BAD_REQUEST, reswap=True)
+            return self.alert(request=request, message="Invoice already paid, cannot initiate session.", status=AlertStatus.BAD_REQUEST, reswap=True)
 
         if not lead or not invoice:
-            return self.alert(request=self.request, message="Could not query lead or invoice.", status=AlertStatus.BAD_REQUEST, reswap=True)
+            return self.alert(request=request, message="Could not query lead or invoice.", status=AlertStatus.BAD_REQUEST, reswap=True)
 
         try:
             session = stripe.checkout.Session.create(
@@ -131,7 +188,6 @@ class StripeBillingService(BillingServiceInterface):
             invoice.session_id = session.id
             invoice.save()
 
-            return HttpResponse(status=200, headers={ "HX-Redirect": session.url })
+            return HttpResponse(status=200, headers={"HX-Redirect": session.url})
         except Exception as e:
-            print(f'FAILED TO INITIATE PAYMENT: {e}')
-            return self.alert(request=self.request, message="Failed to initiate payment.", status=AlertStatus.INTERNAL_ERROR, reswap=True)
+            return self.alert(request=request, message="Failed to initiate payment.", status=AlertStatus.INTERNAL_ERROR, reswap=True)

@@ -917,7 +917,7 @@ class QuoteSendView(CRMBaseView, AlertMixin, FormView):
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
-class ExternalQuoteView(DetailView):
+class ExternalEventDetail(DetailView):
     template_name = 'crm/external_event_view.html'
     model = Event
     context_object_name = 'event'

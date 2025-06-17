@@ -3,12 +3,12 @@ from django.db.models.signals import Signal
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import LeadStatusHistory
+from core.models import Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
 @receiver(lead_status_changed)
-def handle_lead_status_change(sender, instance: LeadStatusHistory, **kwargs):
+def handle_lead_status_change(sender, instance: Lead, **kwargs):
     """
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
@@ -41,7 +41,7 @@ def handle_lead_status_change(sender, instance: LeadStatusHistory, **kwargs):
     }
 
     if event_name == 'event_booked':
-        last_event = instance.lead.events.order_by('-event_id').first()
+        last_event = instance.events.order_by('-event_id').first()
         data.update({
             'event_id': last_event.pk,
             'value': last_event.amount,

@@ -298,25 +298,6 @@ class Quote(models.Model):
 
         return deposit_invoice.amount
     
-    def get_deposit_due(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.DEPOSIT.value)).first()
-
-        if not deposit_invoice:
-            raise Exception('No deposit invoice.')
-
-        return deposit_invoice.amount
-    
-    def get_remaining_amount(self) -> float:
-        if self.is_deposit_paid():
-            return self.amount() - self.get_deposit_paid_amount()
-
-        remaining_invoice = self.invoices.filter(invoice_type__type=InvoiceType.objects.get(type=InvoiceTypeEnum.REMAINING.value)).first()
-
-        if not remaining_invoice:
-            raise Exception('No remaining invoice.')
-        
-        return remaining_invoice.amount
-    
     def is_paid_off(self) -> bool:
         deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value).first()
         remaining_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING.value).first()
@@ -413,11 +394,11 @@ class InvoiceType(models.Model):
     def __str__(self):
         return self.type
 
-    def get_primary_invoices(self):
-        return self.objects.filter(pk__lt=4)
-
     class Meta:
         db_table = 'invoice_type'
+    
+def get_primary_invoices():
+    return InvoiceType.objects.filter(pk__lt=4)
 
 class Invoice(models.Model):
     invoice_id = models.AutoField(primary_key=True)
@@ -429,6 +410,7 @@ class Invoice(models.Model):
     invoice_type = models.ForeignKey(InvoiceType, db_column='invoice_type_id', on_delete=models.RESTRICT)
     session_id = models.CharField(max_length=255, null=True)
     external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
+    receipt = models.FileField(upload_to='receipts/', null=True)
 
     class Meta:
         db_table = 'invoice'
