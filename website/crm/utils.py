@@ -88,3 +88,6 @@ def create_extension_invoice(quote_service: QuoteService):
     except Exception as e:
         print(f'ERROR CREATING EXTENSION INVOICE: {e}')
         raise Exception('Failed to create extension invoice.')
+
+def create_quote_due_date(event_date):
+    return event_date - timedelta(days=2)

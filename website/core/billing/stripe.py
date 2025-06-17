@@ -73,7 +73,7 @@ class StripeBillingService(BillingServiceInterface):
                 invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
                 users_to_notify = self.phone_numbers
-                users_to_notify += invoice.quote.lead.phone_number
+                users_to_notify.append(invoice.quote.lead.phone_number)
 
                 for phone_number in users_to_notify:
                     try:
@@ -82,7 +82,7 @@ class StripeBillingService(BillingServiceInterface):
                             f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
                             f"Full Name: {invoice.quote.lead.full_name}",
                         ])
-                        message = Message.objects.create(
+                        message = Message(
                             text=text,
                             text_from=settings.COMPANY_PHONE_NUMBER,
                             text_to=phone_number,
@@ -131,13 +131,13 @@ class StripeBillingService(BillingServiceInterface):
                         invoice.receipt.save(filename, ContentFile(response.content), save=True)
 
                         users_to_notify = self.phone_numbers
-                        users_to_notify += invoice.quote.lead.phone_number
+                        users_to_notify.append(invoice.quote.lead.phone_number)
 
-                        for user in self.admins:
-                            message = Message.objects.create(
+                        for phone_number in users_to_notify:
+                            message = Message(
                                 text=f"RECEIPT: {invoice.receipt.url}",
                                 text_from=settings.COMPANY_PHONE_NUMBER,
-                                text_to=user.forward_phone_number,
+                                text_to=phone_number,
                                 is_inbound=False,
                                 status='sent',
                                 is_read=True,
