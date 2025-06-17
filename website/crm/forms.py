@@ -626,10 +626,11 @@ class QuoteServiceForm(BaseModelForm):
     
     def save(self, commit=True):
         instance = super().save(commit)
-        if not instance.quote.is_paid_off():
+        if instance.quote.is_paid_off():
+            if instance.is_extend_service():
+                create_extension_invoice(quote_service=instance)
+        else:
             update_quote_invoices(quote=instance.quote)
-        elif instance.can_modify_quote():
-            create_extension_invoice(quote_service=instance)
         return instance
 
 class QuotePresetForm(BaseModelForm):
