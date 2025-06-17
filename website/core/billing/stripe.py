@@ -63,40 +63,39 @@ class StripeBillingService(BillingServiceInterface):
             invoice.save()
 
         if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
-            if not Event.objects.filter(lead=invoice.quote.lead).exists():
-                event = Event(
-                    lead=invoice.quote.lead,
-                    date_paid=now,
-                    amount=invoice.quote.amount(),
-                    guests=invoice.quote.guests,
-                )
-                event.save()
-                
-                invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
+            event = Event(
+                lead=invoice.quote.lead,
+                date_paid=now,
+                amount=invoice.quote.amount(),
+                guests=invoice.quote.guests,
+            )
+            event.save()
+            
+            invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
 
-                users_to_notify = self.phone_numbers
-                users_to_notify += invoice.quote.lead.phone_number
+            users_to_notify = self.phone_numbers
+            users_to_notify += invoice.quote.lead.phone_number
 
-                for phone_number in users_to_notify:
-                    try:
-                        text = "\n".join([
-                            f"EVENT BOOKED:",
-                            f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
-                            f"Full Name: {invoice.quote.lead.full_name}",
-                        ])
-                        message = Message.objects.create(
-                            text=text,
-                            text_from=settings.COMPANY_PHONE_NUMBER,
-                            text_to=phone_number,
-                            is_inbound=False,
-                            status='sent',
-                            is_read=True,
-                        )
-                        response = messaging_service.send_text_message(message)
-                        message.external_id = response.sid
-                        message.save()
-                    except Exception as e:
-                        return HttpResponse(status=500)
+            for phone_number in users_to_notify:
+                try:
+                    text = "\n".join([
+                        f"EVENT BOOKED:",
+                        f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
+                        f"Full Name: {invoice.quote.lead.full_name}",
+                    ])
+                    message = Message.objects.create(
+                        text=text,
+                        text_from=settings.COMPANY_PHONE_NUMBER,
+                        text_to=phone_number,
+                        is_inbound=False,
+                        status='sent',
+                        is_read=True,
+                    )
+                    response = messaging_service.send_text_message(message)
+                    message.external_id = response.sid
+                    message.save()
+                except Exception as e:
+                    return HttpResponse(status=500)
         return HttpResponse(status=200)
 
     def _handle_charge_updated(self, charge):
