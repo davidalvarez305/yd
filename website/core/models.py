@@ -195,20 +195,24 @@ class Lead(models.Model):
 
         lead_status_changed.send(sender=self.__class__, instance=self, event=event)
 
-    def value(self) -> float:
+    def value(self, visited=None) -> float:
+        if visited is None:
+            visited = set()
+
+        if self.pk in visited:
+            return 0.0
+
+        visited.add(self.pk)
+
         total = 0.0
-        referrals = self.lead_marketing.referrals.all()
 
         for quote in self.quotes.all():
             for invoice in quote.invoices.all():
                 if invoice.date_paid:
                     total += invoice.amount
 
-        for referral in referrals:
-            for quote in referral.quotes.all():
-                for invoice in quote.invoices.all():
-                    if invoice.date_paid:
-                        total += invoice.amount
+        for referral in self.lead_marketing.referrals.all():
+            total += referral.lead.value(visited=visited)
 
         return total
 
