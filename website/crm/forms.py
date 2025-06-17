@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
-from core.models import MarketingCampaign, LeadMarketing, Cocktail, Event
+from core.models import LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple
@@ -335,15 +335,6 @@ class LeadMarketingForm(BaseModelForm):
         required=False,
         widget=forms.NumberInput(attrs={
             'placeholder': 'Meta lead form lead ID'
-        })
-    )
-
-    marketing_campaign = forms.ModelChoiceField(
-        queryset=MarketingCampaign.objects.all(),
-        required=False,
-        label="Marketing Campaign",
-        widget=forms.Select(attrs={
-            'placeholder': 'Select Campaign'
         })
     )
 

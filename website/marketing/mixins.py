@@ -47,12 +47,9 @@ class CallTrackingMixin:
         
         call_tracking = CallTracking(
             call_tracking_number=phone_number,
-            date_assigned=now(),
-            date_expires=now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
             metadata=json.dumps(metadata.to_dict()),
             external_id=request.session.get('external_id')
         )
-
         call_tracking.save()
 
     def clean_up_expired_session(self, request):

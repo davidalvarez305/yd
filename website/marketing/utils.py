@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
 from .enums import ConversionServiceType, MarketingParams
-from core.models import MarketingCampaign
+from core.models import AdCampaign
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -132,7 +132,7 @@ class MarketingHelper:
         if not campaign_id or not self.platform_id:
             return None
 
-        campaign, _ = MarketingCampaign.objects.get_or_create(
+        campaign, _ = AdCampaign.objects.get_or_create(
             marketing_campaign_id=campaign_id,
             platform_id=self.platform_id,
             name=campaign_name,

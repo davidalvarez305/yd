@@ -6,9 +6,10 @@ from django.db import models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
-from django.db.models import Q, Sum
+from django.db.models import Q
 
 from marketing.enums import ConversionServiceType
+from website import settings
 from .utils import media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -572,17 +573,41 @@ AD_PLATFORMS = [
     (ConversionServiceType.FACEBOOK.value, "Facebook"),
 ]
 
-class MarketingCampaign(models.Model):
-    marketing_campaign_id = models.BigIntegerField()
+class AdCampaign(models.Model):
+    ad_campaign_id = models.BigIntegerField()
     name = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'ad_campaign'
+        unique_together = ('ad_campaign_id', 'platform_id')
+
+class AdGroup(models.Model):
+    ad_group_id = models.BigIntegerField()
+    name = models.TextField()
+    ad_campaign = models.ForeignKey(AdCampaign, related_name='ad_groups', db_column='ad_campaign_id', on_delete=models.RESTRICT)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'ad_group'
+        unique_together = ('ad_group_id', 'ad_campaign_id')
+
+class Ad(models.Model):
+    ad_id = models.BigIntegerField()
+    name = models.TextField()
+    ad_group = models.ForeignKey(AdGroup, related_name='ads', db_column='ad_group_id', on_delete=models.RESTRICT)
     platform_id = models.IntegerField(choices=AD_PLATFORMS)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'marketing_campaign'
-        unique_together = ('marketing_campaign_id', 'platform_id')
+        db_table = 'ad'
+        unique_together = ('ad_id', 'platform_id')
 
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
@@ -601,7 +626,7 @@ class LeadMarketing(models.Model):
     user_agent = models.CharField(max_length=255, null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
     instant_form_id = models.BigIntegerField(null=True)
-    marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, db_column='marketing_campaign_id', on_delete=models.RESTRICT)
+    ad = models.ForeignKey(Ad, null=True, db_column='ad_id', on_delete=models.RESTRICT)
 
     referred_by = models.ForeignKey(
         'self',
@@ -666,13 +691,17 @@ class CallTracking(models.Model):
         db_column='call_tracking_number_id',
         related_name='calls'
     )
-    date_assigned = models.DateTimeField()
+    date_assigned = models.DateTimeField(auto_now_add=True)
     date_expires = models.DateTimeField()
     metadata = models.JSONField(null=True)
     external_id = models.UUIDField(unique=True, db_index=True, editable=False)
 
     def __str__(self):
         return str(self.call_tracking_number)
+    
+    def save(self, *args, **kwargs):
+        self.date_expires = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
+        return super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'call_tracking'

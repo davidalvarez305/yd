@@ -1,8 +1,8 @@
 import logging
-from core.models import InternalLog
 
 class DatabaseLogHandler(logging.Handler):
     def emit(self, record):
+        from core.models import InternalLog
         try:
             log = InternalLog(
                 level=record.levelname,
