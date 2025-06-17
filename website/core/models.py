@@ -587,6 +587,14 @@ class LeadMarketing(models.Model):
     instant_form_id = models.BigIntegerField(null=True)
     marketing_campaign = models.ForeignKey(MarketingCampaign, null=True, db_column='marketing_campaign_id', on_delete=models.RESTRICT)
 
+    referred_by = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='referrals'
+    )
+
     def __str__(self):
         return f"Marketing info for Lead {self.lead.full_name}"
     
@@ -594,8 +602,10 @@ class LeadMarketing(models.Model):
         return bool(self.instant_form_lead_id)
     
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         super().save(*args, **kwargs)
-        Visit.objects.filter(external_id=self.external_id).update(lead_marketing=self)
+        if is_new:
+            Visit.objects.filter(external_id=self.external_id).update(lead_marketing=self)
 
     class Meta:
         db_table = 'lead_marketing'

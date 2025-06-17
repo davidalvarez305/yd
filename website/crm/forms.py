@@ -347,12 +347,31 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
+    referred_by = forms.ModelChoiceField(
+        queryset=Lead.objects.all(),
+        required=False,
+        label="Referred By",
+        widget=forms.Select(attrs={
+            'placeholder': 'Select Lead'
+        })
+    )
+
     class Meta:
         model = LeadMarketing
         fields = [
-            'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
+            'lead', 'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
             'click_id', 'client_id', 'button_clicked', 'ip', 'instant_form_lead_id', 'instant_form_id', 'marketing_campaign'
         ]
+    
+    def clean_referred_by(self):
+        lead = self.cleaned_data.get('referred_by')
+        if lead is None:
+            return None
+
+        try:
+            return LeadMarketing.objects.get(lead=lead)
+        except LeadMarketing.DoesNotExist:
+            raise forms.ValidationError("The selected lead does not have marketing data.")
 
 class CallTrackingNumberForm(BaseModelForm):
     class Meta:
