@@ -5,9 +5,8 @@ from core.billing.base import BillingServiceInterface
 
 from django.urls import reverse
 from django.http import HttpResponse
-from django.utils.timezone import now
+from django.utils import timezone
 from django.core.files.base import ContentFile
-import logging
 
 from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
@@ -20,7 +19,7 @@ class StripeBillingService(BillingServiceInterface):
         self.api_key = api_key
         self.webhook_secret = webhook_secret
         self.alert = default_alert_handler
-        self.admins = User.objects.filter(is_superuser=True)
+        self.phone_numbers = [u.forward_phone_number for u in User.objects.filter(is_superuser=True)]
 
         stripe.api_key = self.api_key
 
@@ -50,6 +49,7 @@ class StripeBillingService(BillingServiceInterface):
     def _handle_checkout_completed(self, session):
         session_id = session.get('id')
         external_id = session.get('metadata', {}).get('external_id')
+        now = timezone.now()
 
         if not session_id or not external_id:
             return HttpResponse(status=400)
@@ -59,20 +59,23 @@ class StripeBillingService(BillingServiceInterface):
             return HttpResponse(status=404)
 
         if not invoice.date_paid:
-            invoice.date_paid = now()
+            invoice.date_paid = now
             invoice.save()
 
         if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
             if not Event.objects.filter(lead=invoice.quote.lead).exists():
                 Event.objects.create(
                     lead=invoice.quote.lead,
-                    date_paid=now(),
+                    date_paid=now,
                     amount=invoice.quote.amount(),
                     guests=invoice.quote.guests,
                 )
                 invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED)
 
-                for user in self.admins:
+                users_to_notify = self.phone_numbers
+                users_to_notify += invoice.quote.lead.phone_number
+
+                for phone_number in users_to_notify:
                     try:
                         text = "\n".join([
                             f"EVENT BOOKED:",
@@ -82,7 +85,7 @@ class StripeBillingService(BillingServiceInterface):
                         message = Message.objects.create(
                             text=text,
                             text_from=settings.COMPANY_PHONE_NUMBER,
-                            text_to=user.forward_phone_number,
+                            text_to=phone_number,
                             is_inbound=False,
                             status='sent',
                             is_read=True,
@@ -127,6 +130,9 @@ class StripeBillingService(BillingServiceInterface):
                         filename = f"{invoice.external_id}.html"
                         invoice.receipt.save(filename, ContentFile(response.content), save=True)
 
+                        users_to_notify = self.phone_numbers
+                        users_to_notify += invoice.quote.lead.phone_number
+
                         for user in self.admins:
                             message = Message.objects.create(
                                 text=f"RECEIPT: {invoice.receipt.url}",
@@ -141,9 +147,11 @@ class StripeBillingService(BillingServiceInterface):
                             message.save()
                 except Exception as e:
                     print(f"Receipt download failed: {e}")
+                    return HttpResponse(status=500)
 
         except Exception as e:
             print(f"Charge.updated processing failed: {e}")
+            return HttpResponse(status=500)
 
         return HttpResponse(status=200)
 
