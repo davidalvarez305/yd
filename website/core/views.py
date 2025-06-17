@@ -57,15 +57,14 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
         form = LeadForm()
 
         context.update({
-            "quote_form": form,
+            "form": form,
             "external_id": external_id,
             "visit_id": visit_id,
             "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
             "google_ads_id": settings.GOOGLE_ADS_ID,
             "google_ads_call_conversion_label": settings.GOOGLE_ADS_CALL_CONVERSION_LABEL,
             "facebook_dataset_id": settings.FACEBOOK_DATASET_ID,
-            "lead_event_name": settings.LEAD_EVENT_NAME,
-            "lead_generated_event_name": settings.LEAD_GENERATED_EVENT_NAME,
+            "event_name": 'generate_lead',
             "default_currency": settings.DEFAULT_CURRENCY,
             "default_lead_value": settings.DEFAULT_LEAD_VALUE,
             "yova_hero_image": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_hero.jpeg",

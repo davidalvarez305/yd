@@ -86,11 +86,12 @@ class VisitTrackingMixin:
                 external_id = str(uuid.uuid4())
                 request.session['external_id'] = external_id
 
+            lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
             visit = Visit.objects.create(
                 external_id=external_id,
                 referrer=referrer,
                 url=url,
-                lead_marketing=LeadMarketing.objects.filter(external_id=external_id).first()
+                lead_marketing=lead_marketing,
             )
 
             request.session['visit_id'] = visit.visit_id
