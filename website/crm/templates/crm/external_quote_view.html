@@ -100,9 +100,9 @@
             <div class="w-full flex flex-col sm:flex-row justify-center align-center py-4 gap-4">
                 {% for invoice in quote.invoices.all %}
                     {% with lead_id=quote.lead.pk invoice_id=invoice.pk %}
-                        {% if quote.amount > 0 %}
+                        {% if quote.total_due > 0.00 %}
                             {% if not quote.is_deposit_paid %}
-                                {% if not quote.is_within_week and invoice.invoice_type.type == 'DEPOSIT' %}
+                                {% if not quote.is_within_week and invoice.invoice_type.type == 'DEPOSIT' and invoice.amount > 0.00 %}
                                     <form
                                     hx-post="{% url 'initiate_checkout' %}?lead_id={{ quote.lead.pk }}&invoice_id={{ invoice.pk }}"
                                     hx-target-error="#alertModal" hx-ext="loading-states"
@@ -121,7 +121,7 @@
                                     </button>
                                 </form>
                                 {% endif %}
-                                {% if invoice.date_paid is None and invoice.invoice_type.type == 'FULL' %}
+                                {% if invoice.date_paid is None and invoice.invoice_type.type == 'FULL' and invoice.amount > 0.00 %}
                                 <form
                                 hx-post="{% url 'initiate_checkout' %}?lead_id={{ quote.lead.pk }}&invoice_id={{ invoice.pk }}"
                                 hx-target-error="#alertModal" hx-ext="loading-states"
@@ -142,7 +142,7 @@
                                     </button>
                                 </form>
                                 {% endif %}
-                            {% elif invoice.date_paid is None and invoice.invoice_type.type == 'REMAINING' %}
+                            {% elif invoice.date_paid is None and invoice.invoice_type.type == 'REMAINING' and invoice.amount > 0.00 %}
                                 <form
                                 hx-post="{% url 'initiate_checkout' %}?lead_id={{ quote.lead.pk }}&invoice_id={{ invoice.pk }}"
                                 hx-target-error="#alertModal" hx-ext="loading-states"
