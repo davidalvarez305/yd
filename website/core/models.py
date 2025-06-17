@@ -419,7 +419,13 @@ class Invoice(models.Model):
         if self.pk:
             invoice = Invoice.objects.get(pk=self.pk)
             if invoice.date_paid is not None:
-                raise Exception("Invoice cannot be modified because it has already been paid.")
+                changed_fields = {
+                    field.name: getattr(self, field.name)
+                    for field in self._meta.fields
+                    if field.name != 'receipt' and getattr(self, field.name) != getattr(invoice, field.name)
+                }
+                if changed_fields:
+                    raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.")
         super().save(*args, **kwargs)
 
 class LeadNote(models.Model):
