@@ -320,9 +320,14 @@ class Quote(models.Model):
         ])
     
     def save(self, *args, **kwargs):
+        from crm.utils import create_quote_due_date
         if self.pk:
             if self.is_paid_off():
                 raise Exception('Quote cannot be modified if it is already paid off.')
+            
+            # Update invoice due dates if quote date changes
+            for invoice in self.invoices.all():
+                invoice.due_date = create_quote_due_date(event_date=self.event_date)
         
         return super().save(*args, **kwargs)
     
