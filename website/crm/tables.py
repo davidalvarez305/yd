@@ -223,6 +223,22 @@ class EventStaffTable(Table):
         exclude=['event_staff_id', 'event', 'start_time', 'end_time']
         pk = 'event_staff_id'
 
+class EventStaffTableExternal(Table):
+    assigned_staff = TableField(
+        name='assigned_staff',
+        label='Assigned Time',
+        cell_widget=TableCellWidget(
+            data = {
+                'value': lambda row: f"{row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
+            }
+        )
+    )
+
+    class Meta:
+        model = EventStaff
+        exclude=['event_staff_id', 'event', 'start_time', 'end_time', 'hourly_rate']
+        pk = 'event_staff_id'
+
 class CocktailIngredientTable(Table):
     qty = TableField(
         name='qty',
