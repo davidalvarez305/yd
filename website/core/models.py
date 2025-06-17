@@ -990,3 +990,23 @@ class FacebookAccessToken(models.Model):
     
     class Meta:
         db_table = 'facebook_access_token'
+
+class InternalLog(models.Model):
+    LEVEL_CHOICES = [
+        ('DEBUG', 'Debug'),
+        ('INFO', 'Info'),
+        ('WARNING', 'Warning'),
+        ('ERROR', 'Error'),
+        ('CRITICAL', 'Critical'),
+    ]
+
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
+    message = models.TextField()
+    logger = models.CharField(max_length=255)
+    date_created = models.DateTimeField(default=timezone.now)
+    pathname = models.TextField(null=True)
+    lineno = models.IntegerField(null=True)
+    exception = models.TextField(null=True)
+
+    def __str__(self):
+        return f"[{self.date_created}] {self.level} - {self.message[:50]}"

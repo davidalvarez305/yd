@@ -264,3 +264,32 @@ CONVERSION_SERVICES = {
 }
 
 CALL_TRACKING_EXPIRATION_LIMIT = 10.00
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'handlers': {
+        'db': {
+            'level': 'INFO',
+            'class': 'core.logs.handler.DatabaseLogHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'db'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'internal': {
+            'handlers': ['console', 'db'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
+}
