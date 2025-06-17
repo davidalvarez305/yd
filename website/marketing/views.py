@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import Lead, LeadMarketing, LeadStatusEnum, MarketingCampaign
+from core.models import Lead, LeadMarketing, LeadStatusEnum
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.facebook.api import FacebookAPIService

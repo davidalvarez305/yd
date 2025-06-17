@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
 from .enums import ConversionServiceType, MarketingParams
-from core.models import AdCampaign
+from core.models import Ad, AdCampaign, AdGroup
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -31,19 +31,19 @@ class MarketingHelper:
         self.platform_id = marketing_params.get('platform_id')
         self.client_id = marketing_params.get('client_id')
 
-        self.marketing_campaign = self.get_or_create_marketing_campaign()
+        self.ad = self.get_ad()
     
     def to_dict(self):
-        exclude = {'request', 'marketing_campaign'}
+        exclude = {'request', 'ad'}
         data = {
             key: value
             for key, value in self.__dict__.items()
             if key not in exclude
         }
 
-        if self.marketing_campaign:
-            data['marketing_campaign_id'] = self.marketing_campaign.marketing_campaign_id
-            data['marketing_campaign_name'] = self.marketing_campaign.name
+        if self.ad:
+            data['ad_id'] = self.ad.ad_id
+            data['ad_name'] = self.ad.name
 
         return data
 
@@ -122,22 +122,47 @@ class MarketingHelper:
 
         return "other"
 
-    def get_or_create_marketing_campaign(self):
+    def get_or_create_ad(self):
         """
-        Fetches or creates a marketing campaign based on URL parameters.
+        Fetches or creates an ad based on URL parameters.
         """
-        campaign_id = self.params.get("campaign_id")
-        campaign_name = self.params.get("ad_campaign")
+        ad_id = self.params.get("ad_id")
+        ad_name = self.params.get("ad_name")
 
-        if not campaign_id or not self.platform_id:
+        ad_group_id = self.params.get("ad_group_id")
+        ad_group_name = self.params.get("ad_group_name")
+
+        ad_campaign_id = self.params.get("ad_campaign_id")
+        ad_campaign_name = self.params.get("ad_campaign_name")
+
+        if not ad_id or not self.platform_id:
             return None
-
-        campaign, _ = AdCampaign.objects.get_or_create(
-            marketing_campaign_id=campaign_id,
-            platform_id=self.platform_id,
-            name=campaign_name,
+        
+        ad_campaign, _ = AdCampaign.objects.get_or_create(
+            ad_campaign_id=ad_campaign_id,
+            defaults={
+                'name': ad_campaign_name,
+            }
         )
-        return campaign
+
+        ad_group, _ = AdGroup.objects.get_or_create(
+            ad_group_id=ad_group_id,
+            defaults={
+                'name': ad_group_name,
+                'ad_campaign': ad_campaign,
+            }
+        )
+
+        ad, _ = Ad.objects.get_or_create(
+            ad_id=ad_id,
+            defaults={
+                'platform_id': self.platform_id,
+                'name': ad_name,
+                'ad_group': ad_group,
+            }
+        )
+        
+        return ad
 
     def _get_marketing_params(self) -> dict:
         """

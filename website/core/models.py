@@ -582,7 +582,6 @@ class AdCampaign(models.Model):
 
     class Meta:
         db_table = 'ad_campaign'
-        unique_together = ('ad_campaign_id', 'platform_id')
 
 class AdGroup(models.Model):
     ad_group_id = models.BigIntegerField()

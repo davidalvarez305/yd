@@ -350,8 +350,10 @@ class LeadMarketingForm(BaseModelForm):
     class Meta:
         model = LeadMarketing
         fields = [
-            'lead', 'source', 'medium', 'channel', 'landing_page', 'keyword', 'referrer',
-            'click_id', 'client_id', 'button_clicked', 'ip', 'instant_form_lead_id', 'instant_form_id', 'marketing_campaign'
+            'lead', 'source', 'medium', 'channel',
+            'landing_page', 'keyword', 'referrer',
+            'click_id', 'client_id', 'button_clicked',
+            'ip', 'instant_form_lead_id', 'instant_form_id'
         ]
     
     def clean_referred_by(self):
