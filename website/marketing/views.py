@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import Lead, LeadMarketing, LeadStatusEnum
+from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadStatusEnum
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.facebook.api import FacebookAPIService
@@ -42,6 +42,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                 return HttpResponse('Invalid signature', status=403)
 
             payload = json.loads(request.body)
+            print('payload: ', payload)
             entries = []
 
             for entry in payload.get('entry', []):
@@ -84,14 +85,28 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                         )
 
                         if not data.get('is_organic'):
-                            campaign, _ = MarketingCampaign.objects.get_or_create(
-                                marketing_campaign_id=data.get('campaign_id'),
+                            ad_campaign, _ = AdCampaign.objects.get_or_create(
+                                ad_campaign_id=data.get('campaign_id'),
                                 defaults={
                                     'name': data.get('campaign_name'),
-                                    'platform_id': ConversionServiceType.FACEBOOK.value,
                                 }
                             )
-                            marketing.marketing_campaign = campaign
+                            ad_group, _ = AdGroup.objects.get_or_create(
+                                ad_group_id=data.get('adset_id'),
+                                defaults={
+                                    'name': data.get('adset_name'),
+                                    'ad_campaign': ad_campaign,
+                                }
+                            )
+                            ad, _ = Ad.objects.get_or_create(
+                                ad_id=data.get('ad_id'),
+                                defaults={
+                                    'name': data.get('ad_name'),
+                                    'platform_id': ConversionServiceType.FACEBOOK.value,
+                                    'ad_group': ad_group,
+                                }
+                            )
+                            marketing.ad = ad
                             marketing.save()
 
                         lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)

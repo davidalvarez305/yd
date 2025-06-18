@@ -597,7 +597,7 @@ class AdGroup(models.Model):
 
 class Ad(models.Model):
     ad_id = models.BigIntegerField()
-    name = models.TextField()
+    name = models.TextField(blank=True, null=True)
     ad_group = models.ForeignKey(AdGroup, related_name='ads', db_column='ad_group_id', on_delete=models.RESTRICT)
     platform_id = models.IntegerField(choices=AD_PLATFORMS)
 

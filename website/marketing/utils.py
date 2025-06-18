@@ -31,7 +31,7 @@ class MarketingHelper:
         self.platform_id = marketing_params.get('platform_id')
         self.client_id = marketing_params.get('client_id')
 
-        self.ad = self.get_ad()
+        self.ad = self.get_or_create_ad()
     
     def to_dict(self):
         exclude = {'request', 'ad'}
@@ -44,6 +44,10 @@ class MarketingHelper:
         if self.ad:
             data['ad_id'] = self.ad.ad_id
             data['ad_name'] = self.ad.name
+            data['ad_group_id'] = self.ad.adgroup.ad_group_id
+            data['ad_group_name'] = self.ad.adgroup.ad_group_name
+            data['ad_campaign_id'] = self.ad.adgroup.ad_campaign.ad_campaign_id
+            data['ad_campaign_name'] = self.ad.adgroup.ad_campaign.ad_campaign_name
 
         return data
 
@@ -177,19 +181,19 @@ class MarketingHelper:
         for key in MarketingParams.GoogleURLClickIDKeys.value:
             click_id = self.params.get(key)
             if click_id:
-                platform_id = ConversionServiceType.GOOGLE.value
+                platform_id = ConversionServiceType.GOOGLE
                 break
 
         if not click_id:
             fbclid = self.params.get(MarketingParams.FacebookURLClickID.value, None)
             if fbclid:
                 click_id = fbclid
-                platform_id = ConversionServiceType.FACEBOOK.value
+                platform_id = ConversionServiceType.FACEBOOK
 
         # Step 2: Extract `client_id` from cookies based on `platform_id`
-        if platform_id == ConversionServiceType.GOOGLE.value:
+        if platform_id == ConversionServiceType.GOOGLE:
             client_id = self.request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
-        elif platform_id == ConversionServiceType.FACEBOOK.value:
+        elif platform_id == ConversionServiceType.FACEBOOK:
             client_id = self.request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
 
         # Step 3: Return the extracted values
