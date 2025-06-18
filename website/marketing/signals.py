@@ -3,7 +3,7 @@ from django.db.models.signals import Signal
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import Lead, LeadStatusHistory
+from core.models import Ad, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
@@ -13,7 +13,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
     """
-    from core.models import LeadMarketing, LeadStatusEnum, MarketingCampaign, PhoneCall, CallTracking
+    from core.models import LeadMarketing, LeadStatusEnum, AdCampaign, PhoneCall, CallTracking
     lead_marketing = LeadMarketing.objects.filter(lead=instance).first()
 
     if not lead_marketing:
@@ -101,18 +101,9 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     if not tracking_call:
         return
     
+    model_fields = {f.name for f in LeadMarketing._meta.fields}
     for key, value in tracking_call.metadata.items():
-        if hasattr(lead_marketing, key):
+        if key in model_fields:
             setattr(lead_marketing, key, value)
-
-    campaign_id = tracking_call.metadata.get('marketing_campaign_id')
-    campaign_name = tracking_call.metadata.get('marketing_campaign_name')
-
-    if campaign_id and campaign_name:
-        campaign, _ = MarketingCampaign.objects.get_or_create(
-            marketing_campaign_id=campaign_id,
-            defaults={'name': campaign_name}
-        )
-        lead_marketing.marketing_campaign = campaign
 
     lead_marketing.save()
