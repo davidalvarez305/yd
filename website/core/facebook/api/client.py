@@ -5,6 +5,7 @@ from django.utils.timezone import now
 
 from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
+from core.logs import logger
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str):
@@ -14,44 +15,49 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         self.app_secret = app_secret
 
     def get_lead_data(self, lead):
-        leadgen_id = lead.get('leadgen_id')
+        try:
+            leadgen_id = lead.get('leadgen_id')
 
-        if not leadgen_id:
-            raise ValueError('leadgen_id cannot be missing from entry.')
-        
-        if self.page_access_token.refresh_needed:
-            self._refresh_access_token()
+            if not leadgen_id:
+                raise ValueError('leadgen_id cannot be missing from entry.')
+            
+            if self.page_access_token.refresh_needed:
+                self._refresh_access_token()
 
-        url = f'https://graph.facebook.com/{self.api_version}/{leadgen_id}'
-        params = {
-            'access_token': self.page_access_token.access_token,
-            'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
-        }
+            url = f'https://graph.facebook.com/{self.api_version}/{leadgen_id}'
+            params = {
+                'access_token': self.page_access_token.access_token,
+                'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
+            }
 
-        response = requests.get(url, params=params)
-        
-        if response.status_code != 200:
-            raise Exception(f'Failed to retrieve Facebook lead. Status {response.status_code}: {response.text}')
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            if response.status_code != 200:
+                logger.error(e)
+                raise Exception(f'Failed to retrieve Facebook lead.')
 
-        data = response.json()
-        fields = data.get('field_data')
-        
-        if not fields:
-            raise Exception('Incorrectly formatted response: missing field_data.')
+            data = response.json()
+            fields = data.get('field_data')
+            
+            if not fields:
+                raise Exception('Incorrectly formatted response: missing field_data.')
 
-        entry = lead.copy()
+            entry = lead.copy()
 
-        for field in fields:
-            name = field.get('name')
-            value = field.get('values', [None])[0]
-            if name and value and not entry.get(name):
-                entry[name] = value
+            for field in fields:
+                name = field.get('name')
+                value = field.get('values', [None])[0]
+                if name and value and not entry.get(name):
+                    entry[name] = value
 
-        for key in ['campaign_id', 'campaign_name', 'ad_id', 'ad_name', 'form_id', 'adset_id', 'adset_name', 'created_time', 'is_organic', 'platform']:
-            if key in data:
-                entry[key] = data[key]
+            for key in ['campaign_id', 'campaign_name', 'ad_id', 'ad_name', 'form_id', 'adset_id', 'adset_name', 'created_time', 'is_organic', 'platform']:
+                if key in data:
+                    entry[key] = data[key]
 
-        return entry
+            return entry
+        except Exception as e:
+            logger.error(e)
+            raise Exception('Error while getting lead data from Facebook.')
 
     def _refresh_access_token(self):
         """
@@ -69,6 +75,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             response = requests.get('https://graph.facebook.com/oauth/access_token', params=params)
             response.raise_for_status()
         except requests.RequestException as e:
+            logger.error(e)
             raise Exception('Error during request.')
 
         data = response.json()
