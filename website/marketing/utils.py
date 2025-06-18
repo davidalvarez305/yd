@@ -181,14 +181,14 @@ class MarketingHelper:
         for key in MarketingParams.GoogleURLClickIDKeys.value:
             click_id = self.params.get(key)
             if click_id:
-                platform_id = ConversionServiceType.GOOGLE
+                platform_id = ConversionServiceType.GOOGLE.value
                 break
 
         if not click_id:
             fbclid = self.params.get(MarketingParams.FacebookURLClickID.value, None)
             if fbclid:
                 click_id = fbclid
-                platform_id = ConversionServiceType.FACEBOOK
+                platform_id = ConversionServiceType.FACEBOOK.value
 
         # Step 2: Extract `client_id` from cookies based on `platform_id`
         if platform_id == ConversionServiceType.GOOGLE:
