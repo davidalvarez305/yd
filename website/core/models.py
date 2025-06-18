@@ -680,7 +680,7 @@ class CallTrackingNumber(models.Model):
         return self.phone_number
 
     class Meta:
-        db_table = 'phone_number'
+        db_table = 'call_tracking_number'
 
 class CallTracking(models.Model):
     call_tracking_id = models.AutoField(primary_key=True)
@@ -699,7 +699,7 @@ class CallTracking(models.Model):
         return str(self.call_tracking_number)
     
     def save(self, *args, **kwargs):
-        self.date_expires = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT),
+        self.date_expires = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT)
         return super().save(*args, **kwargs)
 
     class Meta:
@@ -1038,3 +1038,6 @@ class InternalLog(models.Model):
 
     def __str__(self):
         return f"[{self.date_created}] {self.level} - {self.message[:50]}"
+    
+    class Meta:
+        db_table = 'internal_log'

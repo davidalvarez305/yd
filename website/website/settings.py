@@ -271,7 +271,7 @@ LOGGING = {
 
     'handlers': {
         'db': {
-            'level': 'INFO',
+            'level': 'ERROR',
             'class': 'core.logs.handler.DatabaseLogHandler',
         },
         'console': {

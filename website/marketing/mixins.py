@@ -1,6 +1,8 @@
+from datetime import datetime
 import json
 import uuid
 import random
+import logging
 
 from django.http import HttpRequest
 from django.utils.timezone import now, timedelta
@@ -13,6 +15,8 @@ from .utils import MarketingHelper
 from .enums import MarketingParams
 
 tracking_number = MarketingParams.CallTrackingNumberSessionValue.value
+
+logger = logging.getLogger('internal')
 
 class CallTrackingMixin:
     def dispatch(self, request: HttpRequest, *args, **kwargs):
@@ -28,29 +32,34 @@ class CallTrackingMixin:
         return super().dispatch(request, *args, **kwargs)
 
     def track_call(self, request: HttpRequest):
-        tracking_numbers = CallTrackingNumber.objects.all()
+        try:
+            tracking_numbers = CallTrackingNumber.objects.all()
 
-        data = {
-            'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
-            'timestamp': now().isoformat(),
-        }
+            data = {
+                'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
+                'timestamp': now().isoformat(),
+            }
 
-        if len(tracking_numbers) == 0:
-            return
+            if len(tracking_numbers) == 0:
+                return
 
-        phone_number = random.choice(tracking_numbers)
+            call_tracking_number = random.choice(tracking_numbers)
 
-        data['call_tracking_number'] = phone_number.call_tracking_number
-        request.session[tracking_number] = data
+            data['call_tracking_number'] = call_tracking_number.phone_number
+            request.session[tracking_number] = data
 
-        metadata = MarketingHelper(request)
-        
-        call_tracking = CallTracking(
-            call_tracking_number=phone_number,
-            metadata=json.dumps(metadata.to_dict()),
-            external_id=request.session.get('external_id')
-        )
-        call_tracking.save()
+            metadata = MarketingHelper(request)
+            
+            call_tracking = CallTracking(
+                call_tracking_number=call_tracking_number,
+                metadata=json.dumps(metadata.to_dict()),
+                external_id=request.session.get('external_id')
+            )
+            call_tracking.save()
+        except Exception as e:
+            logger.error(e)
+            raise Exception('Error during tracking call.')
+
 
     def clean_up_expired_session(self, request):
         data = request.session.get(tracking_number, None)
@@ -62,7 +71,13 @@ class CallTrackingMixin:
         if not session_time:
             return
         
-        timestamp = parse_datetime(session_time)
+        if isinstance(session_time, str):
+            timestamp = parse_datetime(session_time)
+        elif isinstance(session_time, datetime):
+            timestamp = session_time
+        else:
+            return
+
         if not timestamp:
             return
         
