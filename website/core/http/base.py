@@ -1,8 +1,8 @@
 import time
 import requests
 from datetime import datetime, date
-from requests.exceptions import RequestException
 from core.models import HTTPLog
+from core.logs import logger
 
 class BaseHttpClient:
     def request(self, method, url, payload=None, headers=None, params=None, **kwargs):
@@ -54,6 +54,7 @@ class BaseHttpClient:
 
             log.save()
         except Exception as e:
+            logger.error(e)
             raise Exception('Failed to save HTTP log to DB.')
 
     def _safe_serialize(self, value):
