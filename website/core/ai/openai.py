@@ -2,7 +2,6 @@ import os
 from openai import OpenAI
 import traceback
 from website import settings
-from core.models import Lead, LeadNote, User
 from .base import AIAgentServiceInterface
 
 client = OpenAI(

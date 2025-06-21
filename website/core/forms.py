@@ -186,10 +186,6 @@ class LeadForm(BaseModelForm):
             raise forms.ValidationError('Phone number field cannot be empty.')
 
         cleaned_phone_number = re.sub(r'\D', '', phone_number)
-        if len(cleaned_phone_number) == 10:
-            cleaned_phone_number = f'+1{cleaned_phone_number}'
-        elif len(cleaned_phone_number) == 11 and cleaned_phone_number.startswith('1'):
-            cleaned_phone_number = f'+{cleaned_phone_number}'
 
         if not re.match(r'^\+1\d{10}$', cleaned_phone_number):
             raise forms.ValidationError(

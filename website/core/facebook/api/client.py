@@ -5,7 +5,7 @@ from django.utils.timezone import now
 
 from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
-from website.core.logger import logger
+from core.logger import logger
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str):

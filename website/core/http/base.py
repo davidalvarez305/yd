@@ -2,7 +2,7 @@ import time
 import requests
 from datetime import datetime, date
 from core.models import HTTPLog
-from website.core.logger import logger
+from core.logger import logger
 
 class BaseHttpClient:
     def request(self, method, url, payload=None, headers=None, params=None, **kwargs):
