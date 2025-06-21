@@ -12,7 +12,9 @@
                             data-hx-post="{% url 'message_read' pk=message.pk %}"
                             data-hx-trigger="intersect once"
                             data-hx-include="[name='csrfmiddlewaretoken']"
+                            data-hx-target="#leadChatMessages"
                             data-hx-swap="outerHTML"
+                            data-hx-headers='{"X-Message-ID": "{{ message.pk }}", "X-Lead-ID": "{{ lead.pk }}", "X-Is-Read": "{{ message.is_read|yesno:"true,false" }}"}'
                             class="message relative max-w-full rounded-2xl rounded-bl-none bg-gray-100 px-3 py-2.5 text-sm sm:max-w-[80%] dark:bg-gray-700/50">
                             <p>{{ message.text }}</p>
                             {% if message.media.all %}
@@ -59,7 +61,9 @@
                             data-hx-post="{% url 'message_read' pk=message.pk %}"
                             data-hx-trigger="intersect once"
                             data-hx-include="[name='csrfmiddlewaretoken']"
+                            data-hx-target="#leadChatMessages"
                             data-hx-swap="outerHTML"
+                            data-hx-headers='{"X-Message-ID": "{{ message.pk }}", "X-Lead-ID": "{{ lead.pk }}", "X-Is-Read": "{{ message.is_read|yesno:"true,false" }}"}'
                             class="message relative max-w-full rounded-2xl rounded-br-none bg-primary-700 px-3 py-2.5 text-sm text-white sm:max-w-[80%]">
                             <p>{{ message.text }}</p>
                             {% if message.media.all %}
@@ -108,4 +112,8 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => scrollChatToBottom());
+</script>
+
+<script>
+  document.addEventListener("htmx:configRequest", (event) => event.target.dataset.isRead === "true" && event.preventDefault());
 </script>
