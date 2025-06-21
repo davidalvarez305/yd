@@ -5,7 +5,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormVi
 from django.views.generic import DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from django.utils.timezone import now
@@ -398,6 +398,22 @@ class MessageDetailView(CRMDetailTemplateView):
 class MessageUpdateView(CRMUpdateView):
     model = Message
     form_class = MessageForm
+
+class MessageReadView(CRMUpdateView):
+    model = Message
+
+    def get_form_class(self):
+        return None
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.is_read = True
+        self.object.save(update_fields=["is_read"])
+        
+        lead_id = request.POST.get('lead_id')
+        lead = Lead.objects.filter(pk=lead_id).first()
+
+        return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
 
 class PhoneCallListView(CRMTableView):
     model = PhoneCall

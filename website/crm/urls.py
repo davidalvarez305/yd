@@ -70,6 +70,7 @@ urlpatterns = [
     path('message/', views.MessageListView.as_view(), name='message_list'),
     path('message/<int:pk>/', views.MessageDetailView.as_view(), name='message_detail'),
     path('message/<int:pk>/edit/', views.MessageUpdateView.as_view(), name='message_update'),
+    path('message/<int:pk>/read/', views.MessageReadView.as_view(), name='message_read'),
     
     # Phone Call
     path('phone-call/', views.PhoneCallListView.as_view(), name='phonecall_list'),
