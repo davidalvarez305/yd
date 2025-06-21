@@ -22,7 +22,7 @@
 
     <!-- Chat Input -->
     <div class="bg-gray-50 px-5 py-4 text-sm text-gray-600 dark:bg-gray-700/50 dark:text-gray-400">
-        <form enctype="multipart/form-data" class="flex items-center gap-2"
+        <form enctype="multipart/form-data" class="flex items-center gap-2" id="chatForm"
             hx-post="{% url 'outbound_message' %}"
             data-loading-target="#sendMessageLoader"
             data-loading-class-remove="hidden"
@@ -30,7 +30,7 @@
             hx-target-error="#alertModal"
             hx-target="#leadChatMessages"
             hx-swap="outerHTML"
-            hx-on::after-request="if(event.detail.successful) this.reset()"
+            hx-on::after-request="if(event.detail.successful) displayAttachmentCount(0);"
         >
             {% csrf_token %}
             <div class="grow">
@@ -109,9 +109,9 @@
 <!-- Image & Video Input -->
 <script>
     document.addEventListener('DOMContentLoaded', function handleMediaInput() {
-        const fileAttachment = document.getElementById('fileAttachment');
         const fileCount = document.getElementById('fileCount');
         const messageMedia = document.getElementById('messageMedia');
+        const fileAttachment = document.getElementById('fileAttachment');
 
         function handleFileAttachment() {
             if (messageMedia) messageMedia.click();
@@ -119,22 +119,22 @@
 
         fileAttachment.addEventListener('click', () => handleFileAttachment());
 
-        messageMedia.addEventListener('change', (e) => {
-            const count = e.target.files.length;
+        messageMedia.addEventListener('change', (e) => displayAttachmentCount(e.target.files.length));
+    });
 
-            switch (count) {
-                case 0:
-                    fileCount.textContent = '';
-                    break;
-                case 1:
-                    fileCount.textContent = '1 file attached';
-                    break;
-                default:
-                    fileCount.textContent = `${count} files attached`;
-                    break;
-            }
-        });
-    })
+    function displayAttachmentCount(count) {
+        switch (count) {
+            case 0:
+                fileCount.textContent = '';
+                break;
+            case 1:
+                fileCount.textContent = '1 file attached';
+                break;
+            default:
+                fileCount.textContent = `${count} files attached`;
+                break;
+        }
+    }
 </script>
 <!-- END Image & Video Input -->
 
