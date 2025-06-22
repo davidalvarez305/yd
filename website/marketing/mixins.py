@@ -33,7 +33,10 @@ class CallTrackingMixin:
 
     def track_call(self, request: HttpRequest):
         try:
-            tracking_numbers = CallTrackingNumber.objects.all()
+            tracking_numbers = [
+                number for number in CallTrackingNumber.objects.all()
+                if number.is_free()
+            ]
 
             data = {
                 'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
@@ -59,7 +62,6 @@ class CallTrackingMixin:
         except Exception as e:
             logger.error(e)
             raise Exception('Error during tracking call.')
-
 
     def clean_up_expired_session(self, request):
         data = request.session.get(tracking_number, None)

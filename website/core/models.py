@@ -675,9 +675,13 @@ class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=15, unique=True)
     forward_phone_number = models.CharField(max_length=15)
+    date_expires = models.DateTimeField()
 
     def __str__(self):
         return self.phone_number
+    
+    def is_free(self):
+        return self.date_expires > timezone.now()
 
     class Meta:
         db_table = 'call_tracking_number'
@@ -699,7 +703,10 @@ class CallTracking(models.Model):
         return str(self.call_tracking_number)
     
     def save(self, *args, **kwargs):
-        self.date_expires = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT)
+        expiry = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT)
+        self.date_expires = expiry
+        self.call_tracking_number.date_expires = expiry
+        self.call_tracking_number.save()
         return super().save(*args, **kwargs)
 
     class Meta:
