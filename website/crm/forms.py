@@ -646,6 +646,12 @@ class QuoteServiceForm(BaseModelForm):
         return instance
 
 class QuotePresetForm(BaseModelForm):
+    services = forms.ModelMultipleChoiceField(
+        queryset=Service.objects.all(),
+        label="Seleccionar Paquetes",
+        widget=BoxedCheckboxSelectMultiple(),
+    )
+
     class Meta:
         model = QuotePreset
         fields = '__all__'
