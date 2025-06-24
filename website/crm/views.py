@@ -38,10 +38,6 @@ class CRMContextMixin:
             {
                 'view': 'event_list',
                 'name': 'Events'
-            },
-            {
-                'view': 'chat',
-                'name': 'Messages'
             }
         ]
 
