@@ -60,6 +60,21 @@ class BoxedCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
         context = super().get_context(name, value, attrs)
         context['widget']['option_template_name'] = self.option_template_name
         return context
+
+class ContainedCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    template_name = "components/contained_checkbox_multiple_select_widget.html"
+    option_template_name = "components/contained_checkbox_multiple_select_option.html"
+
+    def __init__(self, attrs=None):
+        default_attrs = {"class": "peer sr-only"}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+    
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['widget']['option_template_name'] = self.option_template_name
+        return context
     
 # Table Widgets
 class TableHeaderWidget:

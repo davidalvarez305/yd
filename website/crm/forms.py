@@ -12,7 +12,7 @@ from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, Filter
 from core.models import LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
-from core.widgets import BoxedCheckboxSelectMultiple
+from core.widgets import BoxedCheckboxSelectMultiple, ContainedCheckboxSelectMultiple
 from core.messaging import messaging_service
 from website import settings
 from core.utils import format_text_message
@@ -649,7 +649,7 @@ class QuotePresetForm(BaseModelForm):
     services = forms.ModelMultipleChoiceField(
         queryset=Service.objects.all(),
         label="Seleccionar Paquetes",
-        widget=BoxedCheckboxSelectMultiple(),
+        widget=ContainedCheckboxSelectMultiple(),
     )
 
     class Meta:

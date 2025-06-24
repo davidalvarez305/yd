@@ -1,0 +1,22 @@
+<label class="group relative flex">
+    <input type="{{ option.type }}" id="{{ option.id }}" value="{{ option.value }}" name="{{ option.name }}" class="peer absolute top-0 left-0 appearance-none opacity-0" />
+        <span class="absolute top-0 bottom-0 left-0 z-1 flex items-center px-2 text-primary-600 opacity-100 transition peer-checked:scale-50 peer-checked:opacity-0">
+        <span class="m-0.5 block size-4 rounded-full border border-gray-300 dark:border-gray-700"></span>
+    </span>
+    <span class="absolute top-0 bottom-0 left-0 z-1 flex scale-50 items-center px-2 text-primary-600 opacity-0 transition peer-checked:scale-100 peer-checked:opacity-100">
+        <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+        </svg>
+    </span>
+    <span class="absolute top-0 bottom-0 left-0 z-1 flex items-center px-2 text-primary-600 opacity-100 transition peer-checked:scale-50 peer-checked:opacity-0">
+        <span class="m-0.5 block size-4 rounded-full border border-gray-300 dark:border-gray-700"></span>
+    </span>
+    <span class="absolute top-0 bottom-0 left-0 z-1 flex scale-50 items-center px-2 text-primary-600 opacity-0 transition peer-checked:scale-100 peer-checked:opacity-100">
+        <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+        </svg>
+    </span>
+    <span class="relative flex grow items-center gap-2 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm font-medium group-hover:border-primary-500 peer-checked:border-primary-400 peer-checked:bg-primary-50 peer-focus:ring peer-focus:ring-primary-100 dark:border-gray-700 dark:group-hover:border-primary-600 dark:peer-checked:border-primary-600 dark:peer-checked:bg-primary-800/10 dark:peer-focus:ring-primary-900">
+        <span class="inline-block pl-6">{{ option.label }}</span>
+    </span>
+</label>
