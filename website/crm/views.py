@@ -29,6 +29,22 @@ from core.messaging import messaging_service
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        nav_links = [
+            {
+                'view': 'lead_list',
+                'name': 'Leads'
+            },
+            {
+                'view': 'event_list',
+                'name': 'Events'
+            },
+            {
+                'view': 'chat',
+                'name': 'Messages'
+            }
+        ]
+
         context.update({
             "page_title": settings.COMPANY_NAME,
             "meta_description": "YD Cocktails CRM",
@@ -39,6 +55,7 @@ class CRMContextMixin:
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
             "unread_messages": Message.objects.filter(is_read=False).count(),
+            "nav_links": nav_links,
         })
         context.setdefault('js_files', [])
         context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal/ModalHelper.js']
@@ -992,6 +1009,14 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, View):
             {
                 'view': 'quotepreset_list',
                 'name': 'Quote Presets',
+            },
+            {
+                'view': 'visit_list',
+                'name': 'Visits',
+            },
+            {
+                'view': 'log_list',
+                'name': 'Debug Logs',
             }
         ]
         context['settings'] = settings
