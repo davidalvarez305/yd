@@ -12,14 +12,14 @@ from django.db.models import F
 from django.utils.timezone import now
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, IngredientTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -1021,3 +1021,15 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, View):
         ]
         context['settings'] = settings
         return context
+
+class InternalLogListView(CRMTableView):
+    model = InternalLog
+    table_class = InternalLogTable
+
+class InternalLogDetailView(CRMDetailTemplateView):
+    model = InternalLog
+    form_class = InternalLogForm
+
+class InternalLogDeleteView(CRMDeleteView):
+    model = InternalLog
+    form_class = InternalLogForm

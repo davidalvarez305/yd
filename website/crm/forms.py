@@ -7,7 +7,7 @@ import re
 
 from django.urls import reverse
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -752,3 +752,8 @@ class QuickQuoteForm(BaseModelForm):
             'guests': forms.NumberInput(attrs={'id': 'guests'}),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
+
+class InternalLogForm(BaseModelForm):
+    class Meta:
+        model = InternalLog
+        fields = ['level', 'message', 'logger', 'pathname', 'lineno', 'exception']

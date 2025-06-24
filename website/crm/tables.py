@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, Message, PhoneCall, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, InternalLog, Message, PhoneCall, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButton, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -390,3 +390,18 @@ class QuotePresetTable(Table):
         model = QuotePreset
         exclude = ['quote_preset_id', 'preset', 'text_content', 'services']
         extra_fields = ['view', 'delete']
+
+class InternalLogTable(Table):
+    date_created = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    class Meta:
+        model = InternalLog
+        extra_fields = ['view']
+        exclude = ['logger']
