@@ -1,0 +1,28 @@
+{% extends 'crm/base.html' %}
+{% block content %}
+<div class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    <table class="min-w-full whitespace-nowrap align-middle text-sm">
+        <thead>
+            <tr>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">View</th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Page</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for setting in settings %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                <td class="p-3 text-center">
+                    <a href="{% url setting.view %}"
+                       class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                        View
+                    </a>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ setting.name }}</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

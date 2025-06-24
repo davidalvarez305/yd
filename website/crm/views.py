@@ -1,5 +1,6 @@
 from django.forms import ValidationError
 from django.http import HttpResponse
+from django.views import View
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView
@@ -952,4 +953,46 @@ class ExternalEventDetail(DetailView):
             'event_staff_table': EventStaffTableExternal(data=EventStaff.objects.filter(event=self.object)),
         })
 
+        return context
+
+class SettingsView(LoginRequiredMixin, CRMContextMixin, View):
+    template_name = 'crm/settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        settings = [
+            {
+                'view': 'calltrackingnumber_list',
+                'name': 'Call Tracking',
+            },
+            {
+                'view': 'cocktailingredient_create',
+                'name': 'Cocktail Ingredients',
+            },
+            {
+                'view': 'service_list',
+                'name': 'Services',
+            },
+            {
+                'view': 'user_list',
+                'name': 'Users',
+            },
+            {
+                'view': 'httplog_list',
+                'name': 'HTTP Logs',
+            },
+            {
+                'view': 'ingredient_list',
+                'name': 'Ingredients',
+            },
+            {
+                'view': 'storeitem_list',
+                'name': 'Store Items',
+            },
+            {
+                'view': 'quotepreset_list',
+                'name': 'Quote Presets',
+            }
+        ]
+        context['settings'] = settings
         return context

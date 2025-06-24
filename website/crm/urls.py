@@ -3,6 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Settings
+    path('settings', views.SettingsView.as_view(), name='settings'),
+
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),
     path('chat/messages/<int:pk>/', views.LeadChatMessagesView.as_view(), name='chat_messages'),
@@ -78,7 +81,7 @@ urlpatterns = [
     path('phone-call/<int:pk>/edit/', views.PhoneCallUpdateView.as_view(), name='phonecall_update'),
 
     # HTTP Logs
-    path('log', views.HTTPLogListView.as_view(), name='log'),
+    path('http-log', views.HTTPLogListView.as_view(), name='httplog_list'),
     
     # Visit
     path('visit/', views.VisitListView.as_view(), name='visit_list'),
