@@ -404,4 +404,4 @@ class InternalLogTable(Table):
     class Meta:
         model = InternalLog
         extra_fields = ['view']
-        exclude = ['logger']
+        exclude = ['logger', 'level']

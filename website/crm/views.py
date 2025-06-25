@@ -1,9 +1,7 @@
 from django.forms import ValidationError
 from django.http import HttpResponse
-from django.views import View
-from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
-from django.views.generic import DetailView
+from django.views.generic import DetailView, ListView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
@@ -972,7 +970,7 @@ class ExternalEventDetail(DetailView):
 
         return context
 
-class SettingsView(LoginRequiredMixin, CRMContextMixin, View):
+class SettingsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
     template_name = 'crm/settings.html'
 
     def get_context_data(self, **kwargs):
@@ -1015,16 +1013,27 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, View):
                 'name': 'Visits',
             },
             {
-                'view': 'log_list',
+                'view': 'internallog_list',
                 'name': 'Debug Logs',
             }
         ]
         context['settings'] = settings
         return context
-
+    
 class InternalLogListView(CRMTableView):
     model = InternalLog
     table_class = InternalLogTable
+
+    def get_queryset(self):
+        return super().get_queryset().order_by('-date_created')
+
+class InternalLogCreateView(CRMCreateTemplateView):
+    model = InternalLog
+    form_class = InternalLogForm
+
+class InternalLogUpdateView(CRMUpdateView):
+    model = InternalLog
+    form_class = InternalLogForm
 
 class InternalLogDetailView(CRMDetailTemplateView):
     model = InternalLog

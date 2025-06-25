@@ -136,4 +136,11 @@ urlpatterns = [
 
     # Quick Quote
     path('quick-quote/create/', views.QuickQuoteCreateView.as_view(), name='quickquote_create'),
+
+    # Internal Log
+    path('log/', views.InternalLogListView.as_view(), name='internallog_list'),
+    path('log/create/', views.InternalLogCreateView.as_view(), name='internallog_create'),
+    path('log/<int:pk>/', views.InternalLogDetailView.as_view(), name='internallog_detail'),
+    path('log/<int:pk>/edit/', views.InternalLogUpdateView.as_view(), name='internallog_update'),
+    path('log/<int:pk>/delete/', views.InternalLogDeleteView.as_view(), name='internallog_delete'),
 ]
