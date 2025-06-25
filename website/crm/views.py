@@ -446,10 +446,11 @@ class PhoneCallUpdateView(CRMUpdateView):
     model = PhoneCall
     form_class = PhoneCallForm
 
-class HTTPLogListView(CRMListView):
+class HTTPLogListView(CRMTableView):
     model = HTTPLog
     context_object_name = "logs"
     filter_form_class = HTTPLogFilterForm
+    show_add_button = False
 
 class CallTrackingNumberListView(CRMTableView):
     model = CallTrackingNumber
