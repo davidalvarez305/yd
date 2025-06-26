@@ -12,39 +12,50 @@ class GoogleReviewsService(ReviewsServiceInterface):
         self.service = build("mybusiness", "v4", credentials=Credentials(token=access_token))
 
     def sync_reviews(self):
-        request = self.service.accounts().locations().reviews().list(parent=f"accounts/{self.account_id}/locations/{self.location_id}").execute()
-        reviews = request.get("reviews", [])
+        request_params = {
+            "parent": f"accounts/{self.account_id}/locations/{self.location_id}"
+        }
 
-        for review in reviews:
-            external_id = review.get("reviewId")
+        while True:
+            request = self.service.accounts().locations().reviews().list(**request_params).execute()
+            reviews = request.get("reviews", [])
 
-            reviewer = review.get("reviewer", {})
-            display_name = reviewer.get("displayName")
-            profile_photo_url = reviewer.get("profilePhotoUrl")
+            for review in reviews:
+                external_id = review.get("reviewId")
 
-            comment = review.get("comment")
-            star_rating = review.get("starRating")
-            create_time = parse_datetime(review.get("createTime"))
-            update_time = parse_datetime(review.get("updateTime"))
+                reviewer = review.get("reviewer", {})
+                display_name = reviewer.get("displayName")
+                profile_photo_url = reviewer.get("profilePhotoUrl")
 
-            values = {
-                "external_id": external_id,
-                "reviewer_display_name": display_name,
-                "reviewer_profile_photo_url": profile_photo_url,
-                "star_rating": star_rating,
-                "comment": comment,
-                "create_time": create_time,
-                "update_time": update_time,
-                "location_id": self.location_id,
-            }
+                comment = review.get("comment")
+                star_rating = review.get("starRating")
+                create_time = parse_datetime(review.get("createTime"))
+                update_time = parse_datetime(review.get("updateTime"))
 
-            instance = GoogleReview.objects.filter(external_id=external_id).first()
-            if not instance:
-                GoogleReview.objects.create(**values)
-            elif self._review_has_changes(instance=instance, values=values):
-                for field, value in values.items():
-                    setattr(instance, field, value)
-                instance.save()
+                values = {
+                    "external_id": external_id,
+                    "reviewer_display_name": display_name,
+                    "reviewer_profile_photo_url": profile_photo_url,
+                    "star_rating": star_rating,
+                    "comment": comment,
+                    "create_time": create_time,
+                    "update_time": update_time,
+                    "location_id": self.location_id,
+                }
+
+                instance = GoogleReview.objects.filter(external_id=external_id).first()
+                if not instance:
+                    GoogleReview.objects.create(**values)
+                elif self._review_has_changes(instance, values):
+                    for field, value in values.items():
+                        setattr(instance, field, value)
+                    instance.save()
+
+            next_page_token = request.get("nextPageToken")
+            if not next_page_token:
+                break
+
+            request_params["pageToken"] = next_page_token
     
     def _review_has_changes(self, instance: GoogleReview, values: dict):
         return any(
