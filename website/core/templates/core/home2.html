@@ -1,189 +1,483 @@
 {% extends "core/base.html" %} {% load static %} {% block content %}
 <!-- Hero Content -->
-<div class="relative container mx-auto grid grid-cols-1 gap-16 px-4 py-8 text-center lg:grid-cols-2 lg:px-8 lg:text-left xl:max-w-7xl">
-  <div class="lg:flex lg:items-center">
-    <div>
-      <h1 class="mb-4 text-4xl font-black tracking-tight text-black xl:text-6xl dark:text-white">
-        The Bartending Service You've Been Missing
-      </h1>
-      <p class="text-lg leading-relaxed font-medium text-gray-700 dark:text-gray-300">
-        Rock your guests away with gorgeous looking & delicious cocktails with South Florida's premiere bartending service
-      </p>
-      <div
-        class="flex items-center justify-center gap-2 pt-5 pb-10 leading-4 lg:justify-start">
-        <div class="flex-none">
-          <img
-            src="https://cdn.tailkit.com/media/placeholders/avatar-iFgRcqHznqg-160x160.jpg"
-            alt="User Avatar"
-            class="inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-          <img
-            src="https://cdn.tailkit.com/media/placeholders/avatar-bY4GXQKfZrA-160x160.jpg"
-            alt="User Avatar"
-            class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-          <img
-            src="https://cdn.tailkit.com/media/placeholders/avatar-8PMvB4VyVXA-160x160.jpg"
-            alt="User Avatar"
-            class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-          <img
-            src="https://cdn.tailkit.com/media/placeholders/avatar-mEZ3PoFGs_k-160x160.jpg"
-            alt="User Avatar"
-            class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-          <img
-            src="https://cdn.tailkit.com/media/placeholders/avatar-euZ2n8dGUcQ-160x160.jpg"
-            alt="User Avatar"
-            class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-        </div>
-        <div class="text-left">
-          <div class="inline-flex items-center text-amber-500">
-            <svg
-              class="hi-mini hi-star inline-block size-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
-                clip-rule="evenodd" />
-            </svg>
-            <svg
-              class="hi-mini hi-star inline-block size-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
-                clip-rule="evenodd" />
-            </svg>
-            <svg
-              class="hi-mini hi-star inline-block size-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
-                clip-rule="evenodd" />
-            </svg>
-            <svg
-              class="hi-mini hi-star inline-block size-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
-                clip-rule="evenodd" />
-            </svg>
-            <svg
-              class="hi-mini hi-star inline-block size-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
-                clip-rule="evenodd" />
-            </svg>
-            <p class="ml-2 font-bold text-gray-950 dark:text-gray-50">{{ reviews.rating }}</p>
-          </div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Based on {{ reviews.count }} Google Reviews
-          </p>
-        </div>
-      </div>
-      <div
-        class="flex flex-col justify-center gap-3 sm:flex-row sm:items-center lg:justify-start">
-        <button type="button" name="heroDesktopCTA" data-modal-id="quoteModal"
-          class="openModal group inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-7 py-3.5 text-sm font-semibold text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
-          <span>Get A Free Quote For Your Rockstar Bartending Service</span>
-          <svg
-            class="hi-mini hi-arrow-right inline-block size-5 opacity-50 transition group-hover:translate-x-1"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true">
-            <path
-              fill-rule="evenodd"
-              d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
-              clip-rule="evenodd" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-  <div class="relative lg:flex lg:items-center lg:justify-center">
-    <div
-      class="absolute top-20 left-0 size-16 rounded-3xl bg-gradient-to-br from-gray-200 dark:from-gray-800"></div>
-    <div
-      class="absolute right-0 bottom-20 size-16 rotate-12 rounded-3xl bg-gradient-to-tl from-pink-200 dark:from-pink-900"></div>
-    <div
-      class="absolute top-0 right-0 size-16 -rotate-6 rounded-full bg-gradient-to-bl from-orange-200 dark:from-orange-800"></div>
-    <div
-      class="absolute bottom-0 left-0 size-16 rotate-12 rounded-full bg-gradient-to-tr from-sky-200 dark:from-sky-800"></div>
-    <div
-      class="absolute top-0 right-0 size-40 rounded-full border-2 border-orange-200 bg-white sm:size-72 dark:border-orange-900 dark:bg-gray-900"></div>
-    <div
-      class="absolute bottom-0 left-0 size-40 rounded-full border-2 border-sky-200 bg-white sm:size-72 dark:border-sky-900 dark:bg-gray-900"></div>
-    <div class="relative w-full">
-      <img
-        src="{% static 'files/yova_hero.png' %}"
-        class="aspect-square w-full object-cover"
-        alt="Hero Image" />
-    </div>
-  </div>
+<div
+	class="relative container mx-auto grid grid-cols-1 gap-16 px-4 py-8 text-center lg:grid-cols-2 lg:px-8 lg:text-left xl:max-w-7xl">
+	<div class="lg:flex lg:items-center">
+		<div>
+			<h1 class="mb-4 text-4xl font-black tracking-tight text-black xl:text-6xl dark:text-white">
+				The Bartending Service You've Been Missing
+			</h1>
+			<p class="text-lg leading-relaxed font-medium text-gray-700 dark:text-gray-300">
+				Rock your guests away with gorgeous looking & delicious cocktails with South Florida's premiere
+				bartending
+				service
+			</p>
+			<div class="flex items-center justify-center gap-2 pt-5 pb-10 leading-4 lg:justify-start">
+				<div class="flex-none">
+					<img src="https://cdn.tailkit.com/media/placeholders/avatar-iFgRcqHznqg-160x160.jpg"
+						alt="User Avatar"
+						class="inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
+					<img src="https://cdn.tailkit.com/media/placeholders/avatar-bY4GXQKfZrA-160x160.jpg"
+						alt="User Avatar"
+						class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
+					<img src="https://cdn.tailkit.com/media/placeholders/avatar-8PMvB4VyVXA-160x160.jpg"
+						alt="User Avatar"
+						class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
+					<img src="https://cdn.tailkit.com/media/placeholders/avatar-mEZ3PoFGs_k-160x160.jpg"
+						alt="User Avatar"
+						class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
+					<img src="https://cdn.tailkit.com/media/placeholders/avatar-euZ2n8dGUcQ-160x160.jpg"
+						alt="User Avatar"
+						class="-ml-6 inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
+				</div>
+				<div class="text-left">
+					<div class="inline-flex items-center text-amber-500">
+						<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+								clip-rule="evenodd" />
+						</svg>
+						<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+								clip-rule="evenodd" />
+						</svg>
+						<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+								clip-rule="evenodd" />
+						</svg>
+						<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+								clip-rule="evenodd" />
+						</svg>
+						<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+								clip-rule="evenodd" />
+						</svg>
+						<p class="ml-2 font-bold text-gray-950 dark:text-gray-50">{{ reviews.rating }}</p>
+					</div>
+					<p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+						Based on {{ reviews.count }} Google Reviews
+					</p>
+				</div>
+			</div>
+			<div class="flex flex-col justify-center gap-3 sm:flex-row sm:items-center lg:justify-start">
+				<button type="button" name="heroDesktopCTA" data-modal-id="quoteModal"
+					class="openModal group inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-7 py-3.5 text-sm font-semibold text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+					<span>Get A Free Quote For Your Rockstar Bartending Service</span>
+					<svg class="hi-mini hi-arrow-right inline-block size-5 opacity-50 transition group-hover:translate-x-1"
+						xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path fill-rule="evenodd"
+							d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+							clip-rule="evenodd" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class="relative lg:flex lg:items-center lg:justify-center">
+		<div class="absolute top-20 left-0 size-16 rounded-3xl bg-gradient-to-br from-gray-200 dark:from-gray-800">
+		</div>
+		<div
+			class="absolute right-0 bottom-20 size-16 rotate-12 rounded-3xl bg-gradient-to-tl from-pink-200 dark:from-pink-900">
+		</div>
+		<div
+			class="absolute top-0 right-0 size-16 -rotate-6 rounded-full bg-gradient-to-bl from-orange-200 dark:from-orange-800">
+		</div>
+		<div
+			class="absolute bottom-0 left-0 size-16 rotate-12 rounded-full bg-gradient-to-tr from-sky-200 dark:from-sky-800">
+		</div>
+		<div
+			class="absolute top-0 right-0 size-40 rounded-full border-2 border-orange-200 bg-white sm:size-72 dark:border-orange-900 dark:bg-gray-900">
+		</div>
+		<div
+			class="absolute bottom-0 left-0 size-40 rounded-full border-2 border-sky-200 bg-white sm:size-72 dark:border-sky-900 dark:bg-gray-900">
+		</div>
+		<div class="relative w-full">
+			<img src="{% static 'files/yova_hero.png' %}" class="aspect-square w-full object-cover" alt="Hero Image" />
+		</div>
+	</div>
 </div>
 <!-- END Hero Content -->
 <!-- Lead -->
 <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
-  <div class="container mx-auto space-y-8 px-4 py-8 lg:px-8 xl:max-w-7xl">
-    <div class="mx-auto max-w-3xl text-center">
-      <div class="mb-5 flex items-center justify-center">
-        <div class="inline-flex items-center gap-2 rounded-full bg-gray-100 py-1.5 pr-3 pl-1.5 text-sm font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          <span class="inline-flex items-center justify-center rounded-full bg-primary-700 px-2 py-1.5 text-xs leading-none font-medium text-white">
-            HOT!!!
-          </span>
-          <span>Book Your Mobile Service While It's Available</span>
-        </div>
-      </div>
-      <div>
-        <h2 class="mb-4 text-4xl font-black text-black lg:text-5xl dark:text-white">
-          Never Settle For Anything Less Than Show-Stopping Gorgeous Cocktails
-        </h2>
-        <p class="text-lg/relaxed font-medium text-gray-700 lg:text-xl/relaxed dark:text-gray-400">
-          We believe that your cocktails are a part of the show & they should be as beautiful as the rest of the event.
-        </p>
-      </div>
-    </div>
-  </div>
+	<div class="container mx-auto space-y-8 px-4 py-8 lg:px-8 xl:max-w-7xl">
+		<div class="mx-auto max-w-3xl text-center">
+			<div class="mb-5 flex items-center justify-center">
+				<div
+					class="inline-flex items-center gap-2 rounded-full bg-gray-100 py-1.5 pr-3 pl-1.5 text-sm font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+					<span
+						class="inline-flex items-center justify-center rounded-full bg-primary-700 px-2 py-1.5 text-xs leading-none font-medium text-white">
+						HOT!!!
+					</span>
+					<span>Book Your Mobile Service While It's Available</span>
+				</div>
+			</div>
+			<div>
+				<h2 class="mb-4 text-4xl font-black text-black lg:text-5xl dark:text-white">
+					Never Settle For Anything Less Than Show-Stopping Gorgeous Cocktails
+				</h2>
+				<p class="text-lg/relaxed font-medium text-gray-700 lg:text-xl/relaxed dark:text-gray-400">
+					We believe that your cocktails are a part of the show & they should be as beautiful as the rest of
+					the event.
+				</p>
+			</div>
+		</div>
+	</div>
 </div>
 <!-- END Lead -->
 <!-- Proof of Work -->
 <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
-    <div class="container mx-auto px-4 py-8 lg:px-8 xl:max-w-7xl">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {% for cocktail in cocktails %}
-            <div class="group relative block overflow-hidden transition ease-out active:opacity-75 sm:col-span-2 md:col-span-1">
-                <img
-                src="{{ cocktail.url }}"
-                alt="{{ cocktail.name }}"
-                class="transition ease-out group-hover:scale-110"
-                />
-                <div class="absolute inset-0 bg-black/25 transition ease-out group-hover:bg-black/0"></div>
-                <div class="absolute inset-0 flex items-end justify-center p-4">
-                    <div class="rounded-3xl bg-white/95 px-4 py-3 text-sm font-semibold tracking-wide uppercase transition ease-out group-hover:bg-primary-600 group-hover:text-white dark:border-gray-800 dark:bg-gray-900/90">
-                        {{ cocktail.name }}
-                    </div>
+	<div class="container mx-auto px-4 py-8 lg:px-8 xl:max-w-7xl">
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+			{% for cocktail in cocktails %}
+			<div
+				class="group relative block overflow-hidden transition ease-out active:opacity-75 sm:col-span-2 md:col-span-1">
+				<img src="{{ cocktail.url }}" alt="{{ cocktail.name }}"
+					class="transition ease-out group-hover:scale-110" />
+				<div class="absolute inset-0 bg-black/25 transition ease-out group-hover:bg-black/0"></div>
+				<div class="absolute inset-0 flex items-end justify-center p-4">
+					<div
+						class="rounded-3xl bg-white/95 px-4 py-3 text-sm font-semibold tracking-wide uppercase transition ease-out group-hover:bg-primary-600 group-hover:text-white dark:border-gray-800 dark:bg-gray-900/90">
+						{{ cocktail.name }}
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+<!-- END Proof of Work -->
+<!-- CTA -->
+<div class="bg-white dark:bg-gray-900">
+	<div class="container mx-auto px-4 py-16 lg:px-8 lg:py-32 xl:max-w-6xl">
+		<div class="relative overflow-hidden rounded-xl px-6 py-8 lg:px-12 lg:py-16">
+			<div class="absolute inset-0">
+				<img class="h-full w-full object-cover"
+					src="https://cdn.tailkit.com/media/placeholders/photo-IgUR1iX0mqM-1440x960.jpg"
+					alt="Two people working on a project" />
+			</div>
+			<div
+				class="absolute inset-0 bg-gray-900/90 from-gray-950 via-gray-950/75 to-transparent lg:bg-transparent lg:bg-gradient-to-r">
+			</div>
+			<div class="absolute -top-28 -left-14 size-40 rounded-full border border-white/25"></div>
+			<div class="absolute -top-20 -left-24 size-40 rounded-full border border-white/25"></div>
+			<div class="relative py-5 text-center lg:w-3/5 lg:text-left xl:w-1/2">
+				<!-- Heading -->
+				<div>
+					<h2 class="mb-2 text-3xl font-black text-white lg:text-4xl">
+						Turn Your Celebration Into An Unforgetteable Memory
+					</h2>
+					<p class="mb-7 text-lg text-gray-300">
+						Book your mobile bar & allow us to craft moments you'll talk about for years.
+					</p>
+				</div>
+				<!-- END Heading -->
+
+				<!-- Actions -->
+				<div class="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+					<a href="javascript:void(0)"
+						class="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-6 py-3 leading-6 font-semibold text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/90 active:border-primary-700 active:bg-primary-700">
+						<span>Give Me Prices for Mobile Bartending</span>
+						<svg class="hi-mini hi-arrow-right inline-block size-5 opacity-50"
+							xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+							aria-hidden="true">
+							<path fill-rule="evenodd"
+								d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+								clip-rule="evenodd" />
+						</svg>
+					</a>
+				</div>
+				<!-- END Actions -->
+			</div>
+		</div>
+	</div>
+</div>
+<!-- END CTA -->
+<!-- Reviews -->
+<div class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100">
+	<div class="container mx-auto px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+		<div class="mx-auto w-full max-w-4xl pb-3">
+			<div class="group relative overflow-hidden rounded-2xl bg-white focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-400/60 dark:bg-gray-800"
+				tabindex="0">
+				<div class="aspect-[3/4] w-full sm:aspect-[16/9]" role="region" aria-roledescription="carousel"
+					aria-label="Content Slider">
+					<!-- Slide -->
+					<div class="absolute inset-0 z-1 flex scale-100 flex-col justify-center px-6 pt-6 text-center opacity-100"
+						role="group" aria-roledescription="slide" aria-label="Content slide 1 of 3" aria-hidden="false">
+						<div>
+							<div
+								class="inline-flex items-center gap-1 rounded-lg bg-primary-100 px-2 py-1 text-primary-500 dark:bg-primary-900/50 dark:text-primary-400">
+								<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd"
+										d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+										clip-rule="evenodd"></path>
+								</svg>
+								<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd"
+										d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+										clip-rule="evenodd"></path>
+								</svg>
+								<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd"
+										d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+										clip-rule="evenodd"></path>
+								</svg>
+								<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd"
+										d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+										clip-rule="evenodd"></path>
+								</svg>
+								<svg class="hi-mini hi-star inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path fill-rule="evenodd"
+										d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z"
+										clip-rule="evenodd"></path>
+								</svg>
+							</div>
+							<blockquote class="mt-3">
+								<p
+									class="mx-auto mb-6 text-center text-base/relaxed font-bold sm:text-2xl/relaxed md:w-3/4 lg:w-2/3">
+									This product has completely transformed my workflow. I can't
+									imagine going back.
+								</p>
+								<footer>
+									<img src="https://cdn.tailkit.com/media/placeholders/avatar-iFgRcqHznqg-160x160.jpg"
+										class="mx-auto mb-3 block size-16 overflow-hidden rounded-full ring-4 ring-gray-100 dark:ring-gray-700/75"
+										alt="Alejandro Lee Photo" />
+									<div
+										class="mb-1 inline-block font-semibold transition hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-300">
+										Alejandro Lee
+									</div>
+									<div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+										Software Developer
+									</div>
+								</footer>
+							</blockquote>
+						</div>
+					</div>
+					<!-- END Slide -->
+				</div>
+				<button type="button"
+					class="group absolute top-1/2 left-2.5 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-gray-100 text-gray-500 backdrop-blur-sm transition duration-150 ease-out group-hover:opacity-100 hover:scale-110 hover:bg-gray-200 hover:text-gray-950 active:scale-100 active:bg-gray-100 sm:size-12 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-50 dark:active:bg-gray-700"
+					aria-label="Previous Slide">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+						class="hi-mini hi-chevron-left inline-block size-5">
+						<path fill-rule="evenodd"
+							d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+							clip-rule="evenodd" />
+					</svg>
+					<span class="sr-only">Previous</span>
+				</button>
+				<button type="button"
+					class="group absolute top-1/2 right-2.5 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-gray-100 text-gray-500 backdrop-blur-sm transition duration-150 ease-out group-hover:opacity-100 hover:scale-110 hover:bg-gray-200 hover:text-gray-950 active:scale-100 active:bg-gray-100 sm:size-12 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-50 dark:active:bg-gray-700"
+					aria-label="Next Slide">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+						class="hi-mini hi-chevron-right inline-block size-5">
+						<path fill-rule="evenodd"
+							d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+							clip-rule="evenodd" />
+					</svg>
+					<span class="sr-only">Next</span>
+				</button>
+			</div>
+			<div class="relative z-10 -mt-14 flex justify-center gap-3 py-2">
+				<div
+					class="inline-flex flex-wrap justify-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-2 dark:border-gray-600/40 dark:bg-gray-700/25">
+					<!-- Button Slide -->
+					<button type="button" class="size-2.5 rounded-full bg-gray-700 dark:bg-gray-200"></button>
+					<!-- END Button for Slide -->
+
+					<!-- Button for Slide 2 -->
+					<button type="button"
+						class="size-2.5 rounded-full bg-gray-300 ring-gray-200 hover:bg-gray-400 hover:ring-4 dark:bg-gray-700 dark:ring-gray-700 dark:hover:bg-gray-400"></button>
+					<!-- END Button for Slide 2 -->
+
+					<!-- Button for Slide 3 -->
+					<button type="button"
+						class="size-2.5 rounded-full bg-gray-300 ring-gray-200 hover:bg-gray-400 hover:ring-4 dark:bg-gray-700 dark:ring-gray-700 dark:hover:bg-gray-400"></button>
+					<!-- END Button for Slide 3 -->
+				</div>
+			</div>
+			<div class="mt-4 hidden justify-center gap-3 py-2">
+				<div
+					class="inline-flex flex-wrap justify-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-2 dark:border-gray-600/40 dark:bg-gray-700/25">
+					<!-- Button for Slide 1 (Active) -->
+					<button type="button" class="size-2.5 rounded-full bg-gray-700 dark:bg-gray-200"></button>
+					<!-- END Button for Slide 1 (Active) -->
+
+					<!-- Button for Slide 2 -->
+					<button type="button"
+						class="size-2.5 rounded-full bg-gray-300 ring-gray-200 hover:bg-gray-400 hover:ring-4 dark:bg-gray-700 dark:ring-gray-700 dark:hover:bg-gray-400"></button>
+					<!-- END Button for Slide 2 -->
+
+					<!-- Button for Slide 3 -->
+					<button type="button"
+						class="size-2.5 rounded-full bg-gray-300 ring-gray-200 hover:bg-gray-400 hover:ring-4 dark:bg-gray-700 dark:ring-gray-700 dark:hover:bg-gray-400"></button>
+					<!-- END Button for Slide 3 -->
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- END Reviews -->
+<!-- Social Proof -->
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+	<div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-32 xl:max-w-7xl">
+		<!-- Heading -->
+		<div class="text-center">
+			<h2 class="mb-2 text-4xl font-black text-black dark:text-white">
+				Meet
+				<span class="bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+					the people
+				</span>
+				behind the company
+			</h2>
+			<p class="mx-auto text-xl leading-relaxed font-medium text-gray-700 lg:w-2/3 dark:text-gray-300">
+				We are working nonstop behind the scenes to help you build better
+				products, web services and websites.
+			</p>
+		</div>
+		<!-- END Heading -->
+
+		<!-- Team -->
+		<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:gap-16 lg:grid-cols-4">
+			{% for picture in customer_pictures %}
+			<div class="group relative overflow-hidden">
+				<div
+					class="absolute inset-0 z-1 flex scale-125 items-center justify-center bg-black/75 p-4 text-white opacity-0 transition duration-150 ease-out group-hover:scale-100 group-hover:opacity-100">
+					<div class="text-center">
+						<h3 class="mb-0.5 text-xl font-bold">Irma Norton</h3>
+						<p class="mb-3 font-medium text-gray-300">Founder &amp; CEO</p>
+					</div>
+				</div>
+				<div class="absolute top-0 right-0 z-1 -mt-6 -mr-6 size-12 rotate-45 bg-white dark:bg-gray-900"></div>
+				<div class="absolute bottom-0 left-0 z-1 -mb-6 -ml-6 size-12 rotate-45 bg-white dark:bg-gray-900"></div>
+				<img src="https://cdn.tailkit.com/media/placeholders/avatar-nHoaFkrJEx4-600x800.jpg"
+					class="aspect-[3/4] w-full object-cover transition duration-150 ease-out group-hover:scale-110"
+					alt="User Avatar" />
+			</div>
+			{% endfor %}
+		</div>
+		<!-- END Team -->
+	</div>
+</div>
+<!-- END Social Proof -->
+<!-- Eight Reasons Why -->
+ <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
+        <div class="text-center">
+            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+                What's so unique about you?
+            </div>
+            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+                How we set ourselves apart
+            </h2>
+            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+                We strive to provide best-in-industry mobile bartending services.<br>
+                For us, it comes down to...<br>
+            </h3>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
+            {% for feature in features %}
+            <div class="flex items-center gap-3">
+                <div class="flex flex-none items-center justify-center text-emerald-500 dark:text-emerald-400">
+                    <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd" />
+                    </svg>
                 </div>
+                <h4 class="font-semibold">{{ feature }}</h4>
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
-<!-- END Proof of Work -->
+<!-- END Eight Reasons Why -->
+<!-- Steps: Circles -->
+<nav class="relative">
+  <div class="absolute top-0 right-0 left-0 flex h-10 items-center">
+    <div
+      class="flex h-1 w-full items-center overflow-hidden rounded-full bg-primary-100 dark:bg-primary-900"
+    >
+      <div
+        role="progressbar"
+        aria-valuenow="33.3"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        class="flex items-center justify-center self-stretch rounded-full bg-primary-600 text-xs font-medium text-white transition-all duration-500 ease-out"
+        style="width: 33.3%"
+      ></div>
+    </div>
+  </div>
+  <ol
+    class="relative flex items-center justify-between gap-2 md:gap-4"
+    role="list"
+  >
+    <li>
+      <a href="javascript:void(0)" class="group">
+        <div
+          class="flex size-10 items-center justify-center rounded-full bg-primary-600 font-semibold text-white group-hover:bg-primary-500 group-active:bg-primary-600"
+        >
+          <svg
+            class="hi-mini hi-check inline-block size-5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="javascript:void(0)" class="group">
+        <div
+          class="flex size-10 items-center justify-center rounded-full border-4 border-primary-600 bg-white font-semibold group-hover:border-primary-500 group-active:border-primary-600 dark:bg-gray-800 dark:text-white"
+        >
+          2
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="javascript:void(0)" class="group">
+        <div
+          class="flex size-10 items-center justify-center rounded-full bg-primary-100 font-semibold group-hover:bg-primary-200 group-active:bg-primary-100 dark:bg-primary-900 dark:text-white dark:group-hover:bg-primary-800 dark:group-active:bg-primary-900"
+        >
+          3
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="javascript:void(0)" class="group">
+        <div
+          class="flex size-10 items-center justify-center rounded-full bg-primary-100 font-semibold group-hover:bg-primary-200 group-active:bg-primary-100 dark:bg-primary-900 dark:text-white dark:group-hover:bg-primary-800 dark:group-active:bg-primary-900"
+        >
+          4
+        </div>
+      </a>
+    </li>
+  </ol>
+</nav>
+<!-- END How It Works -->
 {% endblock %}
