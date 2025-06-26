@@ -1048,3 +1048,24 @@ class InternalLog(models.Model):
     
     class Meta:
         db_table = 'internal_log'
+
+class GoogleReview(models.Model):
+    review_id = models.AutoField(primary_key=True)
+    external_id = models.CharField(max_length=255, unique=True)  # Google's review ID
+    reviewer_display_name = models.CharField(max_length=255, null=True, blank=True)
+    reviewer_profile_photo_url = models.URLField(null=True, blank=True)
+    star_rating = models.CharField(max_length=20)
+    comment = models.TextField(null=True, blank=True)
+    date_created = models.DateTimeField()
+    date_updated = models.DateTimeField()
+    location_id = models.CharField(max_length=255)  # Google Location ID
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["external_id"]),
+            models.Index(fields=["location_id"]),
+        ]
+        ordering = ["-date_created"]
+
+    def __str__(self):
+        return self.reviewer_display_name or 'Anonymous'
