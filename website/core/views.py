@@ -1,12 +1,12 @@
-from datetime import timedelta
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
 from django.utils import timezone
-from django.http import HttpResponseServerError, HttpResponse, Http404
+from django.http import HttpResponseServerError, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
+from django.core.files.storage import storages
 
 from website import settings
 
@@ -92,37 +92,22 @@ class HomeView(BaseWebsiteView):
         context = super().get_context_data(**kwargs)
         context['js_files'] += ['js/floatingHeader.js']
 
+        media_storage = storages['media']
+        cocktail_images = [
+            ('Raspberry Spritz', 'raspberry_spritz.png'),
+            ('Mojitos', 'mojitos.png'),
+            ('Mocktails', 'mocktails.png'),
+            ('Margarita', 'margarita.png'),
+            ('Margarita Tower', 'margarita_tower.png'),
+            ('Piña Colada', 'pina_colada.png'),
+        ]
+
         cocktails = [
             {
-                'name': 'Raspberry Spritz',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/raspberry_spritz.png',
-                'type': 'Spritz',
-            },
-            {
-                'name': 'Mojitos',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/mojitos.png',
-                'type': 'Mojitos',
-            },
-            {
-                'name': 'Mocktails',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/mocktails.png',
-                'type': 'Mocktails',
-            },
-            {
-                'name': 'Margarita',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/margarita.png',
-                'type': 'Margarita',
-            },
-            {
-                'name': 'Margarita Tower',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/margarita_tower.png',
-                'type': 'Margarita Tower',
-            },
-            {
-                'name': 'Piña Colada',
-                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/pina_colada.png',
-                'type': 'Piña Colada',
+                'name': name,
+                'url': media_storage.url(filename)
             }
+            for name, filename in cocktail_images
         ]
 
         features = [
