@@ -376,108 +376,152 @@
 </div>
 <!-- END Social Proof -->
 <!-- Eight Reasons Why -->
- <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
-    <div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
-        <div class="text-center">
-            <div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
-                What's so unique about you?
-            </div>
-            <h2 class="mb-4 text-4xl font-black text-black dark:text-white">
-                How we set ourselves apart
-            </h2>
-            <h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
-                We strive to provide best-in-industry mobile bartending services.<br>
-                For us, it comes down to...<br>
-            </h3>
-        </div>
+<div class="bg-white dark:bg-gray-900 dark:text-gray-100">
+	<div class="container mx-auto space-y-16 px-4 py-16 lg:px-8 lg:py-16 xl:max-w-7xl">
+		<div class="text-center">
+			<div class="mb-1 text-sm font-bold uppercase tracking-wider text-primary-600 dark:text-primary-500">
+				What's so unique about you?
+			</div>
+			<h2 class="mb-4 text-4xl font-black text-black dark:text-white">
+				How we set ourselves apart
+			</h2>
+			<h3 class="mx-auto text-xl font-medium leading-relaxed text-gray-700 dark:text-gray-300 lg:w-2/3">
+				We strive to provide best-in-industry mobile bartending services.<br>
+				For us, it comes down to...<br>
+			</h3>
+		</div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
-            {% for feature in features %}
-            <div class="flex items-center gap-3">
-                <div class="flex flex-none items-center justify-center text-emerald-500 dark:text-emerald-400">
-                    <svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <h4 class="font-semibold">{{ feature }}</h4>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
+			{% for feature in features %}
+			<div class="flex items-center gap-3">
+				<div class="flex flex-none items-center justify-center text-emerald-500 dark:text-emerald-400">
+					<svg class="hi-mini hi-check-circle inline-block size-5" xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+							clip-rule="evenodd" />
+					</svg>
+				</div>
+				<h4 class="font-semibold">{{ feature }}</h4>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
 </div>
 <!-- END Eight Reasons Why -->
-<!-- Steps: Circles -->
-<nav class="relative">
-  <div class="absolute top-0 right-0 left-0 flex h-10 items-center">
-    <div
-      class="flex h-1 w-full items-center overflow-hidden rounded-full bg-primary-100 dark:bg-primary-900"
-    >
-      <div
-        role="progressbar"
-        aria-valuenow="33.3"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        class="flex items-center justify-center self-stretch rounded-full bg-primary-600 text-xs font-medium text-white transition-all duration-500 ease-out"
-        style="width: 33.3%"
-      ></div>
-    </div>
-  </div>
-  <ol
-    class="relative flex items-center justify-between gap-2 md:gap-4"
-    role="list"
-  >
-    <li>
-      <a href="javascript:void(0)" class="group">
-        <div
-          class="flex size-10 items-center justify-center rounded-full bg-primary-600 font-semibold text-white group-hover:bg-primary-500 group-active:bg-primary-600"
-        >
-          <svg
-            class="hi-mini hi-check inline-block size-5"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="javascript:void(0)" class="group">
-        <div
-          class="flex size-10 items-center justify-center rounded-full border-4 border-primary-600 bg-white font-semibold group-hover:border-primary-500 group-active:border-primary-600 dark:bg-gray-800 dark:text-white"
-        >
-          2
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="javascript:void(0)" class="group">
-        <div
-          class="flex size-10 items-center justify-center rounded-full bg-primary-100 font-semibold group-hover:bg-primary-200 group-active:bg-primary-100 dark:bg-primary-900 dark:text-white dark:group-hover:bg-primary-800 dark:group-active:bg-primary-900"
-        >
-          3
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="javascript:void(0)" class="group">
-        <div
-          class="flex size-10 items-center justify-center rounded-full bg-primary-100 font-semibold group-hover:bg-primary-200 group-active:bg-primary-100 dark:bg-primary-900 dark:text-white dark:group-hover:bg-primary-800 dark:group-active:bg-primary-900"
-        >
-          4
-        </div>
-      </a>
-    </li>
-  </ol>
-</nav>
+<!-- How It Works -->
+<div class="relative py-5 dark:text-gray-100">
+	<div class="absolute top-0 bottom-0 left-0 flex w-10 flex-col justify-center md:w-12 lg:ml-40" aria-hidden="true">
+		<div
+			class="mx-auto h-2.5 w-1 grow-0 rounded-t bg-gradient-to-b from-transparent to-primary-100 dark:to-primary-900">
+		</div>
+		<div class="mx-auto w-1 grow bg-primary-100 dark:bg-primary-900"></div>
+		<div
+			class="mx-auto h-2.5 w-1 grow-0 rounded-b bg-gradient-to-t from-transparent to-primary-100 dark:to-primary-900">
+		</div>
+	</div>
+
+	<ul class="relative space-y-4 pl-10 md:pl-12 lg:ml-40">
+		<li class="relative">
+			<div class="absolute top-0 bottom-0 left-0 mt-5 flex w-10 -translate-x-full justify-center md:w-12">
+				<div
+					class="size-3 rounded-full bg-primary-500 ring ring-primary-100 ring-offset-2 dark:bg-primary-300 dark:ring-primary-900 dark:ring-offset-gray-900">
+				</div>
+			</div>
+			<div
+				class="rounded-xl bg-gray-100 p-4 hover:ring hover:ring-gray-100 hover:ring-offset-2 dark:bg-gray-800 dark:ring-offset-gray-900 dark:hover:ring-gray-700">
+				<h4 class="mb-2 font-semibold">3.0 update is now live!</h4>
+				<p class="text-sm leading-relaxed">
+					It's finally here are comes packed with many awesome features. Be sure
+					to
+					<a href="javascript:void(0)"
+						class="font-medium text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">download
+						it</a>
+					and let us know
+					<a href="javascript:void(0)"
+						class="font-medium text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">what
+						you think</a>!
+				</p>
+			</div>
+			<div
+				class="px-4 py-2 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:mt-4 lg:-ml-12 lg:flex lg:w-40 lg:-translate-x-full lg:flex-col lg:p-0 lg:text-right">
+				<p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+					February 01, 2023
+				</p>
+			</div>
+		</li>
+
+		<li class="relative">
+			<div class="absolute top-0 bottom-0 left-0 mt-5 flex w-10 -translate-x-full justify-center md:w-12">
+				<div
+					class="size-3 rounded-full bg-primary-500 ring ring-primary-100 ring-offset-2 dark:bg-primary-300 dark:ring-primary-900 dark:ring-offset-gray-900">
+				</div>
+			</div>
+			<div
+				class="rounded-xl bg-gray-100 p-4 hover:ring hover:ring-gray-100 hover:ring-offset-2 dark:bg-gray-800 dark:ring-offset-gray-900 dark:hover:ring-gray-700">
+				<h4 class="mb-2 font-semibold">Maintenance notice</h4>
+				<p class="text-sm leading-relaxed">
+					We are going to apply some security fixes next week. Please check out
+					the
+					<a href="javascript:void(0)"
+						class="font-medium text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">schedule</a>
+					for more information about any downtime.
+				</p>
+			</div>
+			<div
+				class="px-4 py-2 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:mt-4 lg:-ml-12 lg:flex lg:w-40 lg:-translate-x-full lg:flex-col lg:p-0 lg:text-right">
+				<p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+					January 22, 2023
+				</p>
+			</div>
+		</li>
+
+		<li class="relative">
+			<div class="absolute top-0 bottom-0 left-0 mt-5 flex w-10 -translate-x-full justify-center md:w-12">
+				<div
+					class="size-3 rounded-full bg-primary-500 ring ring-primary-100 ring-offset-2 dark:bg-primary-300 dark:ring-primary-900 dark:ring-offset-gray-900">
+				</div>
+			</div>
+			<div
+				class="rounded-xl bg-gray-100 p-4 hover:ring hover:ring-gray-100 hover:ring-offset-2 dark:bg-gray-800 dark:ring-offset-gray-900 dark:hover:ring-gray-700">
+				<h4 class="mb-2 font-semibold">We reached 3,500 paying users</h4>
+				<p class="text-sm leading-relaxed">
+					Thank you all so much for your support!
+				</p>
+			</div>
+			<div
+				class="px-4 py-2 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:mt-4 lg:-ml-12 lg:flex lg:w-40 lg:-translate-x-full lg:flex-col lg:p-0 lg:text-right">
+				<p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+					January 02, 2023
+				</p>
+			</div>
+		</li>
+
+		<li class="relative">
+			<div class="absolute top-0 bottom-0 left-0 mt-5 flex w-10 -translate-x-full justify-center md:w-12">
+				<div
+					class="size-3 rounded-full bg-primary-500 ring ring-primary-100 ring-offset-2 dark:bg-primary-300 dark:ring-primary-900 dark:ring-offset-gray-900">
+				</div>
+			</div>
+			<div
+				class="rounded-xl bg-gray-100 p-4 hover:ring hover:ring-gray-100 hover:ring-offset-2 dark:bg-gray-800 dark:ring-offset-gray-900 dark:hover:ring-gray-700">
+				<h4 class="mb-2 font-semibold">Beta registrations are now open</h4>
+				<p class="text-sm leading-relaxed">
+					We are going to be beta testing our 3.0 release. Be sure to
+					<a href="javascript:void(0)"
+						class="font-medium text-primary-600 hover:text-primary-400 dark:text-primary-400 dark:hover:text-primary-300">register</a>
+					for a chance to participate and check out all the new features before
+					everyone else.
+				</p>
+			</div>
+			<div
+				class="px-4 py-2 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:mt-4 lg:-ml-12 lg:flex lg:w-40 lg:-translate-x-full lg:flex-col lg:p-0 lg:text-right">
+				<p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+					December 20, 2022
+				</p>
+			</div>
+		</li>
+	</ul>
+</div>
 <!-- END How It Works -->
 {% endblock %}
