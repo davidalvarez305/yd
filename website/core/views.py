@@ -102,6 +102,26 @@ class HomeView(BaseWebsiteView):
                 'name': 'Mojitos',
                 'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/mojitos.png',
                 'type': 'Mojitos',
+            },
+            {
+                'name': 'Mocktails',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/mocktails.png',
+                'type': 'Mocktails',
+            },
+            {
+                'name': 'Margarita',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/margarita.png',
+                'type': 'Margarita',
+            },
+            {
+                'name': 'Margarita Tower',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/margarita_tower.png',
+                'type': 'Margarita Tower',
+            },
+            {
+                'name': 'Piña Colada',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/pina_colada.png',
+                'type': 'Piña Colada',
             }
         ]
 
