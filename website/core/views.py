@@ -13,7 +13,7 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 from .logger import logger
-from .models import Invoice, Lead, LeadMarketing, LeadStatusEnum
+from .models import GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
 from .utils import is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -118,11 +118,8 @@ class HomeView(BaseWebsiteView):
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
         ]
 
-        reviews = {
-            'count': 54,
-            'rating': 4.9
-        }
-        
+        reviews = GoogleReview.objects.all()
+
         session_data = self.request.session.get('call_tracking_number')
         if isinstance(session_data, dict):
             phone_number = session_data.get('call_tracking_number')
