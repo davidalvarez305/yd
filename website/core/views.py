@@ -71,6 +71,10 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
             "yova_most_popular_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_mid_cta.png",
             "yova_basic_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_basic_package.jpeg",
             "yova_open_bar_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_open_bar_package.jpeg",
+            "reviews": {
+                'count': 54,
+                'rating': 4.9
+            }
         })
 
         context['js_files'] = [
@@ -81,22 +85,27 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
         return context
 
 class HomeView(BaseWebsiteView):
-    template_name = "core/home.html"
+    template_name = "core/home2.html"
     page_title = f"Miami Mobile Bartending Services — {settings.COMPANY_NAME}"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['js_files'] += ['js/floatingHeader.js']
-        
-        session_data = self.request.session.get('call_tracking_number')
-        if isinstance(session_data, dict):
-            phone_number = session_data.get('call_tracking_number')
-            if phone_number and len(phone_number) == 10:
-                formatted_number = format_phone_number(phone_number)
-                context['formatted_call_tracking_number'] = formatted_number
-                context['phone_number'] = phone_number
 
-        context["features"] = [
+        cocktails = [
+            {
+                'name': 'Raspberry Spritz',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/raspberry_spritz.png',
+                'type': 'Spritz',
+            },
+            {
+                'name': 'Mojitos',
+                'url': 'https://ydcocktails.s3.us-east-1.amazonaws.com/media/mojitos.png',
+                'type': 'Mojitos',
+            }
+        ]
+
+        features = [
             "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
             "We'll always be early to setup & make sure everything that's necessary is ready for use.",
             "We have high standards of service to make sure your guests enjoy their time with cold & delicious drinks.",
@@ -107,6 +116,17 @@ class HomeView(BaseWebsiteView):
             "Your guests are our priority, ensuring an incredible service and experience.",
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
         ]
+        
+        session_data = self.request.session.get('call_tracking_number')
+        if isinstance(session_data, dict):
+            phone_number = session_data.get('call_tracking_number')
+            if phone_number and len(phone_number) == 10:
+                formatted_number = format_phone_number(phone_number)
+                context['formatted_call_tracking_number'] = formatted_number
+                context['phone_number'] = phone_number
+
+        context['cocktails'] = cocktails
+        context["features"] = features
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
