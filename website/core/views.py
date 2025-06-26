@@ -71,10 +71,6 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
             "yova_most_popular_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_mid_cta.png",
             "yova_basic_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_basic_package.jpeg",
             "yova_open_bar_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_open_bar_package.jpeg",
-            "reviews": {
-                'count': 54,
-                'rating': 4.9
-            }
         })
 
         context['js_files'] = [
@@ -121,17 +117,23 @@ class HomeView(BaseWebsiteView):
             "Your guests are our priority, ensuring an incredible service and experience.",
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
         ]
+
+        reviews = {
+            'count': 54,
+            'rating': 4.9
+        }
         
         session_data = self.request.session.get('call_tracking_number')
         if isinstance(session_data, dict):
             phone_number = session_data.get('call_tracking_number')
-            if phone_number and len(phone_number) == 10:
+            if phone_number is not None:
                 formatted_number = format_phone_number(phone_number)
                 context['formatted_call_tracking_number'] = formatted_number
                 context['phone_number'] = phone_number
 
         context['cocktails'] = cocktails
-        context["features"] = features
+        context['features'] = features
+        context['reviews'] = reviews
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
