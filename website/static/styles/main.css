@@ -873,6 +873,14 @@ select{
   z-index: 90;
 }
 
+.col-span-1{
+  grid-column: span 1 / span 1;
+}
+
+.col-span-2{
+  grid-column: span 2 / span 2;
+}
+
 .m-0\.5{
   margin: 0.125rem;
 }
@@ -1790,6 +1798,10 @@ select{
   background-color: rgb(255 255 255 / 0.95);
 }
 
+.bg-gray-100\/25{
+  background-color: rgb(243 244 246 / 0.25);
+}
+
 .bg-gradient-to-b{
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
@@ -2119,6 +2131,14 @@ select{
 
 .pt-8{
   padding-top: 2rem;
+}
+
+.pb-48{
+  padding-bottom: 12rem;
+}
+
+.pb-24{
+  padding-bottom: 6rem;
 }
 
 .text-left{
@@ -2456,6 +2476,12 @@ select{
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
+.ring-1{
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
 .ring-gray-100{
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(243 244 246 / var(--tw-ring-opacity, 1));
@@ -2469,6 +2495,10 @@ select{
 .ring-primary-100{
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(227 123 183 / var(--tw-ring-opacity, 1));
+}
+
+.ring-gray-200\/40{
+  --tw-ring-color: rgb(229 231 235 / 0.4);
 }
 
 .ring-offset-2{
@@ -4024,6 +4054,15 @@ select{
   background-color: transparent;
 }
 
+.dark\:bg-gray-900\/25:is(.dark *){
+  background-color: rgb(17 24 39 / 0.25);
+}
+
+.dark\:bg-gray-950:is(.dark *){
+  --tw-bg-opacity: 1;
+  background-color: rgb(3 7 18 / var(--tw-bg-opacity, 1));
+}
+
 .dark\:from-gray-800:is(.dark *){
   --tw-gradient-from: #1f2937 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(31 41 55 / 0) var(--tw-gradient-to-position);
@@ -4148,6 +4187,10 @@ select{
 .dark\:ring-primary-900:is(.dark *){
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(0 0 0 / var(--tw-ring-opacity, 1));
+}
+
+.dark\:ring-gray-700\/50:is(.dark *){
+  --tw-ring-color: rgb(55 65 81 / 0.5);
 }
 
 .dark\:ring-offset-gray-900:is(.dark *){
@@ -4659,6 +4702,10 @@ select{
     top: 0px;
   }
 
+  .lg\:col-span-2{
+    grid-column: span 2 / span 2;
+  }
+
   .lg\:-ml-12{
     margin-left: -3rem;
   }
@@ -4771,6 +4818,12 @@ select{
     margin-bottom: calc(2rem * var(--tw-space-y-reverse));
   }
 
+  .lg\:space-y-16 > :not([hidden]) ~ :not([hidden]){
+    --tw-space-y-reverse: 0;
+    margin-top: calc(4rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(4rem * var(--tw-space-y-reverse));
+  }
+
   .lg\:bg-transparent{
     background-color: transparent;
   }
@@ -4824,6 +4877,10 @@ select{
 
   .lg\:pl-64{
     padding-left: 16rem;
+  }
+
+  .lg\:pt-32{
+    padding-top: 8rem;
   }
 
   .lg\:text-left{

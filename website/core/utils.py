@@ -147,3 +147,25 @@ def default_alert_handler(request, message, status: AlertStatus, reswap=False):
 def get_average_ratings():
     from core.models import GoogleReview
     return GoogleReview.objects.aggregate(rating_value=models.Avg('rating_value'))['rating_value']
+
+
+def get_paired_reviews(max_pairs=4):
+    from core.models import GoogleReview
+    long_reviews = []
+    short_reviews = []
+
+    for review in GoogleReview.objects.order_by('-date_created'):
+        if len(review.comment) > 200:
+            long_reviews.append(review)
+        else:
+            short_reviews.append(review)
+
+        if len(long_reviews) >= max_pairs and len(short_reviews) >= max_pairs:
+            break
+
+    reviews = []
+    for long, short in zip(long_reviews[:max_pairs], short_reviews[:max_pairs]):
+        reviews.append((long, 2))   # long review with col-span-2
+        reviews.append((short, 1))  # short review with col-span-1
+
+    return reviews

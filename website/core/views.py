@@ -13,8 +13,8 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 from .logger import logger
-from .models import GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
-from .utils import get_average_ratings, is_mobile, format_phone_number
+from .models import Event, Invoice, Lead, LeadMarketing, LeadStatusEnum
+from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
 
@@ -119,8 +119,9 @@ class HomeView(BaseWebsiteView):
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
         ]
 
-        reviews = GoogleReview.objects.all()
+        reviews = get_paired_reviews()
         reviews_ratings = get_average_ratings()
+        events = Event.objects.count()
 
         session_data = self.request.session.get('call_tracking_number')
         if isinstance(session_data, dict):
@@ -130,10 +131,25 @@ class HomeView(BaseWebsiteView):
                 context['formatted_call_tracking_number'] = formatted_number
                 context['phone_number'] = phone_number
 
+        steps = [
+            {
+                'number': 1,
+                'headline': 'Get Your Quote',
+                'content': "The first step is to have a quick chat with us where we'll go over your event's date, number of guests, and duration.",
+            },
+            {
+                'number': 2,
+                'headline': 'Select Your Drinks',
+                'content': "Once the quoting process is done, and we know what you'll provide and what we'll provide — it's time to put together a menu.",
+            }
+        ]
+
         context['cocktails'] = cocktails
         context['features'] = features
         context['reviews'] = reviews
         context['reviews_ratings'] = reviews_ratings
+        context['events'] = events
+        context['steps'] = steps
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
