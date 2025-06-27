@@ -143,3 +143,7 @@ def default_alert_handler(request, message, status: AlertStatus, reswap=False):
         response['HX-Reswap'] = 'outerHTML'
         response['HX-Retarget'] = '#alertModal'
     return response
+
+def get_average_ratings():
+    from core.models import GoogleReview
+    return GoogleReview.objects.aggregate(rating_value=models.Avg('rating_value'))['rating_value']

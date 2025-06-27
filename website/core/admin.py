@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import EventRole, IngredientCategory, LeadStatus, LeadInterest, AdCampaign, NextAction, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User
+from core.models import EventRole, IngredientCategory, LeadStatus, LeadInterest, AdCampaign, NextAction, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview
 
 admin.site.register(LeadStatus)
 admin.site.register(LeadInterest)
@@ -19,3 +19,5 @@ admin.site.register(User)
 admin.site.register(EventRole)
 
 admin.site.register(AdCampaign)
+
+admin.site.register(GoogleReview)

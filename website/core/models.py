@@ -1055,6 +1055,7 @@ class GoogleReview(models.Model):
     reviewer_display_name = models.CharField(max_length=255, null=True, blank=True)
     reviewer_profile_photo_url = models.URLField(null=True, blank=True)
     star_rating = models.CharField(max_length=20)
+    rating_value = models.IntegerField()
     comment = models.TextField(null=True, blank=True)
     date_created = models.DateTimeField()
     date_updated = models.DateTimeField()

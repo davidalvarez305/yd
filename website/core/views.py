@@ -14,7 +14,7 @@ from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 from .logger import logger
 from .models import GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
-from .utils import is_mobile, format_phone_number
+from .utils import get_average_ratings, is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
 
@@ -94,8 +94,8 @@ class HomeView(BaseWebsiteView):
             ('Raspberry Spritz', 'raspberry_spritz.png'),
             ('Mojitos', 'mojitos.png'),
             ('Mocktails', 'mocktails.png'),
-            ('Margarita', 'margarita.png'),
-            ('Margarita Tower', 'margarita_tower.png'),
+            ('Guava Margarita', 'margarita.png'),
+            ('Passionfruit Margarita', 'margarita_tower.png'),
             ('Piña Colada', 'pina_colada.png'),
         ]
 
@@ -120,6 +120,7 @@ class HomeView(BaseWebsiteView):
         ]
 
         reviews = GoogleReview.objects.all()
+        reviews_ratings = get_average_ratings()
 
         session_data = self.request.session.get('call_tracking_number')
         if isinstance(session_data, dict):
@@ -132,6 +133,7 @@ class HomeView(BaseWebsiteView):
         context['cocktails'] = cocktails
         context['features'] = features
         context['reviews'] = reviews
+        context['reviews_ratings'] = reviews_ratings
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
