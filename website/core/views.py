@@ -41,6 +41,7 @@ class BaseView(TemplateView):
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
+            "media_url": settings.MEDIA_URL
         })
 
         return context

@@ -1061,6 +1061,7 @@ class GoogleReview(models.Model):
     location_id = models.CharField(max_length=255)  # Google Location ID
 
     class Meta:
+        db_table = 'google_review'
         indexes = [
             models.Index(fields=["external_id"]),
             models.Index(fields=["location_id"]),
