@@ -282,39 +282,6 @@
 	</div>
 </div>
 <!-- END Eight Reasons Why -->
-<!-- How It Works -->
-<div class="relative py-5 dark:text-gray-100">
-	<div class="absolute top-0 bottom-0 left-0 flex w-10 flex-col justify-center md:w-12 lg:ml-40" aria-hidden="true">
-		<div
-			class="mx-auto h-2.5 w-1 grow-0 rounded-t bg-gradient-to-b from-transparent to-primary-100 dark:to-primary-900">
-		</div>
-		<div class="mx-auto w-1 grow bg-primary-100 dark:bg-primary-900"></div>
-		<div
-			class="mx-auto h-2.5 w-1 grow-0 rounded-b bg-gradient-to-t from-transparent to-primary-100 dark:to-primary-900">
-		</div>
-	</div>
-	<ul class="relative space-y-4 pl-10 md:pl-12 lg:ml-40">
-		{% for step in steps %}
-		<li class="relative">
-			<div class="absolute top-0 bottom-0 left-0 mt-5 flex w-10 -translate-x-full justify-center md:w-12">
-				<div
-					class="size-3 rounded-full bg-primary-500 ring ring-primary-100 ring-offset-2 dark:bg-primary-300 dark:ring-primary-900 dark:ring-offset-gray-900">
-				</div>
-			</div>
-			<div
-				class="rounded-xl bg-gray-100 p-4 hover:ring hover:ring-gray-100 hover:ring-offset-2 dark:bg-gray-800 dark:ring-offset-gray-900 dark:hover:ring-gray-700">
-				<h4 class="mb-2 font-semibold">{{ step.headline }}</h4>
-				<p class="text-sm leading-relaxed">{{ step.content }}</p>
-			</div>
-			<div
-				class="px-4 py-2 lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:mt-4 lg:-ml-12 lg:flex lg:w-40 lg:-translate-x-full lg:flex-col lg:p-0 lg:text-right">
-				<p class="text-sm font-medium text-gray-500 dark:text-gray-400">Step #{{ step.number }}</p>
-			</div>
-		</li>
-		{% endfor %}
-	</ul>
-</div>
-<!-- END How It Works -->
 <!-- CTA -->
 <div class="flex items-center justify-center dark:text-gray-100">
 	<button type="button" name="HowItWorksCTA" data-modal-id="quoteModal"
