@@ -170,12 +170,15 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
+        social_images = ['social_proof_one.png' for _ in range(4)]
+
         context['cocktails'] = cocktails
         context['features'] = features
         context['reviews'] = reviews
         context['reviews_ratings'] = reviews_ratings
         context['events'] = events
         context['signature_cocktails'] = signature_cocktails
+        context['social_images'] = social_images
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
