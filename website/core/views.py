@@ -144,12 +144,52 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
+        signature_cocktails = [
+            {
+                'type': 'Signature Cocktails',
+                'name': 'Spicy Mango Margarita',
+                'description': 'A delectable mixture of sweet & spicy twist on a classic crowd favorite.',
+                'src': 'spicy_mango_margarita.png',
+            },
+            {
+                'type': 'Classic Cocktails',
+                'name': 'Mojito',
+                'description': 'A strong case could be made that the mojito is the most popular drink in South Florida.',
+                'src': 'mojitos_cocktails.png',
+            },
+            {
+                'type': 'Mocktails',
+                'name': 'Blue Hawaiian Mocktail',
+                'description': 'A sweet-n-sour, yet colorful drink — a summer classic for sure.',
+                'src': 'mocktail.png',
+            },
+            {
+                'type': 'Beer Cocktails',
+                'name': 'Michelada',
+                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'src': 'michelada.png',
+            },
+            {
+                'type': 'Frozen Cocktails',
+                'name': 'Daiquiri',
+                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'src': 'frozen_daiquiri.png',
+            },
+            {
+                'type': 'Custom Drinks',
+                'name': 'Passionfruit Mojito',
+                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'src': 'passionfruit_mojito.png',
+            }
+        ]
+
         context['cocktails'] = cocktails
         context['features'] = features
         context['reviews'] = reviews
         context['reviews_ratings'] = reviews_ratings
         context['events'] = events
         context['steps'] = steps
+        context['signature_cocktails'] = signature_cocktails
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
