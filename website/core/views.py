@@ -170,7 +170,19 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
-        social_images = ['social_proof_one.png' for _ in range(4)]
+        left_social_images = [
+            'social_proof_one.png',
+            'social_proof_two.png',
+            'social_proof_three.png',
+            'social_proof_four.png',
+        ]
+
+        right_social_images = [
+            'social_proof_five.png',
+            'social_proof_six.png',
+            'social_proof_seven.png',
+            'social_proof_eight.png',
+        ]
 
         context['cocktails'] = cocktails
         context['features'] = features
@@ -178,7 +190,8 @@ class HomeView(BaseWebsiteView):
         context['reviews_ratings'] = reviews_ratings
         context['events'] = events
         context['signature_cocktails'] = signature_cocktails
-        context['social_images'] = social_images
+        context['left_social_images'] = left_social_images
+        context['right_social_images'] = right_social_images
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
