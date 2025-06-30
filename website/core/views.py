@@ -184,6 +184,54 @@ class HomeView(BaseWebsiteView):
             'social_proof_eight.png',
         ]
 
+        offers = [
+            {
+                'name': 'Excellence of Service',
+                'src': 'offer_one.png',
+                'description': 'Our team focuses on delivering an experience like no other to ensure that you & your clients have an unforgeattable experience.',
+                'bullets': [
+                    'Incredible attention & service.',
+                    'Exquisite & aestehtic cocktails',
+                    'Super instagrammeable set-up.',
+                    'Everlasting memories',
+                ],
+            },
+            {
+                'name': 'Excellence of Service',
+                'src': 'offer_two.png',
+                'description': 'Our team focuses on delivering an experience like no other to ensure that you & your clients have an unforgeattable experience.',
+                'bullets': [
+                    'Incredible attention & service.',
+                    'Exquisite & aestehtic cocktails',
+                    'Super instagrammeable set-up.',
+                    'Everlasting memories',
+                ],
+            },
+            {
+                'name': 'Excellence of Service',
+                'src': 'offer_three.png',
+                'description': 'Our team focuses on delivering an experience like no other to ensure that you & your clients have an unforgeattable experience.',
+                'bullets': [
+                    'Incredible attention & service.',
+                    'Exquisite & aestehtic cocktails',
+                    'Super instagrammeable set-up.',
+                    'Everlasting memories',
+                ],
+            },
+            {
+                'name': 'Excellence of Service',
+                'src': 'offer_four.png',
+                'description': 'Our team focuses on delivering an experience like no other to ensure that you & your clients have an unforgeattable experience.',
+                'bullets': [
+                    'Incredible attention & service.',
+                    'Exquisite & aestehtic cocktails',
+                    'Super instagrammeable set-up.',
+                    'Everlasting memories',
+                ],
+            }
+        ]
+
+        context['offers'] = offers
         context['cocktails'] = cocktails
         context['features'] = features
         context['reviews'] = reviews
