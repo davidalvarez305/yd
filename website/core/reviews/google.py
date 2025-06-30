@@ -22,24 +22,16 @@ class GoogleReviewsService(ReviewsServiceInterface):
 
             for review in reviews:
                 external_id = review.get("reviewId")
-
                 reviewer = review.get("reviewer", {})
-                display_name = reviewer.get("displayName")
-                profile_photo_url = reviewer.get("profilePhotoUrl")
-
-                comment = review.get("comment")
-                star_rating = review.get("starRating")
-                create_time = parse_datetime(review.get("createTime"))
-                update_time = parse_datetime(review.get("updateTime"))
 
                 values = {
                     "external_id": external_id,
-                    "reviewer_display_name": display_name,
-                    "reviewer_profile_photo_url": profile_photo_url,
-                    "star_rating": star_rating,
-                    "comment": comment,
-                    "create_time": create_time,
-                    "update_time": update_time,
+                    "reviewer_display_name": reviewer.get("displayName"),
+                    "reviewer_profile_photo_url": reviewer.get("profilePhotoUrl"),
+                    "star_rating": review.get("starRating"),
+                    "comment": review.get("comment"),
+                    "create_time": parse_datetime(review.get("createTime")),
+                    "update_time": parse_datetime(review.get("updateTime")),
                     "location_id": self.location_id,
                 }
 
