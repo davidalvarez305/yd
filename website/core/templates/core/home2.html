@@ -256,7 +256,7 @@
 				<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
 					<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
 					<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-						<img src="{% media '{{ image }}' %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+						<img src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
 					</div>
 				</div>
 				{% endfor %}
@@ -272,7 +272,7 @@
 			<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
 				<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
 				<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-					<img src="{% media '{{ image }}' %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+					<img src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
 				</div>
 			</div>
 			{% endfor %}
@@ -364,10 +364,7 @@
       {% for cocktail in signature_cocktails %}
       <div class="space-y-4 lg:flex lg:gap-6 lg:space-y-0">
         <div class="flex-none lg:w-2/5">
-          <img
-            src="{% media '{{ cocktail.src }}' %}"
-            alt="User Avatar"
-            class="shadow" />
+          <img src="{% media cocktail.src %}" class="shadow" />
         </div>
         <div>
           <h3 class="mb-0.5 text-xl font-bold">{{ cocktail.type }}</h3>
@@ -407,7 +404,7 @@
 	<div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
 		<div class="flex w-full grow flex-col gap-4 p-5 md:flex-row md:gap-6 lg:p-6">
 			<div class="flex-none md:w-64">
-				<img src="{% media '{{ offer.src }}' %}" alt="{{ offer.name }}" class="rounded-lg" />
+				<img src="{% media offer.src %}" alt="{{ offer.name }}" class="rounded-lg" />
 			</div>
 			<div class="grow">
 				<p class="block font-semibold hover:text-gray-500 dark:hover:text-gray-300">{{ offer.name }}</p>
