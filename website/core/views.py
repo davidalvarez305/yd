@@ -231,6 +231,8 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
+        avatar = "https://cdn.tailkit.com/media/placeholders/avatar-iFgRcqHznqg-160x160.jpg"
+
         context['offers'] = offers
         context['cocktails'] = cocktails
         context['features'] = features
@@ -240,6 +242,7 @@ class HomeView(BaseWebsiteView):
         context['signature_cocktails'] = signature_cocktails
         context['left_social_images'] = left_social_images
         context['right_social_images'] = right_social_images
+        context['avatar'] = avatar
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
