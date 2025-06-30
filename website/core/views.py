@@ -119,6 +119,46 @@ class HomeView(BaseWebsiteView):
             "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
         ]
 
+        faqs = [
+            {
+                'question': 'What types of events do you cater to?',
+                'answers': [
+                    "We specialize in weddings, corporate events, birthday parties, private events, festivals, and more. We can accommodate any occasion where drinks are part of the celebration!"
+                ]
+            },
+            {
+                'question': 'Do you provide the alcohol or should I supply it?',
+                'answers': [
+                    "We can either provide the alcohol for you or work with what you supply. We’ll guide you on quantities and ensure the drinks are tailored to your preferences.",
+                    "Additionally, if anything special is needed for any custom drinks, we'll be sure to let you know."
+                ]
+            },
+            {
+                'question': 'What do you charge for your service?',
+                'answers': [
+                    "Our pricing varies depending on the event size, location, and duration. As well, we take into accounts if you need a portable bars, supplies, glass drinkware, and other variables that will affect the final quote."
+                ]
+            },
+            {
+                'question': 'Can you create a custom cocktail menu for my event?',
+                'answers': [
+                    "Absolutely! Our highly skilled bartenders can design a cocktail menu that matches your event theme or your personal tastes. We also have our signature cocktails that are sure to be hits at most events."
+                ]
+            },
+            {
+                'question': 'Can you serve non-alcoholic drinks?',
+                'answers': [
+                    "Absolutely, we can do mocktails as well as other soft drinks & juices if requested."
+                ]
+            },
+            {
+                'question': 'Is there a minimum number of guests required?',
+                'answers': [
+                    "We tend to focus on events with more than 25 people, but some events have less than that and we're willing to work out a deal that is mutually beneficial."
+                ]
+            }
+        ]
+
         reviews = get_paired_reviews()
         reviews_ratings = get_average_ratings()
         events = Event.objects.count()
