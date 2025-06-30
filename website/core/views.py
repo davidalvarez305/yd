@@ -102,7 +102,7 @@ class HomeView(BaseWebsiteView):
         cocktails = [
             {
                 'name': name,
-                'url': media_storage.url(filename)
+                'src': media_storage.url(filename)
             }
             for name, filename in cocktail_images
         ]

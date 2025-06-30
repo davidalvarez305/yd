@@ -93,7 +93,7 @@
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 			{% for cocktail in cocktails %}
 			<div class="group relative block overflow-hidden transition ease-out active:opacity-75 sm:col-span-2 md:col-span-1">
-			<img src="{{ cocktail.url }}" alt="{{ cocktail.name }}" class="transition ease-out group-hover:scale-110" />
+			<img src="{{ cocktail.src }}" alt="{{ cocktail.name }}" class="transition ease-out group-hover:scale-110" />
 				<div class="absolute inset-0 bg-black/25 transition ease-out group-hover:bg-black/0"></div>
 				<div class="absolute inset-0 flex items-end justify-center p-4">
 					<div class="rounded-3xl bg-white/95 px-4 py-3 text-sm font-semibold tracking-wide uppercase transition ease-out group-hover:bg-primary-600 group-hover:text-white dark:border-gray-800 dark:bg-gray-900/90">
