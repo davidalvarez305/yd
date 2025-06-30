@@ -57,7 +57,7 @@
 		<div class="absolute top-0 right-0 size-40 rounded-full border-2 border-orange-200 bg-white sm:size-72 dark:border-orange-900 dark:bg-gray-900"></div>
 		<div class="absolute bottom-0 left-0 size-40 rounded-full border-2 border-sky-200 bg-white sm:size-72 dark:border-sky-900 dark:bg-gray-900"></div>
 		<div class="relative w-full">
-			<img src="{% static 'files/yova_hero.png' %}" class="aspect-square w-full object-cover" />
+			<img src="{% media 'yova_hero.png' %}" class="aspect-square w-full object-cover" />
     	</div>
   	</div>
 </div>
@@ -113,7 +113,7 @@
       <div class="absolute inset-0">
         <img
           class="h-full w-full object-cover"
-          src="{{ media_url }}horizontal_collage.png"
+          src="{% media 'horizontal_collage.png' %}"
           alt="Two people working on a project" />
       </div>
       <div
@@ -246,50 +246,39 @@
 </div>
 <!-- END Reviews -->
 <!-- Social Proof -->
-<div
-  class="relative container mx-auto grid grid-cols-1 px-4 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-32 xl:max-w-6xl">
-  <!-- Left Section -->
-  <div class="mx-auto max-w-4xl text-center lg:text-left">
-    <div class="mb-5 flex items-center justify-center lg:justify-start"></div>
-    <div class="mx-auto flex max-w-md items-center">
-      <div class="grid grid-cols-2 gap-4 lg:-my-12">
-        {% for image in left_social_images %}
-        <div
-          class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
-          <div
-            class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
-          <div
-            class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-            <img
-              src="{{ media_url }}{{ image }}"
-              class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  <!-- END Left Section -->
+<div class="relative container mx-auto grid grid-cols-1 px-4 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-32 xl:max-w-6xl">
+	<!-- Left Section -->
+	<div class="mx-auto max-w-4xl text-center lg:text-left">
+		<div class="mb-5 flex items-center justify-center lg:justify-start"></div>
+		<div class="mx-auto flex max-w-md items-center">
+			<div class="grid grid-cols-2 gap-4 lg:-my-12">
+				{% for image in left_social_images %}
+				<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
+					<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
+					<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
+						<img src="{% media '{{ image }}' %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<!-- END Left Section -->
 
-  <!-- Right Section -->
-  <div class="mx-auto flex max-w-md items-center">
-    <div class="grid grid-cols-2 gap-4 lg:-my-12">
-      {% for image in right_social_images %}
-      <div
-        class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
-        <div
-          class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
-        <div
-          class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-          <img
-            src="{{ media_url }}{{ image }}"
-            class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  <!-- END Right Section -->
+	<!-- Right Section -->
+	<div class="mx-auto flex max-w-md items-center">
+		<div class="grid grid-cols-2 gap-4 lg:-my-12">
+			{% for image in right_social_images %}
+			<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
+				<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
+				<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
+					<img src="{% media '{{ image }}' %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	<!-- END Right Section -->
 </div>
 <!-- END Social Proof -->
 <!-- CTA -->

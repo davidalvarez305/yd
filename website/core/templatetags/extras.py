@@ -1,10 +1,17 @@
 from django import template
+from django.conf import settings
+from django.utils.html import escape
+from urllib.parse import urljoin
 
 register = template.Library()
 
 @register.filter
 def times(number):
     return range(int(number))
+
+@register.simple_tag
+def media(path):
+    return escape(urljoin(settings.MEDIA_URL, path))
 
 @register.filter
 def stars(rating: float):
