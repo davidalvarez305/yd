@@ -17,13 +17,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='eventstaff',
             name='end_time',
-            field=models.DateTimeField(default=datetime.datetime(2025, 7, 12, 12, 0)),
+            field=models.DateTimeField(),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='eventstaff',
             name='start_time',
-            field=models.DateTimeField(default=datetime.datetime(2025, 6, 12, 11, 0)),
+            field=models.DateTimeField(),
             preserve_default=False,
         ),
     ]

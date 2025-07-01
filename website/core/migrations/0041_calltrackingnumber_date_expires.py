@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='calltrackingnumber',
             name='date_expires',
-            field=models.DateTimeField(default='2025-06-24 12:56:21'),
+            field=models.DateTimeField(),
             preserve_default=False,
         ),
     ]
