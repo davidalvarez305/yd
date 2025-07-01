@@ -71,7 +71,8 @@ class Migration(migrations.Migration):
     ]
 ```
 
-# Apply Migrations
-```shell
-python manage.py migrate core
+# Collect
+```
+$env:PRODUCTION = "1"
+python manage.py collectstatic
 ```
