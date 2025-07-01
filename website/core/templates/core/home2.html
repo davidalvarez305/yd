@@ -12,11 +12,6 @@
 			like they've never tasted before.
 			</p>
 			<div class="flex items-center justify-center gap-2 pt-5 pb-10 leading-4 lg:justify-start">
-				<div class="flex-none">
-					{% for i in 5|times %}
-					<img src="{{ avatar }}" class="inline-block size-10 rounded-full border-2 border-white dark:border-gray-900" />
-					{% endfor %}
-				</div>
 				<div class="text-left">
 					<div class="inline-flex items-center text-amber-500">
 						{% for star in reviews_ratings|stars %}
@@ -159,7 +154,7 @@
 
     	<!-- Testimonials -->
 		<div class="grid gap-8 lg:grid-cols-3">
-			{% for review, span in reviews %}
+			{% for review, span in paired_reviews %}
 			<div class="flex h-full flex-col justify-between rounded-2xl bg-gray-100/25 p-8 shadow-sm ring-1 ring-gray-200/40 {% if span == 2 %}lg:col-span-2{% endif %} dark:bg-gray-900/25 dark:ring-gray-700/50">
 				<div class="mb-6">
 					<p class="text-lg/relaxed text-gray-600 dark:text-gray-400">{{ review.comment }}</p>

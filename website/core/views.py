@@ -13,7 +13,7 @@ from website import settings
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 from .logger import logger
-from .models import Event, Invoice, Lead, LeadMarketing, LeadStatusEnum
+from .models import Event, GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
 from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -159,7 +159,8 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
-        reviews = get_paired_reviews()
+        reviews = GoogleReview.objects.all()
+        paired_reviews = get_paired_reviews()
         reviews_ratings = get_average_ratings()
         events = Event.objects.count()
 
@@ -271,18 +272,17 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
-        avatar = "https://cdn.tailkit.com/media/placeholders/avatar-iFgRcqHznqg-160x160.jpg"
-
         context['offers'] = offers
         context['cocktails'] = cocktails
         context['features'] = features
+        context['paired_reviews'] = paired_reviews
         context['reviews'] = reviews
         context['reviews_ratings'] = reviews_ratings
         context['events'] = events
         context['signature_cocktails'] = signature_cocktails
         context['left_social_images'] = left_social_images
         context['right_social_images'] = right_social_images
-        context['avatar'] = avatar
+        context['faqs'] = faqs
         return context
 
 class PrivacyPolicyView(BaseWebsiteView):
