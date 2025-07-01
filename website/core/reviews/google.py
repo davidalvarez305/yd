@@ -1,15 +1,36 @@
-from core.reviews.base import ReviewsServiceInterface
+import os
+
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from core.models import GoogleReview
+
 from django.utils.dateparse import parse_datetime
+
+from website import settings
+from core.reviews.base import ReviewsServiceInterface
+from core.models import GoogleReview
 
 class GoogleReviewsService(ReviewsServiceInterface):
     def __init__(self, access_token: str, account_id: str, location_id: str):
         self.access_token = access_token
         self.account_id = account_id
         self.location_id = location_id
-        self.service = build("mybusiness", "v4", credentials=Credentials(token=access_token))
+        self.service = self._init_service()
+    
+    def _init_service(self):
+        """Initializes the Google My Business API"""
+        creds = None
+
+        if os.path.exists("token.json"):
+            creds = Credentials.from_authorized_user_file("token.json", settings.GOOGLE_API_SCOPES)
+
+        if not creds or not creds.valid:
+            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", settings.GOOGLE_API_SCOPES)
+            creds = flow.run_local_server(port=0)
+            with open("token.json", "w") as token:
+                token.write(creds.to_json())
+
+        return build("mybusiness", "v4", credentials=creds)
 
     def sync_reviews(self):
         request_params = {
