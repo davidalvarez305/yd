@@ -88,7 +88,7 @@
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 			{% for cocktail in cocktails %}
 			<div class="group relative block overflow-hidden transition ease-out active:opacity-75 sm:col-span-2 md:col-span-1">
-			<img src="{{ cocktail.src }}" alt="{{ cocktail.name }}" class="transition ease-out group-hover:scale-110" />
+			<img loading="lazy" src="{{ cocktail.src }}" alt="{{ cocktail.name }}" class="transition ease-out group-hover:scale-110" />
 				<div class="absolute inset-0 bg-black/25 transition ease-out group-hover:bg-black/0"></div>
 				<div class="absolute inset-0 flex items-end justify-center p-4">
 					<div class="rounded-3xl bg-white/95 px-4 py-3 text-sm font-semibold tracking-wide uppercase transition ease-out group-hover:bg-primary-600 group-hover:text-white dark:border-gray-800 dark:bg-gray-900/90">
@@ -160,7 +160,7 @@
 					<p class="text-lg/relaxed text-gray-600 dark:text-gray-400">{{ review.comment }}</p>
 				</div>
 				<div class="flex items-center gap-4">
-					<img src="{{ review.reviewer_profile_photo_url }}" class="size-12 rounded-full" />
+					<img loading="lazy" src="{{ review.reviewer_profile_photo_url }}" class="size-12 rounded-full" />
 					<div>
 						<h3 class="font-semibold text-gray-800 dark:text-white">
 							{{ review.reviewer_display_name }}
@@ -198,7 +198,7 @@
 				<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
 					<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
 					<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-						<img src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+						<img loading="lazy" src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
 					</div>
 				</div>
 				{% endfor %}
@@ -214,7 +214,7 @@
 			<div class="relative {% if forloop.counter|divisibleby:2 %}top-5 sm:top-10{% endif %} transition-all duration-300 hover:-translate-y-1 hover:opacity-75 active:translate-y-0 active:opacity-100">
 				<div class="absolute -inset-3 rounded-3xl bg-gradient-to-b from-primary-500 via-gray-500 to-primary-500 opacity-15 blur-2xl"></div>
 				<div class="relative rounded-2xl bg-white/50 p-0.5 ring-1 ring-gray-200/75 backdrop-blur-sm sm:p-2 dark:bg-gray-500/20 dark:ring-gray-700/60">
-					<img src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
+					<img loading="lazy" src="{% media image %}" class="aspect-[3/4] w-full rounded-xl border border-gray-200/60 object-cover dark:border-gray-400/25" />
 				</div>
 			</div>
 			{% endfor %}
@@ -286,7 +286,7 @@
 			{% for cocktail in signature_cocktails %}
 			<div class="space-y-4 lg:flex lg:gap-6 lg:space-y-0">
 				<div class="flex-none lg:w-2/5">
-					<img src="{% media cocktail.src %}" class="shadow" />
+					<img loading="lazy" src="{% media cocktail.src %}" class="shadow" />
 				</div>
 				<div>
 					<h3 class="mb-0.5 text-xl font-bold">{{ cocktail.type }}</h3>
@@ -322,7 +322,7 @@
 	<div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
 		<div class="flex w-full grow flex-col gap-4 p-5 md:flex-row md:gap-6 lg:p-6">
 			<div class="flex-none md:w-64">
-				<img src="{% media offer.src %}" alt="{{ offer.name }}" class="rounded-lg" />
+				<img loading="lazy" src="{% media offer.src %}" alt="{{ offer.name }}" class="rounded-lg" />
 			</div>
 			<div class="grow">
 				<p class="block font-semibold hover:text-gray-500 dark:hover:text-gray-300">{{ offer.name }}</p>
