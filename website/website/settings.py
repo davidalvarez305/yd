@@ -134,7 +134,6 @@ GOOGLE_ANALYTICS_ID = env.get("GOOGLE_ANALYTICS_ID")
 GOOGLE_ADS_ID = env.get("GOOGLE_ADS_ID")
 GOOGLE_ADS_CALL_CONVERSION_LABEL = env.get("GOOGLE_ADS_CALL_CONVERSION_LABEL")
 GOOGLE_REFRESH_TOKEN = env.get("GOOGLE_REFRESH_TOKEN")
-GOOGLE_API_ACCESS_TOKEN = env.get("GOOGLE_API_ACCESS_TOKEN")
 GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID = env.get('GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID')
 GOOGLE_BUSINESS_PROFILE_LOCATION_ID = env.get('GOOGLE_BUSINESS_PROFILE_LOCATION_ID')
 
@@ -230,7 +229,8 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 # Google API
 GOOGLE_API_SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/spreadsheets"
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/business"
 ]
 
 # User

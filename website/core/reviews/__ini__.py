@@ -8,7 +8,7 @@ class ReviewsService(LazyObject):
         cls = import_string(settings.REVIEWS_SERVICE)
 
         self._wrapped = cls(
-            access_token=settings.GOOGLE_API_ACCESS_TOKEN,
+            access_token=settings.GOOGLE_REFRESH_TOKEN,
             account_id=settings.GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID,
             location_id=settings.GOOGLE_BUSINESS_PROFILE_LOCATION_ID,
         )
