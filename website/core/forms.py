@@ -184,11 +184,6 @@ class LeadForm(BaseModelForm):
 
         cleaned_phone_number = re.sub(r'\D', '', phone_number)
 
-        if not re.match(r'^\+1\d{10}$', cleaned_phone_number):
-            raise forms.ValidationError(
-                'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
-            )
-
         if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
             raise forms.ValidationError('Someone has already submitted a request from this phone number.')
 
