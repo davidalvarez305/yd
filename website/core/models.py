@@ -116,7 +116,6 @@ class Lead(models.Model):
     phone_number = models.CharField(max_length=60, unique=True)
     opt_in_text_messaging = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
-    email = models.EmailField(null=True, unique=True)
     message = models.TextField(null=True)
     lead_status = models.ForeignKey(LeadStatus, null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
     lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)

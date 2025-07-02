@@ -42,17 +42,6 @@ class LeadForm(BaseModelForm):
         required=True
     )
 
-    email = forms.CharField(
-        max_length=255,
-        label="Email",
-        widget=forms.EmailInput(attrs={
-            'placeholder': 'Email',
-            'autocomplete': 'email',
-            'required': True
-        }),
-        required=False
-    )
-
     message = forms.CharField(
         label="(OPTIONAL) Give us a few details about your event",
         widget=forms.Textarea(attrs={
@@ -92,7 +81,7 @@ class LeadForm(BaseModelForm):
 
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'email', 'lead_status', 'lead_interest']
+        fields = ['full_name', 'phone_number', 'lead_status', 'lead_interest']
 
 class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
