@@ -803,9 +803,9 @@ class EventStaff(models.Model):
 class Visit(models.Model):
     visit_id = models.AutoField(primary_key=True)
     external_id = models.UUIDField(editable=False)
-    referrer = models.URLField(null=True)
+    referrer = models.TextField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    url = models.URLField()
+    url = models.TextField()
     session_duration = models.FloatField(default=0.0)
     
     lead_marketing = models.ForeignKey(LeadMarketing,
