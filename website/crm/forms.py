@@ -69,7 +69,6 @@ class LeadForm(BaseModelForm):
         required=False,
         label="Lead Status",
         widget=forms.Select(attrs={'placeholder': 'Select a status'}),
-        disabled=True,
     )
 
     lead_interest = forms.ModelChoiceField(

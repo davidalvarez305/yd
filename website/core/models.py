@@ -161,13 +161,8 @@ class Lead(models.Model):
         return Visit.objects.filter(lead_marketing=self.lead_marketing)
     
     def last_contact(self):
-        last_msg = Message.objects.filter(
-            Q(text_from=self.phone_number) | Q(text_to=self.phone_number)
-        ).order_by('-date_created').first()
-
-        last_call = PhoneCall.objects.filter(
-            Q(call_from=self.phone_number) | Q(call_to=self.phone_number)
-        ).order_by('-date_created').first()
+        last_msg = Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('-date_created').first()
+        last_call = PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number)).order_by('-date_created').first()
 
         if last_msg and last_call:
             return last_msg if last_msg.date_created > last_call.date_created else last_call
@@ -195,6 +190,28 @@ class Lead(models.Model):
         )
 
         lead_status_changed.send(sender=self.__class__, instance=self, event=event)
+    
+    # Handling manual changes to lead status via form
+    def _has_lead_status_changed(self):
+        if not self.pk:
+            return False 
+
+        try:
+            old_status = Lead.objects.get(pk=self.pk).lead_status
+            return old_status != self.lead_status
+        except Lead.DoesNotExist:
+            return False
+    
+    # Handling manual changes to lead status via form
+    def _handle_lead_status_change(self):
+        from marketing.signals import lead_status_changed
+
+        LeadStatusHistory.objects.create(
+            lead=self,
+            lead_status=self.lead_status
+        )
+
+        lead_status_changed.send(sender=self.__class__, instance=self)
 
     def value(self, visited=None) -> float:
         if visited is None:
