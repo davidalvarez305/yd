@@ -346,7 +346,7 @@ class LoginView(BaseWebsiteView):
             return self.alert(request, "Invalid form submission.", AlertStatus.BAD_REQUEST)
 
 class ContactView(BaseWebsiteView):
-    template_name = 'core/contact.html'
+    template_name = 'core/contact_form.html'
     page_title = 'Contact - ' + settings.COMPANY_NAME
 
     def get(self, request, *args, **kwargs):
