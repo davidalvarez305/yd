@@ -636,7 +636,6 @@ class LeadMarketing(models.Model):
     referrer = models.TextField(null=True)
     click_id = models.TextField(unique=True, null=True)
     client_id = models.TextField(unique=True, null=True)
-    button_clicked = models.CharField(max_length=255, null=True)
     ip = models.GenericIPAddressField(null=True)
     external_id = models.UUIDField(unique=True, db_index=True, editable=False, null=True)
     user_agent = models.CharField(max_length=255, null=True)

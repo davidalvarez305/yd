@@ -312,15 +312,6 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
-    button_clicked = forms.CharField(
-        max_length=255,
-        label="Button Clicked",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., Get a Quote, Contact Us'
-        })
-    )
-
     ip = forms.GenericIPAddressField(
         label="IP Address",
         required=False,
@@ -351,7 +342,7 @@ class LeadMarketingForm(BaseModelForm):
         fields = [
             'lead', 'source', 'medium', 'channel',
             'landing_page', 'keyword', 'referrer',
-            'click_id', 'client_id', 'button_clicked',
+            'click_id', 'client_id',
             'ip', 'instant_form_lead_id', 'instant_form_id'
         ]
     
