@@ -85,7 +85,7 @@ class LeadStatusHistory(models.Model):
     date_changed = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Lead {self.lead.id} - Status {self.lead_status.get_status_display()} on {self.date_changed}"
+        return f"Lead {self.lead.pk} - Status {self.lead_status.get_status_display()} on {self.date_changed}"
 
     class Meta:
         db_table = 'lead_status_history'
