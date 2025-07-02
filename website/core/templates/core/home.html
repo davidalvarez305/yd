@@ -78,7 +78,7 @@
                             <span>Generate A Zero Obligation Estimate for Your Event</span>
                         {% endif %}
                     </button>
-                    <a href="tel:{{ phone_number }}"
+                    <a href="tel:{{ formatted_call_tracking_number }}"
                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-7 py-3.5 font-semibold leading-6 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-transparent dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
                             class="h-5 w-5 hi-micro hi-phone inline-block size-4">
@@ -86,7 +86,7 @@
                                 d="m3.855 7.286 1.067-.534a1 1 0 0 0 .542-1.046l-.44-2.858A1 1 0 0 0 4.036 2H3a1 1 0 0 0-1 1v2c0 .709.082 1.4.238 2.062a9.012 9.012 0 0 0 6.7 6.7A9.024 9.024 0 0 0 11 14h2a1 1 0 0 0 1-1v-1.036a1 1 0 0 0-.848-.988l-2.858-.44a1 1 0 0 0-1.046.542l-.534 1.067a7.52 7.52 0 0 1-4.86-4.859Z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span class="phoneNumber">{{ phone_number }}</span>
+                        <span class="phoneNumber">{{ formatted_call_tracking_number }}</span>
                     </a>
                 </div>
                 <div class="bg-white dark:bg-gray-900 dark:text-gray-100">
