@@ -56,7 +56,7 @@ class CallTrackingMixin:
             )
             call_tracking.save()
         except Exception as e:
-            logger.error(str(e), exc_info=True)
+            logger.error(e, exc_info=True)
             raise Exception('Error during tracking call.')
 
     def clean_up_expired_session(self, request):
