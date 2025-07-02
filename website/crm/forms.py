@@ -541,6 +541,14 @@ class StoreItemForm(BaseModelForm):
         fields = '__all__'
 
 class QuoteForm(BaseModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['event_date'].error_messages = {'required': ''}
+        self.fields['guests'].error_messages = {'required': ''}
+        self.fields['hours'].error_messages = {'required': ''}
+
     class Meta:
         model = Quote
         fields = ['lead', 'guests', 'hours', 'event_date']
@@ -726,6 +734,7 @@ class QuickQuoteForm(BaseModelForm):
         self.fields['guests'].error_messages = {'required': ''}
         self.fields['hours'].error_messages = {'required': ''}
         self.fields['event_date'].error_messages = {'required': ''}
+        self.fields['presets'].error_messages = {'required': ''}
 
     class Meta:
         model = Quote
