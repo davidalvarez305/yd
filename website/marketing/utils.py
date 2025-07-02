@@ -20,7 +20,7 @@ class MarketingHelper:
         self.ip = self.request.META.get('REMOTE_ADDR')
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
-        self.keywords = self.params.get('keyword')
+        self.keyword = self.params.get('keyword')
         self.source = self.params.get('source', self.get_source_from_referrer())
         self.medium = self.params.get('medium', self.generate_medium())
         self.channel = self.params.get('channel', self.get_channel())
