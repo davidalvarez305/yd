@@ -10,14 +10,14 @@ from django.db.models import F
 from django.utils.timezone import now
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -1022,6 +1022,10 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
             {
                 'view': 'internallog_list',
                 'name': 'Debug Logs',
+            },
+            {
+                'view': 'facebookaccesstoken_list',
+                'name': 'FB Access Tokens',
             }
         ]
         context['settings'] = settings
@@ -1049,3 +1053,26 @@ class InternalLogDetailView(CRMDetailTemplateView):
 class InternalLogDeleteView(CRMDeleteView):
     model = InternalLog
     form_class = InternalLogForm
+
+class FacebookAccessTokenListView(CRMTableView):
+    model = FacebookAccessToken
+    table_class = FacebookAccessTokenTable
+
+    def get_queryset(self):
+        return super().get_queryset().order_by('-date_created')
+
+class FacebookAccessTokenCreateView(CRMCreateTemplateView):
+    model = FacebookAccessToken
+    form_class = FacebookAccessTokenForm
+
+class FacebookAccessTokenUpdateView(CRMUpdateView):
+    model = FacebookAccessToken
+    form_class = FacebookAccessTokenForm
+
+class FacebookAccessTokenDetailView(CRMDetailTemplateView):
+    model = FacebookAccessToken
+    form_class = FacebookAccessTokenForm
+
+class FacebookAccessTokenDeleteView(CRMDeleteView):
+    model = FacebookAccessToken
+    form_class = FacebookAccessTokenForm

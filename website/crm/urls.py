@@ -143,4 +143,11 @@ urlpatterns = [
     path('log/<int:pk>/', views.InternalLogDetailView.as_view(), name='internallog_detail'),
     path('log/<int:pk>/edit/', views.InternalLogUpdateView.as_view(), name='internallog_update'),
     path('log/<int:pk>/delete/', views.InternalLogDeleteView.as_view(), name='internallog_delete'),
+
+    # Facebook Tokens
+    path('facebook-access-token/', views.FacebookAccessTokenListView.as_view(), name='facebookaccesstoken_list'),
+    path('facebook-access-token/create/', views.FacebookAccessTokenCreateView.as_view(), name='facebookaccesstoken_create'),
+    path('facebook-access-token/<int:pk>/', views.FacebookAccessTokenDetailView.as_view(), name='facebookaccesstoken_detail'),
+    path('facebook-access-token/<int:pk>/edit/', views.FacebookAccessTokenUpdateView.as_view(), name='facebookaccesstoken_update'),
+    path('facebook-access-token/<int:pk>/delete/', views.FacebookAccessTokenDeleteView.as_view(), name='facebookaccesstoken_delete'),
 ]

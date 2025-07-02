@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, Ingredient, InternalLog, Message, PhoneCall, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, Ingredient, InternalLog, Message, PhoneCall, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButton, PriceCellWidget
 from core.utils import deep_getattr
 
@@ -405,3 +405,18 @@ class InternalLogTable(Table):
         model = InternalLog
         extra_fields = ['view']
         exclude = ['logger', 'level']
+
+class FacebookAccessTokenTable(Table):
+    date_expires = TableField(
+        label='Date Expires',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_expires).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    class Meta:
+        model = FacebookAccessToken
+        extra_fields = ['view', 'delete']
+        exclude = ['facebook_access_token_id', 'date_expires']

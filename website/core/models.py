@@ -1022,7 +1022,7 @@ class QuotePresetService(models.Model):
 class FacebookAccessToken(models.Model):
     facebook_access_token_id = models.AutoField(primary_key=True)
     access_token = models.TextField()
-    date_expires = models.DateTimeField()
+    date_expires = models.DateTimeField(default=timezone.now)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
