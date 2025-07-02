@@ -36,8 +36,10 @@ class CallTrackingMixin:
                 if number.is_free()
             ]
 
+            default = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
+
             data = {
-                'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
+                'call_tracking_number': default,
                 'timestamp': now().isoformat(),
             }
 
