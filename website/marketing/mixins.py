@@ -41,12 +41,10 @@ class CallTrackingMixin:
                 'timestamp': now().isoformat(),
             }
 
-            if len(tracking_numbers) == 0:
-                return
+            if len(tracking_numbers) > 0:
+                call_tracking_number = random.choice(tracking_numbers)
+                data['call_tracking_number'] = call_tracking_number.phone_number
 
-            call_tracking_number = random.choice(tracking_numbers)
-
-            data['call_tracking_number'] = call_tracking_number.phone_number
             request.session[tracking_number] = data
 
             metadata = MarketingHelper(request)
