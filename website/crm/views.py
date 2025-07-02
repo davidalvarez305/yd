@@ -422,16 +422,22 @@ class MessageReadView(CRMUpdateView):
         return None
 
     def post(self, request, *args, **kwargs):
-        pk = request.headers.get("X-Message-ID")
-        is_read = request.headers.get("X-Is-Read")
-        lead_pk = request.headers.get("X-Lead-ID")
-        if is_read == 'false':
-            message = Message.objects.filter(pk=pk)
-            message.is_read = True
-            message.save(update_fields=["is_read"])
-        
-        lead = Lead.objects.filter(pk=lead_pk).first()
-        return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
+        try:
+            pk = request.headers.get("X-Message-ID")
+            is_read = request.headers.get("X-Is-Read")
+            lead_pk = request.headers.get("X-Lead-ID")
+
+            if is_read == 'false' and pk:
+                message = Message.objects.filter(pk=pk).first()
+                if message:
+                    message.is_read = True
+                    message.save(update_fields=["is_read"])
+
+            lead = Lead.objects.get(pk=lead_pk)
+            return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
+
+        except Exception as e:
+            return self.alert(request, str(e), AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class PhoneCallListView(CRMTableView):
     model = PhoneCall
