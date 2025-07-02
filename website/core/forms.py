@@ -142,7 +142,6 @@ class LeadForm(BaseModelForm):
         max_length=100,
         label="Full Name*",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Full Name',
             'autocomplete': 'name',
             'required': True
         }),
@@ -152,10 +151,7 @@ class LeadForm(BaseModelForm):
         max_length=15,
         label="Phone Number*",
         widget=forms.TextInput(attrs={
-            'placeholder': 'Phone Number',
             'autocomplete': 'tel-national',
-            'pattern': r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$',
-            'title': 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)',
             'required': True
         }),
         required=True
@@ -177,6 +173,7 @@ class LeadForm(BaseModelForm):
             'data-modal-id': 'optinConfirmationModal',
             'class': 'openModal',
         }),
+        label='',
     )
 
     def clean_phone_number(self):
