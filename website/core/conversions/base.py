@@ -41,7 +41,7 @@ class ConversionService(ABC):
                 payload=payload,
                 headers={"Content-Type": "application/json"}
             )
-            print('CONVERSION RESPONSE: ', response.json())
+
             return response
         except Exception as e:
             logger.error(str(e), exc_info=True)
