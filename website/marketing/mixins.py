@@ -36,10 +36,8 @@ class CallTrackingMixin:
                 if number.is_free()
             ]
 
-            default = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
-
             data = {
-                'call_tracking_number': default,
+                'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
                 'timestamp': now().isoformat(),
             }
 
@@ -52,7 +50,7 @@ class CallTrackingMixin:
             metadata = MarketingHelper(request)
             
             call_tracking = CallTracking(
-                call_tracking_number=data.get('call_tracking_number'),
+                call_tracking_number=CallTrackingNumber.objects.get(data.get('call_tracking_number')),
                 metadata=json.dumps(metadata.to_dict()),
                 external_id=request.session.get('external_id')
             )
