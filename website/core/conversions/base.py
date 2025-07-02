@@ -44,8 +44,8 @@ class ConversionService(ABC):
 
             return response
         except Exception as e:
-            logger.error(str(e), exc_info=True)
-            raise Exception('Failed to log and/or send request.')
+            logger.error(e, exc_info=True, stack_info=True)
+            raise Exception(str(e))
 
     def hash_to_sha256(self, value: str) -> str:
         return hashlib.sha256(value.encode("utf-8")).hexdigest() if value else None
