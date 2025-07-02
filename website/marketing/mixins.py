@@ -22,10 +22,8 @@ class CallTrackingMixin:
             self.clean_up_expired_session(request)
 
             # If after clean up, there still a value, wait until expiration before new assignment
-            if request.session.get(tracking_number):
-                return
-
-            self.track_call(request)
+            if not request.session.get(tracking_number):
+                self.track_call(request)
 
         return super().dispatch(request, *args, **kwargs)
 

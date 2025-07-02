@@ -713,7 +713,7 @@ class CallTracking(models.Model):
     date_assigned = models.DateTimeField(auto_now_add=True)
     date_expires = models.DateTimeField()
     metadata = models.JSONField(null=True)
-    external_id = models.UUIDField(unique=True, db_index=True, editable=False)
+    external_id = models.UUIDField(db_index=True, editable=False)
 
     def __str__(self):
         return str(self.call_tracking_number)
