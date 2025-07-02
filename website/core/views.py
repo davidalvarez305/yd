@@ -350,7 +350,9 @@ class ContactView(BaseWebsiteView):
     page_title = 'Contact - ' + settings.COMPANY_NAME
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, { 'contact_form': ContactForm() })
+        context = self.get_context_data()
+        context['contact_form'] = ContactForm()
+        return render(request, self.template_name, context=context)
 
     def post(self, request, *args, **kwargs):
         form = ContactForm(request.POST)
