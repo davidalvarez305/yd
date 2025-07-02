@@ -20,11 +20,12 @@ class FacebookConversionService(ConversionService):
         }
 
         if event_name == 'event_booked':
-            custom_data.update({
-                'currency': settings.DEFAULT_CURRENCY,
-                'value': data.get('value'),
-                'order_id': data.get('event_id'),
-            })
+            if data.get('event_id'):
+                custom_data.update({
+                    'currency': settings.DEFAULT_CURRENCY,
+                    'value': data.get('value'),
+                    'order_id': data.get('event_id'),
+                })
 
         return {
             'data': [
@@ -34,7 +35,6 @@ class FacebookConversionService(ConversionService):
                     'action_source': 'system_generated',
                     'user_data': {
                         'lead_id': data.get('instant_form_lead_id'),
-                        'em': [self.hash_to_sha256(data.get('email'))],
                         'ph': [self.hash_to_sha256(data.get('phone_number'))],
                     },
                     'custom_data': custom_data,
@@ -45,7 +45,6 @@ class FacebookConversionService(ConversionService):
     def _build_website_leads_payload(self, data: dict) -> dict:
         event_name = data.get('event_name')
         user_data = {
-            'em': [self.hash_to_sha256(data.get('email'))],
             'ph': [self.hash_to_sha256(data.get('phone_number'))],
             'client_ip_address': data.get('ip_address'),
             'client_user_agent': data.get('user_agent'),

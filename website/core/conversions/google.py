@@ -31,7 +31,6 @@ class GoogleAnalyticsConversionService(ConversionService):
                 }
             ],
             'user_data': {
-                'email': [self.hash_to_sha256(data.get('email'))],
                 'phone': [self.hash_to_sha256(data.get('phone_number'))],
             }
         }
