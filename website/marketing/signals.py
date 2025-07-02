@@ -13,7 +13,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
     """
-    from core.models import LeadMarketing, LeadStatusEnum, AdCampaign, PhoneCall, CallTracking
+    from core.models import LeadMarketing, LeadStatusEnum, PhoneCall, CallTracking
     lead_marketing = LeadMarketing.objects.filter(lead=instance).first()
 
     if not lead_marketing:
