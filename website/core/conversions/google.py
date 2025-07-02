@@ -16,10 +16,11 @@ class GoogleAnalyticsConversionService(ConversionService):
         }
 
         if event_name == 'event_booked':
-            params.update({
-                'order_id': data.get('event_id'),
-                'value': data.get('value'), # Overwrite default lead value if for whatever reason
-            })
+            if data.get('event_id'):
+                params.update({
+                    'order_id': data.get('event_id'),
+                    'value': data.get('value'),
+                })
 
         return {
             'client_id': data.get('client_id'),
