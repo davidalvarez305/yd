@@ -808,10 +808,7 @@ class Visit(models.Model):
     url = models.TextField()
     session_duration = models.FloatField(default=0.0)
     
-    lead_marketing = models.ForeignKey(LeadMarketing,
-        null=True, on_delete=models.SET_NULL,
-        related_name='visits'
-    )
+    lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
 
     def __str__(self):
         return f"Visit {self.visit_id} - {self.url} from {self.referrer}"
