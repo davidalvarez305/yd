@@ -1,6 +1,7 @@
 import hashlib
 from abc import ABC, abstractmethod
 from core.http.base import BaseHttpClient
+from core.logger import logger
 
 class ConversionService(ABC):
     def __init__(self, **options):
@@ -43,7 +44,7 @@ class ConversionService(ABC):
             print('CONVERSION RESPONSE: ', response.json())
             return response
         except Exception as e:
-            print(F'ERROR DURING CONVERSION REPORTING: {e}')
+            logger.error(e)
             raise Exception('Failed to log and/or send request.')
 
     def hash_to_sha256(self, value: str) -> str:
