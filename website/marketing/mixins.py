@@ -50,7 +50,7 @@ class CallTrackingMixin:
             metadata = MarketingHelper(request)
             
             call_tracking = CallTracking(
-                call_tracking_number=CallTrackingNumber.objects.get(data.get('call_tracking_number')),
+                call_tracking_number=CallTrackingNumber.objects.get(phone_number=data.get('call_tracking_number')),
                 metadata=json.dumps(metadata.to_dict()),
                 external_id=request.session.get('external_id')
             )
