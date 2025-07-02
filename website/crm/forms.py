@@ -731,6 +731,13 @@ class QuickQuoteForm(BaseModelForm):
             print(f'ERROR: {e}')
             raise Exception('Error saving quick quote form.')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['guests'].error_messages = {'required': ''}
+        self.fields['hours'].error_messages = {'required': ''}
+        self.fields['event_date'].error_messages = {'required': ''}
+
     class Meta:
         model = Quote
         fields = ['lead', 'guests', 'hours', 'event_date']
