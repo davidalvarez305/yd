@@ -170,48 +170,6 @@ class Lead(models.Model):
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
 
-    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None):
-        from marketing.signals import lead_status_changed
-        if isinstance(status, LeadStatusEnum):
-            status = status.name
-
-        lead_status = LeadStatus.objects.filter(status=status).first()
-
-        if not lead_status:
-            raise ValueError('Invalid lead status.')
-        
-        self.lead_status = lead_status
-        self.save()
-
-        LeadStatusHistory.objects.create(
-            lead=self,
-            lead_status=lead_status
-        )
-
-        lead_status_changed.send(sender=self.__class__, instance=self, event=event)
-    
-    # Handling manual changes to lead status via form
-    def _has_lead_status_changed(self):
-        if not self.pk:
-            return False 
-
-        try:
-            old_status = Lead.objects.get(pk=self.pk).lead_status
-            return old_status != self.lead_status
-        except Lead.DoesNotExist:
-            return False
-    
-    # Handling manual changes to lead status via form
-    def _handle_lead_status_change(self):
-        from marketing.signals import lead_status_changed
-
-        LeadStatusHistory.objects.create(
-            lead=self,
-            lead_status=self.lead_status
-        )
-
-        lead_status_changed.send(sender=self.__class__, instance=self)
-
     def value(self, visited=None) -> float:
         if visited is None:
             visited = set()
@@ -233,7 +191,52 @@ class Lead(models.Model):
 
         return total
 
+    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None):
+        from marketing.signals import lead_status_changed
+        if isinstance(status, LeadStatusEnum):
+            status = status.name
+
+        lead_status = LeadStatus.objects.filter(status=status).first()
+
+        if not lead_status:
+            raise ValueError('Invalid lead status.')
+        
+        if self.lead_status_id == lead_status.id:
+            return  # No change needed
+        
+        self.lead_status = lead_status
+        self.save()
+
+        LeadStatusHistory.objects.create(
+            lead=self,
+            lead_status=lead_status
+        )
+
+        lead_status_changed.send(sender=self.__class__, instance=self, event=event)
+    
+    # Handling manual changes to lead status via form
+    def _has_lead_status_changed(self):
+        try:
+            old_status = Lead.objects.get(pk=self.pk).lead_status
+            return old_status != self.lead_status
+        except Lead.DoesNotExist:
+            return False
+    
+    # Handling manual changes to lead status via form
+    def _handle_lead_status_change(self):
+        from marketing.signals import lead_status_changed
+
+        LeadStatusHistory.objects.create(
+            lead=self,
+            lead_status=self.lead_status
+        )
+
+        lead_status_changed.send(sender=self.__class__, instance=self)
+
     def save(self, *args, **kwargs):
+        if self.pk and self._has_lead_status_changed():
+            self._handle_lead_status_change()
+
         super().save(*args, **kwargs)
         self.__class__.objects.filter(pk=self.pk).update(
             search_vector=SearchVector('full_name', 'phone_number')
