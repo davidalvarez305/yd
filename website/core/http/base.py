@@ -16,10 +16,18 @@ class BaseHttpClient:
             params=params,
             **kwargs
         )
-        
-        data = response.json()
+
+        try:
+            if 'application/json' in response.headers.get('Content-Type', ''):
+                data = response.json()
+            else:
+                data = { 'data': response.text }
+        except Exception as e:
+            logger.error(f"Failed to decode JSON from {url}: {e}", exc_info=True)
+            data = {'raw': response.text}
+
         error = data.get('error')
-        
+
         self.log_request(
             method=method,
             url=url,
