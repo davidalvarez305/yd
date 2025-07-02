@@ -230,8 +230,8 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 # Google API
 GOOGLE_API_SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/business.manage"
+    "https://www.googleapis.com/auth/spreadsheets"
+    # "https://www.googleapis.com/auth/business.manage"
 ]
 
 # User
