@@ -33,7 +33,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             response = requests.get(url, params=params)
             response.raise_for_status()
             if response.status_code != 200:
-                logger.error(e)
+                logger.error(e, exc_info=True)
                 raise Exception(f'Failed to retrieve Facebook lead.')
 
             data = response.json()
@@ -56,7 +56,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
             return entry
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             raise Exception('Error while getting lead data from Facebook.')
 
     def _refresh_access_token(self):
@@ -75,7 +75,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             response = requests.get('https://graph.facebook.com/oauth/access_token', params=params)
             response.raise_for_status()
         except requests.RequestException as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             raise Exception('Error during request.')
 
         data = response.json()

@@ -12,4 +12,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Google reviews synced successfully."))
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"Error syncing reviews: {str(e)}"))
-            logger.error(str(e))
+            logger.error(e, exc_info=True)

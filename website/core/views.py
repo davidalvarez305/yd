@@ -396,7 +396,7 @@ class LeadCreateView(BaseWebsiteView, CreateView):
             return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
         except Exception as e:
-            logger.error(str(e))
+            logger.error(str(e), exc_info=True)
             return self.alert(self.request, "Internal server error", AlertStatus.INTERNAL_ERROR)
 
     def form_invalid(self, form):

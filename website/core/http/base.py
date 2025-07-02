@@ -54,7 +54,7 @@ class BaseHttpClient:
 
             log.save()
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             raise Exception('Failed to save HTTP log to DB.')
 
     def _safe_serialize(self, value):

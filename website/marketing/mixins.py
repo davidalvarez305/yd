@@ -2,21 +2,19 @@ from datetime import datetime
 import json
 import uuid
 import random
-import logging
 
 from django.http import HttpRequest
 from django.utils.timezone import now, timedelta
 from django.utils.dateparse import parse_datetime
 
 from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
+from core.logger import logger
 from website import settings
 
 from .utils import MarketingHelper
 from .enums import MarketingParams
 
 tracking_number = MarketingParams.CallTrackingNumberSessionValue.value
-
-logger = logging.getLogger('internal')
 
 class CallTrackingMixin:
     def dispatch(self, request: HttpRequest, *args, **kwargs):
@@ -60,7 +58,7 @@ class CallTrackingMixin:
             )
             call_tracking.save()
         except Exception as e:
-            logger.error(e)
+            logger.error(str(e), exc_info=True)
             raise Exception('Error during tracking call.')
 
     def clean_up_expired_session(self, request):
