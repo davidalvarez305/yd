@@ -1,8 +1,9 @@
 from django.contrib import admin
-from core.models import CallTrackingNumber, EventRole, FacebookAccessToken, IngredientCategory, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, NextAction, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview
+from core.models import CallTrackingNumber, EventRole, FacebookAccessToken, IngredientCategory, Lead, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, NextAction, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview
 
 admin.site.register(CallTrackingNumber)
 
+admin.site.register(Lead)
 admin.site.register(LeadStatus)
 admin.site.register(LeadInterest)
 admin.site.register(NextAction)
