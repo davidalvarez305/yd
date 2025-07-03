@@ -18,13 +18,16 @@ class BaseHttpClient:
         )
 
         try:
-            if 'application/json' in response.headers.get('Content-Type', ''):
+            content_type = response.headers.get('Content-Type', '')
+            if not response.content:
+                data = {'data': None}
+            elif 'application/json' in content_type:
                 data = response.json()
             else:
-                data = { 'data': response.text }
+                data = {'data': response.text}
         except Exception as e:
             logger.error(f"Failed to decode JSON from {url}: {e}", exc_info=True)
-            data = {'raw': response.text}
+            data = {'data': response.text or None}
 
         error = data.get('error')
 
