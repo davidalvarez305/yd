@@ -157,7 +157,7 @@ def get_paired_reviews(max_pairs=4):
     for review in GoogleReview.objects.order_by('-date_created'):
         if len(review.comment) > 200:
             long_reviews.append(review)
-        else:
+        elif len(review.comment) > 0:
             short_reviews.append(review)
 
         if len(long_reviews) >= max_pairs and len(short_reviews) >= max_pairs:
