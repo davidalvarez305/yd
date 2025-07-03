@@ -129,7 +129,7 @@ class HomeView(BaseWebsiteView):
             {
                 'question': 'Do you provide the alcohol or should I supply it?',
                 'answers': [
-                    "We can either provide the alcohol for you or work with what you supply. We’ll guide you on quantities and ensure the drinks are tailored to your preferences.",
+                    "We can either provide the alcohol for you or work with what you supply. We'll guide you on quantities and ensure the drinks are tailored to your preferences.",
                     "Additionally, if anything special is needed for any custom drinks, we'll be sure to let you know."
                 ]
             },
@@ -229,45 +229,45 @@ class HomeView(BaseWebsiteView):
             {
                 'name': 'Unwavering Attention & Care',
                 'src': 'offer_one.png',
-                'description': "This is your moment, and you deserve to feel like the VIP you are. From the first pour to the final cheers, we’re by your side with unmatched care.",
+                'description': "This is your moment, and you deserve to feel like the VIP you are. From the first pour to the final cheers, we're by your side with unmatched care.",
                 'bullets': [
                     'You get our full focus—nothing less.',
                     'Your cocktails, crafted to reflect your style.',
-                    'A bar setup that’s as beautiful as your event.',
+                    "A bar setup that's as beautiful as your event.",
                     'We help you create memories that truly last.',
                 ],
             },
             {
                 'name': 'Artistry in Every Pour',
                 'src': 'offer_two.png',
-                'description': "You don’t just want drinks—you want a visual and flavorful experience. We bring flair, flavor, and a touch of magic to every cocktail we serve you.",
+                'description': "You don't just want drinks—you want a visual and flavorful experience. We bring flair, flavor, and a touch of magic to every cocktail we serve you.",
                 'bullets': [
                     'Your cocktails become the talk of the night.',
                     'We use fresh, seasonal ingredients just for you.',
                     'Every pour looks incredible—camera-ready every time.',
-                    'You’ll taste (and see) the difference in every detail.',
+                    "You'll taste (and see) the difference in every detail.",
                 ],
             },
             {
                 'name': 'Elevated Guest Experience',
                 'src': 'offer_three.png',
-                'description': "You want your guests to feel taken care of—and we’ve got you. We handle the service so you can relax and enjoy your event to the fullest.",
+                'description': "You want your guests to feel taken care of—and we've got you. We handle the service so you can relax and enjoy your event to the fullest.",
                 'bullets': [
                     'Your guests are welcomed with warmth & charm.',
                     'We keep your event flowing seamlessly behind the scenes.',
                     'You can count on professional, friendly service throughout.',
-                    'You focus on fun—we’ve got the rest covered.',
+                    "You focus on fun—we've got the rest covered.",
                 ],
             },
             {
                 'name': 'The Aesthetic Bar Experience',
                 'src': 'offer_four.png',
-                'description': "You’ve put so much into making your event beautiful—your bar should match that energy. We design a setup that elevates your entire vibe.",
+                'description': "You've put so much into making your event beautiful—your bar should match that energy. We design a setup that elevates your entire vibe.",
                 'bullets': [
                     'Your bar becomes a stunning visual centerpiece.',
                     'Every element—from garnishes to glassware—is styled to fit your look.',
-                    'You get custom signage & menus that reflect your event’s theme.',
-                    'Guests won’t stop snapping photos—you’ll love the memories.',
+                    "You get custom signage & menus that reflect your event's theme.",
+                    "Guests won't stop snapping photos—you'll love the memories.",
                 ],
             }
         ]
