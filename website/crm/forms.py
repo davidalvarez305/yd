@@ -7,7 +7,7 @@ import re
 
 from django.urls import reverse
 
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -326,13 +326,22 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
+    ad = forms.ModelChoiceField(
+        queryset=Ad.objects.all(),
+        required=False,
+        label="Ad",
+        widget=forms.Select(attrs={
+            'placeholder': 'Select Ad'
+        })
+    )
+
     class Meta:
         model = LeadMarketing
         fields = [
             'lead', 'source', 'medium', 'channel',
             'landing_page', 'keyword', 'referrer',
             'click_id', 'client_id',
-            'ip', 'instant_form_lead_id', 'instant_form_id'
+            'ip', 'instant_form_lead_id', 'instant_form_id', 'ad'
         ]
     
     def clean_referred_by(self):
