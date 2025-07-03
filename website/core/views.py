@@ -387,7 +387,7 @@ class LeadCreateView(BaseWebsiteView, CreateView):
                     if hasattr(marketing, key):
                         setattr(marketing, key, value)
 
-                marketing.button_clicked = form.cleaned_data.get('button_clicked')
+                marketing.ad = helper.ad
                 marketing.lead = lead
                 marketing.save()
 
