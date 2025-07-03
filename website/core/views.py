@@ -194,19 +194,19 @@ class HomeView(BaseWebsiteView):
             {
                 'type': 'Beer Cocktails',
                 'name': 'Michelada',
-                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'description': 'For those that want to take their beer to the next level with a spicy & salty mix.',
                 'src': 'michelada.png',
             },
             {
                 'type': 'Frozen Cocktails',
                 'name': 'Daiquiri',
-                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'description': 'The true summer-time special: a frozen daiquiri to cool the body down.',
                 'src': 'frozen_daiquiri.png',
             },
             {
                 'type': 'Custom Drinks',
                 'name': 'Passionfruit Mojito',
-                'description': 'Tasty, and aesthetic drinks to sip on for welcoming your guests at the party.',
+                'description': "If you'd like to go beyond the classics, and create your own unique blend: we can give it a go.",
                 'src': 'passionfruit_mojito.png',
             }
         ]
