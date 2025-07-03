@@ -227,9 +227,9 @@ class HomeView(BaseWebsiteView):
 
         offers = [
             {
-                'name': 'Excellence of Service',
+                'name': 'Unwavering Attention & Care',
                 'src': 'offer_one.png',
-                'description': 'Our team focuses on delivering an experience like no other to ensure that you & your clients have an unforgeattable experience.',
+                'description': "On your special day, you should receive nothing but absolute VIP attention.",
                 'bullets': [
                     'Incredible attention & service.',
                     'Exquisite & aestehtic cocktails',
