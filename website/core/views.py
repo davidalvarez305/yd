@@ -272,6 +272,9 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
+        comments = [f"comment_{i}.png" for i in range(1, 14)]
+
+        context['comments'] = comments
         context['offers'] = offers
         context['cocktails'] = cocktails
         context['features'] = features
