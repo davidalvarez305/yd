@@ -32,6 +32,7 @@ class EnvConfig:
         "AWS_STORAGE_BUCKET_NAME",
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY",
+        "AWS_S3_CUSTOM_DOMAIN",
 
         # Facebook
         "FACEBOOK_PAGE_ACCESS_TOKEN",
