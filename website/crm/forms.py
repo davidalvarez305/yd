@@ -276,15 +276,6 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
-    referrer = forms.CharField(
-        label="Referrer URL",
-        required=False,
-        widget=forms.Textarea(attrs={
-            'placeholder': 'https://google.com/search?q=...',
-            'rows': 2
-        })
-    )
-
     click_id = forms.CharField(
         label="Click ID",
         required=False,
@@ -338,10 +329,8 @@ class LeadMarketingForm(BaseModelForm):
     class Meta:
         model = LeadMarketing
         fields = [
-            'lead', 'source', 'medium', 'channel',
-            'landing_page', 'keyword', 'referrer',
-            'click_id', 'client_id',
-            'ip', 'instant_form_lead_id', 'instant_form_id', 'ad'
+            'source', 'medium', 'channel', 'landing_page', 'keyword',
+            'click_id', 'client_id', 'ip', 'ad'
         ]
     
     def clean_referred_by(self):
