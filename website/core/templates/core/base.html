@@ -298,14 +298,14 @@
 {% block extra_scripts %}
     {% if js_files %}
         {% for js_file in js_files %}
-            <script type="module" src="{% static js_file %}"></script>
+            <script defer type="module" src="{% static js_file %}"></script>
         {% endfor %}
     {% endif %}
 {% endblock %}
 
-<script src="https://unpkg.com/htmx.org@2.0.4"></script>
-<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/loading-states.js"></script>
-<script src="https://unpkg.com/htmx-ext-response-targets@2.0.2" crossorigin="anonymous"></script>
+<script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script defer src="https://unpkg.com/htmx.org@1.9.12/dist/ext/loading-states.js"></script>
+<script defer src="https://unpkg.com/htmx-ext-response-targets@2.0.2" crossorigin="anonymous"></script>
 <script>
 	function handleConfirmationLogic() {
 		const optIn = document.getElementById("opt_in_text_messaging");
@@ -352,11 +352,11 @@
 				var endTime = Date.now();
 
 				const body = new FormData();
-				body.set('visit_id', "{{ visit_id }}");
+				body.set('visit_id', '{{ visit_id }}');
 				body.set('session_duration', (endTime - startTime) / 1000);
-				body.set('csrfmiddlewaretoken', "{{ csrf_token }}");
+				body.set('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-				fetch("{% url 'visit_update' pk=visit_id %}", { method: "POST", body: body  });
+				fetch("{% url 'visit_update' pk=visit_id %}", { method: 'POST', body: body  });
 			};
 		};
 	};
