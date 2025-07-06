@@ -265,6 +265,7 @@ class LeadDetailView(CRMDetailView):
         })
 
         context['quote_table'] = QuoteTable(data=self.object.quotes.all(), request=self.request)
+        context['lead_visits_table'] = VisitTable(data=Visit.objects.filter(lead_marketing=lead.lead_marketing))
 
         initial={ 'lead': self.object }
         context['quote_form'] = QuoteForm(initial)
