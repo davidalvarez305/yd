@@ -50,28 +50,24 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        external_id = self.request.session.get("external_id")
-        visit_id = self.request.session.get("visit_id")
+        external_id = self.request.session.get('external_id')
+        visit_id = self.request.session.get('visit_id')
         if external_id is None or visit_id is None:
-            return HttpResponseServerError("Error retrieving external or visit ID.")
+            return HttpResponseServerError('Error retrieving external or visit ID.')
         
         form = LeadForm()
 
         context.update({
-            "form": form,
-            "external_id": external_id,
-            "visit_id": visit_id,
-            "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
-            "google_ads_id": settings.GOOGLE_ADS_ID,
-            "google_ads_call_conversion_label": settings.GOOGLE_ADS_CALL_CONVERSION_LABEL,
-            "facebook_dataset_id": settings.FACEBOOK_DATASET_ID,
-            "event_name": 'generate_lead',
-            "default_currency": settings.DEFAULT_CURRENCY,
-            "default_lead_value": settings.DEFAULT_LEAD_VALUE,
-            "yova_hero_image": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_hero.jpeg",
-            "yova_most_popular_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_mid_cta.png",
-            "yova_basic_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_basic_package.jpeg",
-            "yova_open_bar_package": "https://ydcocktails.s3.us-east-1.amazonaws.com/media/yova_open_bar_package.jpeg",
+            'form': form,
+            'external_id': external_id,
+            'visit_id': visit_id,
+            'google_analytics_id': settings.GOOGLE_ANALYTICS_ID,
+            'google_ads_id': settings.GOOGLE_ADS_ID,
+            'google_ads_call_conversion_label': settings.GOOGLE_ADS_CALL_CONVERSION_LABEL,
+            'facebook_dataset_id': settings.FACEBOOK_DATASET_ID,
+            'event_name': 'generate_lead',
+            'default_currency': settings.DEFAULT_CURRENCY,
+            'default_lead_value': settings.DEFAULT_LEAD_VALUE,
         })
 
         context['js_files'] = [
