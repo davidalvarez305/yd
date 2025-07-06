@@ -87,12 +87,12 @@ class HomeView(BaseWebsiteView):
 
         media_storage = storages['media']
         cocktail_images = [
-            ('Raspberry Spritz', 'raspberry_spritz.png'),
-            ('Mojitos', 'mojitos.png'),
-            ('Mocktails', 'mocktails.png'),
-            ('Guava Margarita', 'margarita.png'),
-            ('Passionfruit Margarita', 'margarita_tower.png'),
-            ('Piña Colada', 'pina_colada.png'),
+            ('Raspberry Spritz', 'raspberry_spritz.webp'),
+            ('Mojitos', 'mojitos.webp'),
+            ('Mocktails', 'mocktails.webp'),
+            ('Guava Margarita', 'margarita.webp'),
+            ('Passionfruit Margarita', 'margarita_tower.webp'),
+            ('Piña Colada', 'pina_colada.webp'),
         ]
 
         cocktails = [
@@ -173,58 +173,58 @@ class HomeView(BaseWebsiteView):
                 'type': 'Signature Cocktails',
                 'name': 'Spicy Mango Margarita',
                 'description': 'A delectable mixture of sweet & spicy twist on a classic crowd favorite.',
-                'src': 'spicy_mango_margarita.png',
+                'src': 'spicy_mango_margarita.webp',
             },
             {
                 'type': 'Classic Cocktails',
                 'name': 'Mojito',
                 'description': 'A strong case could be made that the mojito is the most popular drink in South Florida.',
-                'src': 'mojitos_cocktails.png',
+                'src': 'mojitos_cocktails.webp',
             },
             {
                 'type': 'Mocktails',
                 'name': 'Blue Hawaiian Mocktail',
                 'description': 'A sweet-n-sour, yet colorful drink — a summer classic for sure.',
-                'src': 'mocktail.png',
+                'src': 'mocktail.webp',
             },
             {
                 'type': 'Beer Cocktails',
                 'name': 'Michelada',
                 'description': 'For those that want to take their beer to the next level with a spicy & salty mix.',
-                'src': 'michelada.png',
+                'src': 'michelada.webp',
             },
             {
                 'type': 'Frozen Cocktails',
                 'name': 'Daiquiri',
                 'description': 'The true summer-time special: a frozen daiquiri to cool the body down.',
-                'src': 'frozen_daiquiri.png',
+                'src': 'frozen_daiquiri.webp',
             },
             {
                 'type': 'Custom Drinks',
                 'name': 'Passionfruit Mojito',
                 'description': "If you'd like to go beyond the classics, and create your own unique blend: we can give it a go.",
-                'src': 'passionfruit_mojito.png',
+                'src': 'passionfruit_mojito.webp',
             }
         ]
 
         left_social_images = [
-            'social_proof_one.png',
-            'social_proof_two.png',
-            'social_proof_three.png',
-            'social_proof_four.png',
+            'social_proof_one.webp',
+            'social_proof_two.webp',
+            'social_proof_three.webp',
+            'social_proof_four.webp',
         ]
 
         right_social_images = [
-            'social_proof_five.png',
-            'social_proof_six.png',
-            'social_proof_seven.png',
-            'social_proof_eight.png',
+            'social_proof_five.webp',
+            'social_proof_six.webp',
+            'social_proof_seven.webp',
+            'social_proof_eight.webp',
         ]
 
         offers = [
             {
                 'name': 'Unwavering Attention & Care',
-                'src': 'offer_one.png',
+                'src': 'offer_one.webp',
                 'description': "This is your moment, and you deserve to feel like the VIP you are. From the first pour to the final cheers, we're by your side with unmatched care.",
                 'bullets': [
                     'You get our full focus—nothing less.',
@@ -235,7 +235,7 @@ class HomeView(BaseWebsiteView):
             },
             {
                 'name': 'Artistry in Every Pour',
-                'src': 'offer_two.png',
+                'src': 'offer_two.webp',
                 'description': "You don't just want drinks—you want a visual and flavorful experience. We bring flair, flavor, and a touch of magic to every cocktail we serve you.",
                 'bullets': [
                     'Your cocktails become the talk of the night.',
@@ -246,7 +246,7 @@ class HomeView(BaseWebsiteView):
             },
             {
                 'name': 'Elevated Guest Experience',
-                'src': 'offer_three.png',
+                'src': 'offer_three.webp',
                 'description': "You want your guests to feel taken care of—and we've got you. We handle the service so you can relax and enjoy your event to the fullest.",
                 'bullets': [
                     'Your guests are welcomed with warmth & charm.',
@@ -257,7 +257,7 @@ class HomeView(BaseWebsiteView):
             },
             {
                 'name': 'The Aesthetic Bar Experience',
-                'src': 'offer_four.png',
+                'src': 'offer_four.webp',
                 'description': "You've put so much into making your event beautiful—your bar should match that energy. We design a setup that elevates your entire vibe.",
                 'bullets': [
                     'Your bar becomes a stunning visual centerpiece.',
@@ -268,7 +268,7 @@ class HomeView(BaseWebsiteView):
             }
         ]
 
-        comments = [f"comment_{i}.png" for i in range(1, 14)]
+        comments = [f"comment_{i}.webp" for i in range(1, 14)]
 
         context['comments'] = comments
         context['offers'] = offers
