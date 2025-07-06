@@ -5,6 +5,7 @@ import uuid
 from django.db import models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import Q
 
@@ -1065,7 +1066,7 @@ class InternalLog(models.Model):
 
 class GoogleReview(models.Model):
     review_id = models.AutoField(primary_key=True)
-    external_id = models.CharField(max_length=255, unique=True)  # Google's review ID
+    external_id = models.CharField(max_length=255, unique=True)
     reviewer_display_name = models.CharField(max_length=255, null=True, blank=True)
     reviewer_profile_photo_url = models.URLField(null=True, blank=True)
     star_rating = models.CharField(max_length=20)
@@ -1073,7 +1074,8 @@ class GoogleReview(models.Model):
     comment = models.TextField(null=True, blank=True)
     date_created = models.DateTimeField()
     date_updated = models.DateTimeField()
-    location_id = models.CharField(max_length=255)  # Google Location ID
+    location_id = models.CharField(max_length=255)
+    should_show = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'google_review'
@@ -1085,3 +1087,19 @@ class GoogleReview(models.Model):
 
     def __str__(self):
         return self.reviewer_display_name or 'Anonymous'
+    
+    def clean(self):
+        super().clean()
+
+        if self.should_show:
+            is_showing = GoogleReview.objects.filter(should_show=True)
+
+            if self.pk:
+                is_showing = is_showing.exclude(pk=self.pk)
+
+            if is_showing.count() >= 8:
+                raise ValidationError("Cannot exceeed more than 8 starred reviews.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
