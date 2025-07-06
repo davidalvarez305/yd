@@ -65,8 +65,15 @@
 	<meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}' />
 
     <!-- CSS -->
-    <link href="{% static 'styles/main.css' %}" rel="stylesheet" type="text/css">
-	<link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+    <link rel="preload" href="{% static 'styles/main.css' %}" as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link href="{% static 'styles/main.css' %}" rel="stylesheet" type="text/css">
+	</noscript>
+
+	<link rel="preload" href="https://fonts.bunny.net/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+	</noscript>
     
 	<!-- Rels -->
     <link rel="canonical" href="{{ page_path }}" />
