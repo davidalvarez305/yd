@@ -142,11 +142,11 @@ class VisitTable(Table):
         )
     )
 
-    lead_marketing = TableField(
-        label='Marketing',
+    url = TableField(
+        label='Landing Page',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: deep_getattr(row, 'lead_marketing.marketing_campaign.name', '')
+                'value': lambda row: row.url
             }
         )
     )
