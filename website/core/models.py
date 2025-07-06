@@ -635,7 +635,6 @@ class LeadMarketing(models.Model):
     channel = models.CharField(max_length=255, null=True)
     landing_page = models.TextField(null=True)
     keyword = models.CharField(max_length=255, null=True)
-    referrer = models.TextField(null=True)
     click_id = models.TextField(unique=True, null=True)
     client_id = models.TextField(unique=True, null=True)
     ip = models.GenericIPAddressField(null=True)

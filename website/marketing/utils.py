@@ -14,16 +14,13 @@ class MarketingHelper:
         self.params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
 
         self.external_id = self.request.session.get('external_id')
-
-        self.referrer = self.request.META.get('HTTP_REFERER')
-
-        self.ip = self.request.META.get('REMOTE_ADDR')
+        self.ip = self.get_client_ip()
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
 
         self.keyword = self.params.get('keyword')
-        self.source = self.params.get('source', self.get_source_from_referrer())
-        self.medium = self.params.get('medium', self.generate_medium())
-        self.channel = self.params.get('channel', self.get_channel())
+        self.source = self.params.get('source')
+        self.medium = self.params.get('medium', self.get_medium())
+        self.channel = self.params.get('channel')
 
         marketing_params = self._get_marketing_params()
 
@@ -32,7 +29,7 @@ class MarketingHelper:
         self.client_id = marketing_params.get('client_id')
 
         self.ad = self.get_or_create_ad()
-    
+
     def to_dict(self):
         exclude = {'request', 'ad'}
         data = {
@@ -57,18 +54,11 @@ class MarketingHelper:
         """
         return self.request.COOKIES.get(cookie_name)
 
-    def generate_medium(self):
-        """
-        Determines the marketing medium based on referrer and query parameters.
-        """
-        if not self.referrer:
-            return "direct"
-        elif not self.params:
-            return "organic"
-        elif self.is_paid():
+    def get_medium(self):
+        if self.is_paid():
             return "paid"
         else:
-            return "referral"
+            return "organic"
 
     def is_paid(self):
         """
@@ -76,55 +66,11 @@ class MarketingHelper:
         """
         return any(self.params.get(key) for key in CLICK_ID_KEYS)
 
-    def get_source_from_referrer(self):
-        """
-        Extracts the source of the traffic from the referrer URL.
-        """
-        try:
-            url = self.referrer if self.referrer else ''
-            host = url.split('//')[-1].split('/')[0].lower()
-            if host.startswith("www."):
-                host = host[4:]
-            return host
-        except Exception as e:
-            print(f"Error parsing referrer: {e}")
-            return "unknown"
-
-    def get_channel(self):
-        """
-        Determines the channel based on the referrer.
-        """
-        display_networks = ["googleads.g.doubleclick.net"]
-        search_engines = [
-            "bing", "yahoo", "ecosia", "duckduckgo", "yandex", "baidu", "naver", "ask.com",
-            "adsensecustomsearchads", "aol", "brave"
-        ]
-        major_social_networks = [
-            "facebook", "instagram", "twitter", "linkedin", "pinterest", "snapchat", "reddit", "whatsapp",
-            "wechat", "telegram", "discord", "vkontakte", "weibo", "line", "kakaotalk", "qq", "viber", "tumblr",
-            "flickr", "meetup", "tagged", "badoo", "myspace",
-        ]
-        major_video_platforms = [
-            "youtube", "tiktok", "vimeo", "dailymotion", "twitch", "bilibili", "youku", "rutube", "vine", "peertube",
-            "ig tv", "veoh", "metacafe", "vudu", "vidyard", "rumble", "bit chute", "brightcove", "viddler", "vzaar",
-        ]
-
-        ref = self.referrer or ""
-
-        for platform in display_networks:
-            if platform in ref:
-                return "display"
-        for engine in search_engines:
-            if engine in ref:
-                return "search"
-        for network in major_social_networks:
-            if network in ref:
-                return "social"
-        for platform in major_video_platforms:
-            if platform in ref:
-                return "video"
-
-        return "other"
+    def get_client_ip(self):
+        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0]
+        return self.request.META.get('REMOTE_ADDR')
 
     def get_or_create_ad(self):
         """
@@ -185,16 +131,16 @@ class MarketingHelper:
                 break
 
         if not click_id:
-            fbclid = self.params.get(MarketingParams.FacebookURLClickID.value, None)
+            fbclid = self.params.get(MarketingParams.FacebookURLClickID.value)
             if fbclid:
                 click_id = fbclid
                 platform_id = ConversionServiceType.FACEBOOK.value
 
         # Step 2: Extract `client_id` from cookies based on `platform_id`
         if platform_id == ConversionServiceType.GOOGLE:
-            client_id = self.request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value, None)
+            client_id = self.request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value)
         elif platform_id == ConversionServiceType.FACEBOOK:
-            client_id = self.request.COOKIES.get(MarketingParams.FacebookCookieClientID.value, None)
+            client_id = self.request.COOKIES.get(MarketingParams.FacebookCookieClientID.value)
 
         # Step 3: Return the extracted values
         return {

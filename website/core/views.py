@@ -370,7 +370,7 @@ class LogoutView(BaseWebsiteView):
         logout(request)
         return redirect(reverse('home'))
 
-class LeadCreateView(BaseWebsiteView, CreateView):
+class LeadCreateView(BaseView, CreateView):
     model = Lead
     form_class = LeadForm
 
