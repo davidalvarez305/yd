@@ -113,7 +113,7 @@ AWS_S3_REGION_NAME = env.get('AWS_REGION')
 
 # AWS Custom Config
 AWS_QUERYSTRING_AUTH = False
-AWS_IS_GZIPPED = True # text/css,text/javascript,application/javascript,application/x-javascript,image/svg+xml
+AWS_IS_GZIPPED = True
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",  # Cache files for 24 hours
 }
@@ -195,7 +195,7 @@ if DEBUG:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
         "media": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "core.storage.MediaS3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
                 "location": "media",
@@ -218,7 +218,7 @@ else:
             },
         },
         "media": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "core.storage.MediaS3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
                 "location": "media",
@@ -227,7 +227,7 @@ else:
     }
 
 # Ensure media is always stored on S3
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+DEFAULT_FILE_STORAGE = "core.storage.MediaS3Storage"
 
 # Google API
 GOOGLE_API_SCOPES = [

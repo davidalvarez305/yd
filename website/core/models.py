@@ -497,11 +497,6 @@ class Message(models.Model):
             models.Index(fields=["is_read"]),
         ]
 
-    def save(self, *args, **kwargs):
-        self.text_from = self.text_from[-10:]
-        self.text_to = self.text_to[-10:]
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.external_id
 
@@ -562,11 +557,6 @@ class PhoneCall(models.Model):
     class Meta:
         db_table = "phone_call"
 
-    def save(self, *args, **kwargs):
-        self.call_from = self.call_from[-10:]
-        self.call_to = self.call_to[-10:]
-        super().save(*args, **kwargs)
-    
     def get_lead(self):
         from core.models import Lead
         return Lead.objects.filter(phone_number=self.call_from).first() or Lead.objects.filter(phone_number=self.call_to).first()

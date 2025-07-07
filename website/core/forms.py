@@ -317,7 +317,6 @@ class MultiMediaFileField(forms.FileField):
 
         for file in files:
             content_type = getattr(file, "content_type", "")
-            file_name = create_generic_file_name(content_type=content_type)
 
             try:
                 if content_type.startswith("audio/"):
@@ -325,16 +324,31 @@ class MultiMediaFileField(forms.FileField):
                     target_dir = os.path.join(self.upload_root, sub_dir)
                     os.makedirs(target_dir, exist_ok=True)
 
-                    file = self._convert_audio_format(file, file_name, "mp3", target_dir)
+                    file_name = create_generic_file_name(content_type, extension=".mp3")
+                    target_path = os.path.join(target_dir, file_name)
+
+                    converted_file = self._convert_audio_format(file, target_path, "mp3")
                     content_type = "audio/mpeg"
 
-                uploaded_file = self._build_uploaded_file(
-                    file_obj=file.file,
-                    name=file_name,
-                    content_type=content_type,
-                    size=file.size,
-                    charset=getattr(file, "charset", None)
-                )
+                    converted_file.seek(0)
+                    file_size = len(converted_file.read())
+                    converted_file.seek(0)
+
+                    uploaded_file = self._build_uploaded_file(
+                        file_obj=converted_file,
+                        name=file_name,
+                        content_type=content_type,
+                        size=file_size,
+                        charset=getattr(file, "charset", None),
+                    )
+                else:
+                    uploaded_file = self._build_uploaded_file(
+                        file_obj=file.file,
+                        name=create_generic_file_name(content_type),
+                        content_type=content_type,
+                        size=file.size,
+                        charset=getattr(file, "charset", None),
+                    )
 
                 media_files.append(uploaded_file)
 
@@ -342,7 +356,7 @@ class MultiMediaFileField(forms.FileField):
                 raise forms.ValidationError(f"File processing failed: {str(e)}")
 
         return media_files
-    
+
     def _build_uploaded_file(self, file_obj, name, content_type, size, charset=None):
         return InMemoryUploadedFile(
             file=file_obj,
@@ -353,34 +367,27 @@ class MultiMediaFileField(forms.FileField):
             charset=charset
         )
 
-    def _convert_audio_format(self, django_file, file_name: str, to_format: str, target_dir: str) -> File:
-        from_path = os.path.join(target_dir, file_name)
-        original_extension = os.path.splitext(from_path)[1].lstrip('.')
-        to_file_name = file_name.replace(original_extension, to_format)
-
+    def _convert_audio_format(self, file, target_path: str, to_format: str) -> BytesIO:
         try:
-            with open(from_path, "wb") as tmp_file:
-                for chunk in django_file.chunks():
+            with open(target_path, "wb") as tmp_file:
+                for chunk in file.chunks():
                     tmp_file.write(chunk)
 
-            audio = AudioSegment.from_file(from_path)
+            audio = AudioSegment.from_file(target_path)
             buffer = BytesIO()
             audio.export(buffer, format=to_format, bitrate="192k")
-            buffer.seek(0)
-
-            return File(buffer, name=to_file_name)
+            return buffer
 
         except Exception as e:
             raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
         finally:
-            if os.path.exists(from_path):
-                os.remove(from_path)
+            if os.path.exists(target_path):
+                os.remove(target_path)
 
     def _get_sub_dir(self, content_type: str) -> str:
-        main_type = content_type.split("/")[0]
         return {
             "audio": "audio",
             "image": "images",
-            "video": "videos"
-        }.get(main_type, "misc")
+            "video": "videos",
+        }.get(content_type.split("/")[0], "misc")

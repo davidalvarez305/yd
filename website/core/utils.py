@@ -1,12 +1,12 @@
+import mimetypes
 import os
 import re
 import uuid
-import mimetypes
 from pathlib import Path
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 import requests
 
-from django.urls import reverse
 from django.db import models
 
 from website import settings
@@ -30,17 +30,17 @@ def is_mobile(user_agent):
 
     return any(keyword in user_agent for keyword in ["Mobile", "Android", "iPhone", "iPad", "iPod"])
 
-    
-def create_generic_file_name(content_type: str) -> str:
+def create_generic_file_name(content_type: str, extension: str) -> str:
     if not content_type:
-        raise ValueError('No content type provided')
-    
-    if content_type == 'audio/webm':
-        extension = '.webm'
-    else:
+        raise ValidationError('No content type provided')
+
+    if not extension:
         extension = mimetypes.guess_extension(content_type) or '.bin'
-    
-    return f'{uuid.uuid4()}{extension}'
+
+    if "." not in extension:
+        raise ValidationError('Extension must have a dot (e.g. ".mp3")')
+
+    return str(uuid.uuid4()) + extension
 
 def add_form_field_class(widget, new_classes):
     existing = widget.attrs.get('class', '')
