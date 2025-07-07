@@ -11,6 +11,9 @@ from django.db import models
 
 from website import settings
 from core.enums import AlertHTTPCodes, AlertStatus
+from io import BytesIO
+from pydub import AudioSegment
+from moviepy.editor import VideoFileClip
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -171,3 +174,36 @@ def get_paired_reviews(max_pairs=4):
         reviews.append((short, 1))  # short review with col-span-1
 
     return reviews
+
+class AttachmentProcessingError(Exception):
+    pass
+
+def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
+    try:
+        with open(file_path, "wb") as tmp_file:
+            for chunk in file.chunks():
+                tmp_file.write(chunk)
+
+        audio = AudioSegment.from_file(file_path)
+        buffer = BytesIO()
+        audio.export(buffer, format=to_format, bitrate="192k")
+        return buffer
+
+    except Exception as e:
+        raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
+
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+def convert_video_to_mp4(input_path: str, output_path: str):
+    clip = VideoFileClip(input_path)
+    clip.write_videofile(output_path, codec="libx264", audio_codec="aac", preset="medium", threads=2)
+    clip.close()
+
+def get_upload_sub_dir(content_type: str) -> str:
+    return {
+        "audio": "audio",
+        "image": "images",
+        "video": "videos",
+    }.get(content_type.split("/")[0], "misc")

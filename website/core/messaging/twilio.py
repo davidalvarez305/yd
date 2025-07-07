@@ -1,7 +1,6 @@
 import mimetypes
 import os
 import uuid
-import requests
 
 from django.http import HttpRequest, HttpResponse
 from django.core.files.base import ContentFile
@@ -11,13 +10,14 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from twilio.twiml.messaging_response import MessagingResponse
 
-from core.utils import cleanup_dir_files, download_file_from_twilio
+from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, download_file_from_twilio
 from core.models import Message, MessageMedia
 
 from communication.forms import MessageForm
 from communication.enums import TwilioWebhookCallbacks
 from .base import MessagingServiceInterface
-from .utils import strip_country_code
+from .utils import MIME_EXTENSION_MAP, strip_country_code
+from core.logger import logger
 
 from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, UPLOADS_URL, DEBUG
 
@@ -62,18 +62,45 @@ class TwilioMessagingService(MessagingServiceInterface):
                 media_url = request.POST.get(f"MediaUrl{i}")
                 content_type = request.POST.get(f"MediaContentType{i}")
 
-                ext = mimetypes.guess_extension(content_type)
-                file_name = str(uuid.uuid4()) + ext
+                ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
+                original_file_name = str(uuid.uuid4()) + ext
+                original_file_path = os.path.join(UPLOADS_URL, original_file_name)
 
-                local_file_path = os.path.join(UPLOADS_URL, file_name)
+                if not (media_url and content_type):
+                    continue
 
-                if media_url:
-                    download_file_from_twilio(twilio_resource=media_url, local_file_path=local_file_path)
-                    with open(local_file_path, 'rb') as file:
+                # Download the media file
+                download_file_from_twilio(twilio_resource=media_url, local_file_path=original_file_path)
+
+                # Handle audio conversion to mp3
+                if content_type.startswith("audio/") and 'mp3' not in ext:
+                    with open(original_file_path, 'rb') as original_file:
+                        converted_buffer = convert_audio_format(original_file, temp_dir=UPLOADS_URL, input_format="amr")
+
+                    converted_filename = str(uuid.uuid4()) + '.mp3'
+                    converted_content_type = "audio/mpeg"
+
+                    media = MessageMedia(message=message, content_type=converted_content_type)
+                    media.file.save(converted_filename, ContentFile(converted_buffer.read()))
+
+                # Handle video conversion to mp4
+                elif content_type.startswith("video/"):
+                    converted_filename = f"{uuid.uuid4()}.mp4"
+                    converted_path = os.path.join(UPLOADS_URL, converted_filename)
+
+                    convert_video_to_mp4(original_file_path, converted_path)
+
+                    with open(converted_path, 'rb') as video_file:
+                        media = MessageMedia(message=message, content_type="video/mp4")
+                        media.file.save(converted_filename, ContentFile(video_file.read()))
+                else:
+                    # Handle image files
+                    with open(original_file_path, 'rb') as f:
                         media = MessageMedia(message=message, content_type=content_type)
-                        media.file.save(file_name, ContentFile(file.read()))
+                        media.file.save(original_file_name, ContentFile(f.read()))
 
         except Exception as e:
+            logger.error(e, exc_info=True)
             return HttpResponse("Unexpected error occurred.", status=500)
 
         finally:

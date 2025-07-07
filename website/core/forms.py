@@ -1,18 +1,14 @@
 import re
 import os
-from io import BytesIO
-from pydub import AudioSegment
 
 from website.settings import COMPANY_NAME
-from .utils import add_form_field_class
-from .utils import create_generic_file_name
+from .utils import add_form_field_class, convert_audio_format, create_generic_file_name, get_upload_sub_dir
 from .widgets import ToggleSwitchWidget
 from .models import Lead, Service, UnitType, User, ServiceType
 from .email import email_service
 
 from django import forms
 from django.conf import settings
-from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django import forms
 from django.core.exceptions import ValidationError
@@ -320,14 +316,14 @@ class MultiMediaFileField(forms.FileField):
 
             try:
                 if content_type.startswith("audio/"):
-                    sub_dir = self._get_sub_dir(content_type)
+                    sub_dir = get_upload_sub_dir(content_type)
                     target_dir = os.path.join(self.upload_root, sub_dir)
                     os.makedirs(target_dir, exist_ok=True)
 
                     file_name = create_generic_file_name(content_type, extension=".mp3")
                     file_path = os.path.join(target_dir, file_name)
 
-                    converted_file = self._convert_audio_format(file=file, file_path=file_path, to_format="mp3")
+                    converted_file = convert_audio_format(file=file, file_path=file_path, to_format="mp3")
                     content_type = "audio/mpeg"
 
                     converted_file.seek(0)
@@ -366,28 +362,3 @@ class MultiMediaFileField(forms.FileField):
             size=size,
             charset=charset
         )
-
-    def _convert_audio_format(self, file, file_path: str, to_format: str) -> BytesIO:
-        try:
-            with open(file_path, "wb") as tmp_file:
-                for chunk in file.chunks():
-                    tmp_file.write(chunk)
-
-            audio = AudioSegment.from_file(file_path)
-            buffer = BytesIO()
-            audio.export(buffer, format=to_format, bitrate="192k")
-            return buffer
-
-        except Exception as e:
-            raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
-
-        finally:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
-    def _get_sub_dir(self, content_type: str) -> str:
-        return {
-            "audio": "audio",
-            "image": "images",
-            "video": "videos",
-        }.get(content_type.split("/")[0], "misc")

@@ -76,3 +76,8 @@ class Migration(migrations.Migration):
 $env:PRODUCTION = "1"
 python manage.py collectstatic
 ```
+
+# Freeze
+```
+pip freeze > ../requirements.txt
+```
