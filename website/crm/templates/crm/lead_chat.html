@@ -30,7 +30,7 @@
             hx-target-error="#alertModal"
             hx-target="#leadChatMessages"
             hx-swap="outerHTML"
-            hx-on::after-request="if(event.detail.successful) displayAttachmentCount(0);"
+            hx-on::after-request="handlePostSubmission(event);"
         >
             {% csrf_token %}
             <div class="grow">
@@ -134,6 +134,16 @@
                 fileCount.textContent = `${count} files attached`;
                 break;
         }
+    }
+
+    function handlePostSubmission(event) {
+        if(!event.detail.successful) return;
+
+        let chatForm = document.getElementById('chatForm');
+
+        chatForm.reset();
+
+        displayAttachmentCount(0);
     }
 </script>
 <!-- END Image & Video Input -->
