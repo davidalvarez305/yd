@@ -13,7 +13,7 @@ from website import settings
 from core.enums import AlertHTTPCodes, AlertStatus
 from io import BytesIO
 from pydub import AudioSegment
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 def format_phone_number(phone_number):
     if phone_number is None:
