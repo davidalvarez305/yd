@@ -191,7 +191,7 @@ def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
                 # Standard file-like object
                 tmp_file.write(file.read())
 
-        audio = AudioSegment.from_file(file_path)
+        audio = AudioSegment.from_file(file_path, format='amr')
         buffer = BytesIO()
         audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
