@@ -1,6 +1,7 @@
 import mimetypes
 import os
 import re
+import subprocess
 import uuid
 from pathlib import Path
 from django.core.exceptions import ValidationError
@@ -188,13 +189,30 @@ def convert_audio_format(file, file_path: str, to_format: str, content_type: str
             else:
                 tmp_file.write(file.read())
 
+        buffer = BytesIO()
+
         if content_type == "audio/amr":
-            audio = AudioSegment.from_file(file_path, format="amr")
+            try:
+                audio = AudioSegment.from_file(file_path, format="amr")
+                audio.export(buffer, format=to_format, bitrate="192k")
+            except Exception as e:
+                temp_output = file_path.replace(".amr", f".{to_format}")
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-i", file_path,
+                    "-ar", "44100",
+                    "-ab", "192k",
+                    "-f", to_format,
+                    temp_output
+                ]
+                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                with open(temp_output, "rb") as f:
+                    buffer.write(f.read())
+                os.remove(temp_output)
         else:
             audio = AudioSegment.from_file(file_path)
+            audio.export(buffer, format=to_format, bitrate="192k")
 
-        buffer = BytesIO()
-        audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
         return buffer
 
