@@ -323,7 +323,7 @@ class MultiMediaFileField(forms.FileField):
                     file_name = create_generic_file_name(content_type, extension=".mp3")
                     file_path = os.path.join(target_dir, file_name)
 
-                    converted_file = convert_audio_format(file=file, file_path=file_path, to_format="mp3", content_type=content_type)
+                    converted_file = convert_audio_format(file=file, file_path=file_path, to_format="mp3")
                     content_type = "audio/mpeg"
 
                     converted_file.seek(0)

@@ -179,7 +179,7 @@ def get_paired_reviews(max_pairs=4):
 class AttachmentProcessingError(Exception):
     pass
 
-def convert_audio_format(file, file_path: str, to_format: str, content_type: str = None) -> BytesIO:
+def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
     try:
         with open(file_path, "wb") as tmp_file:
             if hasattr(file, "chunks"):

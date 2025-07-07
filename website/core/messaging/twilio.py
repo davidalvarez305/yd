@@ -9,7 +9,7 @@ from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, download_file_from_twilio
+from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_twilio
 from core.models import Message, MessageMedia
 
 from communication.forms import MessageForm
@@ -61,6 +61,10 @@ class TwilioMessagingService(MessagingServiceInterface):
                 media_url = request.POST.get(f"MediaUrl{i}")
                 content_type = request.POST.get(f"MediaContentType{i}")
 
+                """ sub_dir = self._get_sub_dir(content_type)
+                target_dir = os.path.join(self.upload_root, sub_dir)
+                os.makedirs(target_dir, exist_ok=True) """
+
                 ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
                 original_file_name = str(uuid.uuid4()) + ext
                 original_file_path = os.path.join(UPLOADS_URL, original_file_name)
@@ -77,7 +81,7 @@ class TwilioMessagingService(MessagingServiceInterface):
                     converted_content_type = "audio/mpeg"
 
                     with open(original_file_path, 'rb') as original_file:
-                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format=".mp3", content_type=content_type)
+                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format="mp3")
 
                     media = MessageMedia(message=message, content_type=converted_content_type)
                     media.file.save(converted_filename, ContentFile(converted_buffer.read()))
