@@ -196,13 +196,13 @@ def convert_audio_format(file, file_path: str, to_format: str, content_type: str
                 audio = AudioSegment.from_file(file_path, format="amr")
                 audio.export(buffer, format=to_format, bitrate="192k")
             except Exception as e:
-                temp_output = file_path.replace(".amr", f".{to_format}")
+                temp_output = file_path.replace(".amr", to_format)
                 cmd = [
                     "ffmpeg", "-y",
                     "-i", file_path,
                     "-ar", "44100",
                     "-ab", "192k",
-                    "-f", to_format,
+                    "-f", to_format.lstrip("."),
                     temp_output
                 ]
                 subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
