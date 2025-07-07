@@ -61,46 +61,47 @@ class TwilioMessagingService(MessagingServiceInterface):
                 media_url = request.POST.get(f"MediaUrl{i}")
                 content_type = request.POST.get(f"MediaContentType{i}")
 
-                """ sub_dir = self._get_sub_dir(content_type)
+                sub_dir = self._get_sub_dir(content_type)
                 target_dir = os.path.join(self.upload_root, sub_dir)
-                os.makedirs(target_dir, exist_ok=True) """
+                os.makedirs(target_dir, exist_ok=True)
 
-                ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
-                original_file_name = str(uuid.uuid4()) + ext
-                original_file_path = os.path.join(UPLOADS_URL, original_file_name)
+                source_ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
+                source_file_name = create_generic_file_name(content_type, source_ext)
+                source_file_path = os.path.join(target_dir, source_file_name)
 
                 if not (media_url and content_type):
                     continue
 
                 # Download the media file
-                download_file_from_twilio(twilio_resource=media_url, local_file_path=original_file_path)
+                download_file_from_twilio(twilio_resource=media_url, local_file_path=source_file_path)
 
                 # Handle audio conversion to mp3
-                if content_type.startswith("audio/") and 'mp3' not in ext:
-                    converted_filename = str(uuid.uuid4()) + '.mp3'
-                    converted_content_type = "audio/mpeg"
+                if content_type.startswith("audio/"):
+                    target_file_name = create_generic_file_name(content_type, '.mp3')
+                    target_file_path = os.path.join(target_dir, target_file_name)
+                    target_content_type = "audio/mpeg"
 
-                    with open(original_file_path, 'rb') as original_file:
-                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format="mp3")
+                    with open(source_file_path, 'rb') as source_file:
+                        buffer = convert_audio_format(file=source_file, target_file_path=target_file_path, to_format="mp3")
 
-                    media = MessageMedia(message=message, content_type=converted_content_type)
-                    media.file.save(converted_filename, ContentFile(converted_buffer.read()))
+                    media = MessageMedia(message=message, content_type=target_content_type)
+                    media.file.save(target_file_name, ContentFile(buffer.read()))
 
                 # Handle video conversion to mp4
                 elif content_type.startswith("video/"):
-                    converted_filename = str(uuid.uuid4()) + '.mp4'
-                    converted_path = os.path.join(UPLOADS_URL, converted_filename)
+                    target_file_name = create_generic_file_name(content_type, '.mp4')
+                    target_file_path = os.path.join(target_dir, target_file_name)
 
-                    convert_video_to_mp4(original_file_path, converted_path)
+                    convert_video_to_mp4(source_file_path, target_file_path)
 
-                    with open(converted_path, 'rb') as video_file:
+                    with open(target_file_path, 'rb') as target_video_file:
                         media = MessageMedia(message=message, content_type='video/mp4')
-                        media.file.save(converted_filename, ContentFile(video_file.read()))
+                        media.file.save(target_file_name, ContentFile(target_video_file.read()))
                 else:
                     # Handle image files
-                    with open(original_file_path, 'rb') as f:
+                    with open(source_file_path, 'rb') as f:
                         media = MessageMedia(message=message, content_type=content_type)
-                        media.file.save(original_file_name, ContentFile(f.read()))
+                        media.file.save(source_file_name, ContentFile(f.read()))
 
         except Exception as e:
             logger.error(e, exc_info=True)

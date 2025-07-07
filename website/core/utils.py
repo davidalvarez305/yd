@@ -179,16 +179,16 @@ def get_paired_reviews(max_pairs=4):
 class AttachmentProcessingError(Exception):
     pass
 
-def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
+def convert_audio_format(file, target_file_path: str, to_format: str) -> BytesIO:
     try:
-        with open(file_path, "wb") as tmp_file:
+        with open(target_file_path, "wb") as tmp_file:
             if hasattr(file, "chunks"):
                 for chunk in file.chunks():
                     tmp_file.write(chunk)
             else:
                 tmp_file.write(file.read())
 
-        audio = AudioSegment.from_file(file_path)
+        audio = AudioSegment.from_file(target_file_path)
         buffer = BytesIO()
         audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
@@ -198,8 +198,8 @@ def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
         raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
     finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if os.path.exists(target_file_path):
+            os.remove(target_file_path)
 
 def convert_video_to_mp4(input_path: str, output_path: str):
     clip = VideoFileClip(input_path)

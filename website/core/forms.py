@@ -1,8 +1,9 @@
+from io import BytesIO
 import re
 import os
 
 from website.settings import COMPANY_NAME
-from .utils import add_form_field_class, convert_audio_format, create_generic_file_name, get_upload_sub_dir
+from .utils import add_form_field_class, cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, get_upload_sub_dir
 from .widgets import ToggleSwitchWidget
 from .models import Lead, Service, UnitType, User, ServiceType
 from .email import email_service
@@ -313,29 +314,50 @@ class MultiMediaFileField(forms.FileField):
 
         for file in files:
             content_type = getattr(file, 'content_type', '')
+            sub_dir = get_upload_sub_dir(content_type)
+            target_dir = os.path.join(self.upload_root, sub_dir)
+            os.makedirs(target_dir, exist_ok=True)
 
             try:
-                if content_type.startswith("audio/"):
-                    sub_dir = get_upload_sub_dir(content_type)
-                    target_dir = os.path.join(self.upload_root, sub_dir)
-                    os.makedirs(target_dir, exist_ok=True)
+                if content_type.startswith('audio/'):
+                    target_file_name = create_generic_file_name(content_type, '.mp3')
+                    target_file_path = os.path.join(target_dir, target_file_name)
 
-                    file_name = create_generic_file_name(content_type, extension=".mp3")
-                    file_path = os.path.join(target_dir, file_name)
+                    target_file = convert_audio_format(file=file, target_file_path=target_file_path, to_format='mp3')
+                    target_content_type = 'audio/mpeg'
 
-                    converted_file = convert_audio_format(file=file, file_path=file_path, to_format="mp3")
-                    content_type = "audio/mpeg"
-
-                    converted_file.seek(0)
-                    file_size = len(converted_file.read())
-                    converted_file.seek(0)
+                    target_file.seek(0)
+                    file_size = len(target_file.read())
+                    target_file.seek(0)
 
                     uploaded_file = self._build_uploaded_file(
-                        file_obj=converted_file,
-                        name=file_name,
-                        content_type=content_type,
+                        file_obj=target_file,
+                        name=target_file_name,
+                        content_type=target_content_type,
                         size=file_size,
-                        charset=getattr(file, "charset", None),
+                        charset=getattr(file, 'charset', None),
+                    )
+                elif content_type.startswith('video/'):
+                    target_file_name = create_generic_file_name(content_type, '.mp4')
+                    target_file_path = os.path.join(target_dir, target_file_name)
+                    target_content_type = 'video/mp4'
+
+                    source_file_path = os.path.join(target_dir, create_generic_file_name(content_type))
+                    with open(source_file_path, 'wb') as f:
+                        for chunk in file.chunks():
+                            f.write(chunk)
+
+                    convert_video_to_mp4(source_file_path, target_file_path)
+
+                    with open(target_file_path, 'rb') as f:
+                        target_video_file = f.read()
+
+                    uploaded_file = self._build_uploaded_file(
+                        file_obj=BytesIO(target_video_file),
+                        name=target_file_name,
+                        content_type=target_content_type,
+                        size=len(target_video_file),
+                        charset=getattr(file, 'charset', None),
                     )
                 else:
                     uploaded_file = self._build_uploaded_file(
@@ -350,6 +372,9 @@ class MultiMediaFileField(forms.FileField):
 
             except Exception as e:
                 raise forms.ValidationError(f"File processing failed: {str(e)}")
+            
+            finally:
+                cleanup_dir_files(self.upload_root)
 
         return media_files
 
