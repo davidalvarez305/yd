@@ -188,12 +188,7 @@ def convert_audio_format(file, file_path: str, to_format: str, content_type: str
             else:
                 tmp_file.write(file.read())
 
-        if content_type == "audio/amr":
-            audio = AudioSegment.from_file(file_path, format="amr")
-            audio = audio.set_frame_rate(8000)
-        else:
-            audio = AudioSegment.from_file(file_path)
-
+        audio = AudioSegment.from_file(file_path)
         buffer = BytesIO()
         audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
