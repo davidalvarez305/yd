@@ -74,24 +74,24 @@ class TwilioMessagingService(MessagingServiceInterface):
 
                 # Handle audio conversion to mp3
                 if content_type.startswith("audio/") and 'mp3' not in ext:
-                    with open(original_file_path, 'rb') as original_file:
-                        converted_buffer = convert_audio_format(original_file, temp_dir=UPLOADS_URL, input_format="amr")
-
                     converted_filename = str(uuid.uuid4()) + '.mp3'
                     converted_content_type = "audio/mpeg"
+
+                    with open(original_file_path, 'rb') as original_file:
+                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format=".mp3")
 
                     media = MessageMedia(message=message, content_type=converted_content_type)
                     media.file.save(converted_filename, ContentFile(converted_buffer.read()))
 
                 # Handle video conversion to mp4
                 elif content_type.startswith("video/"):
-                    converted_filename = f"{uuid.uuid4()}.mp4"
+                    converted_filename = str(uuid.uuid4()) + '.mp4'
                     converted_path = os.path.join(UPLOADS_URL, converted_filename)
 
                     convert_video_to_mp4(original_file_path, converted_path)
 
                     with open(converted_path, 'rb') as video_file:
-                        media = MessageMedia(message=message, content_type="video/mp4")
+                        media = MessageMedia(message=message, content_type='video/mp4')
                         media.file.save(converted_filename, ContentFile(video_file.read()))
                 else:
                     # Handle image files
