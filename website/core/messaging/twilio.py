@@ -8,7 +8,6 @@ from django.core.files.base import ContentFile
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
-from twilio.twiml.messaging_response import MessagingResponse
 
 from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, download_file_from_twilio
 from core.models import Message, MessageMedia
@@ -78,7 +77,7 @@ class TwilioMessagingService(MessagingServiceInterface):
                     converted_content_type = "audio/mpeg"
 
                     with open(original_file_path, 'rb') as original_file:
-                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format=".mp3")
+                        converted_buffer = convert_audio_format(file=original_file, file_path=original_file_path, to_format=".mp3", content_type=content_type)
 
                     media = MessageMedia(message=message, content_type=converted_content_type)
                     media.file.save(converted_filename, ContentFile(converted_buffer.read()))
