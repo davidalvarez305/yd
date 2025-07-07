@@ -186,7 +186,7 @@ UPLOADS_URL = os.path.join(BASE_DIR, "uploads")
 if DEBUG:
     STORAGES = {
         "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "core.storage.MediaS3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
             },
@@ -205,7 +205,7 @@ if DEBUG:
 else:
     STORAGES = {
         "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "core.storage.MediaS3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
             },

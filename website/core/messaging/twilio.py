@@ -34,7 +34,7 @@ class TwilioMessagingService(MessagingServiceInterface):
             valid = self.validator.validate(
                 request.build_absolute_uri(),
                 request.POST,
-                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+                request.META.get("HTTP_X_TWILIO_SIGNATURE")
             )
 
             if not valid:
@@ -70,10 +70,8 @@ class TwilioMessagingService(MessagingServiceInterface):
                 if media_url:
                     download_file_from_twilio(twilio_resource=media_url, local_file_path=local_file_path)
                     with open(local_file_path, 'rb') as file:
-                        content_file = ContentFile(file.read())
-
                         media = MessageMedia(message=message, content_type=content_type)
-                        media.file.save(file_name, content_file)
+                        media.file.save(file_name, ContentFile(file.read()))
 
         except Exception as e:
             return HttpResponse("Unexpected error occurred.", status=500)

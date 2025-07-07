@@ -316,7 +316,7 @@ class MultiMediaFileField(forms.FileField):
         media_files = []
 
         for file in files:
-            content_type = getattr(file, "content_type", "")
+            content_type = getattr(file, 'content_type', '')
 
             try:
                 if content_type.startswith("audio/"):
@@ -325,9 +325,9 @@ class MultiMediaFileField(forms.FileField):
                     os.makedirs(target_dir, exist_ok=True)
 
                     file_name = create_generic_file_name(content_type, extension=".mp3")
-                    target_path = os.path.join(target_dir, file_name)
+                    file_path = os.path.join(target_dir, file_name)
 
-                    converted_file = self._convert_audio_format(file, target_path, "mp3")
+                    converted_file = self._convert_audio_format(file=file, file_path=file_path, to_format="mp3")
                     content_type = "audio/mpeg"
 
                     converted_file.seek(0)
@@ -367,13 +367,13 @@ class MultiMediaFileField(forms.FileField):
             charset=charset
         )
 
-    def _convert_audio_format(self, file, target_path: str, to_format: str) -> BytesIO:
+    def _convert_audio_format(self, file, file_path: str, to_format: str) -> BytesIO:
         try:
-            with open(target_path, "wb") as tmp_file:
+            with open(file_path, "wb") as tmp_file:
                 for chunk in file.chunks():
                     tmp_file.write(chunk)
 
-            audio = AudioSegment.from_file(target_path)
+            audio = AudioSegment.from_file(file_path)
             buffer = BytesIO()
             audio.export(buffer, format=to_format, bitrate="192k")
             return buffer
@@ -382,8 +382,8 @@ class MultiMediaFileField(forms.FileField):
             raise AttachmentProcessingError(f"Audio conversion failed: {str(e)}") from e
 
         finally:
-            if os.path.exists(target_path):
-                os.remove(target_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
     def _get_sub_dir(self, content_type: str) -> str:
         return {
