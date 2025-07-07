@@ -181,12 +181,18 @@ class AttachmentProcessingError(Exception):
 def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
     try:
         with open(file_path, "wb") as tmp_file:
-            for chunk in file.chunks():
-                tmp_file.write(chunk)
+            if hasattr(file, "chunks"):
+                # Django UploadedFile
+                for chunk in file.chunks():
+                    tmp_file.write(chunk)
+            else:
+                # Standard file-like object
+                tmp_file.write(file.read())
 
         audio = AudioSegment.from_file(file_path)
         buffer = BytesIO()
         audio.export(buffer, format=to_format, bitrate="192k")
+        buffer.seek(0)
         return buffer
 
     except Exception as e:
