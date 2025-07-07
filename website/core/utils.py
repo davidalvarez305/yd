@@ -12,8 +12,10 @@ from django.db import models
 from website import settings
 from core.enums import AlertHTTPCodes, AlertStatus
 from io import BytesIO
-from pydub import AudioSegment
 from moviepy import VideoFileClip
+
+from pydub import AudioSegment
+AudioSegment.converter = "/usr/bin/ffmpeg"
 
 def format_phone_number(phone_number):
     if phone_number is None:
