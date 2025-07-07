@@ -1,7 +1,6 @@
 import mimetypes
 import os
 import re
-import subprocess
 import uuid
 from pathlib import Path
 from django.core.exceptions import ValidationError
@@ -180,39 +179,20 @@ def get_paired_reviews(max_pairs=4):
 class AttachmentProcessingError(Exception):
     pass
 
-def convert_audio_format(file, file_path: str, to_format: str, content_type: str = None) -> BytesIO:
+def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
     try:
         with open(file_path, "wb") as tmp_file:
             if hasattr(file, "chunks"):
+                # Django UploadedFile
                 for chunk in file.chunks():
                     tmp_file.write(chunk)
             else:
+                # Standard file-like object
                 tmp_file.write(file.read())
 
+        audio = AudioSegment.from_file(file_path)
         buffer = BytesIO()
-
-        if content_type == "audio/amr":
-            try:
-                audio = AudioSegment.from_file(file_path, format="amr")
-                audio.export(buffer, format=to_format, bitrate="192k")
-            except Exception as e:
-                temp_output = file_path.replace(".amr", to_format)
-                cmd = [
-                    "ffmpeg", "-y",
-                    "-i", file_path,
-                    "-ar", "44100",
-                    "-ab", "192k",
-                    "-f", to_format.lstrip("."),
-                    temp_output
-                ]
-                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                with open(temp_output, "rb") as f:
-                    buffer.write(f.read())
-                os.remove(temp_output)
-        else:
-            audio = AudioSegment.from_file(file_path)
-            audio.export(buffer, format=to_format, bitrate="192k")
-
+        audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
         return buffer
 
