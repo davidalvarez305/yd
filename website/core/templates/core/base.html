@@ -305,7 +305,7 @@
 {% block extra_scripts %}
     {% if js_files %}
         {% for js_file in js_files %}
-            <script rel="modulepreload" type="module" src="{% static js_file %}"></script>
+            <link rel="modulepreload" href="{% static js_file %}">
         {% endfor %}
     {% endif %}
 {% endblock %}
