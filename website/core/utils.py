@@ -15,7 +15,6 @@ from io import BytesIO
 from moviepy import VideoFileClip
 
 from pydub import AudioSegment
-AudioSegment.converter = "/usr/bin/ffmpeg"
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -191,7 +190,7 @@ def convert_audio_format(file, file_path: str, to_format: str) -> BytesIO:
                 # Standard file-like object
                 tmp_file.write(file.read())
 
-        audio = AudioSegment.from_file(file_path, format='amr')
+        audio = AudioSegment.from_file(file_path)
         buffer = BytesIO()
         audio.export(buffer, format=to_format, bitrate="192k")
         buffer.seek(0)
