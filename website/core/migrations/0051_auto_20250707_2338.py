@@ -5,15 +5,37 @@ from django.db import migrations
 def seed_unit_and_service_types(apps, schema_editor):
     UnitType = apps.get_model('core', 'UnitType')
     ServiceType = apps.get_model('core', 'ServiceType')
+    InvoiceType = apps.get_model('core', 'InvoiceType')
 
     unit_types = ['Per Person', 'Hourly', 'Fixed']
     service_types = ['Service', 'Rental', 'Food', 'Add On', 'Entertainment', 'Extend']
+    invoice_types = [
+        {
+            'type': 'DEPOSIT',
+            'amount_percentage': 0.25,
+        },
+        {
+            'type': 'REMAINING',
+            'amount_percentage': 0.75,
+        },
+        {
+            'type': 'FULL',
+            'amount_percentage': 1.00,
+        },
+        {
+            'type': 'EXTEND',
+            'amount_percentage': 1.00,
+        }
+    ]
 
     for unit in unit_types:
         UnitType.objects.get_or_create(type=unit)
 
     for service in service_types:
         ServiceType.objects.get_or_create(type=service)
+
+    for invoice in invoice_types:
+        InvoiceType.objects.get_or_create(type=invoice)
 
 class Migration(migrations.Migration):
 
