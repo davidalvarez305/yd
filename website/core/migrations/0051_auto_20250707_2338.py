@@ -35,7 +35,7 @@ def seed_unit_and_service_types(apps, schema_editor):
         ServiceType.objects.get_or_create(type=service)
 
     for invoice in invoice_types:
-        InvoiceType.objects.get_or_create(type=invoice)
+        InvoiceType.objects.get_or_create(**invoice)
 
 class Migration(migrations.Migration):
 
