@@ -15,6 +15,7 @@ from io import BytesIO
 from moviepy import VideoFileClip
 
 from pydub import AudioSegment
+from core.messaging.utils import MIME_EXTENSION_MAP
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -39,7 +40,7 @@ def create_generic_file_name(content_type: str, extension: str) -> str:
         raise ValidationError('No content type provided')
 
     if not extension:
-        extension = mimetypes.guess_extension(content_type) or '.bin'
+        extension = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
 
     if "." not in extension:
         raise ValidationError('Extension must have a dot (e.g. ".mp3")')
