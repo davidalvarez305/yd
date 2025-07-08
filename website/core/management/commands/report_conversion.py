@@ -53,7 +53,8 @@ class Command(BaseCommand):
         attributes = [
             'client_id',
             'click_id',
-            'instant_form_lead_id'
+            'instant_form_lead_id',
+            'landing_page',
         ]
 
         for attr in attributes:

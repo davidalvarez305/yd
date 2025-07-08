@@ -70,7 +70,7 @@ class FacebookConversionService(ConversionService):
                 }
             })
 
-        self._add_valid_property(event, 'event_source_url', data.get('event_source_url'))
+        self._add_valid_property(event, 'event_source_url', data.get('landing_page'))
 
         return {
             'data': [event]
