@@ -76,18 +76,18 @@ class MarketingHelper:
         """
         Fetches or creates an ad based on URL parameters.
         """
-        ad_id = self.params.get("ad_id")
-        ad_name = self.params.get("ad_name")
+        ad_id = self.params.get('ad_id')
+        ad_name = self.params.get('ad_name')
 
-        ad_group_id = self.params.get("ad_group_id")
-        ad_group_name = self.params.get("ad_group_name")
+        ad_group_id = self.params.get('ad_group_id')
+        ad_group_name = self.params.get('ad_group_name')
 
-        ad_campaign_id = self.params.get("ad_campaign_id")
-        ad_campaign_name = self.params.get("ad_campaign_name")
+        ad_campaign_id = self.params.get('ad_campaign_id')
+        ad_campaign_name = self.params.get('ad_campaign_name')
 
         if not ad_id or not self.platform_id:
             return None
-        
+
         ad_campaign, _ = AdCampaign.objects.get_or_create(
             ad_campaign_id=ad_campaign_id,
             defaults={
