@@ -4,6 +4,8 @@ from django.utils import timezone
 from core.models import Event, Lead
 from core.conversions import conversion_service
 
+# Usage = python manage.py report_conversion --lead_id=437 --event_name=generate_lead
+
 class Command(BaseCommand):
     help = 'Report offline conversions.'
 
@@ -29,8 +31,6 @@ class Command(BaseCommand):
         event_id = options['event_id']
 
         lead = Lead.objects.get(pk=lead_id)
-
-        data = {}
 
         if not event_name:
             raise ValueError('There must always be an event name provided.')
@@ -61,8 +61,6 @@ class Command(BaseCommand):
             if val:
                 data[attr] = val
 
-        print(f'Sending conversion for: {data}')
-        return
         try:
             conversion_service.send_conversion(data=data)
         except Exception as e:
