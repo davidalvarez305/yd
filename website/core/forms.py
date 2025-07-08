@@ -1,7 +1,9 @@
 from io import BytesIO
+import mimetypes
 import re
 import os
 
+from core.messaging.utils import MIME_EXTENSION_MAP
 from website.settings import COMPANY_NAME
 from .utils import add_form_field_class, cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, get_upload_sub_dir
 from .widgets import ToggleSwitchWidget
@@ -314,6 +316,7 @@ class MultiMediaFileField(forms.FileField):
 
         for file in files:
             content_type = getattr(file, 'content_type', '')
+            source_ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
             sub_dir = get_upload_sub_dir(content_type)
             target_dir = os.path.join(self.upload_root, sub_dir)
             os.makedirs(target_dir, exist_ok=True)
@@ -342,7 +345,7 @@ class MultiMediaFileField(forms.FileField):
                     target_file_path = os.path.join(target_dir, target_file_name)
                     target_content_type = 'video/mp4'
 
-                    source_file_path = os.path.join(target_dir, create_generic_file_name(content_type))
+                    source_file_path = os.path.join(target_dir, create_generic_file_name(content_type, source_ext))
                     with open(source_file_path, 'wb') as f:
                         for chunk in file.chunks():
                             f.write(chunk)
@@ -362,7 +365,7 @@ class MultiMediaFileField(forms.FileField):
                 else:
                     uploaded_file = self._build_uploaded_file(
                         file_obj=file.file,
-                        name=create_generic_file_name(content_type),
+                        name=create_generic_file_name(content_type, source_ext),
                         content_type=content_type,
                         size=file.size,
                         charset=getattr(file, "charset", None),
