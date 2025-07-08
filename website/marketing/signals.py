@@ -39,6 +39,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         'ip_address': lead_marketing.ip,
         'user_agent': lead_marketing.user_agent,
         'event_time': int(now().timestamp()),
+        'phone_number': instance.phone_number,
     }
 
     if event_name == 'event_booked':
@@ -51,8 +52,9 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     attributes = [
         'client_id',
         'click_id',
-        'phone_number',
-        'instant_form_lead_id'
+        'instant_form_lead_id',
+        'landing_page',
+        'external_id',
     ]
 
     for attr in attributes:

@@ -10,7 +10,6 @@ class GoogleAnalyticsConversionService(ConversionService):
 
         params = {
             'gclid': data.get('click_id'),
-            'user_id': data.get('user_id'),
             'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
             'currency': settings.DEFAULT_CURRENCY,
         }
@@ -24,6 +23,8 @@ class GoogleAnalyticsConversionService(ConversionService):
 
         return {
             'client_id': data.get('client_id'),
+            'user_id': str(data.get('external_id')),
+            'user_agent': data.get('user_agent'),
             'events': [
                 {
                     'name': event_name,
@@ -31,13 +32,15 @@ class GoogleAnalyticsConversionService(ConversionService):
                 }
             ],
             'user_data': {
-                'phone': [self.hash_to_sha256(data.get('phone_number'))],
+                'sha256_phone_number': [
+                    self.hash_to_sha256(data.get('phone_number'))
+                ],
             }
         }
 
     def _get_endpoint(self) -> str:
         return (
-            'https://www.google-analytics.com/mp/collect'
+            'https://www.google-analytics.com/debug/mp/collect'
             f"?measurement_id={self.options.get('google_analytics_id')}"
             f"&api_secret={self.options.get('google_analytics_api_key')}"
         )

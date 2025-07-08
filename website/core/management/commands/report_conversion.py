@@ -55,6 +55,7 @@ class Command(BaseCommand):
             'click_id',
             'instant_form_lead_id',
             'landing_page',
+            'external_id',
         ]
 
         for attr in attributes:
