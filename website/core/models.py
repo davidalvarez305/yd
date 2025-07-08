@@ -256,21 +256,47 @@ class LeadNextAction(models.Model):
         db_table = 'lead_next_action'
 
 class ServiceType(models.Model):
+    SERVICE = 'service'
+    RENTAL = 'rental'
+    FOOD = 'food'
+    ADD_ON = 'add_on'
+    ENTERTAINMENT = 'entertainment'
+    EXTEND = 'extend'
+
+    TYPE_CHOICES = [
+        (SERVICE, 'Service'),
+        (RENTAL, 'Rental'),
+        (FOOD, 'Food'),
+        (ADD_ON, 'Add On'),
+        (ENTERTAINMENT, 'Entertainment'),
+        (EXTEND, 'Extend')
+    ]
+
     service_type_id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100)
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, unique=True)
 
     def __str__(self):
-        return self.type
+        return dict(self.TYPE_CHOICES).get(self.type, self.type)
 
     class Meta:
         db_table = 'service_type'
 
 class UnitType(models.Model):
+    PER_PERSON = 'per_person'
+    HOURLY = 'hourly'
+    FIXED = 'fixed'
+
+    TYPE_CHOICES = [
+        (PER_PERSON, 'Per Person'),
+        (HOURLY, 'Hourly'),
+        (FIXED, 'Fixed'),
+    ]
+
     unit_type_id = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100)
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, unique=True)
 
     def __str__(self):
-        return self.type
+        return dict(self.TYPE_CHOICES).get(self.type, self.type)
 
     class Meta:
         db_table = 'unit_type'
