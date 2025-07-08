@@ -40,6 +40,7 @@ class Command(BaseCommand):
             'ip_address': lead.lead_marketing.ip,
             'user_agent': lead.lead_marketing.user_agent,
             'event_time': int(timezone.now().timestamp()),
+            'phone_number': lead.phone_number,
         }
 
         if event_name == 'event_booked':
@@ -52,12 +53,11 @@ class Command(BaseCommand):
         attributes = [
             'client_id',
             'click_id',
-            'phone_number',
             'instant_form_lead_id'
         ]
 
         for attr in attributes:
-            val = getattr(lead.lead_marketing, attr)
+            val = getattr(lead.lead_marketing, attr, None)
             if val:
                 data[attr] = val
 
