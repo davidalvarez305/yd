@@ -51,7 +51,6 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     attributes = [
         'client_id',
         'click_id',
-        'email',
         'phone_number',
         'instant_form_lead_id'
     ]

@@ -45,10 +45,13 @@ class FacebookConversionService(ConversionService):
     def _build_website_leads_payload(self, data: dict) -> dict:
         event_name = data.get('event_name')
         user_data = {
-            'ph': [self.hash_to_sha256(data.get('phone_number'))],
+            'ph': [
+                self.hash_to_sha256(data.get('phone_number'))
+            ],
             'client_ip_address': data.get('ip_address'),
             'client_user_agent': data.get('user_agent'),
             'fbc': data.get('click_id'),
+            'fbp': data.get('client_id'),
         }
 
         event = {
