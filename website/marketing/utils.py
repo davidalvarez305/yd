@@ -41,10 +41,10 @@ class MarketingHelper:
         if self.ad:
             data['ad_id'] = self.ad.ad_id
             data['ad_name'] = self.ad.name
-            data['ad_group_id'] = self.ad.adgroup.ad_group_id
-            data['ad_group_name'] = self.ad.adgroup.ad_group_name
-            data['ad_campaign_id'] = self.ad.adgroup.ad_campaign.ad_campaign_id
-            data['ad_campaign_name'] = self.ad.adgroup.ad_campaign.ad_campaign_name
+            data['ad_group_id'] = self.ad.ad_group.ad_group_id
+            data['ad_group_name'] = self.ad.ad_group.ad_group_name
+            data['ad_campaign_id'] = self.ad.ad_group.ad_campaign.ad_campaign_id
+            data['ad_campaign_name'] = self.ad.ad_group.ad_campaign.ad_campaign_name
 
         return data
 
