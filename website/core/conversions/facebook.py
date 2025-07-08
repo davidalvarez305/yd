@@ -98,18 +98,4 @@ class FacebookConversionService(ConversionService):
         if not click_id:
             return False
 
-        client_id = data.get('client_id')
-        if not client_id or not self._is_valid_client_id(client_id):
-            return False
-        
-        cookie_click_id = client_id.split('.')[3]
-
-        if cookie_click_id != click_id:
-            return False
-
         return True
-
-    def _is_valid_client_id(self, client_id: str) -> bool:
-        client_id_pattern = re.compile(r'^fb\.1\.\d+\.[A-Za-z0-9]+$')
-        
-        return bool(client_id_pattern.match(client_id))
