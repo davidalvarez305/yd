@@ -23,4 +23,5 @@ MIME_EXTENSION_MAP = {
     "video/mp4": ".mp4",
     "audio/mp4": ".m4a",
     "audio/ogg": ".ogg",
+    "image/webp": ".webp",
 }
