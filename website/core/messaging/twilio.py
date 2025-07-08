@@ -61,13 +61,9 @@ class TwilioMessagingService(MessagingServiceInterface):
                 media_url = request.POST.get(f"MediaUrl{i}")
                 content_type = request.POST.get(f"MediaContentType{i}")
 
-                sub_dir = self._get_sub_dir(content_type)
-                target_dir = os.path.join(self.upload_root, sub_dir)
-                os.makedirs(target_dir, exist_ok=True)
-
                 source_ext = mimetypes.guess_extension(content_type) or MIME_EXTENSION_MAP.get(content_type, '.bin')
                 source_file_name = create_generic_file_name(content_type, source_ext)
-                source_file_path = os.path.join(target_dir, source_file_name)
+                source_file_path = os.path.join(UPLOADS_URL, source_file_name)
 
                 if not (media_url and content_type):
                     continue
@@ -78,7 +74,7 @@ class TwilioMessagingService(MessagingServiceInterface):
                 # Handle audio conversion to mp3
                 if content_type.startswith("audio/"):
                     target_file_name = create_generic_file_name(content_type, '.mp3')
-                    target_file_path = os.path.join(target_dir, target_file_name)
+                    target_file_path = os.path.join(UPLOADS_URL, target_file_name)
                     target_content_type = "audio/mpeg"
 
                     with open(source_file_path, 'rb') as source_file:
@@ -90,7 +86,7 @@ class TwilioMessagingService(MessagingServiceInterface):
                 # Handle video conversion to mp4
                 elif content_type.startswith("video/"):
                     target_file_name = create_generic_file_name(content_type, '.mp4')
-                    target_file_path = os.path.join(target_dir, target_file_name)
+                    target_file_path = os.path.join(UPLOADS_URL, target_file_name)
 
                     convert_video_to_mp4(source_file_path, target_file_path)
 
