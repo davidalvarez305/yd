@@ -8,7 +8,6 @@ from core.models import Ad, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
-@receiver(lead_status_changed)
 def create_data_dict(lead_marketing, lead, event_name=None, event=None):
     """
     Creates the data dictionary used to report marketing funnel events.
@@ -43,6 +42,7 @@ def create_data_dict(lead_marketing, lead, event_name=None, event=None):
     
     return data
 
+@receiver(lead_status_changed)
 def handle_lead_status_change(sender, instance: Lead, **kwargs):
     """
     This function is called when a lead status is saved.
