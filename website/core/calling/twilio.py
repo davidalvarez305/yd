@@ -57,9 +57,9 @@ class TwilioCallingService(CallingServiceInterface):
         from_number = strip_country_code(call_from)
         to_number = strip_country_code(call_to)
 
-        forward = CallTrackingNumber.objects.filter(call_tracking_number=to_number).first()
+        forward = CallTrackingNumber.objects.filter(phone_number=to_number).first()
         if not forward:
-            return HttpResponse("No matching phone number found", status=404)
+            return HttpResponse("No matching phone number found", status=400)
 
         forward_number = forward.forward_phone_number
 
