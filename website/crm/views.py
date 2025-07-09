@@ -222,7 +222,7 @@ class LeadListView(CRMListView):
     context_object_name = 'leads'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().order_by('-date_created')
         
         search = self.request.GET.get('search')
         
