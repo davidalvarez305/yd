@@ -49,7 +49,7 @@ class BaseView(TemplateView):
 class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        
         external_id = self.request.session.get('external_id')
         visit_id = self.request.session.get('visit_id')
         if external_id is None or visit_id is None:

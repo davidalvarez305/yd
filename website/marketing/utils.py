@@ -9,7 +9,7 @@ class MarketingHelper:
     def __init__(self, request: HttpRequest):
         self.request = request
         
-        self.landing_page = self.request.headers.get('Referer')
+        self.landing_page = request.build_absolute_uri()
         parsed_url = urlparse(self.landing_page)
         self.params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
 
