@@ -39,6 +39,12 @@ class MessageForm(BaseModelForm):
         fields = ['text', 'message_media', 'text_to', 'text_from']
 
 class PhoneCallForm(BaseModelForm):
+    is_inbound = forms.BooleanField(
+        widget=forms.CheckboxInput(
+            attrs={ 'disabled': True }),
+            label = 'Inbound'
+        )
+
     class Meta:
         model = PhoneCall
         fields = '__all__'

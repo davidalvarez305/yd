@@ -51,7 +51,7 @@ class StyledFormMixin:
             elif isinstance(widget, forms.Select):
                 add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-5 py-3 leading-6 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-primary')
             elif isinstance(widget, forms.CheckboxInput):
-                add_form_field_class(widget, 'peer sr-only')
+                add_form_field_class(widget, 'size-4 rounded border border-gray-200 text-primary-500 checked:border-primary-500 focus:border-primary-500 focus:ring focus:ring-primary-500/50 dark:border-gray-600 dark:bg-gray-800 dark:ring-offset-gray-900 dark:checked:border-transparent dark:checked:bg-primary-500 dark:focus:border-primary-500')
             
             add_form_field_class(widget, 'font-medium')
 
