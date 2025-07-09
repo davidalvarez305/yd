@@ -369,6 +369,14 @@
 	};
 
 	window.addEventListener("load", () => handleConfirmationLogic());
+
+	const phoneNumbers = document.querySelectorAll('.phoneNumberCTA');
+
+	phoneNumbers.forEach(number => {
+		number.addEventListener('click', () => {
+			fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
+		});
+	});
 </script>
 <!-- END JS Scripts -->
 
