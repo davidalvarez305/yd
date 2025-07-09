@@ -17,7 +17,7 @@ from core.forms import ServiceForm, UserForm
 from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
@@ -448,6 +448,16 @@ class PhoneCallListView(CRMTableView):
 class PhoneCallDetailView(CRMDetailTemplateView):
     model = PhoneCall
     form_class = PhoneCallForm
+    template_name = 'crm/phone_call_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            'phone_call_transcription_table': PhoneCallTranscriptionTable(data=self.object.transcriptions.all()),
+        })
+
+        return context
 
 class PhoneCallUpdateView(CRMUpdateView):
     model = PhoneCall
