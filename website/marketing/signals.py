@@ -1,3 +1,4 @@
+import json
 from django.dispatch import receiver
 from django.db.models.signals import Signal
 from django.db.models import Q
@@ -92,13 +93,22 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                     .first()
                 )
 
-                if tracking_call:
-                    model_fields = {f.name for f in LeadMarketing._meta.fields}
-                    for key, value in tracking_call.metadata.items():
-                        if key in model_fields:
-                            setattr(lead_marketing, key, value)
+                if tracking_call and tracking_call.metadata:
+                    metadata = tracking_call.metadata
+                    if isinstance(metadata, str):
+                        try:
+                            metadata = json.loads(metadata)
+                        except json.JSONDecodeError:
+                            metadata = {}
 
-                    lead_marketing.save()
+                    if isinstance(metadata, dict):
+                        model_fields = {f.name for f in LeadMarketing._meta.fields}
+
+                        for key, value in metadata.items():
+                            if key in model_fields:
+                                setattr(lead_marketing, key, value)
+
+                        lead_marketing.save()
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(lead_marketing, instance, event_name, event)
