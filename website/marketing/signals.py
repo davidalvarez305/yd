@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import Ad, Lead, LeadStatusHistory
+from core.models import Ad, CallTrackingNumber, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
@@ -78,24 +78,27 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         ).order_by('date_created').first()
 
         if first_call and first_call.is_inbound:
-            tracking_call = (
-                CallTracking.objects
-                .filter(
-                    phone_number=first_call.call_to,
-                    date_assigned__lt=first_call.date_created,
-                    date_expires__gt=first_call.date_created,
+            call_tracking_number = CallTrackingNumber.objects.filter(phone_number=first_call.call_to).first()
+
+            if call_tracking_number:
+                tracking_call = (
+                    CallTracking.objects
+                    .filter(
+                        call_tracking_number=call_tracking_number,
+                        date_assigned__lt=first_call.date_created,
+                        date_expires__gt=first_call.date_created,
+                    )
+                    .order_by('-date_created')
+                    .first()
                 )
-                .order_by('-date_created')
-                .first()
-            )
 
-            if tracking_call:
-                model_fields = {f.name for f in LeadMarketing._meta.fields}
-                for key, value in tracking_call.metadata.items():
-                    if key in model_fields:
-                        setattr(lead_marketing, key, value)
+                if tracking_call:
+                    model_fields = {f.name for f in LeadMarketing._meta.fields}
+                    for key, value in tracking_call.metadata.items():
+                        if key in model_fields:
+                            setattr(lead_marketing, key, value)
 
-                lead_marketing.save()
+                    lead_marketing.save()
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(lead_marketing, instance, event_name, event)
