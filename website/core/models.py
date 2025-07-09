@@ -656,7 +656,7 @@ class LeadMarketing(models.Model):
     client_id = models.TextField(unique=True, null=True)
     ip = models.GenericIPAddressField(null=True)
     external_id = models.UUIDField(unique=True, db_index=True, editable=False, null=True)
-    user_agent = models.CharField(max_length=255, null=True)
+    user_agent = models.TextField(null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
     instant_form_id = models.BigIntegerField(null=True)
     ad = models.ForeignKey(Ad, null=True, db_column='ad_id', on_delete=models.RESTRICT)
