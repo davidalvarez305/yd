@@ -271,6 +271,8 @@ class LeadDetailView(CRMDetailView):
         context['quote_form'] = QuoteForm(initial)
         context['quick_quote_form'] = QuickQuoteForm(initial)
 
+        context['phone_call_table'] = PhoneCallTable(data=lead.phone_calls().all())
+
         return context
 
 class LeadMarketingUpdateView(CRMUpdateView):
