@@ -88,7 +88,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                         date_assigned__lt=first_call.date_created,
                         date_expires__gt=first_call.date_created,
                     )
-                    .order_by('-date_created')
+                    .order_by('call_tracking_id')
                     .first()
                 )
 
