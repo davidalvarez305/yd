@@ -312,7 +312,7 @@ class Quote(models.Model):
     services = models.ManyToManyField('core.Service', related_name='quote_services', through='QuoteService')
 
     def __str__(self):
-        return self.quote_id
+        return str(self.external_id)
 
     class Meta:
         db_table = 'quote'
