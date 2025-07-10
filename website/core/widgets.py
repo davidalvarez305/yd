@@ -7,6 +7,7 @@ from django.utils.html import format_html, escape
 from django.template.context_processors import csrf
 
 from core.mixins import ContextResolverMixin
+from website import settings
 from .utils import deep_getattr
 
 # Form Widgets
@@ -151,6 +152,22 @@ class PriceCellWidget(TableCellWidget):
         if value is not None:
             return format_html(f"<td>${value:.2f}</td>")
         return "<td>$0.00</td>"
+
+class AudioWidget(TableCellWidget):
+    def render(self, row=None, request=None):
+        value = getattr(row, self.data.get("value"), None)
+        if value:
+            base_url = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', settings.MEDIA_URL)
+            src = base_url + value
+            return f"""
+                <td>
+                    <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                        <source src="{src}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            """
+        return "<td>No audio available</td>"
 
 class ViewButton(TemplateCellWidget):
     def __init__(self, context={}, context_resolver=None):

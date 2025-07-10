@@ -1,7 +1,7 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
 from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
-from core.widgets import DeleteButton, PriceCellWidget
+from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, seconds_to_minutes
 
 from django.contrib.auth.models import AbstractUser
@@ -440,6 +440,13 @@ class FacebookAccessTokenTable(Table):
         exclude = ['facebook_access_token_id', 'date_expires']
 
 class PhoneCallTranscriptionTable(Table):
+    audio = TableField(
+        cell_widget=AudioWidget(
+            data={
+                'value': lambda row: row.audio.url
+            }
+        )
+    )
     class Meta:
         model = PhoneCallTranscription
         exclude = ['phone_call_transcription_id', 'external_id', 'text']
