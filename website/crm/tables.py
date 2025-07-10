@@ -2,7 +2,7 @@ from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
 from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import DeleteButton, PriceCellWidget
-from core.utils import deep_getattr
+from core.utils import deep_getattr, seconds_to_minutes
 
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import localtime, make_aware, get_current_timezone
@@ -95,6 +95,15 @@ class PhoneCallTable(Table):
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    duration = TableField(
+        label='Duration',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: seconds_to_minutes(row.duration)
             }
         )
     )

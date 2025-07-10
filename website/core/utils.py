@@ -213,3 +213,9 @@ def get_upload_sub_dir(content_type: str) -> str:
         "image": "images",
         "video": "videos",
     }.get(content_type.split("/")[0], "misc")
+
+def seconds_to_minutes(duration: int) -> str:
+    minutes = duration // 60
+    seconds = duration % 60
+    
+    return f"{minutes} minute{'s' if minutes != 1 else ''} {seconds} second{'s' if seconds != 1 else ''}"
