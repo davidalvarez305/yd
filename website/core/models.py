@@ -214,30 +214,8 @@ class Lead(models.Model):
         )
 
         lead_status_changed.send(sender=self.__class__, instance=self, event=event)
-    
-    # Handling manual changes to lead status via form
-    def _has_lead_status_changed(self):
-        try:
-            old_status = Lead.objects.get(pk=self.pk).lead_status
-            return old_status != self.lead_status
-        except Lead.DoesNotExist:
-            return False
-    
-    # Handling manual changes to lead status via form
-    def _handle_lead_status_change(self):
-        from marketing.signals import lead_status_changed
-
-        LeadStatusHistory.objects.create(
-            lead=self,
-            lead_status=self.lead_status
-        )
-
-        lead_status_changed.send(sender=self.__class__, instance=self)
 
     def save(self, *args, **kwargs):
-        if self.pk and self._has_lead_status_changed():
-            self._handle_lead_status_change()
-
         super().save(*args, **kwargs)
         self.__class__.objects.filter(pk=self.pk).update(
             search_vector=SearchVector('full_name', 'phone_number')
