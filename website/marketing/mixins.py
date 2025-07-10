@@ -11,17 +11,16 @@ from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from core.logger import logger
 from website import settings
 
-from .utils import MarketingHelper
+from .utils import MarketingHelper, is_paid_traffic
 from .enums import MarketingParams
 
 tracking_number = MarketingParams.CallTrackingNumberSessionValue.value
 
 class CallTrackingMixin:
     def dispatch(self, request: HttpRequest, *args, **kwargs):
-        if not request.user.is_authenticated:
+        if is_paid_traffic(request=request) and not request.user.is_authenticated:
             self.clean_up_expired_session(request)
 
-            # If after clean up, there still a value, wait until expiration before new assignment
             if not request.session.get(tracking_number):
                 self.track_call(request)
 
@@ -35,20 +34,22 @@ class CallTrackingMixin:
             ]
 
             data = {
-                'call_tracking_number': settings.COMPANY_PHONE_NUMBER,
+                'phone_number': settings.COMPANY_PHONE_NUMBER,
                 'timestamp': now().isoformat(),
             }
 
+            call_tracking_number = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
+
             if len(tracking_numbers) > 0:
                 call_tracking_number = random.choice(tracking_numbers)
-                data['call_tracking_number'] = call_tracking_number.phone_number
+                data['phone_number'] = call_tracking_number.phone_number
 
             request.session[tracking_number] = data
 
             metadata = MarketingHelper(request)
             
             call_tracking = CallTracking(
-                call_tracking_number=CallTrackingNumber.objects.get(phone_number=data.get('call_tracking_number')),
+                call_tracking_number=call_tracking_number,
                 metadata=json.dumps(metadata.to_dict()),
                 external_id=request.session.get('external_id')
             )

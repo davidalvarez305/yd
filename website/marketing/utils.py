@@ -148,3 +148,12 @@ class MarketingHelper:
             "client_id": client_id,
             "platform_id": platform_id
         }
+
+def is_paid_traffic(request: HttpRequest) -> bool:
+    landing_page = request.build_absolute_uri()
+
+    for key in CLICK_ID_KEYS:
+        if key in landing_page:
+            return True
+
+    return False
