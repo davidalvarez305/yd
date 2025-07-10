@@ -261,8 +261,9 @@ class TwilioCallingService(CallingServiceInterface):
                 recording_status_callback=recording_callback_url,
                 recording_status_callback_event="completed",
                 status_callback=status_callback_url,
+                status_callback_method='POST',
                 status_callback_event=TwilioWebhookEvents.all(),
-                action=status_callback_url
+                action=status_callback_url,
             )
             dial.number(client_phone_number)
             response.append(dial)
