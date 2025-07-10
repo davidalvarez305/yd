@@ -68,10 +68,11 @@ export class AudioControlPanel {
             dataTransfer.items.add(file);
 
             const messageMedia = document.getElementById("messageMedia");
-            if (messageMedia) {
-                messageMedia.files = dataTransfer.files;
-                messageMedia.dispatchEvent(new Event("change", { bubbles: true }));
-            }
+            
+            if (!messageMedia) throw new Error('Message media element is missing form page.');
+            
+            messageMedia.files = dataTransfer.files;
+            messageMedia.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
         this._resetControlPanel();

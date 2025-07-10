@@ -1,19 +1,15 @@
 {% for lead in leads %}
-<li
-    hx-get="{% url 'chat_messages' pk=lead.pk %}"
-    hx-target="#leadChat"
-    class="flex items-center justify-between p-4"
->
-  <div class="flex items-center gap-4">
-    <div>
-      <p class="text-sm font-semibold">{{ lead.full_name }}</p>
-      <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-        {{ lead.messages.last.date_created }}
-      </p>
-    </div>
-  </div>
-  <span class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm leading-5 font-semibold text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
-    {{ lead.unread_messages_count }}
-  </span>
+<li hx-get="{% url 'chat_messages' pk=lead.pk %}" hx-target="#leadChat" class="flex items-center justify-between p-4">
+	<div class="flex items-center gap-4">
+		<div>
+			<p class="text-sm font-semibold">{{ lead.full_name }}</p>
+			<p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+			{{ lead.messages.last.date_created }}
+			</p>
+		</div>
+	</div>
+	<span class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm leading-5 font-semibold text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+	{{ lead.unread_messages_count }}
+	</span>
 </li>
 {% endfor %}

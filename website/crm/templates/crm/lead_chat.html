@@ -108,7 +108,8 @@
 
 <!-- Image & Video Input -->
 <script>
-    document.addEventListener('DOMContentLoaded', function handleMediaInput() {
+    function handleMediaInput() {
+        console.log('Coming in hot!');
         const fileCount = document.getElementById('fileCount');
         const messageMedia = document.getElementById('messageMedia');
         const fileAttachment = document.getElementById('fileAttachment');
@@ -117,10 +118,16 @@
             if (messageMedia) messageMedia.click();
         }
 
-        fileAttachment.addEventListener('click', () => handleFileAttachment());
+        if (fileAttachment) {
+            fileAttachment.addEventListener('click', handleFileAttachment);
+        }
 
-        messageMedia.addEventListener('change', (e) => displayAttachmentCount(e.target.files.length));
-    });
+        if (messageMedia) {
+            messageMedia.addEventListener('change', (e) => {
+                displayAttachmentCount(e.target.files.length);
+            });
+        }
+    }
 
     function displayAttachmentCount(count) {
         switch (count) {
@@ -145,6 +152,14 @@
 
         displayAttachmentCount(0);
     }
+
+    // Run on full page load
+    document.addEventListener("DOMContentLoaded", handleMediaInput);
+
+    // Run when lead messages are swapped
+    document.body.addEventListener("htmx:afterSwap", (e) => {
+        if (e.target.id == 'leadChat') handleMediaInput();
+    });
 </script>
 <!-- END Image & Video Input -->
 
