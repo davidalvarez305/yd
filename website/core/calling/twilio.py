@@ -12,7 +12,7 @@ from twilio.rest import Client
 from core.models import CallTracking, CallTrackingNumber, Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
-from core import logger
+from core.logger import logger
 from .base import CallingServiceInterface
 
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
@@ -256,7 +256,7 @@ class TwilioCallingService(CallingServiceInterface):
         except BaseException as e:
             raise RuntimeError(f"Failed to delete recording: {e}")
     
-    def handle_outbound_call(self, from_: str, to_: str):
+    def handle_outbound_call(self, user_phone_number: str, client_phone_number: str):
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
 
@@ -270,12 +270,12 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback_event=TwilioWebhookEvents.all(),
                 action=status_callback_url
             )
-            dial.number(to_)
+            dial.number(user_phone_number)
             response.append(dial)
 
             call = self.client.calls.create(
-                from_=from_,
-                to=to_,
+                from_=user_phone_number,
+                to=client_phone_number,
                 twiml=str(response)
             )
 
@@ -283,10 +283,9 @@ class TwilioCallingService(CallingServiceInterface):
                 external_id=call.sid,
                 call_duration=0,
                 date_created=now(),
-                call_from=from_,
-                call_to=to_,
+                call_from=user_phone_number,
+                call_to=client_phone_number,
                 is_inbound=False,
-                recording_url="",
                 status=call.status,
             )
 

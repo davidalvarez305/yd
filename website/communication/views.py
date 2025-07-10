@@ -10,6 +10,7 @@ from core.mixins import AlertMixin
 from core.models import Lead, Message
 from core.messaging import messaging_service
 from core.calling import calling_service
+from core.logger import logger
 from communication.forms import OutboundPhoneCallForm
 
 from .forms import MessageForm
@@ -42,6 +43,7 @@ class MessageCreateView(CRMCreateView):
 
             return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
         except Exception as e:
+            logger.error(e, exc_info=True)
             return self.alert(request, f'{str(e)}', AlertStatus.INTERNAL_ERROR)
 
 @csrf_exempt
@@ -63,11 +65,12 @@ class OutboundCallView(LoginRequiredMixin, AlertMixin, CreateView):
         if not form.is_valid():
             return self.alert(request, "Invalid form data", AlertStatus.BAD_REQUEST)
 
-        from_ = form.cleaned_data.get('from_')
-        to_ = form.cleaned_data.get('to_')
+        user_phone_number = form.cleaned_data.get('from_')
+        client_phone_number = form.cleaned_data.get('to_')
 
         try:
-            calling_service.handle_outbound_call(from_, to_)
+            calling_service.handle_outbound_call(user_phone_number=user_phone_number, client_phone_number=client_phone_number)
             return HttpResponse("Success!", status=200)
         except Exception as e:
+            logger.error(e, exc_info=True)
             return self.alert(request, "Failed to initiate outbound call", AlertStatus.INTERNAL_ERROR)
