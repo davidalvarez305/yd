@@ -130,19 +130,9 @@ class TwilioCallingService(CallingServiceInterface):
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
             if phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                prompt = " ".join([
-                    "A new lead just called but we missed it.",
-                    "Send a friendly text saying we're sorry we missed their call",
-                    "and that someone will be in touch shortly.",
-                    "Here's an example:",
-                    "Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
-                ])
-
                 try:
-                    text = self.ai_agent.generate_response(prompt=prompt)
-
                     message = Message(
-                        text=text,
+                        text="Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
                         text_from=phone_call.call_to,
                         text_to=phone_call.call_from,
                         is_inbound=False,
@@ -159,18 +149,9 @@ class TwilioCallingService(CallingServiceInterface):
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                prompt = " ".join([
-                    "A new lead just came in, I tried to call them but they missed it.",
-                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience.",
-                    "Follow the example shown below exactly, do not add any extra text. And swap the first name with the correct value.",
-                    "Hi! This is YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect.",
-                ])
-
                 try:
-                    text = self.ai_agent.generate_response(prompt=prompt)
-
                     message = Message(
-                        text=text,
+                        text="Hi! This is YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect.",
                         text_from=phone_call.call_from,
                         text_to=phone_call.call_to,
                         is_inbound=False,
