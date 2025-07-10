@@ -99,7 +99,7 @@ class PhoneCallTable(Table):
         )
     )
 
-    duration = TableField(
+    call_duration = TableField(
         label='Duration',
         cell_widget=TableCellWidget(
             data={
@@ -160,9 +160,18 @@ class VisitTable(Table):
         )
     )
 
+    session_duration = TableField(
+        label='Duration',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: seconds_to_minutes(row.session_duration)
+            }
+        )
+    )
+
     class Meta:
         model = Visit
-        exclude = ['visit_id', 'external_id', 'referrer', 'url']
+        exclude = ['visit_id', 'external_id', 'referrer', 'url', 'session_duration']
 
 class EventCocktailTable(Table):
     delete = TableField(
