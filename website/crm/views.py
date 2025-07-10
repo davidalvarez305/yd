@@ -260,8 +260,9 @@ class LeadDetailView(CRMDetailView):
         })
 
         context['outbound_call_form'] = OutboundPhoneCallForm(initial={
-            'from_': self.request.user.phone_number,
-            'to_': lead.phone_number
+            'company_phone_number': self.request.user.phone_number,
+            'user_phone_number': self.request.user.forward_phone_number,
+            'client_phone_number': lead.phone_number
         })
 
         context['quote_table'] = QuoteTable(data=self.object.quotes.all(), request=self.request)

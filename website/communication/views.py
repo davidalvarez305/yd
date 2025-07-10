@@ -55,6 +55,10 @@ def handle_call_status_callback(request: HttpRequest):
     return calling_service.handle_call_status_callback(request)
 
 @csrf_exempt
+def handle_outbound_call_status_callback(request: HttpRequest):
+    return calling_service.handle_outbound_call_status_callback(request)
+
+@csrf_exempt
 def handle_call_recording_callback(request: HttpRequest):
     return calling_service.handle_call_recording_callback(request)
 
@@ -65,11 +69,8 @@ class OutboundCallView(LoginRequiredMixin, AlertMixin, CreateView):
         if not form.is_valid():
             return self.alert(request, "Invalid form data", AlertStatus.BAD_REQUEST)
 
-        user_phone_number = form.cleaned_data.get('from_')
-        client_phone_number = form.cleaned_data.get('to_')
-
         try:
-            calling_service.handle_outbound_call(user_phone_number=user_phone_number, client_phone_number=client_phone_number)
+            calling_service.handle_outbound_call(ctx=form.cleaned_data)
             return HttpResponse("Success!", status=200)
         except Exception as e:
             logger.error(e, exc_info=True)

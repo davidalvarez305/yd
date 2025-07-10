@@ -50,5 +50,6 @@ class PhoneCallForm(BaseModelForm):
         fields = '__all__'
 
 class OutboundPhoneCallForm(forms.Form):
-    to_ = forms.CharField(widget=forms.HiddenInput())
-    from_ = forms.CharField(widget=forms.HiddenInput())
+    client_phone_number = forms.CharField(widget=forms.HiddenInput())
+    user_phone_number = forms.CharField(widget=forms.HiddenInput())
+    company_phone_number = forms.CharField(widget=forms.HiddenInput())

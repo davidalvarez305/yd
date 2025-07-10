@@ -23,6 +23,7 @@ class TwilioWebhookCallbacks(Enum):
     STATUS = "/communication/calls/end/status"
     RECORDING = "/communication/calls/end/recording"
     OUTBOUND = "/communication/calls/outbound"
+    OUTBOUND_STATUS = "/communication/calls/outbound/status"
     MESSAGE_STATUS_CALLBACK = "/communication/message/end/status"
 
     @classmethod

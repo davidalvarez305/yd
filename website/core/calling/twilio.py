@@ -131,7 +131,7 @@ class TwilioCallingService(CallingServiceInterface):
             is_first_call = inbound_calls + outbound_calls == 1
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
-            if phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
+            if is_first_call and dial_status in MISSED_STATUSES:
                 try:
                     message = Message(
                         text="Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
@@ -148,27 +148,8 @@ class TwilioCallingService(CallingServiceInterface):
                     message.status = resp.status
                     message.save()
                 except BaseException as e:
-                    return HttpResponse('Error while generating response from AI Agent', status=500)
-
-            elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                try:
-                    message = Message(
-                        text="Hi! This is YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect.",
-                        text_from=phone_call.call_from,
-                        text_to=phone_call.call_to,
-                        is_inbound=False,
-                        status='pending',
-                        is_read=True
-                    )
-
-                    resp = messaging_service.send_text_message(message=message)
-
-                    message.external_id = resp.sid
-                    message.status = resp.status
-                    message.save()
-                except Exception as e:
                     logger.error(e, exc_info=True)
-                    return HttpResponse(e, status=500)
+                    return HttpResponse('Error sending message.', status=500)
 
             return HttpResponse('Success!', status=200)
 
@@ -257,13 +238,25 @@ class TwilioCallingService(CallingServiceInterface):
         except BaseException as e:
             raise RuntimeError(f"Failed to delete recording: {e}")
     
-    def handle_outbound_call(self, user_phone_number: str, client_phone_number: str):
-        recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
-        status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
+    def handle_outbound_call(self, ctx: dict):
+        user_phone_number = ctx.get('user_phone_number')
+        client_phone_number = ctx.get('client_phone_number')
+        company_phone_number = ctx.get('company_phone_number')
 
-        response = VoiceResponse()
+        if None in [user_phone_number, client_phone_number, company_phone_number]:
+            raise ValueError('Missing context in request.')
+
         try:
+            recording_callback_url = TwilioWebhookCallbacks.get_full_url(
+                TwilioWebhookCallbacks.RECORDING.value
+            )
+            status_callback_url = TwilioWebhookCallbacks.get_full_url(
+                TwilioWebhookCallbacks.OUTBOUND_STATUS.value  # Use outbound-specific callback
+            )
+
+            response = VoiceResponse()
             dial = Dial(
+                caller_id=company_phone_number,
                 record='record-from-ringing-dual',
                 recording_status_callback=recording_callback_url,
                 recording_status_callback_event="completed",
@@ -271,25 +264,85 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback_event=TwilioWebhookEvents.all(),
                 action=status_callback_url
             )
-            dial.number(user_phone_number)
+            dial.number(client_phone_number)
             response.append(dial)
 
-            call = self.client.calls.create(
-                from_=user_phone_number,
-                to=client_phone_number,
+            self.client.calls.create(
+                from_=company_phone_number,
+                to=user_phone_number,
                 twiml=str(response)
-            )
-
-            PhoneCall.objects.create(
-                external_id=call.sid,
-                call_duration=0,
-                date_created=now(),
-                call_from=user_phone_number,
-                call_to=client_phone_number,
-                is_inbound=False,
-                status=call.status,
             )
 
         except Exception as e:
             logger.error(e, exc_info=True)
             raise Exception('Error handling outbound call.')
+    
+    def handle_outbound_call_status_callback(self, request) -> HttpResponse:
+        if request.method != "POST":
+            return HttpResponse("Only POST requests are allowed", status=405)
+
+        if not settings.DEBUG:
+            valid = self.validator.validate(
+                request.build_absolute_uri(),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            )
+            if not valid:
+                return HttpResponse("Invalid Twilio signature.", status=403)
+
+        parent_call_sid = request.POST.get("ParentCallSid")
+        call_sid = request.POST.get("CallSid")
+        call_status = request.POST.get("CallStatus")
+        call_duration = int(request.POST.get("CallDuration", "0"))
+        call_from = request.POST.get("From")
+        call_to = request.POST.get("To")
+
+        if not call_sid or not parent_call_sid:
+            return HttpResponse("This is not the client call leg (missing CallSid or ParentCallSid)", status=200)
+
+        phone_call, created = PhoneCall.objects.get_or_create(
+            external_id=call_sid,
+            defaults={
+                "call_from": strip_country_code(call_from),
+                "call_to": strip_country_code(call_to),
+                "call_duration": call_duration,
+                "date_created": now(),
+                "is_inbound": False,
+                "status": call_status,
+            }
+        )
+
+        if not created:
+            phone_call.call_duration = call_duration
+            phone_call.status = call_status
+            phone_call.save(update_fields=['call_duration', 'status'])
+
+        # Missed call handling
+        MISSED_STATUSES = {"busy", "failed", "no-answer"}
+
+        lead_phone_number = phone_call.call_to
+        outbound_calls = PhoneCall.objects.filter(call_to=lead_phone_number).count()
+        inbound_calls = PhoneCall.objects.filter(call_from=lead_phone_number).count()
+        is_first_call = inbound_calls + outbound_calls == 1
+
+        if is_first_call and call_status in MISSED_STATUSES:
+            try:
+                message = Message(
+                    text="Hi! This is YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect.",
+                    text_from=phone_call.call_from,
+                    text_to=phone_call.call_to,
+                    is_inbound=False,
+                    status='pending',
+                    is_read=True
+                )
+
+                resp = messaging_service.send_text_message(message=message)
+
+                message.external_id = resp.sid
+                message.status = resp.status
+                message.save()
+            except Exception as e:
+                logger.error(e, exc_info=True)
+                return HttpResponse('Failed to send missed call message.', status=500)
+
+        return HttpResponse("Client leg status handled", status=200)
