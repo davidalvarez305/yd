@@ -121,11 +121,7 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = dial_status
             phone_call.save(update_fields=['call_duration', 'status'])
 
-            lead_phone_number = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
-            user_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
-
-            lead = Lead.objects.filter(phone_number=lead_phone_number).first()
-            user = User.objects.filter(phone_number=user_phone_number).first()
+            lead_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
 
             outbound_calls = PhoneCall.objects.filter(call_to=lead_phone_number).count()
             inbound_calls = PhoneCall.objects.filter(call_from=lead_phone_number).count()
@@ -134,19 +130,13 @@ class TwilioCallingService(CallingServiceInterface):
             MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
             if phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                if not user:
-                    return HttpResponse('User not found', status=500)
-
-                language_note = " Please write the message in Spanish." if user.username == "yova" else ""
-
-                prompt = (
-                    f"A new lead just called but we missed it. "
-                    "Send a friendly text saying we're sorry we missed their call "
-                    "and that someone will be in touch shortly. "
-                    "Here's an example: "
-                    f"Hi! This is {user.first_name} with YD Cocktails, sorry we missed your call. We'll get back to you shortly."
-                    + language_note
-                )
+                prompt = " ".join([
+                    "A new lead just called but we missed it.",
+                    "Send a friendly text saying we're sorry we missed their call",
+                    "and that someone will be in touch shortly.",
+                    "Here's an example:",
+                    "Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
+                ])
 
                 try:
                     text = self.ai_agent.generate_response(prompt=prompt)
@@ -169,18 +159,12 @@ class TwilioCallingService(CallingServiceInterface):
                     return HttpResponse('Error while generating response from AI Agent', status=500)
 
             elif not phone_call.is_inbound and is_first_call and dial_status in MISSED_STATUSES:
-                if not user:
-                    return HttpResponse('User not found', status=500)
-
-                language_note = " Please write the message in Spanish." if user.username == "yova" else ""
-
-                prompt = (
-                    "A new lead just came in, I tried to call them but they missed it. "
-                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience."
-                    "Follow the example shown below exactly, do not add any extra text. And swap the first name with the correct value."
-                    f"Hi! This is {user.first_name} with YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect."
-                    + language_note
-                )
+                prompt = " ".join([
+                    "A new lead just came in, I tried to call them but they missed it.",
+                    "Send a friendly text saying we received their bartending inquiry and letting them know they're free to call back at their earliest convenience.",
+                    "Follow the example shown below exactly, do not add any extra text. And swap the first name with the correct value.",
+                    "Hi! This is YD Cocktails, we just tried giving you a call about your bartending inquiry but couldn't connect.",
+                ])
 
                 try:
                     text = self.ai_agent.generate_response(prompt=prompt)
@@ -189,7 +173,7 @@ class TwilioCallingService(CallingServiceInterface):
                         text=text,
                         text_from=phone_call.call_from,
                         text_to=phone_call.call_to,
-                        is_inbound=True,
+                        is_inbound=False,
                         status='pending',
                         is_read=True
                     )
@@ -227,10 +211,7 @@ class TwilioCallingService(CallingServiceInterface):
         if not call_sid or not recording_sid:
             return HttpResponse("Missing CallSid or RecordingSid", status=400)
 
-        recording_url = (
-            f"https://api.twilio.com/2010-04-01/Accounts/"
-            f"{self.account_sid}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
-        )
+        recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{self.account_sid}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
 
         try:
             phone_call = PhoneCall.objects.get(external_id=call_sid)
