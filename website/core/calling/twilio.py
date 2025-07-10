@@ -230,7 +230,8 @@ class TwilioCallingService(CallingServiceInterface):
             lead = Lead.objects.filter(phone_number=lead_phone).first()
 
             if lead is not None:
-                note = self.ai_agent.summarize_phone_call(transcription.text)
+                ctx = { 'lead': lead, 'transcription': transcription, 'user': user }
+                note = self.ai_agent.summarize_phone_call(ctx=ctx)
 
                 LeadNote.objects.create(
                     note=note,

@@ -12,11 +12,16 @@ class OpenAIAgentService(AIAgentServiceInterface):
     def __init__(self):
         self.client = client
 
-    def summarize_phone_call(self, transcription_text: str) -> str:
+    def summarize_phone_call(self, ctx: dict) -> str:
+        transcription = ctx.get('transcription')
+        lead = ctx.get('lead')
+        user = ctx.get('user')
+
         prompt = f"""
             Take the example below:
             <p>
-            <b>Caller:</b> Angie<br>
+            <b>Client:</b> Angie<br>
+            <b>Agent:</b> Yovana<br>
             <b>Call Purpose:</b> Inquiry about bartending services for a graduation party on May 4th<br><br>
             <b>Key Details:</b><br>
             - Angie is planning a small family and friends gathering in her backyard.<br>
@@ -37,7 +42,12 @@ class OpenAIAgentService(AIAgentServiceInterface):
             - Follow up to see if she wants to proceed with booking.<br>
             </p>
 
-            The following transcript was a sales call for a bartending service. Summarize the key points in the following text while following the example above. Please return only the HTML: {transcription_text}
+            The following transcript was a sales call for a bartending service.
+            The client's name is: {lead.full_name}.
+            The agent who took the call's name is: {user.first_name}.
+            Summarize the key points in the following text while following the example above.
+            Please return only the HTML: 
+            {transcription.text}
         """
         try:
             response = self.client.responses.create(
