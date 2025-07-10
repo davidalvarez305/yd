@@ -103,7 +103,7 @@ class PhoneCallTable(Table):
         label='Duration',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: seconds_to_minutes(row.duration)
+                'value': lambda row: seconds_to_minutes(row.call_duration)
             }
         )
     )
