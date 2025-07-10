@@ -270,12 +270,12 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback_event=TwilioWebhookEvents.all(),
                 action=status_callback_url
             )
-            dial.number(user_phone_number)
+            dial.number(client_phone_number)
             response.append(dial)
 
             call = self.client.calls.create(
-                from_=user_phone_number,
-                to=client_phone_number,
+                from_=client_phone_number,
+                to=user_phone_number,
                 twiml=str(response)
             )
 
