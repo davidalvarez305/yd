@@ -17,14 +17,13 @@ class AWSTranscriptionService:
         self.output_prefix = settings.TRANSCRIPTION_STORAGE_PREFIX
         self.cdn = settings.AWS_S3_CUSTOM_DOMAIN
     
-    def _get_s3_media_uri(self, media_uri):
-        print('media_uri: ', media_uri)
-        return f"s3://{self.bucket_name}{media_uri}"
+    def _get_s3_media_uri(self, external_id):
+        return "s3://" + self.bucket_name + "/audio/" + external_id + ".mp3"
 
     def transcribe_audio(self, transcription: PhoneCallTranscription) -> dict:
         self.client.start_transcription_job(
             TranscriptionJobName=transcription.external_id,
-            Media={"MediaFileUri": self._get_s3_media_uri(transcription.audio.url)},
+            Media={"MediaFileUri": self._get_s3_media_uri(transcription.external_id)},
             MediaFormat="mp3",
             IdentifyMultipleLanguages=True,
             LanguageOptions=["en-US", "es-US"],
