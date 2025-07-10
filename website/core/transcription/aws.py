@@ -18,6 +18,7 @@ class AWSTranscriptionService:
         self.cdn = settings.AWS_S3_CUSTOM_DOMAIN
     
     def _get_s3_media_uri(self, media_uri):
+        print('media_uri: ', media_uri)
         return f"s3://{self.bucket_name}{media_uri}"
 
     def transcribe_audio(self, transcription: PhoneCallTranscription) -> dict:
