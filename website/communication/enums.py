@@ -18,6 +18,10 @@ class TwilioWebhookEvents(Enum):
     def all(cls):
         return [e.value for e in cls]
 
+    @classmethod
+    def outbound(cls):
+        return 'initiated ringing answered completed'
+
 class TwilioWebhookCallbacks(Enum):
     INBOUND = "/communication/calls/inbound"
     STATUS = "/communication/calls/end/status"
