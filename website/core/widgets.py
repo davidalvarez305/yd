@@ -155,10 +155,14 @@ class PriceCellWidget(TableCellWidget):
 
 class AudioWidget(TableCellWidget):
     def render(self, row=None, request=None):
-        value = getattr(row, self.data.get("value"), None)
-        if value:
+        audio = getattr(row, self.data.get("value"), None)
+        
+        if audio and hasattr(audio, 'url'):
+            file_key = audio.url
+            
             base_url = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', settings.MEDIA_URL)
-            src = base_url + value
+            src = base_url + file_key
+            
             return f"""
                 <td>
                     <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
@@ -167,7 +171,7 @@ class AudioWidget(TableCellWidget):
                     </audio>
                 </td>
             """
-        return "<td>No audio available</td>"
+        return "<td></td>"
 
 class ViewButton(TemplateCellWidget):
     def __init__(self, context={}, context_resolver=None):
