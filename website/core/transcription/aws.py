@@ -15,11 +15,19 @@ class AWSTranscriptionService:
         )
         self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
         self.output_prefix = settings.TRANSCRIPTION_STORAGE_PREFIX
+        self.cdn = settings.AWS_S3_CUSTOM_DOMAIN
+    
+    def _get_s3_media_uri(self, media_uri):
+        if self.cdn and self.bucket_name:
+            s3_url = media_uri.replace(f"https://{self.cdn}", f"s3://{self.bucket_name}")
+            return s3_url
+        else:
+            raise ValueError("AWS S3 custom domain or bucket name not set in environment variables")
 
     def transcribe_audio(self, transcription: PhoneCallTranscription) -> dict:
         self.client.start_transcription_job(
             TranscriptionJobName=transcription.external_id,
-            Media={"MediaFileUri": transcription.audio.url},
+            Media={"MediaFileUri": self._get_s3_media_uri(transcription.audio.url)},
             MediaFormat="mp3",
             IdentifyMultipleLanguages=True,
             LanguageOptions=["en-US", "es-US"],
