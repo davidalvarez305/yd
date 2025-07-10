@@ -12,6 +12,7 @@ from twilio.rest import Client
 from core.models import CallTracking, CallTrackingNumber, Lead, LeadNote, Message, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
+from core import logger
 from .base import CallingServiceInterface
 
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
@@ -91,6 +92,7 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except Exception as e:
+            logger.error(e)
             return HttpResponse("An unexpected error occurred.", status=500)
 
     def handle_call_status_callback(self, request) -> HttpResponse:
@@ -165,7 +167,8 @@ class TwilioCallingService(CallingServiceInterface):
                     message.status = resp.status
                     message.save()
                 except Exception as e:
-                    return HttpResponse('Error while generating response from AI Agent', status=500)
+                    logger.error(e)
+                    return HttpResponse(e, status=500)
 
             return HttpResponse('Success!', status=200)
 
@@ -241,6 +244,7 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse("Phone call not found", status=404)
 
         except Exception as e:
+            logger.error(e)
             return HttpResponse("Internal server error", status=500)
         
         finally:
@@ -287,4 +291,5 @@ class TwilioCallingService(CallingServiceInterface):
             )
 
         except Exception as e:
+            logger.error(e)
             raise Exception('Error handling outbound call.')
