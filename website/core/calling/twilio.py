@@ -251,21 +251,20 @@ class TwilioCallingService(CallingServiceInterface):
                 TwilioWebhookCallbacks.RECORDING.value
             )
             status_callback_url = TwilioWebhookCallbacks.get_full_url(
-                TwilioWebhookCallbacks.OUTBOUND_STATUS.value  # Use outbound-specific callback
+                TwilioWebhookCallbacks.OUTBOUND_STATUS.value
             )
 
             response = VoiceResponse()
-            dial = Dial(
-                caller_id=company_phone_number,
-                record='record-from-ringing-dual',
-                recording_status_callback=recording_callback_url,
-                recording_status_callback_event="completed",
+            dial = Dial(caller_id=company_phone_number)
+
+            dial.number(
+                client_phone_number,
                 status_callback=status_callback_url,
                 status_callback_method='POST',
                 status_callback_event=TwilioWebhookEvents.all(),
-                action=status_callback_url,
+                recording_status_callback=recording_callback_url,
+                recording_status_callback_event="completed"
             )
-            dial.number(client_phone_number)
             response.append(dial)
 
             self.client.calls.create(
