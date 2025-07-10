@@ -157,8 +157,7 @@ class AudioWidget(TableCellWidget):
     def render(self, row=None, request=None):
         object_key = self.data.get('value')
         if object_key:
-            media_path = getattr(settings, 'AWS_S3_CUSTOM_DOMAIN', settings.MEDIA_URL)
-            src = media_path + object_key(row)
+            src = object_key(row)
 
             return f"""
                 <td>
