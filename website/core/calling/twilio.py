@@ -123,7 +123,7 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = dial_status
             phone_call.save(update_fields=['call_duration', 'status'])
 
-            user_phone = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
+            user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
             user = User.objects.filter(phone_number=user_phone).first()
 
             self.check_if_missed_call(phone_call=phone_call, ctx={ 'user': user })
