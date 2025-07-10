@@ -92,7 +92,7 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse(str(response), content_type="application/xml", status=200)
 
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             return HttpResponse("An unexpected error occurred.", status=500)
 
     def handle_call_status_callback(self, request) -> HttpResponse:
@@ -167,7 +167,7 @@ class TwilioCallingService(CallingServiceInterface):
                     message.status = resp.status
                     message.save()
                 except Exception as e:
-                    logger.error(e)
+                    logger.error(e, exc_info=True)
                     return HttpResponse(e, status=500)
 
             return HttpResponse('Success!', status=200)
@@ -244,7 +244,7 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse("Phone call not found", status=404)
 
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             return HttpResponse("Internal server error", status=500)
         
         finally:
@@ -290,5 +290,5 @@ class TwilioCallingService(CallingServiceInterface):
             )
 
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             raise Exception('Error handling outbound call.')
