@@ -164,7 +164,7 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.recording_url = recording_url
             phone_call.save()
 
-            if phone_call.status != "completed":
+            if phone_call.status != "completed" or phone_call.call_duration < 30:
                 return HttpResponse("Success!", status=200)
 
             job_name = str(uuid.uuid4())
