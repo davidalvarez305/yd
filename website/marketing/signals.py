@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import Ad, CallTrackingNumber, Lead, LeadStatusHistory
+from core.models import CallTrackingNumber, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
