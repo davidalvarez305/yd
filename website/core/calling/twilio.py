@@ -9,7 +9,7 @@ from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
-from core.models import CallTrackingNumber, Lead, LeadNote, Message, User
+from core.models import CallTrackingNumber, Lead, LeadNote, Message, PhoneCallStatusHistory, User
 from core.utils import cleanup_dir_files, download_file_from_twilio
 from website import settings
 from core.logger import logger
@@ -126,7 +126,10 @@ class TwilioCallingService(CallingServiceInterface):
             user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
             user = User.objects.filter(phone_number=user_phone).first()
 
-            self.check_if_missed_call(phone_call=phone_call, ctx={ 'user': user })
+            MISSED_STATUSES = {"busy", "failed", "no-answer"}
+
+            if phone_call.status in MISSED_STATUSES:
+                self.handle_missed_call(phone_call=phone_call, ctx={ 'user': user })
 
         except Exception as e:
             logger.error(e, exc_info=True)
@@ -233,8 +236,6 @@ class TwilioCallingService(CallingServiceInterface):
             
             dial = Dial(
                 caller_id=company_phone_number,
-                action=status_callback_url,
-                method='POST',
             )
 
             dial.number(
@@ -297,21 +298,17 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = call_status
             phone_call.save(update_fields=['call_duration', 'status'])
 
+        if not PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='answered').exists():
             try:
                 user = User.objects.get(phone_number=phone_call.call_from)
-                self.check_if_missed_call(phone_call=phone_call, ctx={ 'user': user })
+                self.handle_missed_call(phone_call=phone_call, ctx={'user': user})
             except Exception as e:
                 logger.error(e, exc_info=True)
                 return HttpResponse('Failed to send missed call message.', status=500)
 
         return HttpResponse("Client leg status handled", status=200)
     
-    def check_if_missed_call(self, phone_call: PhoneCall, ctx: dict):
-        MISSED_STATUSES = {"busy", "failed", "no-answer"}
-
-        if not phone_call.status in MISSED_STATUSES or phone_call.call_duration > 0:
-            return
-
+    def handle_missed_call(self, phone_call: PhoneCall, ctx: dict):
         lead_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
         user = ctx.get('user')
         lead = Lead.objects.filter(phone_number=lead_phone_number).first()

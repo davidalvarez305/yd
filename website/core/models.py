@@ -565,8 +565,39 @@ class PhoneCall(models.Model):
         from core.models import Lead
         return Lead.objects.filter(phone_number=self.call_from).first() or Lead.objects.filter(phone_number=self.call_to).first()
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_status = None
+
+        if not is_new:
+            try:
+                old_status = PhoneCall.objects.get(pk=self.pk).status
+            except PhoneCall.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if is_new or (old_status and old_status != self.status):
+            entry = PhoneCallStatusHistory(
+                phone_call=self,
+                status=self.status
+            )
+            entry.save()
+
     def __str__(self):
         return self.external_id
+
+class PhoneCallStatusHistory(models.Model):
+    phone_call_status_history_id = models.AutoField(primary_key=True)
+    phone_call = models.ForeignKey(PhoneCall, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Status {self.status} on {self.date_created}"
+
+    class Meta:
+        db_table = 'lead_status_history'
 
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
