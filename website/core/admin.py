@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import CallTracking, CallTrackingNumber, EventRole, FacebookAccessToken, IngredientCategory, Lead, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, Message, NextAction, PhoneCall, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview
+from core.models import CallTracking, CallTrackingNumber, EventRole, FacebookAccessToken, IngredientCategory, Lead, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, Message, NextAction, PhoneCall, PhoneCallStatusHistory, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview
 
 admin.site.register(CallTracking)
 admin.site.register(CallTrackingNumber)
@@ -30,3 +30,4 @@ admin.site.register(GoogleReview)
 
 admin.site.register(Message)
 admin.site.register(PhoneCall)
+admin.site.register(PhoneCallStatusHistory)
