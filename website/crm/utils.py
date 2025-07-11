@@ -4,6 +4,7 @@ import math
 from django.forms import ValidationError
 from django.utils.timezone import now
 from core.models import CocktailIngredient, Invoice, InvoiceType, InvoiceTypeEnum, Quote, QuoteService, Service, StoreItem, UnitConversion
+from core.logger import logger
 
 def round_up_to_nearest(quantity: float, step: float) -> int:
     if step <= 0:
@@ -65,7 +66,7 @@ def update_quote_invoices(quote: Quote):
                 invoice.amount = amount_due * invoice.invoice_type.amount_percentage
                 invoice.save()
     except Exception as e:
-        print(f'ERROR UPDATING QUOTE PRICES: {e}')
+        logger.error(e, exc_info=True)
         raise Exception('Error updating quote services.')
 
 def create_extension_invoice(quote_service: QuoteService):
@@ -86,8 +87,13 @@ def create_extension_invoice(quote_service: QuoteService):
         )
         invoice.save()
     except Exception as e:
-        print(f'ERROR CREATING EXTENSION INVOICE: {e}')
+        logger.error(e, exc_info=True)
         raise Exception('Failed to create extension invoice.')
 
 def create_quote_due_date(event_date):
-    return event_date - timedelta(days=2)
+    proposed_due_date = event_date - timedelta(days=2)
+    
+    if proposed_due_date <= now():
+        return now()
+
+    return proposed_due_date

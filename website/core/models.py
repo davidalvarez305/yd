@@ -439,7 +439,7 @@ class InvoiceType(models.Model):
         db_table = 'invoice_type'
     
 def get_primary_invoices():
-    return InvoiceType.objects.filter(pk__lt=4)
+    return InvoiceType.objects.filter(pk__lt=5)
 
 class Invoice(models.Model):
     invoice_id = models.AutoField(primary_key=True)

@@ -18,7 +18,6 @@ def handle_quote_saved(sender, instance: Quote, created, **kwargs):
                 quote=instance,
                 due_date=create_quote_due_date(event_date=instance.event_date),
                 invoice_type=invoice_type,
-                external_id=uuid.uuid4(),
                 amount=full_amount * invoice_type.amount_percentage,
             )
             invoice.save()
