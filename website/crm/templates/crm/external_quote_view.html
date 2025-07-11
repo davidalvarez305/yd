@@ -96,7 +96,7 @@
             </div>
             <!-- END Responsive Table Container -->
 
-            <!-- Footer -->
+            <!-- Buttons -->
             <div class="w-full flex flex-col sm:flex-row justify-center align-center py-4 gap-4">
                 {% for invoice in quote.invoices.all %}
                     {% with lead_id=quote.lead.pk invoice_id=invoice.pk %}
@@ -181,7 +181,7 @@
                     {% endwith %}
                 {% endfor %}
             </div>
-            <!-- END Footer -->
+            <!-- END Buttons -->
         </div>
     </div>
 </div>

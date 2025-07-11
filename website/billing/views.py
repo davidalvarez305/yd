@@ -9,7 +9,6 @@ from core.billing import billing_service
 def handle_payment_webhook(request):
     return billing_service.handle_payment_webhook(request=request)
 
-@login_required
 @require_POST
 def handle_initiate_payment(request):
     return billing_service.handle_initiate_payment(request=request)

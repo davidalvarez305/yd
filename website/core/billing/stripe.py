@@ -166,11 +166,11 @@ class StripeBillingService(BillingServiceInterface):
         lead = Lead.objects.filter(pk=lead_id).first()
         invoice = Invoice.objects.filter(pk=invoice_id).first()
 
-        if invoice.date_paid is not None:
-            return self.alert(request=request, message="Invoice already paid, cannot initiate session.", status=AlertStatus.BAD_REQUEST, reswap=True)
-
         if not lead or not invoice:
             return self.alert(request=request, message="Could not query lead or invoice.", status=AlertStatus.BAD_REQUEST, reswap=True)
+
+        if invoice.date_paid is not None:
+            return self.alert(request=request, message="Invoice already paid, cannot initiate session.", status=AlertStatus.BAD_REQUEST, reswap=True)
 
         try:
             session = stripe.checkout.Session.create(
