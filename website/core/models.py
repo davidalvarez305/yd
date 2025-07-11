@@ -597,7 +597,7 @@ class PhoneCallStatusHistory(models.Model):
         return f"Status {self.status} on {self.date_created}"
 
     class Meta:
-        db_table = 'lead_status_history'
+        db_table = 'phone_call_status_history'
 
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
