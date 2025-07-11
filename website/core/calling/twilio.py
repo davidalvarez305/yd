@@ -309,7 +309,7 @@ class TwilioCallingService(CallingServiceInterface):
     def check_if_missed_call(self, phone_call: PhoneCall, ctx: dict):
         MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
-        if not phone_call.status in MISSED_STATUSES or phone_call.call_duration == 0:
+        if not phone_call.status in MISSED_STATUSES or phone_call.call_duration > 0:
             return
 
         lead_phone_number = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
