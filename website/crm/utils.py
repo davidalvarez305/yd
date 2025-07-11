@@ -1,8 +1,8 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import math
 
 from django.forms import ValidationError
-from django.utils.timezone import now
+from django.utils import timezone
 from core.models import CocktailIngredient, Invoice, InvoiceType, InvoiceTypeEnum, Quote, QuoteService, Service, StoreItem, UnitConversion
 from core.logger import logger
 
@@ -83,7 +83,7 @@ def create_extension_invoice(quote_service: QuoteService):
             quote=quote_service.quote,
             invoice_type=invoice_type,
             amount=amount,
-            due_date=now() + timedelta(hours=24),
+            due_date=timezone.now() + timedelta(hours=24),
         )
         invoice.save()
     except Exception as e:
@@ -91,9 +91,13 @@ def create_extension_invoice(quote_service: QuoteService):
         raise Exception('Failed to create extension invoice.')
 
 def create_quote_due_date(event_date):
-    proposed_due_date = event_date - timedelta(days=2)
-    
-    if proposed_due_date <= now():
-        return now()
+    event_date_midnight = datetime.combine(event_date, datetime.min.time())
 
-    return proposed_due_date
+    due_datetime = event_date_midnight - timedelta(hours=48)
+
+    due_datetime = timezone.make_aware(due_datetime)
+
+    if due_datetime <= timezone.now():
+        return timezone.now()
+
+    return due_datetime

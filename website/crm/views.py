@@ -19,6 +19,7 @@ from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
+from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
 from crm.utils import convert_to_item_quantity, update_quote_invoices
@@ -811,6 +812,7 @@ class QuoteCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
+            logger.error(e, exc_info=True)
             return self.alert(request=self.request, message='Error while creating quote.', status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuoteUpdateView(CRMUpdateView):
