@@ -361,6 +361,7 @@ class ContactView(BaseWebsiteView):
                 form.send_email()
                 return self.alert(request, "Contact form received successfully.", AlertStatus.SUCCESS)
             except Exception as e:
+                logger.exception(str(e))
                 return self.alert(request, "Failed to send the contact form.", AlertStatus.BAD_REQUEST)
         else:
             return self.alert(request, "Invalid form data.", AlertStatus.BAD_REQUEST)
@@ -395,7 +396,7 @@ class LeadCreateView(BaseView, CreateView):
             return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
         except Exception as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e))
             return self.alert(self.request, "Internal server error", AlertStatus.INTERNAL_ERROR)
 
     def form_invalid(self, form):

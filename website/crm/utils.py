@@ -66,7 +66,7 @@ def update_quote_invoices(quote: Quote):
                 invoice.amount = amount_due * invoice.invoice_type.amount_percentage
                 invoice.save()
     except Exception as e:
-        logger.error(e, exc_info=True)
+        logger.exception(str(e))
         raise Exception('Error updating quote services.')
 
 def create_extension_invoice(quote_service: QuoteService):
@@ -87,7 +87,7 @@ def create_extension_invoice(quote_service: QuoteService):
         )
         invoice.save()
     except Exception as e:
-        logger.error(e, exc_info=True)
+        logger.exception(str(e))
         raise Exception('Failed to create extension invoice.')
 
 def create_quote_due_date(event_date):
