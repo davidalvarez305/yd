@@ -298,15 +298,20 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = call_status
             phone_call.save(update_fields=['call_duration', 'status'])
 
-        if phone_call.status == 'completed' or phone_call.status in MISSED_STATUSES:
-
-            if not PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='answered').exists():
-                try:
-                    user = User.objects.get(phone_number=phone_call.call_from)
-                    self.handle_missed_call(phone_call=phone_call, ctx={'user': user})
-                except Exception as e:
-                    logger.error(e, exc_info=True)
-                    return HttpResponse('Failed to send missed call message.', status=500)
+        if phone_call.status == 'completed' and phone_call.status not in MISSED_STATUSES:
+            # Check if child call was ever answered
+            was_answered = PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='answered').exists()
+            if not was_answered:
+                phone_call.status = 'missed'
+                phone_call.save(update_fields=['status'])
+        
+        if phone_call.status in phone_call.status in MISSED_STATUSES:
+            try:
+                user = User.objects.get(phone_number=phone_call.call_from)
+                self.handle_missed_call(phone_call=phone_call, ctx={'user': user})
+            except Exception as e:
+                logger.error(e, exc_info=True)
+                return HttpResponse('Failed to send missed call message.', status=500)
 
         return HttpResponse("Client leg status handled", status=200)
     
