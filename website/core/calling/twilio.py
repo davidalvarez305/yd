@@ -20,6 +20,8 @@ from core.messaging.utils import strip_country_code
 from core.models import PhoneCall, PhoneCallTranscription
 from core.messaging import messaging_service
 
+MISSED_STATUSES = {"busy", "failed", "no-answer"}
+
 class TwilioCallingService(CallingServiceInterface):
     def __init__(self, account_sid, auth_token, transcription_service, ai_agent):
         self.account_sid = account_sid
@@ -125,8 +127,6 @@ class TwilioCallingService(CallingServiceInterface):
 
             user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
             user = User.objects.filter(phone_number=user_phone).first()
-
-            MISSED_STATUSES = {"busy", "failed", "no-answer"}
 
             if phone_call.status in MISSED_STATUSES:
                 self.handle_missed_call(phone_call=phone_call, ctx={ 'user': user })
@@ -298,7 +298,7 @@ class TwilioCallingService(CallingServiceInterface):
             phone_call.status = call_status
             phone_call.save(update_fields=['call_duration', 'status'])
 
-        if phone_call.status == 'completed':
+        if phone_call.status == 'completed' or phone_call.status in MISSED_STATUSES:
 
             if not PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='answered').exists():
                 try:
