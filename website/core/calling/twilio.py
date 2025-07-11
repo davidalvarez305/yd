@@ -319,21 +319,21 @@ class TwilioCallingService(CallingServiceInterface):
         scenarios = [
             {
                 'name': 'first_inbound_call_missed',
-                'text': "Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
+                'text': lambda: "Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
                 'condition': is_first_call and phone_call.is_inbound,
                 'text_from': phone_call.call_to,
                 'text_to': phone_call.call_from,
             },
             {
                 'name': 'first_outbound_call_missed',
-                'text': "Hi! This is YD Cocktails, we just tried giving you a call about the bartending service but couldn't connect, please feel free to reach out whenever.",
+                'text': lambda: "Hi! This is YD Cocktails, we just tried giving you a call about the bartending service but couldn't connect, please feel free to reach out whenever.",
                 'condition': is_first_call and not phone_call.is_inbound,
                 'text_from': phone_call.call_from,
                 'text_to': phone_call.call_to,
             },
             {
                 'name': 'inbound_call_missed',
-                'text': f'Missed call from: {lead.full_name}',
+                'text': lambda: f'Missed call from: {lead.full_name}',
                 'condition': lead is not None and not is_first_call and phone_call.is_inbound,
                 'text_from': settings.COMPANY_PHONE_NUMBER,
                 'text_to': user.forward_phone_number,
@@ -346,7 +346,7 @@ class TwilioCallingService(CallingServiceInterface):
 
             try:
                 message = Message(
-                    text=scenario.get('text'),
+                    text=scenario.get('text')(),
                     text_from=scenario.get('text_from'),
                     text_to=scenario.get('text_to'),
                     is_inbound=False,
