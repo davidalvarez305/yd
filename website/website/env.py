@@ -33,6 +33,7 @@ class EnvConfig:
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY",
         "AWS_S3_CUSTOM_DOMAIN",
+        "AWS_CLOUDFRONT_DISTRIBUTION_ID",
 
         # Facebook
         "FACEBOOK_PAGE_ACCESS_TOKEN",
