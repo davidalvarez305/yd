@@ -353,6 +353,7 @@ class Quote(models.Model):
             # Update invoice due dates if quote date changes
             for invoice in self.invoices.all():
                 invoice.due_date = create_quote_due_date(event_date=self.event_date)
+                invoice.save()
         
         return super().save(*args, **kwargs)
     
