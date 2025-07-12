@@ -1,19 +1,5 @@
-import os
 import paramiko
 from django.core.management.base import BaseCommand, CommandError
-
-# Powershell Example
-"""
-python manage.py fetch_remote_json `
-  --host=12.34.56.78 `
-  --username=ubuntu `
-  --key_path="C:\path\to\key.pem" `
-  --remote_json_path="/home/ubuntu/output.json" `
-  --local_path="C:\Users\yourname\data\output.json" `
-  --psql_user=postgres `
-  --psql_db=mydb `
-  --query='SELECT * FROM customers LIMIT 5'
-"""
 
 class Command(BaseCommand):
     help = "Fetches JSON data from a remote Lightsail instance via SSH and copies it locally"
@@ -38,7 +24,7 @@ class Command(BaseCommand):
         psql_db = options['psql_db']
         query = options['query']
 
-        psql_cmd = f'psql -U {psql_user} -d {psql_db} -c "SELECT row_to_json(t) FROM ({query}) t;"'
+        psql_cmd = f'psql -h localhost -U {psql_user} -d {psql_db} -p 5433 -c "SELECT row_to_json(t) FROM ({query}) t;"'
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

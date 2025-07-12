@@ -7,4 +7,5 @@ files
 *.config
 *.pyc
 db.sqlite3
+commands.md
 __pycache__

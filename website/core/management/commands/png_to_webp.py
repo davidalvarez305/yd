@@ -5,11 +5,6 @@ from botocore.exceptions import ClientError
 from PIL import Image
 from django.core.management.base import BaseCommand
 
-# Usage
-"""
-python manage.py png_to_webp --bucket=bucket_name --prefix=media/
-"""
-
 class Command(BaseCommand):
     help = 'Convert PNG files in S3 media/ folder to lossless WebP using Pillow'
 
