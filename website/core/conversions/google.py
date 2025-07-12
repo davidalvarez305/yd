@@ -40,7 +40,7 @@ class GoogleAnalyticsConversionService(ConversionService):
 
     def _get_endpoint(self) -> str:
         return (
-            'https://www.google-analytics.com/debug/mp/collect'
+            'https://www.google-analytics.com/mp/collect'
             f"?measurement_id={self.options.get('google_analytics_id')}"
             f"&api_secret={self.options.get('google_analytics_api_key')}"
         )
