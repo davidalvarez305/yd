@@ -4,7 +4,10 @@ from django.utils import timezone
 from core.models import Event, Lead
 from core.conversions import conversion_service
 
-# Usage = python manage.py report_conversion --lead_id=437 --event_name=generate_lead
+# Usage
+"""
+python manage.py report_conversion --lead_id=437 --event_name=generate_lead
+"""
 
 class Command(BaseCommand):
     help = 'Report offline conversions.'

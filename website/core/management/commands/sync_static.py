@@ -6,7 +6,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-# Usage python manage.py sync_static --bucket=my-bucket-name --invalidate-paths
+# Usage
+"""
+python manage.py sync_static --bucket=my-bucket-name --invalidate-paths
+"""
 
 class Command(BaseCommand):
     help = 'Upload local /static/ files to S3 with cache headers and optionally invalidate CloudFront'
