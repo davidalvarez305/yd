@@ -78,7 +78,7 @@ class LeadForm(BaseModelForm):
 
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'lead_status', 'lead_interest']
+        fields = ['full_name', 'phone_number', 'message', 'lead_status', 'lead_interest']
 
 class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
