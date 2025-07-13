@@ -66,7 +66,10 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(
                         phone_number=data.get('phone_number'),
-                        defaults={ 'full_name': data.get('full_name') }
+                        defaults={ 
+                            'full_name': data.get('full_name'),
+                            'message': data.get('city'),
+                         }
                     )
 
                     if created:
