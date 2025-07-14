@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, seconds_to_minutes
 
@@ -450,3 +450,26 @@ class PhoneCallTranscriptionTable(Table):
     class Meta:
         model = PhoneCallTranscription
         exclude = ['phone_call_transcription_id', 'external_id', 'text']
+
+class HTTPLogTable(Table):
+    date_created = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_created).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    class Meta:
+        model = HTTPLog
+        exclude = [
+            'http_log_id',
+            'error',
+            'duration_seconds',
+            'retries',
+            'service_name',
+            'headers',
+            'url',
+            'method',
+        ]

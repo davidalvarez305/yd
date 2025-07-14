@@ -17,7 +17,7 @@ from core.forms import ServiceForm, UserForm
 from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
@@ -469,23 +469,7 @@ class PhoneCallUpdateView(CRMUpdateView):
 
 class HTTPLogListView(CRMTableView):
     model = HTTPLog
-    table_class = (
-        Table.from_model(
-            model=HTTPLog,
-            exclude=[
-                'http_log_id',
-                'error',
-                'duration_seconds',
-                'retries',
-                'service_name',
-                'headers',
-                'url',
-            ],
-            meta_attrs={
-                'pk': 'http_log_id',
-            }
-        )
-    )
+    table_class = HTTPLogTable
     filter_form_class = HTTPLogFilterForm
     show_add_button = False
 
