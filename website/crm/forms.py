@@ -72,9 +72,26 @@ class LeadForm(BaseModelForm):
             )
         return phone_number
     
-    def clean_stripe_customer_id(self):
-        value = self.cleaned_data.get('stripe_customer_id')
-        return value.strip() or None
+    def has_lead_status_changed(self):
+        if not self.instance.pk:
+            return False
+
+        original_id = self.instance.lead_status_id
+        new_status = self.cleaned_data.get('lead_status')
+        new_id = new_status.lead_status_id if new_status else None
+
+        return original_id != new_id
+    
+    def save(self, commit=True):
+        lead_status_changed = self.has_lead_status_changed()
+
+        lead = super().save(commit=commit)
+
+        if lead_status_changed and lead.lead_status:
+            enum_status = LeadStatus.find_enum(lead.lead_status_id)
+            lead.change_lead_status(enum_status)
+
+        return lead
 
     class Meta:
         model = Lead

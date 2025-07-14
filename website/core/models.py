@@ -76,6 +76,14 @@ class LeadStatus(models.Model):
     def __str__(self):
         return self.status
     
+    @classmethod
+    def find_enum(cls, pk: int) -> LeadStatusEnum | None:
+        try:
+            lead_status = cls.objects.get(pk=pk)
+            return LeadStatusEnum(lead_status.status)
+        except (cls.DoesNotExist, ValueError):
+            return None
+    
     class Meta:
         db_table = 'lead_status'
 
