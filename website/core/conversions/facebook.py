@@ -95,7 +95,7 @@ class FacebookConversionService(ConversionService):
             return True
 
         click_id = data.get('click_id')
-        if not click_id:
-            return False
+        if click_id:
+            return True
 
-        return True
+        return False
