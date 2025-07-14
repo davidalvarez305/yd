@@ -89,7 +89,7 @@ class MarketingHelper:
         ad_campaign_id = self.params.get('ad_campaign_id')
         ad_campaign_name = self.params.get('ad_campaign_name')
 
-        if not ad_id or not self.platform_id:
+        if not all([ad_id, ad_group_id, ad_campaign_id, self.platform_id]):
             return None
 
         ad_campaign, _ = AdCampaign.objects.get_or_create(

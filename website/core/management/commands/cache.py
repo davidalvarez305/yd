@@ -3,7 +3,6 @@ import boto3
 from botocore.exceptions import ClientError
 from django.core.management.base import BaseCommand
 
-
 class Command(BaseCommand):
     help = 'Recursively add Cache-Control headers to S3 files and optionally invalidate CloudFront cache'
 
