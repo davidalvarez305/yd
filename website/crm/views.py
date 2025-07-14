@@ -469,6 +469,13 @@ class PhoneCallUpdateView(CRMUpdateView):
 
 class HTTPLogListView(CRMTableView):
     model = HTTPLog
+    table_class = (
+        Table.from_model(
+            model=HTTPLog,
+            exclude=['http_log_id'],
+            extra_fields=['view', 'delete'],
+        )
+    )
     filter_form_class = HTTPLogFilterForm
     show_add_button = False
 
