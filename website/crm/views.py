@@ -472,7 +472,15 @@ class HTTPLogListView(CRMTableView):
     table_class = (
         Table.from_model(
             model=HTTPLog,
-            exclude=['http_log_id'],
+            exclude=[
+                'http_log_id',
+                'error',
+                'duration_seconds',
+                'retries',
+                'service_name',
+                'headers',
+                'url',
+            ],
             meta_attrs={
                 'pk': 'http_log_id',
             }
