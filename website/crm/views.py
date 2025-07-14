@@ -474,6 +474,9 @@ class HTTPLogListView(CRMTableView):
             model=HTTPLog,
             exclude=['http_log_id'],
             extra_fields=['view', 'delete'],
+            meta_attrs={
+                'pk': 'http_log_id',
+            }
         )
     )
     filter_form_class = HTTPLogFilterForm
