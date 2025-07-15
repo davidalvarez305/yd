@@ -76,7 +76,7 @@ class LeadForm(BaseModelForm):
         return 'lead_status' in self.changed_data
 
     def save(self):
-        lead = Lead.objects.get(phone_number=self.cleaned_data.get('phone_number'))
+        lead = self.instance
 
         if self.has_lead_status_changed():
             status = self.cleaned_data.pop('lead_status')
