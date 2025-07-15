@@ -205,11 +205,10 @@ class Lead(models.Model):
         if isinstance(status, LeadStatusEnum):
             status = status.name
 
-        lead_status = LeadStatus.objects.filter(status=status).first()
+        print('status: ', status)
+        lead_status = LeadStatus.objects.get(status=status)
+        print('lead_status: ', lead_status)
 
-        if not lead_status:
-            raise ValueError('Invalid lead status.')
-        
         if self.lead_status_id == lead_status.pk:
             raise ValidationError('Same lead status.')
 

@@ -78,6 +78,9 @@ class LeadForm(BaseModelForm):
     def save(self):
         lead = self.instance
 
+        print('Calling save...')
+        print('changed data: ', self.changed_data)
+        print('has_lead_status_changed: ', self.has_lead_status_changed())
         if self.has_lead_status_changed():
             status = self.cleaned_data.pop('lead_status')
 
