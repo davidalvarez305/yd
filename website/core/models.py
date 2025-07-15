@@ -205,9 +205,10 @@ class Lead(models.Model):
         if isinstance(status, LeadStatusEnum):
             status = status.name
 
-        print('status: ', status)
         lead_status = LeadStatus.objects.get(status=status)
-        print('lead_status: ', lead_status)
+        print('CHANGE TO: ', status)
+        print('self.lead_status_id: ', self.lead_status_id)
+        print('lead_status.pk: ', lead_status.pk)
 
         if self.lead_status_id == lead_status.pk:
             raise ValidationError('Same lead status.')
