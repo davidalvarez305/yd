@@ -77,24 +77,19 @@ class LeadForm(BaseModelForm):
 
     def save(self):
         lead = self.instance
-        print('CHANGE FROM: ', self.instance.lead_status.status)
-        print('self.cleaned_data: ', self.cleaned_data.get('lead_status').status)
 
+        status = self.cleaned_data.get('lead_status')
         if self.has_lead_status_changed():
-            status = self.cleaned_data.pop('lead_status')
-
             enum_status = LeadStatus.find_enum(status.pk)
-
             lead.change_lead_status(enum_status)
  
         lead.save()
-        print('AFTER: ', lead.lead_status.status)
 
         return lead
 
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'message', 'lead_status', 'lead_interest']
+        fields = ['full_name', 'phone_number', 'message', 'lead_interest']
 
 class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
