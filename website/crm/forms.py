@@ -232,9 +232,9 @@ class EventForm(BaseModelForm):
     )
 
     special_instructions = forms.Textarea(
-        required=False,
         attrs={
             'label': "Special Instructions",
+            'required': False,
         },
     )
 
