@@ -62,13 +62,14 @@ class FacebookConversionService(ConversionService):
         }
 
         if event_name == 'event_booked':
-            event.update({
-                'custom_data': {
-                    'currency': settings.DEFAULT_CURRENCY,
-                    'value': data.get('value'),
-                    'order_id': data.get('event_id'),
-                }
-            })
+            if data.get('event_id'):
+                event.update({
+                    'custom_data': {
+                        'currency': settings.DEFAULT_CURRENCY,
+                        'value': data.get('value'),
+                        'order_id': data.get('event_id'),
+                    }
+                })
 
         self._add_valid_property(event, 'event_source_url', data.get('landing_page'))
 
@@ -94,8 +95,13 @@ class FacebookConversionService(ConversionService):
         if lead_id:
             return True
 
-        click_id = data.get('click_id')
-        if click_id:
+        client_id = data.get('client_id')
+        if client_id and self._is_valid_client_id(client_id):
             return True
 
         return False
+    
+    def _is_valid_client_id(self, fbp_cookie: str) -> bool:
+        fbp_pattern = re.compile(r'^fb\.\d+\.\d+\.\d+$')
+        
+        return bool(fbp_pattern.match(fbp_cookie))
