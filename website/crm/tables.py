@@ -34,7 +34,10 @@ class EventTable(Table):
         label='Event Time',
         cell_widget=TableCellWidget(
             data = {
-                'value': lambda row: f"{row.start_time.strftime('%B, %d')}: {row.start_time.strftime('%#I %p')} - {row.end_time.strftime('%#I %p')}"
+                'value': lambda row: (
+                    f"{row.start_time.astimezone(get_current_timezone()).strftime('%B, %d %#I %p')}"
+                    f" - {row.end_time.astimezone(get_current_timezone()).strftime('%#I %p')}"
+                )
             }
         )
     )
