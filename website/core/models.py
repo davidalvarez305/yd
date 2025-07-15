@@ -216,10 +216,12 @@ class Lead(models.Model):
         self.lead_status = lead_status
         self.save()
 
-        LeadStatusHistory.objects.create(
+        log = LeadStatusHistory(
             lead=self,
             lead_status=lead_status
         )
+
+        log.save()
 
         lead_status_changed.send(sender=self.__class__, instance=self, event=event)
 
