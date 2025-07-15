@@ -28,23 +28,19 @@ class CallTrackingMixin:
 
     def track_call(self, request: HttpRequest):
         try:
-            tracking_numbers = [
-                number for number in CallTrackingNumber.objects.all()
-                if number.is_free()
-            ]
+            tracking_numbers = list(CallTrackingNumber.objects.filter(date_expires__gt=now()))
+
+            if tracking_numbers:
+                call_tracking_number = random.choice(tracking_numbers)
+            else:
+                call_tracking_number = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
 
             data = {
-                'phone_number': settings.COMPANY_PHONE_NUMBER,
+                'phone_number': call_tracking_number.phone_number,
                 'timestamp': now().isoformat(),
             }
 
-            call_tracking_number = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
-
-            if len(tracking_numbers) > 0:
-                call_tracking_number = random.choice(tracking_numbers)
-                data['phone_number'] = call_tracking_number.phone_number
-
-            request.session[tracking_number] = data
+            request.session['tracking_number'] = data
 
             metadata = MarketingHelper(request)
             
