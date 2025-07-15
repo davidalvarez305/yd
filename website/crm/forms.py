@@ -231,10 +231,12 @@ class EventForm(BaseModelForm):
         required=True
     )
 
-    special_instructions = forms.Textarea(attrs={
-        'label': "Special Instructions",
-        'required': False
-    })
+    special_instructions = forms.Textarea(
+        required=False,
+        attrs={
+            'label': "Special Instructions",
+        },
+    )
 
     class Meta:
         model = Event
