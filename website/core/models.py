@@ -211,8 +211,8 @@ class Lead(models.Model):
             raise ValueError('Invalid lead status.')
         
         if self.lead_status_id == lead_status.pk:
-            return  # No change needed
-        
+            return
+
         self.lead_status = lead_status
         self.save()
 

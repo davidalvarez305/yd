@@ -73,23 +73,19 @@ class LeadForm(BaseModelForm):
         return phone_number
     
     def has_lead_status_changed(self):
-        if not self.instance.pk:
-            return False
+        return 'lead_status' in self.changed_data
 
-        original_id = self.instance.lead_status_id
-        new_status = self.cleaned_data.get('lead_status')
-        new_id = new_status.lead_status_id if new_status else None
+    def save(self):
+        lead = super().save(commit=False)
 
-        return original_id != new_id
-    
-    def save(self, commit=True):
-        lead_status_changed = self.has_lead_status_changed()
+        if self.has_lead_status_changed():
+            status = self.cleaned_data.pop('lead_status')
 
-        lead = super().save(commit=commit)
+            enum_status = LeadStatus.find_enum(status.pk)
 
-        if lead_status_changed and lead.lead_status:
-            enum_status = LeadStatus.find_enum(lead.lead_status_id)
             lead.change_lead_status(enum_status)
+ 
+        lead.save()
 
         return lead
 
