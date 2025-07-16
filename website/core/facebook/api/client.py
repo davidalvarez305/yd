@@ -68,7 +68,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             'grant_type': 'fb_exchange_token',
             'client_id': self.app_id,
             'client_secret': self.app_secret,
-            'fb_exchange_token': self.page_access_token,
+            'fb_exchange_token': self.page_access_token.access_token,
         }
 
         try:
