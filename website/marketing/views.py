@@ -42,7 +42,6 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                 return HttpResponse('Invalid signature', status=403)
 
             payload = json.loads(request.body)
-            print('payload: ', payload)
             entries = []
 
             for entry in payload.get('entry', []):
