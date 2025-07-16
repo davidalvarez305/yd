@@ -1,67 +1,76 @@
-import json
-import requests
-from django.core.management.base import BaseCommand, CommandError
-from website import settings
-
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from core.facebook.api import facebook_api_service
+from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
+from marketing.enums import ConversionServiceType
 
 class Command(BaseCommand):
     help = 'Fetch and save Facebook leads data to a JSON file with pagination support.'
 
-    def add_arguments(self, parser):
-        parser.add_argument('--output', type=str, default='leads_data.json', help='Output file path')
-
     def handle(self, *args, **options):
-        output_file = options.get('output')
         all_leads = []
 
-        forms = self.get_leadgen_forms()
+        forms = facebook_api_service.get_leadgen_forms()
 
         for form in forms:
             form_id = form.get('id')
-            leads = self.get_all_leads_for_form(form_id)
+            leads = facebook_api_service.get_all_leads_for_form(form_id)
             for lead in leads:
                 lead_data = self.extract_lead_data(lead)
                 all_leads.append(lead_data)
 
-        with open(output_file, 'w') as f:
-            json.dump(all_leads, f, indent=2)
+        for entry in all_leads:
+            try:
+                data = facebook_api_service.get_lead_data(lead=entry)
 
-        self.stdout.write(self.style.SUCCESS(f'✅ Successfully saved {len(all_leads)} leads to {output_file}'))
+                with transaction.atomic():
+                    lead, created = Lead.objects.get_or_create(
+                        phone_number=data.get('phone_number'),
+                        defaults={
+                            'full_name': data.get('full_name'),
+                            'message': data.get('city'),
+                        }
+                    )
 
-    def get_leadgen_forms(self):
-        url = f"https://graph.facebook.com/{settings.FACEBOOK_API_VERSION}/{settings.FACEBOOK_PAGE_ID}"
-        params = {
-            'access_token': settings.FACEBOOK_PAGE_ACCESS_TOKEN,
-            'fields': 'leadgen_forms{id}',
-        }
+                    if created:
+                        marketing, _ = LeadMarketing.objects.get_or_create(
+                            instant_form_lead_id=entry.get('id'),
+                            defaults={
+                                'lead': lead,
+                                'source': data.get('platform'),
+                                'medium': 'paid',
+                                'channel': 'social',
+                                'instant_form_id': data.get('form_id'),
+                            }
+                        )
 
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            raise CommandError(f"Error fetching leadgen_forms: {response.json()}")
+                        if not data.get('is_organic'):
+                            ad_campaign, _ = AdCampaign.objects.get_or_create(
+                                ad_campaign_id=data.get('campaign_id'),
+                                defaults={'name': data.get('campaign_name')}
+                            )
+                            ad_group, _ = AdGroup.objects.get_or_create(
+                                ad_group_id=data.get('adset_id'),
+                                defaults={
+                                    'name': data.get('adset_name'),
+                                    'ad_campaign': ad_campaign,
+                                }
+                            )
+                            ad, _ = Ad.objects.get_or_create(
+                                ad_id=data.get('ad_id'),
+                                defaults={
+                                    'name': data.get('ad_name'),
+                                    'platform_id': ConversionServiceType.FACEBOOK.value,
+                                    'ad_group': ad_group,
+                                }
+                            )
+                            marketing.ad = ad
+                            marketing.save()
 
-        data = response.json()
-        return data.get('leadgen_forms', {}).get('data', [])
+            except Exception as e:
+                self.stderr.write(self.style.ERROR(f"❌ Failed to process lead {entry.get('id')}: {e}"))
 
-    def get_all_leads_for_form(self, form_id):
-        leads = []
-        url = f"https://graph.facebook.com/{settings.FACEBOOK_API_VERSION}/{form_id}/leads"
-        params = {
-            'access_token': settings.FACEBOOK_PAGE_ACCESS_TOKEN,
-            'fields': 'field_data,ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,created_time,form_id,id,partner_name,platform,is_organic',
-            'limit': 100,
-        }
-
-        while url:
-            response = requests.get(url, params=params)
-            if response.status_code != 200:
-                raise CommandError(f"Error fetching leads for form {form_id}: {response.json()}")
-
-            data = response.json()
-            leads.extend(data.get('data', []))
-            url = data.get('paging', {}).get('next')
-            params = {}
-
-        return leads
+        self.stdout.write(self.style.SUCCESS(f'✅ Successfully saved {len(all_leads)} leads to data.json'))
 
     def extract_lead_data(self, lead):
         lead_data = {

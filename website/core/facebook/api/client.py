@@ -89,6 +89,47 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             logger.error(f"Error fetching Instagram followers: {e}", exc_info=True)
             raise Exception('Error while retrieving Instagram follower count.')
 
+    def get_leadgen_forms(self):
+        if self.page_access_token.refresh_needed:
+            self._refresh_access_token()
+
+        url = f"https://graph.facebook.com/{self.api_version}/{settings.FACEBOOK_PAGE_ID}"
+        params = {
+            'access_token': self.page_access_token.access_token,
+            'fields': 'leadgen_forms{id}',
+        }
+
+        response = requests.get(url, params=params)
+        if response.status_code != 200:
+            raise Exception(f"Error fetching leadgen_forms: {response.json()}")
+
+        data = response.json()
+        return data.get('leadgen_forms', {}).get('data', [])
+
+    def get_all_leads_for_form(self, form_id):
+        if self.page_access_token.refresh_needed:
+            self._refresh_access_token()
+
+        leads = []
+        url = f"https://graph.facebook.com/{self.api_version}/{form_id}/leads"
+        params = {
+            'access_token': self.page_access_token.access_token,
+            'fields': 'field_data,ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,created_time,form_id,id,partner_name,platform,is_organic',
+            'limit': 100,
+        }
+
+        while url:
+            response = requests.get(url, params=params)
+            if response.status_code != 200:
+                raise Exception(f"Error fetching leads for form {form_id}: {response.json()}")
+
+            data = response.json()
+            leads.extend(data.get('data', []))
+            url = data.get('paging', {}).get('next')
+            params = {}
+
+        return leads
+    
     def _refresh_access_token(self):
         """
         Refreshes the Facebook long-lived access token and returns the new token.
