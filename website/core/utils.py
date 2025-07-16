@@ -1,3 +1,4 @@
+from datetime import timedelta
 import mimetypes
 import os
 import re
@@ -5,6 +6,7 @@ import uuid
 from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
+from django.utils import timezone
 import requests
 
 from django.db import models
@@ -219,3 +221,6 @@ def seconds_to_minutes(duration: int) -> str:
     seconds = duration % 60
     
     return f"{minutes} minute{'s' if minutes != 1 else ''} {seconds} second{'s' if seconds != 1 else ''}"
+
+def get_facebook_token_expiry_date():
+    return timezone.now() + timedelta(seconds=60 * 24 * 60 * 60)

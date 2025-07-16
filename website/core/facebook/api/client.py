@@ -1,12 +1,10 @@
-from datetime import timedelta
 import requests
-
-from django.utils.timezone import now
 
 from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
 from core.logger import logger
 from website import settings
+from core.utils import get_facebook_token_expiry_date
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str):
@@ -157,7 +155,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         
         token = FacebookAccessToken(
             access_token=data.get('access_token'),
-            date_expires=now() + timedelta(seconds=expires_in),
+            date_expires=get_facebook_token_expiry_date(),
         )
         token.save()
 

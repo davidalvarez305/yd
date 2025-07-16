@@ -1,12 +1,10 @@
-from datetime import timedelta
 import requests
 
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 from django.conf import settings
 
 from core.models import FacebookAccessToken
-
+from core.utils import get_facebook_token_expiry_date
 
 class Command(BaseCommand):
     help = 'Refresh Facebook long-lived access token and save it to the database.'
@@ -41,21 +39,12 @@ class Command(BaseCommand):
 
         data = response.json()
         new_token = data.get('access_token')
-        expires_in = data.get('expires_in')
-
-        print('data: ', data)
-
-        if not new_token or not isinstance(expires_in, int):
-            raise CommandError('Invalid response from Facebook API.')
 
         token = FacebookAccessToken(
             access_token=new_token,
-            date_expires=timezone.now() + timedelta(seconds=expires_in)
+            date_expires=get_facebook_token_expiry_date()
         )
 
         token.save()
 
         self.stdout.write(self.style.SUCCESS('✅ New access token saved to the database.'))
-
-        if options['print']:
-            self.stdout.write(f'\n🔐 New Token: {new_token}\n🕓 Expires in: {expires_in} seconds')
