@@ -6,6 +6,7 @@ from django.utils.timezone import now
 from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
 from core.logger import logger
+from website import settings
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str):
@@ -58,6 +59,35 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         except Exception as e:
             logger.error(e, exc_info=True)
             raise Exception('Error while getting lead data from Facebook.')
+    
+    def get_ig_followers(self):
+        try:
+            if self.page_access_token.refresh_needed:
+                self._refresh_access_token()
+
+            url = f'https://graph.facebook.com/{self.api_version}/{settings.FACEBOOK_PAGE_ID}'
+            params = {
+                'access_token': self.page_access_token.access_token,
+                'fields': 'instagram_accounts{followers_count}'
+            }
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+            instagram_accounts = data.get('instagram_accounts', {}).get('data', [])
+            if not instagram_accounts:
+                raise ValueError('No Instagram accounts linked to this page.')
+
+            followers = instagram_accounts[0].get('followers_count')
+            if followers is None:
+                raise ValueError('followers_count not found in response.')
+
+            return followers
+
+        except Exception as e:
+            logger.error(f"Error fetching Instagram followers: {e}", exc_info=True)
+            raise Exception('Error while retrieving Instagram follower count.')
 
     def _refresh_access_token(self):
         """
