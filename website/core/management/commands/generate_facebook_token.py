@@ -43,6 +43,8 @@ class Command(BaseCommand):
         new_token = data.get('access_token')
         expires_in = data.get('expires_in')
 
+        print('data: ', data)
+
         if not new_token or not isinstance(expires_in, int):
             raise CommandError('Invalid response from Facebook API.')
 
