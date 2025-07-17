@@ -3,6 +3,7 @@ import os
 
 from django.http import HttpRequest, HttpResponse
 from django.core.files.base import ContentFile
+from django.utils.timezone import make_aware, is_naive
 
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
@@ -198,12 +199,19 @@ class TwilioMessagingService(MessagingServiceInterface):
             results = []
 
             for msg in messages:
-                media_urls = []
+                media_list_data = []
                 if int(msg.num_media or 0) > 0:
                     media_list = self.client.messages(msg.sid).media.list()
                     for media in media_list:
                         media_url = f"https://api.twilio.com{media.uri.replace('.json', '')}"
-                        media_urls.append(media_url)
+                        media_list_data.append({
+                            "url": media_url,
+                            "content_type": media.content_type,
+                            "sid": media.sid,
+                        })
+
+                def make_dt(dt):
+                    return make_aware(dt) if dt and is_naive(dt) else dt
 
                 results.append({
                     "sid": msg.sid,
@@ -212,13 +220,13 @@ class TwilioMessagingService(MessagingServiceInterface):
                     "body": msg.body,
                     "status": msg.status,
                     "direction": msg.direction,
-                    "date_sent": msg.date_sent.isoformat() if msg.date_sent else None,
-                    "date_created": msg.date_created.isoformat() if msg.date_created else None,
-                    "date_updated": msg.date_updated.isoformat() if msg.date_updated else None,
+                    "date_sent": make_dt(msg.date_sent),
+                    "date_created": make_dt(msg.date_created),
+                    "date_updated": make_dt(msg.date_updated),
                     "num_media": msg.num_media,
                     "error_code": msg.error_code,
                     "error_message": msg.error_message,
-                    "message_media": media_urls,
+                    "message_media": media_list_data,
                 })
 
             return results
