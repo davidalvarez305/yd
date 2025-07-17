@@ -4,6 +4,8 @@ import os
 from email.mime.text import MIMEText
 
 from django.conf import settings
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import make_aware, is_naive
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -46,13 +48,17 @@ class GoogleAPIService:
                 scopes=self.token.scope.split(','),
             )
 
-            if creds.expired and creds.refresh_token:
+            if creds.expired:
                 creds.refresh(Request())
+                date_expires = creds.expiry
+                if is_naive(date_expires):
+                    date_expires = make_aware(date_expires)
+                
                 new_token = GoogleAccessToken(
                     access_token=creds.token,
-                    refresh_token=self.token.refresh_token,
-                    scope=self.token.scope,
-                    date_expires=creds.expiry,
+                    refresh_token=creds.refresh_token,
+                    scope=",".join(creds.scopes),
+                    date_expires=date_expires,
                 )
                 new_token.save()
                 self.token = new_token
