@@ -249,6 +249,7 @@ EMAIL_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
 FACEBOOK_API_SERVICE = 'core.facebook.api.client.FacebookAPIService'
 BILLING_SERVICE = 'core.billing.stripe.StripeBillingService'
 REVIEWS_SERVICE = 'core.reviews.google.GoogleReviewsService'
+GOOGLE_API_SERVICE = 'core.google.api.client.GoogleAPIService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
