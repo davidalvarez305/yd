@@ -369,3 +369,35 @@ class TwilioCallingService(CallingServiceInterface):
             except Exception as e:
                 logger.error(e, exc_info=True)
                 raise Exception('Error handling missed call.')
+        
+    def get_phone_calls(self):
+        calls = self.client.calls.list()
+
+        results = []
+
+        for call in calls:
+            recordings = []
+            recording_list = self.client.calls(call.sid).recordings.list()
+
+            for recording in recording_list:
+                recording_url = f"https://api.twilio.com{recording.uri.replace('.json', '')}"
+                recordings.append(recording_url)
+
+            results.append({
+                "sid": call.sid,
+                "from": call.from_,
+                "to": call.to,
+                "status": call.status,
+                "direction": call.direction,
+                "duration": call.duration,
+                "start_time": call.start_time.isoformat() if call.start_time else None,
+                "end_time": call.end_time.isoformat() if call.end_time else None,
+                "date_created": call.date_created.isoformat() if call.date_created else None,
+                "date_updated": call.date_updated.isoformat() if call.date_updated else None,
+                "price": call.price,
+                "price_unit": call.price_unit,
+                "error_code": call.error_code,
+                "call_recordings": recordings,
+            })
+
+        return results
