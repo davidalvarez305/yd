@@ -5,6 +5,7 @@ from .env import EnvConfig
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 load_dotenv()
 env = EnvConfig()

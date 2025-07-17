@@ -13,6 +13,7 @@ class Command(BaseCommand):
         'full_name': ['full_name', 'nombre_completo', 'name'],
         'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
         'phone_number': ['phone_number', 'telefono'],
+        'date_created': ['created_time']
     }
 
     def add_arguments(self, parser):
