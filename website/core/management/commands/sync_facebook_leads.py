@@ -1,86 +1,107 @@
+import json
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from core.facebook.api import facebook_api_service
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from marketing.enums import ConversionServiceType
 
+
 class Command(BaseCommand):
-    help = 'Fetch and save Facebook leads data to a JSON file with pagination support.'
+    help = 'Fetch Facebook leads and either save to DB or export to JSON.'
+
+    FIELD_MAP = {
+        'full_name': ['full_name', 'nombre_completo', 'name'],
+        'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
+        'phone_number': ['phone_number', 'telefono'],
+    }
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--save',
+            action='store_true',
+            help='Save leads to the database'
+        )
+        parser.add_argument(
+            '--json',
+            action='store_true',
+            help='Export leads to data.json'
+        )
 
     def handle(self, *args, **options):
-        all_leads = []
+        entries = []
 
         forms = facebook_api_service.get_leadgen_forms()
-
         for form in forms:
             form_id = form.get('id')
             leads = facebook_api_service.get_all_leads_for_form(form_id)
             for lead in leads:
-                lead_data = self.extract_lead_data(lead)
-                all_leads.append(lead_data)
+                entry = self.extract_lead_data(lead)
+                entries.append(entry)
 
-        for entry in all_leads:
-            try:
-                data = facebook_api_service.get_lead_data(lead=entry)
+        if options['json']:
+            with open('data.json', 'w', encoding='utf-8') as f:
+                json.dump(entries, f, ensure_ascii=False, indent=2)
+            self.stdout.write(self.style.SUCCESS(f"✅ Exported {len(entries)} leads to data.json"))
 
-                with transaction.atomic():
-                    lead, created = Lead.objects.get_or_create(
-                        phone_number=data.get('phone_number'),
-                        defaults={
-                            'full_name': data.get('full_name'),
-                            'message': data.get('city'),
-                        }
-                    )
-
-                    if created:
-                        marketing, _ = LeadMarketing.objects.get_or_create(
-                            instant_form_lead_id=entry.get('id'),
+        if options['save']:
+            count = 0
+            for entry in entries:
+                if 'test lead' in entry.get('full_name'):
+                    continue
+                try:
+                    with transaction.atomic():
+                        lead, created = Lead.objects.get_or_create(
+                            phone_number=entry.get('phone_number'),
                             defaults={
-                                'lead': lead,
-                                'source': data.get('platform'),
-                                'medium': 'paid',
-                                'channel': 'social',
-                                'instant_form_id': data.get('form_id'),
+                                'full_name': entry.get('full_name'),
+                                'message': entry.get('message'),
                             }
                         )
 
-                        if not data.get('is_organic'):
-                            ad_campaign, _ = AdCampaign.objects.get_or_create(
-                                ad_campaign_id=data.get('campaign_id'),
-                                defaults={'name': data.get('campaign_name')}
-                            )
-                            ad_group, _ = AdGroup.objects.get_or_create(
-                                ad_group_id=data.get('adset_id'),
+                        if created:
+                            marketing, _ = LeadMarketing.objects.get_or_create(
+                                instant_form_lead_id=entry.get('leadgen_id'),
                                 defaults={
-                                    'name': data.get('adset_name'),
-                                    'ad_campaign': ad_campaign,
+                                    'lead': lead,
+                                    'source': entry.get('platform'),
+                                    'medium': 'paid',
+                                    'channel': 'social',
+                                    'instant_form_id': entry.get('form_id'),
                                 }
                             )
-                            ad, _ = Ad.objects.get_or_create(
-                                ad_id=data.get('ad_id'),
-                                defaults={
-                                    'name': data.get('ad_name'),
-                                    'platform_id': ConversionServiceType.FACEBOOK.value,
-                                    'ad_group': ad_group,
-                                }
-                            )
-                            marketing.ad = ad
-                            marketing.save()
 
-            except Exception as e:
-                self.stderr.write(self.style.ERROR(f"❌ Failed to process lead {entry.get('id')}: {e}"))
+                            if not entry.get('is_organic'):
+                                ad_campaign, _ = AdCampaign.objects.get_or_create(
+                                    ad_campaign_id=entry.get('campaign_id'),
+                                    defaults={'name': entry.get('campaign_name')}
+                                )
+                                ad_group, _ = AdGroup.objects.get_or_create(
+                                    ad_group_id=entry.get('ad_group_id'),
+                                    defaults={
+                                        'name': entry.get('ad_group_name'),
+                                        'ad_campaign': ad_campaign,
+                                    }
+                                )
+                                ad, _ = Ad.objects.get_or_create(
+                                    ad_id=entry.get('ad_id'),
+                                    defaults={
+                                        'name': entry.get('ad_name'),
+                                        'platform_id': ConversionServiceType.FACEBOOK.value,
+                                        'ad_group': ad_group,
+                                    }
+                                )
+                                marketing.ad = ad
+                                marketing.save()
+                            count += 1
+                except Exception as e:
+                    self.stderr.write(self.style.ERROR(f"❌ Failed to process lead {entry.get('leadgen_id')}: {e}"))
 
-        self.stdout.write(self.style.SUCCESS(f'✅ Successfully saved {len(all_leads)} leads to data.json'))
+            self.stdout.write(self.style.SUCCESS(f"✅ Successfully saved {count} new leads to the database"))
 
     def extract_lead_data(self, lead):
-        lead_data = {
+        data = {
             'leadgen_id': lead.get('id'),
             'created_time': lead.get('created_time'),
-            'email': self.get_field_value(lead, 'email'),
-            'full_name': self.get_field_value(lead, 'full_name'),
-            'city': self.get_field_value(lead, 'city'),
-            'message': self.get_field_value(lead, 'message'),
-            'phone_number': self.get_field_value(lead, 'phone_number') or self.get_field_value(lead, 'telefono'),
             'ad_id': lead.get('ad_id'),
             'ad_name': lead.get('ad_name'),
             'ad_group_id': lead.get('adset_id'),
@@ -91,10 +112,16 @@ class Command(BaseCommand):
             'is_organic': lead.get('is_organic'),
             'form_id': lead.get('form_id'),
         }
-        return lead_data
 
-    def get_field_value(self, lead, field_name):
-        for field in lead.get('field_data', []):
-            if field.get('name') in field_name:
-                return field.get('values', [None])[0]
+        for key, possible_names in self.FIELD_MAP.items():
+            data[key] = self.get_field_value(lead, possible_names)
+
+        return data
+
+    def get_field_value(self, lead, possible_names):
+        field_data = lead.get('field_data', [])
+        for name in possible_names:
+            for field in field_data:
+                if name.lower() in field.get('name', '').lower():
+                    return field.get('values', [None])[0]
         return None

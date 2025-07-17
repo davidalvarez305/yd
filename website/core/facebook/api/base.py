@@ -6,5 +6,17 @@ class FacebookAPIServiceInterface(ABC):
         pass
 
     @abstractmethod
+    def get_ig_followers(self):
+        pass
+
+    @abstractmethod
+    def get_leadgen_forms(self):
+        pass
+
+    @abstractmethod
+    def get_all_leads_for_form(self):
+        pass
+
+    @abstractmethod
     def _refresh_access_token(self):
         pass

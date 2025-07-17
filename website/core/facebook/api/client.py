@@ -29,7 +29,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                 'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
             }
 
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=20)
             response.raise_for_status()
             if response.status_code != 200:
                 logger.error(e, exc_info=True)
@@ -69,7 +69,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                 'fields': 'instagram_accounts{followers_count}'
             }
 
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=20)
             response.raise_for_status()
 
             data = response.json()
@@ -97,7 +97,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             'fields': 'leadgen_forms{id}',
         }
 
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, timeout=20)
         if response.status_code != 200:
             raise Exception(f"Error fetching leadgen_forms: {response.json()}")
 
@@ -117,7 +117,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         }
 
         while url:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=20)
             if response.status_code != 200:
                 raise Exception(f"Error fetching leads for form {form_id}: {response.json()}")
 
@@ -141,7 +141,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         }
 
         try:
-            response = requests.get('https://graph.facebook.com/oauth/access_token', params=params)
+            response = requests.get('https://graph.facebook.com/oauth/access_token', params=params, timeout=20)
             response.raise_for_status()
         except requests.RequestException as e:
             logger.error(e, exc_info=True)
