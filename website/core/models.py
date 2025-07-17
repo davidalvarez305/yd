@@ -1078,7 +1078,6 @@ class GoogleAccessToken(models.Model):
     google_access_token_id = models.AutoField(primary_key=True)
     access_token = models.TextField()
     refresh_token = models.TextField()
-    token_type = models.CharField(max_length=50, blank=True, null=True)
     scope = models.TextField(blank=True, null=True)
     date_expires = models.DateTimeField(default=timezone.now)
     date_created = models.DateTimeField(auto_now_add=True)

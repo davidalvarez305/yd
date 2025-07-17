@@ -26,7 +26,7 @@ class GoogleAPIService:
 
         self.gmail = self.build("gmail", "v1")
         self.sheets = self.build("sheets", "v4")
-        self.mybusiness = self.build("mybusiness", "v4")
+        # self.mybusiness = self.build("mybusiness", "v4")
 
     def _load_credentials(self) -> Credentials:
         try:
@@ -43,14 +43,19 @@ class GoogleAPIService:
                 token_uri="https://oauth2.googleapis.com/token",
                 client_id=client_id,
                 client_secret=client_secret,
-                scopes=settings.GOOGLE_API_SCOPES,
+                scopes=self.token.scope.split(','),
             )
 
             if creds.expired and creds.refresh_token:
                 creds.refresh(Request())
-                self.token.access_token = creds.token
-                self.token.date_expires = creds.expiry
-                self.token.save()
+                new_token = GoogleAccessToken(
+                    access_token=creds.token,
+                    refresh_token=self.token.refresh_token,
+                    scope=self.token.scope,
+                    date_expires=creds.expiry,
+                )
+                new_token.save()
+                self.token = new_token
 
             return creds
 
@@ -75,10 +80,10 @@ class GoogleAPIService:
             logger.error("Failed to send email via Gmail API", exc_info=True)
             raise
 
-    def get_sheet_data(self, spreadsheet_id: str, range_name: str) -> list[dict]:
+    def get_sheet_data(self, spreadsheet_id: str, range: str) -> list[dict]:
         try:
             sheet = self.sheets.spreadsheets().values()
-            result = sheet.get(spreadsheetId=spreadsheet_id, range=range_name).execute()
+            result = sheet.get(spreadsheetId=spreadsheet_id, range=range).execute()
             values = result.get("values", [])
             headers = values[0] if values else []
             return [dict(zip(headers, row)) for row in values[1:]]
@@ -86,7 +91,7 @@ class GoogleAPIService:
             logger.error("Failed to fetch Google Sheet data", exc_info=True)
             raise
 
-    def append_sheet_data(self, spreadsheet_id: str, range_name: str, data: list[dict]) -> dict:
+    def append_sheet_data(self, spreadsheet_id: str, range: str, data: list[dict]) -> dict:
         try:
             if not data:
                 return {}
@@ -97,7 +102,7 @@ class GoogleAPIService:
 
             return self.sheets.spreadsheets().values().append(
                 spreadsheetId=spreadsheet_id,
-                range=range_name,
+                range=range,
                 valueInputOption="RAW",
                 body=body
             ).execute()

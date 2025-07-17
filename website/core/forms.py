@@ -8,7 +8,7 @@ from website.settings import COMPANY_NAME
 from .utils import add_form_field_class, cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, get_upload_sub_dir
 from .widgets import ToggleSwitchWidget
 from .models import Lead, Service, UnitType, User, ServiceType
-from .email import email_service
+from core.email import email_service
 
 from django import forms
 from django.conf import settings

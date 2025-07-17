@@ -64,7 +64,7 @@ class Command(BaseCommand):
         for sheet_name, field_map in self.SHEET_FIELD_MAP.items():
             try:
                 rows = google_api_service.get_sheet_data(
-                    spreadsheetId=sheet_id,
+                    spreadsheet_id=sheet_id,
                     range=f"{sheet_name}!A1:Z"
                 )
 

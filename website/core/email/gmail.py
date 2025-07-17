@@ -1,10 +1,10 @@
-from .base import EmailService
+from .base import EmailServiceInterface
 from core.google.api import google_api_service
 
-class GmailService(EmailService):
+class GmailService(EmailServiceInterface):
     def __init__(self):
         """Inject a Gmail API client."""
-        self.client = google_api_service()
+        self.client = google_api_service
 
     def send_email(self, to: str, subject: str, body: str) -> None:
         """Send an email using Gmail API."""
