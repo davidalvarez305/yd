@@ -1,6 +1,5 @@
 import mimetypes
 import os
-import uuid
 
 from django.http import HttpRequest, HttpResponse
 from django.core.files.base import ContentFile
@@ -190,3 +189,42 @@ class TwilioMessagingService(MessagingServiceInterface):
             return HttpResponse(status=204)
         except Message.DoesNotExist:
             return HttpResponse("Message not found", status=404)
+    
+    def get_all_messages(self) -> list[dict]:
+        """Retrieve all messages from Twilio."""
+        try:
+            messages = self.client.messages.list()
+
+            results = []
+
+            for msg in messages:
+                media_urls = []
+                if int(msg.num_media or 0) > 0:
+                    media_list = self.client.messages(msg.sid).media.list()
+                    for media in media_list:
+                        media_url = f"https://api.twilio.com{media.uri.replace('.json', '')}"
+                        media_urls.append(media_url)
+
+                results.append({
+                    "sid": msg.sid,
+                    "from": msg.from_,
+                    "to": msg.to,
+                    "body": msg.body,
+                    "status": msg.status,
+                    "direction": msg.direction,
+                    "date_sent": msg.date_sent.isoformat() if msg.date_sent else None,
+                    "date_created": msg.date_created.isoformat() if msg.date_created else None,
+                    "date_updated": msg.date_updated.isoformat() if msg.date_updated else None,
+                    "num_media": msg.num_media,
+                    "error_code": msg.error_code,
+                    "error_message": msg.error_message,
+                    "message_media": media_urls,
+                })
+
+            return results
+        except TwilioRestException as e:
+            logger.exception("Twilio error while fetching messages", exc_info=True)
+            raise Exception(f"Failed to fetch messages: {e.msg}") from e
+        except Exception as e:
+            logger.exception("Unexpected error while fetching messages", exc_info=True)
+            raise
