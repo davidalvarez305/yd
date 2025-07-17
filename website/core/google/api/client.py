@@ -21,8 +21,8 @@ class GoogleAPIService:
             raise Exception("No Google access token found in DB.")
 
         self.creds = self._load_credentials()
-        self.location_id = settings.GOOGLE_BUSINESS_PROFILE_LOCATION_ID
-        self.account_id = settings.GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID
+        self.business_profile_location_id = settings.GOOGLE_BUSINESS_PROFILE_LOCATION_ID
+        self.business_profile_account_id = settings.GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID
 
         self.gmail = self.build("gmail", "v1")
         self.sheets = self.build("sheets", "v4")
@@ -105,10 +105,10 @@ class GoogleAPIService:
             logger.error("Failed to append to Google Sheet", exc_info=True)
             raise
 
-    def sync_reviews(self) -> list[dict]:
+    def get_mybusiness_reviews(self) -> list[dict]:
         try:
             response = self.mybusiness.accounts().locations().reviews().list(
-                parent=f"locations/{self.location_id}"
+                parent=f"locations/{self.business_profile_location_id}"
             ).execute()
             return response.get("reviews", [])
         except Exception as e:

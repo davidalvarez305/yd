@@ -10,7 +10,7 @@ class GoogleAPIServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def sync_reviews(self):
+    def get_mybusiness_reviews(self):
         pass
 
     @abstractmethod

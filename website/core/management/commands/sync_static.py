@@ -3,7 +3,6 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):

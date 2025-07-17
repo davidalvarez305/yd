@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
+from core.google.api import google_api_service
 from marketing.enums import ConversionServiceType
 
 CREDENTIALS_PATH = os.path.join(settings.PROJECT_ROOT, 'credentials.json')
@@ -57,31 +58,18 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         sheet_id = options['sheet_id']
-        sheets = self.initialize_sheets_client().spreadsheets()
 
         all_entries = []
 
         for sheet_name, field_map in self.SHEET_FIELD_MAP.items():
             try:
-                result = sheets.values().get(
+                rows = google_api_service.get_sheet_data(
                     spreadsheetId=sheet_id,
                     range=f"{sheet_name}!A1:Z"
-                ).execute()
+                )
 
-                rows = result.get("values", [])
-                if not rows:
-                    self.stderr.write(self.style.WARNING(f"No data found in sheet: {sheet_name}"))
-                    continue
-
-                headers = rows[0]
-                for row in rows[1:]:
-                    record = dict(zip(headers, row))
-                    entry = self.extract_lead_data(record, field_map)
-                    print('entry: ', entry)
-                    if not entry.get("full_name"):
-                        self.stderr.write(self.style.WARNING(f"⚠️ Missing full_name in {sheet_name}: {record}"))
-                        continue
-                    all_entries.append(entry)
+                for row in rows:
+                    all_entries.append(self.extract_lead_data(row, field_map))
 
             except Exception as e:
                 self.stderr.write(self.style.ERROR(f"❌ Failed to read sheet {sheet_name}: {e}"))
@@ -182,25 +170,3 @@ class Command(BaseCommand):
             if key in row:
                 return row[key]
         return None
-
-    def initialize_sheets_client(self):
-        """Authenticate and return a Google Sheets API client."""
-        creds = None
-        if os.path.exists(TOKEN_PATH):
-            creds = Credentials.from_authorized_user_file(TOKEN_PATH, settings.GOOGLE_API_SCOPES)
-
-        if not creds or not creds.valid:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CREDENTIALS_PATH,
-                settings.GOOGLE_API_SCOPES,
-            )
-            redirect_uri = 'http://127.0.0.1:8000'
-
-            flow.redirect_uri = redirect_uri
-
-            creds = flow.run_local_server(host='127.0.0.1', port=8000)
-            
-            with open(TOKEN_PATH, "w") as token:
-                token.write(creds.to_json())
-
-        return build("sheets", "v4", credentials=creds)
