@@ -232,6 +232,10 @@ class EventForm(BaseModelForm):
         },
     )
 
+    def save(self, commit=True):
+        self.instance.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.instance)
+        return super().save(commit)
+
     class Meta:
         model = Event
         fields = [
