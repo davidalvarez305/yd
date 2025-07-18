@@ -10,7 +10,7 @@ from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
 from core.models import CallTrackingNumber, Lead, LeadNote, Message, PhoneCallStatusHistory, User
-from core.utils import cleanup_dir_files, download_file_from_twilio
+from core.utils import cleanup_dir_files, download_file_from_twilio, str_to_datetime
 from website import settings
 from core.logger import logger
 from .base import CallingServiceInterface
@@ -385,18 +385,15 @@ class TwilioCallingService(CallingServiceInterface):
 
             results.append({
                 "sid": call.sid,
-                "from": call.from_,
+                "from": call._from,
                 "to": call.to,
                 "status": call.status,
                 "direction": call.direction,
                 "duration": call.duration,
-                "start_time": call.start_time.isoformat() if call.start_time else None,
-                "end_time": call.end_time.isoformat() if call.end_time else None,
-                "date_created": call.date_created.isoformat() if call.date_created else None,
-                "date_updated": call.date_updated.isoformat() if call.date_updated else None,
-                "price": call.price,
-                "price_unit": call.price_unit,
-                "error_code": call.error_code,
+                "start_time": str_to_datetime(call.start_time) if call.start_time else None,
+                "end_time": str_to_datetime(call.end_time) if call.end_time else None,
+                "date_created": str_to_datetime(call.date_created) if call.date_created else None,
+                "date_updated": str_to_datetime(call.date_updated) if call.date_updated else None,
                 "call_recordings": recordings,
             })
 

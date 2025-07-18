@@ -7,6 +7,9 @@ from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import make_aware, is_naive
+
 import requests
 
 from django.db import models
@@ -224,3 +227,10 @@ def seconds_to_minutes(duration: int) -> str:
 
 def get_facebook_token_expiry_date():
     return timezone.now() + timedelta(seconds=60 * 24 * 60 * 60)
+
+def str_to_datetime(value):
+    if isinstance(value, str):
+        value = parse_datetime(value)
+    if value and is_naive(value):
+        value = make_aware(value)
+    return value
