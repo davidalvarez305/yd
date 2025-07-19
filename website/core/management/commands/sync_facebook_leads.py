@@ -1,6 +1,9 @@
 import json
+from dateutil import parser
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from core.facebook.api import facebook_api_service
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from marketing.enums import ConversionServiceType
@@ -12,8 +15,7 @@ class Command(BaseCommand):
     FIELD_MAP = {
         'full_name': ['full_name', 'nombre_completo', 'name'],
         'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
-        'phone_number': ['phone_number', 'telefono'],
-        'date_created': ['created_time']
+        'phone_number': ['phone_number', 'telefono']
     }
 
     def add_arguments(self, parser):
@@ -29,6 +31,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        self.options = options
         entries = []
 
         forms = facebook_api_service.get_leadgen_forms()
@@ -56,6 +59,7 @@ class Command(BaseCommand):
                             defaults={
                                 'full_name': entry.get('full_name'),
                                 'message': entry.get('message'),
+                                'created_at': entry.get('created_time'),
                             }
                         )
 
@@ -102,7 +106,7 @@ class Command(BaseCommand):
     def extract_lead_data(self, lead):
         data = {
             'leadgen_id': lead.get('id'),
-            'created_time': lead.get('created_time'),
+            'created_time': self.parse_datetime(lead.get('created_time')) if self.options['save'] else lead.get('created_time'),
             'ad_id': lead.get('ad_id'),
             'ad_name': lead.get('ad_name'),
             'ad_group_id': lead.get('adset_id'),
@@ -126,3 +130,12 @@ class Command(BaseCommand):
                 if name.lower() in field.get('name', '').lower():
                     return field.get('values', [None])[0]
         return None
+    
+    def parse_datetime(self, value):
+        if not value:
+            return None
+        try:
+            return parser.isoparse(value)
+        except (ValueError, TypeError):
+            self.stderr.write(self.style.WARNING(f"⚠️ Invalid datetime format: {value}"))
+            return None

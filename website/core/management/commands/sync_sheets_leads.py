@@ -1,21 +1,12 @@
-import os
 import json
 from dateutil import parser
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.conf import settings
-
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from core.google.api import google_api_service
 from marketing.enums import ConversionServiceType
-
-CREDENTIALS_PATH = os.path.join(settings.PROJECT_ROOT, 'credentials.json')
-TOKEN_PATH = os.path.join(settings.PROJECT_ROOT, 'token.json')
 
 class Command(BaseCommand):
     help = 'Import leads from Google Sheets API (no gspread) and save/export them.'
@@ -57,6 +48,7 @@ class Command(BaseCommand):
             return None
 
     def handle(self, *args, **options):
+        self.options = options
         sheet_id = options['sheet_id']
 
         all_entries = []
@@ -144,7 +136,7 @@ class Command(BaseCommand):
 
         data = {
             'id': strip_prefix(row.get('id')),
-            'created_time': self.parse_datetime(row.get('created_time')),
+            'created_time': self.parse_datetime(row.get('created_time')) if self.options['save'] else row.get('created_time'),
             'ad_id': strip_prefix(row.get('ad_id')),
             'ad_name': row.get('ad_name'),
             'ad_group_id': strip_prefix(row.get('ad_group_id') or row.get('adset_id')),  # allow either key
