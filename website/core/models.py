@@ -122,7 +122,7 @@ class NextAction(models.Model):
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=60, unique=True)
+    phone_number = models.CharField(max_length=255, unique=True)
     opt_in_text_messaging = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     message = models.TextField(null=True)

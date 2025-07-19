@@ -314,14 +314,6 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
-    instant_form_lead_id = forms.IntegerField(
-        label="Instant Form Lead ID",
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'placeholder': 'Meta lead form lead ID'
-        })
-    )
-
     referred_by = forms.ModelChoiceField(
         queryset=Lead.objects.all(),
         required=False,
