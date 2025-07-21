@@ -88,14 +88,6 @@ class Command(BaseCommand):
             if not lead:
                 continue
             
-            try:
-                lead = Lead.objects.get(pk=lead.pk)
-            except Lead.DoesNotExist:
-                self.stderr.write(self.style.ERROR(
-                    f'❌ Lead with ID {lead.pk} not found. Skipping quote ID {entry.get("quote_id")}'
-                ))
-                continue
-
             quote = Quote.objects.create(
                 quote_id=entry.get('quote_id'),
                 lead=lead,
