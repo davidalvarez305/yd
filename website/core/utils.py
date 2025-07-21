@@ -1,6 +1,7 @@
 from datetime import timedelta
 import mimetypes
 import os
+import random
 import re
 import uuid
 from pathlib import Path
@@ -21,6 +22,9 @@ from moviepy import VideoFileClip
 
 from pydub import AudioSegment
 from core.messaging.utils import MIME_EXTENSION_MAP
+
+import phonenumbers
+from phonenumbers.phonenumberutil import NumberParseException
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -234,3 +238,38 @@ def str_to_datetime(value):
     if value and is_naive(value):
         value = make_aware(value)
     return value
+
+def generate_random_long_int(num_digits=18):
+    """
+    Generate a random long integer with a given number of digits.
+    Default: 18 digits (fits safely within a BigIntegerField).
+    """
+    if num_digits < 1:
+        raise ValueError("num_digits must be >= 1")
+
+    lower = 10**(num_digits - 1)
+    upper = (10**num_digits) - 1
+    return random.randint(lower, upper)
+
+def normalize_phone_number(value: str, default_region: str = "US") -> str | None:
+    """
+    Normalizes a phone number to E.164 format (e.g., +17865122546).
+
+    Args:
+        value (str): Raw phone number string.
+        default_region (str): Default region to assume (if no country code). Default is 'US'.
+
+    Returns:
+        str: Normalized E.164 phone number (e.g., +17865122546), or an empty string if invalid.
+    """
+    if not value or not isinstance(value, str):
+        return ""
+
+    try:
+        number = phonenumbers.parse(value, default_region)
+        if phonenumbers.is_valid_number(number):
+            return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+    except NumberParseException:
+        pass
+
+    return None

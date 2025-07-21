@@ -7,6 +7,7 @@ from django.db import transaction
 from core.facebook.api import facebook_api_service
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from marketing.enums import ConversionServiceType
+from core.utils import normalize_phone_number
 
 
 class Command(BaseCommand):
@@ -119,7 +120,16 @@ class Command(BaseCommand):
         }
 
         for key, possible_names in self.FIELD_MAP.items():
-            data[key] = self.get_field_value(lead, possible_names)
+            try:
+                if 'phone_number' in key:
+                    value = self.get_field_value(lead, possible_names)
+                    if value:
+                        data[key] = normalize_phone_number(value)
+                else:
+                    data[key] = self.get_field_value(lead, possible_names)
+            except Exception as e:
+                print(f'Error extracting lead data: {e}')
+                continue
 
         return data
 

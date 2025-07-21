@@ -7,6 +7,7 @@ from django.db import transaction
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from core.google.api import google_api_service
 from marketing.enums import ConversionServiceType
+from core.utils import normalize_phone_number
 
 class Command(BaseCommand):
     help = 'Import leads from Google Sheets API (no gspread) and save/export them.'
@@ -153,7 +154,12 @@ class Command(BaseCommand):
         }
 
         for key, aliases in field_map.items():
-            data[key] = self.get_field_value(row, aliases)
+            if 'phone_number' in key:
+                value = self.get_field_value(row, aliases)
+                if value:
+                    data[key] = normalize_phone_number(value)
+            else:
+                data[key] = self.get_field_value(row, aliases)
 
         return data
 
