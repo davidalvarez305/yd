@@ -5,7 +5,6 @@ admin.site.register(CallTracking)
 admin.site.register(CallTrackingNumber)
 
 admin.site.register(Lead)
-admin.site.register(LeadMarketing)
 admin.site.register(LeadStatus)
 admin.site.register(LeadInterest)
 admin.site.register(NextAction)
