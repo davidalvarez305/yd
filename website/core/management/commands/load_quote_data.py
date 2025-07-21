@@ -104,9 +104,15 @@ class Command(BaseCommand):
             quote = quote_map.get(entry['quote_id'])
             service = file_model_map['services.json']['map'].get(entry['service_id'])
 
-            if not quote or not service:
+            if not quote:
                 self.stderr.write(self.style.ERROR(
-                    f'❌ Missing quote or service for QuoteService {entry.get("quote_service_id")}'
+                    f'❌ Missing quote for QuoteService {entry.get("quote_service_id")}'
+                ))
+                continue
+
+            if not service:
+                self.stderr.write(self.style.ERROR(
+                    f'❌ Missing service for QuoteService {entry.get("quote_service_id")}'
                 ))
                 continue
 
