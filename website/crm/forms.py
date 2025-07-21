@@ -12,7 +12,7 @@ from crm.utils import calculate_quote_service_values, create_extension_invoice, 
 from core.widgets import BoxedCheckboxSelectMultiple, ContainedCheckboxSelectMultiple
 from core.messaging import messaging_service
 from website import settings
-from core.utils import format_text_message
+from core.utils import format_text_message, normalize_phone_number
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -32,8 +32,6 @@ class LeadForm(BaseModelForm):
         widget=forms.TextInput(attrs={
             'placeholder': 'Phone Number',
             'autocomplete': 'tel-national',
-            'pattern': r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$',
-            'title': 'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)',
             'required': True
         }),
         required=True
@@ -65,12 +63,7 @@ class LeadForm(BaseModelForm):
     )
 
     def clean_phone_number(self):
-        phone_number = self.cleaned_data['phone_number']
-        if not re.match(r'^\+1\d{10}$|^\d{10}$|^\d{3}-\d{3}-\d{4}$|^\(\d{3}\) \d{3}-\d{4}$', phone_number):
-            raise forms.ValidationError(
-                'Enter a valid US phone number (e.g., +1XXXXXXXXXX, XXXXXXXXXX, XXX-XXX-XXXX, (XXX) XXX-XXXX)'
-            )
-        return phone_number
+        return normalize_phone_number(self.cleaned_data.get('phone_number'))
     
     def has_lead_status_changed(self):
         return 'lead_status' in self.changed_data

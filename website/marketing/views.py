@@ -10,6 +10,7 @@ from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadStatus
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.facebook.api import FacebookAPIService
+from core.utils import normalize_phone_number
 
 @csrf_exempt
 def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
@@ -64,7 +65,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(
-                        phone_number=data.get('phone_number'),
+                        phone_number=normalize_phone_number(data.get('phone_number')),
                         defaults={ 
                             'full_name': data.get('full_name'),
                             'message': data.get('city'),

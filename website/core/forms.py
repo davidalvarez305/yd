@@ -5,7 +5,7 @@ import os
 
 from core.messaging.utils import MIME_EXTENSION_MAP
 from website.settings import COMPANY_NAME
-from .utils import add_form_field_class, cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, get_upload_sub_dir
+from .utils import add_form_field_class, cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, get_upload_sub_dir, normalize_phone_number
 from .widgets import ToggleSwitchWidget
 from .models import Lead, Service, UnitType, User, ServiceType
 from core.email import email_service
@@ -181,7 +181,7 @@ class LeadForm(BaseModelForm):
         if not phone_number:
             raise forms.ValidationError('Phone number field cannot be empty.')
 
-        cleaned_phone_number = re.sub(r'\D', '', phone_number)
+        cleaned_phone_number = normalize_phone_number(phone_number)
 
         if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
             raise forms.ValidationError('Someone has already submitted a request from this phone number.')
