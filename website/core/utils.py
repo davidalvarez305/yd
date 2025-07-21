@@ -284,3 +284,22 @@ def extract_url_param_value(url: str, param: str) -> str:
 
     values = query_params.get(param)
     return values[0] if values else ""
+
+def parse_money(value: str) -> float:
+    """
+    Convert a money string like "$100.00" or "USD 1,000.99" into a float.
+    
+    Returns 0.0 if the value is empty, None, or invalid.
+    """
+    if not value or not isinstance(value, str):
+        return 0.0
+
+    clean = re.sub(r'[^\d.,-]', '', value)
+
+    if ',' in clean and clean.count(',') > clean.count('.'):
+        clean = clean.replace(',', '')
+
+    try:
+        return float(clean)
+    except ValueError:
+        return 0.0

@@ -7,12 +7,13 @@ from django.utils.dateparse import parse_datetime
 from core.models import ServiceType, UnitType, Service, Quote, QuoteService, Lead
 from website import settings
 from crm.utils import update_quote_invoices
+from core.utils import normalize_phone_number, parse_money
 
 class Command(BaseCommand):
     help = 'Load and insert data into the database in the correct order without mutating data.'
 
     def handle(self, *args, **options):
-        base_dir = settings.UPLOAD_URL
+        base_dir = settings.PROJECT_ROOT
 
         file_model_map = {
             'service_types.json': {
@@ -21,7 +22,7 @@ class Command(BaseCommand):
                 'pk': 'service_type_id',
                 'fields': lambda e, m: {
                     'service_type_id': e['service_type_id'],
-                    'service_type': e['service_type']
+                    'type': e['service_type']
                 },
             },
             'units.json': {
@@ -30,7 +31,7 @@ class Command(BaseCommand):
                 'pk': 'unit_type_id',
                 'fields': lambda e, m: {
                     'unit_type_id': e['unit_type_id'],
-                    'unit_type': e['unit_type']
+                    'type': e['type']
                 },
             },
             'services.json': {
@@ -39,10 +40,11 @@ class Command(BaseCommand):
                 'pk': 'service_id',
                 'fields': lambda e, m: {
                     'service_id': e['service_id'],
-                    'name': e['name'],
-                    'price': e['price'],
                     'service_type': file_model_map['service_types.json']['map'].get(e['service_type_id']),
                     'unit_type': file_model_map['units.json']['map'].get(e['unit_type_id']),
+                    'service': e['service'],
+                    'suggested_price': parse_money(e['suggested_price']),
+                    'guest_ratio': e['guest_ratio'],
                 },
             },
         }
@@ -78,12 +80,19 @@ class Command(BaseCommand):
         quote_map = {}
         quote_data = self.load_json('quote.json')
         for entry in quote_data:
-            lead_id = entry['lead_id']
+            phone_number = normalize_phone_number(entry.get('phone_number'))
+            if not phone_number:
+                continue
+
+            lead = Lead.objects.filter(phone_number=phone_number).first()
+            if not lead:
+                continue
+            
             try:
-                lead = Lead.objects.get(pk=lead_id)
+                lead = Lead.objects.get(pk=lead.pk)
             except Lead.DoesNotExist:
                 self.stderr.write(self.style.ERROR(
-                    f'❌ Lead with ID {lead_id} not found. Skipping quote ID {entry.get("quote_id")}'
+                    f'❌ Lead with ID {lead.pk} not found. Skipping quote ID {entry.get("quote_id")}'
                 ))
                 continue
 
@@ -114,7 +123,7 @@ class Command(BaseCommand):
                 quote=quote,
                 service=service,
                 units=entry.get('units'),
-                price_per_unit=entry.get('price_per_unit'),
+                price_per_unit=parse_money(entry.get('price_per_unit')),
             )
         
         for entry in quote_data:
@@ -125,8 +134,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('🎉 All data loaded successfully.'))
 
     def load_json(self, filename):
-        base_dir = settings.UPLOAD_URL
-        path = os.path.join(base_dir, filename)
+        path = os.path.join(settings.PROJECT_ROOT, filename)
         if not os.path.exists(path):
             self.stderr.write(self.style.ERROR(f'❌ File not found: {filename}'))
             return []
