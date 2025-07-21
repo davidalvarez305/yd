@@ -1,11 +1,11 @@
 import json
 
 from django.core.management.base import BaseCommand
-
 from core.calling import calling_service
-from core.models import PhoneCall
+from core.models import PhoneCall, User
 from core.utils import cleanup_dir_files
-from website.settings import UPLOADS_URL
+from website import settings
+
 
 class Command(BaseCommand):
     help = 'Fetch Twilio phone calls and optionally save to DB or export to JSON. Adds transcription and AI summary.'
@@ -17,6 +17,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         calls = calling_service.get_phone_calls()
 
+        normalized_company_number = "+1" + settings.COMPANY_PHONE_NUMBER
+        EXCLUDED_NUMBERS = [normalized_company_number]
+        superadmins = User.objects.filter(is_superadmin=True)
+        for user in superadmins:
+            if user.forward_phone_number:
+                EXCLUDED_NUMBERS.append(user.forward_phone_number.strip())
+            if user.phone_number:
+                EXCLUDED_NUMBERS.append(user.phone_number.strip())
+
         if options['json']:
             with open('calls.json', 'w', encoding='utf-8') as f:
                 json.dump(calls, f, ensure_ascii=False, indent=2)
@@ -24,34 +33,68 @@ class Command(BaseCommand):
 
         if options['save']:
             saved = 0
+
             for call in calls:
                 try:
-                    recording_url = ""
-                    for recording in call.get("call_recordings", []):
-                        if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
-                            recording_url = recording["url"]
-                            break
+                    is_inbound = call.get("direction") != "outbound-api"
 
-                    phone_call, created = PhoneCall.objects.get_or_create(
-                        external_id=call.get("sid"),
-                        defaults={
-                            "call_from": call.get('from'),
-                            "call_to": call.get("to"),
-                            "call_duration": int(call.get("duration") or 0),
-                            "status": call.get("status"),
-                            "recording_url": recording_url,
-                            "is_inbound": call.get("direction") != "outbound-api",
-                            "date_created": call.get('date_created'),
-                        },
-                    )
+                    # Inbound calls: save the main call only
+                    if is_inbound:
+                        recording_url = ""
+                        for recording in call.get("call_recordings", []):
+                            if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
+                                recording_url = recording["url"]
+                                break
 
-                    if created:
-                        saved += 1
+                        phone_call, created = PhoneCall.objects.get_or_create(
+                            external_id=call.get("sid"),
+                            defaults={
+                                "call_from": call.get('from'),
+                                "call_to": call.get("to"),
+                                "call_duration": int(call.get("duration") or 0),
+                                "status": call.get("status"),
+                                "recording_url": recording_url,
+                                "is_inbound": True,
+                                "date_created": call.get('date_created'),
+                            },
+                        )
+                        if created:
+                            saved += 1
+
+                    # Outbound calls: only save children
+                    else:
+                        for child in call.get("child_calls", []):
+                            to_number = (child.get("to") or "").strip()
+
+                            if to_number in EXCLUDED_NUMBERS:
+                                continue
+
+                            child_recording_url = ""
+                            for recording in child.get("call_recordings", []):
+                                if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
+                                    child_recording_url = recording["url"]
+                                    break
+
+                            child_call, child_created = PhoneCall.objects.get_or_create(
+                                external_id=child.get("sid"),
+                                defaults={
+                                    "call_from": child.get("from"),
+                                    "call_to": child.get("to"),
+                                    "call_duration": int(child.get("duration") or 0),
+                                    "status": child.get("status"),
+                                    "recording_url": child_recording_url,
+                                    "is_inbound": False,
+                                    "date_created": child.get("date_created"),
+                                },
+                            )
+
+                            if child_created:
+                                saved += 1
 
                 except Exception as e:
                     self.stderr.write(self.style.ERROR(f"❌ Failed on call {call.get('sid')}: {e}"))
 
                 finally:
-                    cleanup_dir_files(UPLOADS_URL)
+                    cleanup_dir_files(settings.UPLOADS_URL)
 
             self.stdout.write(self.style.SUCCESS(f"✅ Saved {saved} calls to DB"))
