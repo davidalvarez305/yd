@@ -1,11 +1,9 @@
 import json
 
 from django.core.management.base import BaseCommand
-from django.utils.timezone import make_aware
 
 from core.calling import calling_service
 from core.models import PhoneCall
-from core.messaging.utils import strip_country_code
 from core.utils import cleanup_dir_files
 from website.settings import UPLOADS_URL
 

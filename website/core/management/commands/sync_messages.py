@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
 from core.messaging import messaging_service
-from core.messaging.utils import MIME_EXTENSION_MAP, strip_country_code
+from core.messaging.utils import MIME_EXTENSION_MAP
 from core.models import Message, MessageMedia
 from core.utils import convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_twilio
 
@@ -42,8 +42,8 @@ class Command(BaseCommand):
                 try:
                     message = Message(
                         external_id=msg.get('sid'),
-                        text=strip_country_code(msg.get('body')),
-                        text_from=strip_country_code(msg.get('from')),
+                        text=msg.get('body'),
+                        text_from=msg.get('from'),
                         text_to=msg.get('to'),
                         is_inbound=(msg.get('direction') == 'inbound'),
                         status=msg.get('status'),
