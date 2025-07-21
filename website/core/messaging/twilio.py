@@ -15,7 +15,7 @@ from core.models import Message, MessageMedia
 from communication.forms import MessageForm
 from communication.enums import TwilioWebhookCallbacks
 from .base import MessagingServiceInterface
-from .utils import MIME_EXTENSION_MAP, strip_country_code
+from .utils import MIME_EXTENSION_MAP
 from core.logger import logger
 
 from website.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, UPLOADS_URL, DEBUG
@@ -41,8 +41,8 @@ class TwilioMessagingService(MessagingServiceInterface):
 
         try:
             message_sid = request.POST.get("MessageSid")
-            text_from = strip_country_code(request.POST.get("From"))
-            text_to = strip_country_code(request.POST.get("To"))
+            text_from = request.POST.get("From")
+            text_to = request.POST.get("To")
             body = request.POST.get("Body", "")
             num_media = int(request.POST.get("NumMedia", 0))
             sms_status = request.POST.get("SmsStatus")

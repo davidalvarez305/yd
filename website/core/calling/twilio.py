@@ -16,7 +16,6 @@ from core.logger import logger
 from .base import CallingServiceInterface
 
 from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
-from core.messaging.utils import strip_country_code
 from core.models import PhoneCall, PhoneCallTranscription
 from core.messaging import messaging_service
 
@@ -57,10 +56,7 @@ class TwilioCallingService(CallingServiceInterface):
         if not all([call_sid, call_from, call_to, call_status]):
             return HttpResponse("Missing required fields", status=400)
 
-        from_number = strip_country_code(call_from)
-        to_number = strip_country_code(call_to)
-
-        forward = CallTrackingNumber.objects.filter(phone_number=to_number).first()
+        forward = CallTrackingNumber.objects.filter(phone_number=call_to).first()
         if not forward:
             return HttpResponse("No matching phone number found", status=400)
 
@@ -84,8 +80,8 @@ class TwilioCallingService(CallingServiceInterface):
                 external_id=call_sid,
                 call_duration=0,
                 date_created=now(),
-                call_from=from_number,
-                call_to=to_number,
+                call_from=call_from,
+                call_to=call_to,
                 is_inbound=True,
                 recording_url="",
                 status=call_status,
@@ -284,8 +280,8 @@ class TwilioCallingService(CallingServiceInterface):
         phone_call, created = PhoneCall.objects.get_or_create(
             external_id=call_sid,
             defaults={
-                "call_from": strip_country_code(call_from),
-                "call_to": strip_country_code(call_to),
+                "call_from": call_from,
+                "call_to": call_to,
                 "call_duration": call_duration,
                 "date_created": now(),
                 "is_inbound": False,
