@@ -7,7 +7,7 @@ from django.db import transaction
 
 from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing
 from marketing.enums import ConversionServiceType, MarketingParams
-from core.utils import generate_random_long_int, normalize_phone_number
+from core.utils import extract_url_param_value, generate_random_long_int, normalize_phone_number
 
 class Command(BaseCommand):
     help = 'Import enriched leads from a JSON file and either save to DB or export to data.json.'
@@ -51,15 +51,15 @@ class Command(BaseCommand):
         entries = []
         for lead in raw_leads:
             try:
-                self.extract_entry(lead, options['save'])
+                entries.append(self.extract_entry(lead, options['save']))
             except Exception as e:
                 print(f'Failed to extract lead: {e}')
                 continue
 
         if options['json']:
-            with open('data.json', 'w', encoding='utf-8') as f:
+            with open('load.json', 'w', encoding='utf-8') as f:
                 json.dump(entries, f, ensure_ascii=False, indent=2)
-            self.stdout.write(self.style.SUCCESS(f"✅ Exported {len(entries)} leads to data.json"))
+            self.stdout.write(self.style.SUCCESS(f"✅ Exported {len(entries)} leads to load.json"))
 
         if options['save']:
             count = 0
@@ -81,13 +81,16 @@ class Command(BaseCommand):
                         if created:
                             client_id = None
                             platform_id = None
+                            ad = None
 
-                            if MarketingParams.FacebookURLClickID in entry.get('landing_page'):
+                            landing_page = entry.get('landing_page') or ''
+
+                            if MarketingParams.FacebookURLClickID.value in landing_page:
                                 client_id = entry.get('facebook_client_id')
                                 platform_id = ConversionServiceType.FACEBOOK.value
                             else:
                                 for key in MarketingParams.GoogleURLClickIDKeys.value:
-                                    if key in entry.get('landing_page'):
+                                    if key in landing_page:
                                         client_id = entry.get('google_client_id')
                                         platform_id = ConversionServiceType.GOOGLE.value
                                         break
@@ -114,7 +117,6 @@ class Command(BaseCommand):
                                 )
 
                                 keyword = entry.get('keyword')
-                                ad = None
 
                                 # Handle Google Ads
                                 if keyword:
@@ -132,7 +134,17 @@ class Command(BaseCommand):
                                         ad = google_ad
                                 
                                 # Handle Facebook Ads
-                                # Normalize Phone Number using REGEX
+                                creative = extract_url_param_value(entry.get('landing_page'), 'creative')
+                                if creative:
+                                    facebook_ad = Ad.objects.filter(name=creative).first()
+                                    if facebook_ad is None:
+                                        ad.id = generate_random_long_int()
+                                        ad.name = creative
+                                        ad.ad_group = ad_group
+                                        ad.platform_id = platform_id
+                                        ad.save()
+                                    else:
+                                        ad = facebook_ad
 
                             marketing = LeadMarketing(
                                 lead=lead,
@@ -140,13 +152,10 @@ class Command(BaseCommand):
                                 medium=entry.get('medium'),
                                 channel=entry.get('channel'),
                                 landing_page=entry.get('landing_page'),
-                                referrer=entry.get('referrer'),
                                 click_id=entry.get('click_id'),
                                 client_id=client_id,
-                                external_id=entry.get('external_id'),
                                 instant_form_id=entry.get('instant_form_id'),
                                 instant_form_lead_id=entry.get('instant_form_lead_id'),
-                                instant_form_name=entry.get('instant_form_name'),
                             )
 
                             if ad:
@@ -164,8 +173,6 @@ class Command(BaseCommand):
             'full_name': lead.get('full_name'),
             'phone_number': normalize_phone_number(lead.get('phone_number')),
             'message': lead.get('message'),
-            'email': lead.get('email'),
-            'stripe_customer_id': lead.get('stripe_customer_id'),
             'created_at': self.parse_datetime(lead.get('created_at')) if parse_datetime else lead.get('created_at'),
             'opt_in_text_messaging': lead.get('opt_in_text_messaging'),
 

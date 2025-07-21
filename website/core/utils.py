@@ -3,6 +3,7 @@ import mimetypes
 import os
 import random
 import re
+from urllib.parse import parse_qs, urlparse
 import uuid
 from pathlib import Path
 from django.core.exceptions import ValidationError
@@ -273,3 +274,13 @@ def normalize_phone_number(value: str, default_region: str = "US") -> str | None
         pass
 
     return None
+
+def extract_url_param_value(url: str, param: str) -> str:
+    if not url or not param:
+        return ""
+
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+
+    values = query_params.get(param)
+    return values[0] if values else ""
