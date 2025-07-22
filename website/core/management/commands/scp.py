@@ -4,18 +4,6 @@ import posixpath
 import paramiko
 from django.core.management.base import BaseCommand, CommandError
 
-"""
-Example:
-python manage.py scp `
-  --host 12.34.56.78 `
-  --username ubuntu `
-  --key_path ~/.ssh/my-aws-key.pem `
-  --remote_project_root /home/ubuntu/myproject `
-  --remote_subdir data/imports `
-  --local_dir ~/Downloads/files `
-  --files '*.json'
-"""
-
 class Command(BaseCommand):
     help = "Uploads local files (supports wildcards) to a remote Django project directory via SSH"
 
