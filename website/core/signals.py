@@ -12,7 +12,7 @@ def handle_new_lead_notification(sender, instance, created, **kwargs):
     if not created:
         return
     
-    """ users = User.objects.filter(is_superuser=True)
+    users = User.objects.filter(is_superuser=True)
 
     text_content = "\n".join([
         f"NEW LEAD:",
@@ -33,4 +33,4 @@ def handle_new_lead_notification(sender, instance, created, **kwargs):
         resp = messaging_service.send_text_message(message=message)
         message.external_id = resp.sid
         message.status = resp.status
-        message.save() """
+        message.save()
