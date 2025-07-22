@@ -1,5 +1,5 @@
 {% for lead in leads %}
-<li hx-get="{% url 'chat_messages' pk=lead.pk %}" hx-target="#leadChat" class="flex items-center justify-between p-4">
+<li hx-get="{% url 'chat_messages' pk=lead.pk %}" hx-target="#leadChat" class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
 	<div class="flex items-center gap-4">
 		<div>
 			<p class="text-sm font-semibold">{{ lead.full_name }}</p>
