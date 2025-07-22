@@ -509,3 +509,23 @@ class QuotePresetServiceTable(Table):
         model = QuotePresetService
         exclude=['quote_preset_service_id', 'quote_preset']
         pk = 'quote_preset_service_id'
+
+class InvoiceTable(Table):
+    image = TableField(
+        label='Image',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    f'<a href="{deep_getattr(row, "image.url", "#")}" target="_blank">View Image</a>'
+                    if deep_getattr(row, 'image.url', '') else ''
+                ),
+                'is_html': True,
+            }
+        )
+    )
+
+    class Meta:
+        model = StoreItem
+        exclude = ['store_item_id']
+        extra_fields = ['view', 'delete']
+        pk = 'store_item_id'

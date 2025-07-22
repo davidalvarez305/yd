@@ -856,6 +856,7 @@ class QuoteDetailView(CRMDetailTemplateView):
         context['quote_service_table'] = QuoteServiceTable(data=quote.quote_services.all(), request=self.request)
         context['quote_service_form'] = QuoteServiceForm(initial={ 'quote': quote })
         context['quote_send_form'] = QuoteSendForm(initial={ 'quote': quote })
+        context['invoice_table'] = InvoiceTable(data=quote.invoices.all(), request=self.request)
 
         return context
 
