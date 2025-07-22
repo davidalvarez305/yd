@@ -310,10 +310,10 @@ LOGGING = {
 }
 
 # Max memory before files are streamed to disk (default is 2.5MB)
-FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 500  # 50 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 50  # 50 MB
 
 # Max size Django will accept for request body (POST, file uploads, etc.)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 500  # 50 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 50  # 50 MB
 
 # Max header sizes
 DATA_UPLOAD_MAX_HEADER_SIZE = 1024 * 1024 * 50 # 50 MB
