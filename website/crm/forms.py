@@ -641,6 +641,10 @@ class QuotePresetForm(BaseModelForm):
         fields = '__all__'
 
 class QuotePresetEditFormForm(BaseModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['services'].required = False
+
     class Meta:
         model = QuotePreset
         fields = ['name', 'text_content']
