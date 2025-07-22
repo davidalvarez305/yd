@@ -79,7 +79,6 @@ class TwilioCallingService(CallingServiceInterface):
             PhoneCall.objects.create(
                 external_id=call_sid,
                 call_duration=0,
-                date_created=now(),
                 call_from=call_from,
                 call_to=call_to,
                 is_inbound=True,
@@ -283,7 +282,6 @@ class TwilioCallingService(CallingServiceInterface):
                 "call_from": call_from,
                 "call_to": call_to,
                 "call_duration": call_duration,
-                "date_created": now(),
                 "is_inbound": False,
                 "status": call_status,
             }
