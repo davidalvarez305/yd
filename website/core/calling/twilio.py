@@ -293,7 +293,7 @@ class TwilioCallingService(CallingServiceInterface):
 
         if phone_call.status == 'completed' and phone_call.status not in MISSED_STATUSES:
             # Check if child call was ever answered
-            was_answered = PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='answered').exists()
+            was_answered = PhoneCallStatusHistory.objects.filter(phone_call=phone_call, status='in-progress').exists()
             if not was_answered:
                 phone_call.status = 'missed'
                 phone_call.save(update_fields=['status'])
