@@ -2,7 +2,6 @@ import os
 import uuid
 
 from django.http import HttpResponse
-from django.utils.timezone import now
 from django.core.files import File
 
 from twilio.twiml.voice_response import VoiceResponse, Dial
