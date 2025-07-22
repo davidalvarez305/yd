@@ -55,11 +55,18 @@ class TwilioCallingService(CallingServiceInterface):
         if not all([call_sid, call_from, call_to, call_status]):
             return HttpResponse("Missing required fields", status=400)
 
-        forward = CallTrackingNumber.objects.filter(phone_number=call_to).first()
-        if not forward:
-            return HttpResponse("No matching phone number found", status=400)
+        forward_number = None
 
-        forward_number = forward.forward_phone_number
+        user = User.objects.filter(phone_number=call_to).first()
+        if user:
+            forward_number = user.forward_phone_number
+        else:
+            forward = CallTrackingNumber.objects.filter(phone_number=call_to).first()
+            if forward:
+                forward_number = forward.forward_phone_number
+
+        if not forward_number:
+            return HttpResponse("No matching phone number found", status=400)
 
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         action_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
