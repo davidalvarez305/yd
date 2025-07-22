@@ -9,7 +9,7 @@ from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_twilio
+from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_twilio, str_to_datetime
 from core.models import Message, MessageMedia
 
 from communication.forms import MessageForm
@@ -210,9 +210,6 @@ class TwilioMessagingService(MessagingServiceInterface):
                             "sid": media.sid,
                         })
 
-                def make_dt(dt):
-                    return make_aware(dt) if dt and is_naive(dt) else dt
-
                 results.append({
                     "sid": msg.sid,
                     "from": msg.from_,
@@ -220,9 +217,9 @@ class TwilioMessagingService(MessagingServiceInterface):
                     "body": msg.body,
                     "status": msg.status,
                     "direction": msg.direction,
-                    "date_sent": make_dt(msg.date_sent),
-                    "date_created": make_dt(msg.date_created),
-                    "date_updated": make_dt(msg.date_updated),
+                    "date_sent": str_to_datetime(msg.date_sent),
+                    "date_created": str_to_datetime(msg.date_created),
+                    "date_updated": str_to_datetime(msg.date_updated),
                     "num_media": msg.num_media,
                     "error_code": msg.error_code,
                     "error_message": msg.error_message,
