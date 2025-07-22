@@ -7,8 +7,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
-from django.utils.timezone import now
 from django.db.models import OuterRef, Subquery, Q
+from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from website import settings
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
@@ -50,7 +51,7 @@ class CRMContextMixin:
             "meta_description": "YD Cocktails CRM",
             "site_name": settings.SITE_NAME,
             "phone_number": format_phone_number(settings.COMPANY_PHONE_NUMBER),
-            "current_year": now().year,
+            "current_year": timezone.now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
@@ -546,7 +547,9 @@ class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
                     Q(text_from=OuterRef('phone_number')) | Q(text_to=OuterRef('phone_number'))
                 ).order_by('-date_created').values('date_created')[:1]
             )
-        ).order_by('-last_message_date')
+        ).annotate(
+            last_message_date_coalesced=Coalesce('last_message_date', timezone.make_aware(timezone.datetime(1970, 1, 1)))
+        ).order_by('-last_message_date_coalesced')
         context['leads'] = leads
         return context
 
