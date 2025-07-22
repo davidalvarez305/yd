@@ -951,13 +951,31 @@ class QuotePresetServiceCreateView(CRMCreateTemplateView):
     model = QuotePresetService
     form_class = QuotePresetServiceForm
 
-class QuotePresetServiceUpdateView(CRMUpdateView):
-    model = QuotePresetService
-    form_class = QuotePresetServiceForm
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+
+            qs = QuotePresetService.objects.filter(quote_preset=self.object.quote_preset)
+            table = QuotePresetServiceTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except BaseException as e:
+            return self.alert(request=self.request, message=get_first_field_error(form), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuotePresetServiceDeleteView(CRMDeleteView):
     model = QuotePresetService
     form_class = QuotePresetServiceForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            self.object = self.get_object()
+            self.object.delete()
+            qs = QuotePresetService.objects.filter(quote_preset=self.object.quote_preset)
+            table = QuotePresetServiceTable(data=qs, request=self.request)
+
+            return HttpResponse(table.render())
+        except Exception as e:
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
 
 class QuickQuoteCreateView(CRMCreateTemplateView):
     model = Quote
