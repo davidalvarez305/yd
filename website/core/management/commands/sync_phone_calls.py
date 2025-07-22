@@ -1,5 +1,4 @@
 import json
-
 from django.core.management.base import BaseCommand
 from core.calling import calling_service
 from core.models import PhoneCall, User
@@ -36,12 +35,19 @@ class Command(BaseCommand):
 
             for call in calls:
                 try:
+                    if not isinstance(call, dict):
+                        self.stderr.write(self.style.WARNING(f"⚠️ Skipping non-dict call: {call}"))
+                        continue
+
                     is_inbound = call.get("direction") != "outbound-api"
 
-                    # Inbound calls: save the main call only
                     if is_inbound:
+                        # Inbound call: look for first audio recording
                         recording_url = ""
                         for recording in call.get("call_recordings", []):
+                            if not isinstance(recording, dict):
+                                self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid recording: {recording}"))
+                                continue
                             if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
                                 recording_url = recording["url"]
                                 break
@@ -61,16 +67,22 @@ class Command(BaseCommand):
                         if created:
                             saved += 1
 
-                    # Outbound calls: only save children
                     else:
+                        # Outbound: process child calls
                         for child in call.get("child_calls", []):
-                            to_number = (child.get("to") or "").strip()
+                            if not isinstance(child, dict):
+                                self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid child call: {child}"))
+                                continue
 
+                            to_number = (child.get("to") or "").strip()
                             if to_number in EXCLUDED_NUMBERS:
                                 continue
 
                             child_recording_url = ""
                             for recording in child.get("call_recordings", []):
+                                if not isinstance(recording, dict):
+                                    self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid child recording: {recording}"))
+                                    continue
                                 if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
                                     child_recording_url = recording["url"]
                                     break
@@ -87,12 +99,12 @@ class Command(BaseCommand):
                                     "date_created": child.get("date_created"),
                                 },
                             )
-
                             if child_created:
                                 saved += 1
 
                 except Exception as e:
-                    self.stderr.write(self.style.ERROR(f"❌ Failed on call {call.get('sid')}: {e}"))
+                    sid = call.get("sid") if isinstance(call, dict) else "<unknown>"
+                    self.stderr.write(self.style.ERROR(f"❌ Failed on call {sid}: {e}"))
 
                 finally:
                     cleanup_dir_files(settings.UPLOADS_URL)
