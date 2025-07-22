@@ -515,6 +515,9 @@ class Message(models.Model):
     def get_lead(self):
         return Lead.objects.filter(phone_number=self.text_from).first() or Lead.objects.filter(phone_number=self.text_to).first()
 
+    def user(self):
+        return User.objects.filter(phone_number=self.text_from).first() or User.objects.filter(phone_number=self.text_to).first()
+    
     def images(self):
         return self.media.filter(content_type__startswith="image/")
 
