@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from django.utils.timezone import now
+from django.db.models import OuterRef, Subquery, Q
 
 from website import settings
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
@@ -539,7 +540,13 @@ class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        leads = Lead.objects.all()
+        leads = Lead.objects.annotate(
+            last_message_date=Subquery(
+                Message.objects.filter(
+                    Q(text_from=OuterRef('phone_number')) | Q(text_to=OuterRef('phone_number'))
+                ).order_by('-date_created').values('date_created')[:1]
+            )
+        ).order_by('-last_message_date')
         context['leads'] = leads
         return context
 
