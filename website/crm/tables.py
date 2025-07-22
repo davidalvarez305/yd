@@ -517,7 +517,7 @@ class InvoiceTable(Table):
             data={
                 'value': lambda row: (
                     f'<a href="{deep_getattr(row, "receipt.file.url", "#")}" target="_blank">Receipt</a>'
-                    if deep_getattr(row, 'receipt.file.url', '') else ''
+                    if deep_getattr(row, 'receipt', None) and deep_getattr(row, 'receipt.file', None) else 'No receipt available'
                 ),
                 'is_html': True,
             }
