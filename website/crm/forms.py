@@ -768,3 +768,8 @@ class FacebookAccessTokenForm(BaseModelForm):
     class Meta:
         model = FacebookAccessToken
         fields = ['access_token']
+
+class InvoiceForm(BaseModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['date_paid', 'amount']

@@ -154,4 +154,8 @@ urlpatterns = [
     path('facebook-access-token/<int:pk>/', views.FacebookAccessTokenDetailView.as_view(), name='facebookaccesstoken_detail'),
     path('facebook-access-token/<int:pk>/edit/', views.FacebookAccessTokenUpdateView.as_view(), name='facebookaccesstoken_update'),
     path('facebook-access-token/<int:pk>/delete/', views.FacebookAccessTokenDeleteView.as_view(), name='facebookaccesstoken_delete'),
+
+    # Invoice
+    path('invoice/<int:pk>/', views.InvoiceDetailView.as_view(), name='invoice_detail'),
+    path('invoice/<int:pk>/edit/', views.InvoiceUpdateView.as_view(), name='invoice_update'),
 ]

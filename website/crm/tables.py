@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, seconds_to_minutes
 
@@ -511,21 +511,48 @@ class QuotePresetServiceTable(Table):
         pk = 'quote_preset_service_id'
 
 class InvoiceTable(Table):
-    image = TableField(
-        label='Image',
+    receipt = TableField(
+        label='Receipt',
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f'<a href="{deep_getattr(row, "image.url", "#")}" target="_blank">View Image</a>'
-                    if deep_getattr(row, 'image.url', '') else ''
+                    f'<a href="{deep_getattr(row, "receipt.file.url", "#")}" target="_blank">Receipt</a>'
+                    if deep_getattr(row, 'receipt.file.url', '') else ''
                 ),
                 'is_html': True,
             }
         )
     )
 
+    amount = TableField(
+        cell_widget=PriceCellWidget(
+            data={
+                "value": "amount"
+            }
+        ),
+        label='Price'
+    )
+
+    date_paid = TableField(
+        label='Paid',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.date_paid).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
+    due_date = TableField(
+        label='Paid',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(row.due_date).strftime("%m/%d/%Y %I:%M %p")
+            }
+        )
+    )
+
     class Meta:
-        model = StoreItem
-        exclude = ['store_item_id']
-        extra_fields = ['view', 'delete']
-        pk = 'store_item_id'
+        model = Invoice
+        exclude = ['invoice_id', 'quote', 'session_id', 'external_id', 'date_created']
+        extra_fields = ['view']
+        pk = 'invoice_id'
