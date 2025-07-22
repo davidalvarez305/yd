@@ -163,7 +163,7 @@ class Lead(models.Model):
         return Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('date_created')
     
     def unread_messages_count(self):
-        return Message.objects.filter(text_to=self.phone_number, is_read=True).count()
+        return Message.objects.filter(text_to=self.phone_number, is_read=False).count()
     
     def visits(self):
         return Visit.objects.filter(lead_marketing=self.lead_marketing)
