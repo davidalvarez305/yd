@@ -931,6 +931,7 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
 
             return HttpResponse(table.render())
         except Exception as e:
+            logger.exception(str(e), exc_info=True)
             return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)
 
 class ExternalQuoteView(CRMContextMixin, DetailView):
