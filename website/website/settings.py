@@ -65,6 +65,7 @@ WSGI_APPLICATION = 'website.wsgi.application'
 
 # Cors
 CORS_ALLOWED_ORIGINS = [env.get('ROOT_DOMAIN')]
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 POSTGRES_HOST = env.get("POSTGRES_HOST")
