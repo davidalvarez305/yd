@@ -18,6 +18,7 @@ class Command(BaseCommand):
 
         normalized_company_number = "+1" + settings.COMPANY_PHONE_NUMBER
         EXCLUDED_NUMBERS = [normalized_company_number]
+
         superadmins = User.objects.filter(is_superuser=True)
         for user in superadmins:
             if user.forward_phone_number:
@@ -34,21 +35,17 @@ class Command(BaseCommand):
             saved = 0
 
             for call in calls:
-                try:
-                    if not isinstance(call, dict):
-                        self.stderr.write(self.style.WARNING(f"⚠️ Skipping non-dict call: {call}"))
-                        continue
+                if not isinstance(call, dict):
+                    self.stderr.write(self.style.WARNING(f"⚠️ Skipping non-dict call object: {call}"))
+                    continue
 
+                try:
                     is_inbound = call.get("direction") != "outbound-api"
 
                     if is_inbound:
-                        # Inbound call: look for first audio recording
                         recording_url = ""
                         for recording in call.get("call_recordings", []):
-                            if not isinstance(recording, dict):
-                                self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid recording: {recording}"))
-                                continue
-                            if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
+                            if isinstance(recording, dict) and recording.get("url") and recording.get("content_type", "").startswith("audio/"):
                                 recording_url = recording["url"]
                                 break
 
@@ -68,10 +65,14 @@ class Command(BaseCommand):
                             saved += 1
 
                     else:
-                        # Outbound: process child calls
-                        for child in call.get("child_calls", []):
+                        child_calls = call.get("child_calls", [])
+                        if not isinstance(child_calls, list):
+                            self.stderr.write(self.style.WARNING(f"⚠️ Malformed child_calls in call {call.get('sid')}: {child_calls}"))
+                            continue
+
+                        for child in child_calls:
                             if not isinstance(child, dict):
-                                self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid child call: {child}"))
+                                self.stderr.write(self.style.WARNING(f"⚠️ Skipping malformed child in call {call.get('sid')}: {child}"))
                                 continue
 
                             to_number = (child.get("to") or "").strip()
@@ -80,10 +81,7 @@ class Command(BaseCommand):
 
                             child_recording_url = ""
                             for recording in child.get("call_recordings", []):
-                                if not isinstance(recording, dict):
-                                    self.stderr.write(self.style.WARNING(f"⚠️ Skipping invalid child recording: {recording}"))
-                                    continue
-                                if recording.get("url") and recording.get("content_type", "").startswith("audio/"):
+                                if isinstance(recording, dict) and recording.get("url") and recording.get("content_type", "").startswith("audio/"):
                                     child_recording_url = recording["url"]
                                     break
 
@@ -99,12 +97,12 @@ class Command(BaseCommand):
                                     "date_created": child.get("date_created"),
                                 },
                             )
+
                             if child_created:
                                 saved += 1
 
                 except Exception as e:
-                    sid = call.get("sid") if isinstance(call, dict) else "<unknown>"
-                    self.stderr.write(self.style.ERROR(f"❌ Failed on call {sid}: {e}"))
+                    self.stderr.write(self.style.ERROR(f"❌ Failed on call {call.get('sid', 'unknown')}: {e}"))
 
                 finally:
                     cleanup_dir_files(settings.UPLOADS_URL)
