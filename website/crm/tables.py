@@ -493,7 +493,7 @@ class QuotePresetServiceTable(Table):
         cell_widget=DeleteButton(
             context={
                 'attrs': {
-                    'hx-post': lambda row, request: reverse('quotepresetservoce_delete', kwargs={ 'pk': row.pk }),
+                    'hx-post': lambda row, request: reverse('quotepresetservice_delete', kwargs={ 'pk': row.pk }),
                     'hx-target': '#quotePresetServicesTable',
                     'hx-ext': "loading-states",
                     'hx-on--after-request': "modalHelper.get('quotePresetServicesModal').close();",
