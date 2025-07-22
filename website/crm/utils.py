@@ -47,6 +47,11 @@ def calculate_quote_service_values(guests, hours, suggested_price, unit_type, se
         units = (math.ceil(guests / guest_ratio) * hours) if guest_ratio else hours
         price = suggested_price
         return {'units': units, 'price': price}
+    
+    elif guest_ratio and 'Rental' in service_type:
+        units = math.ceil(guests / guest_ratio)
+        price = suggested_price
+        return {'units': units, 'price': price}
 
     else:
         return {}
