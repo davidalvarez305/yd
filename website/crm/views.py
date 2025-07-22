@@ -917,7 +917,7 @@ class QuotePresetCreateView(CRMCreateTemplateView):
 
 class QuotePresetUpdateView(CRMUpdateView):
     model = QuotePreset
-    form_class = QuotePresetForm
+    form_class = QuotePresetEditFormForm
 
 class QuotePresetDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_preset_detail.html'
