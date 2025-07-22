@@ -640,6 +640,11 @@ class QuotePresetForm(BaseModelForm):
         model = QuotePreset
         fields = '__all__'
 
+class QuotePresetEditFormForm(BaseModelForm):
+    class Meta:
+        model = QuotePreset
+        fields = ['name', 'text_content']
+
 class QuotePresetServiceForm(BaseModelForm):
     class Meta:
         model = QuotePresetService

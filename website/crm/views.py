@@ -16,7 +16,7 @@ from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, E
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -922,7 +922,7 @@ class QuotePresetUpdateView(CRMUpdateView):
 class QuotePresetDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_preset_detail.html'
     model = QuotePreset
-    form_class = QuotePresetForm
+    form_class = QuotePresetEditFormForm
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
