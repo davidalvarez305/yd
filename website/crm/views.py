@@ -922,7 +922,7 @@ class QuotePresetUpdateView(CRMUpdateView):
 class QuotePresetDetailView(CRMDetailTemplateView):
     template_name = 'crm/quote_preset_detail.html'
     model = QuotePreset
-    form_class = None
+    form_class = QuotePresetForm
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
