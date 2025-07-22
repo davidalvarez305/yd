@@ -487,8 +487,25 @@ class QuotePresetServiceTable(Table):
         )
     )
 
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButton(
+            context={
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('quotepresetservoce_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#quotePresetServicesTable',
+                    'hx-ext': "loading-states",
+                    'hx-on--after-request': "modalHelper.get('quotePresetServicesModal').close();",
+                    'data-loading-target': '#deleteButton',
+                    'id': 'deleteButton',
+                    'data-loading-class-remove': 'hidden',
+                }
+            }
+        )
+    )
+
     class Meta:
         model = QuotePresetService
-        extra_fields = ['delete']
         exclude=['quote_preset_service_id', 'quote_preset']
         pk = 'quote_preset_service_id'

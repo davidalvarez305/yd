@@ -23,7 +23,7 @@
             <div class="md:w-2/3 md:pl-24">
                 <form class="space-y-6 xl:w-2/3"
                     hx-post="{% url 'quotepreset_update' pk=object.pk %}"
-                    hx-target="#servicesTable"
+                    hx-target="#quotePresetServicesTable"
                     hx-ext="loading-states"
                     data-loading-target="#saveChangesButton"
                     data-loading-class-remove="hidden"
@@ -74,7 +74,7 @@
                             <div class="grow p-5 md:px-16 md:py-6">
                                 <form method="post" class="space-y-6 p-2 md:p-2"
                                     hx-post="{% url 'quotepresetservice_create' %}"
-                                    hx-target="#servicesTable"
+                                    hx-target="#quotePresetServicesTable"
                                     hx-on--after-request="modalHelper.get('quotePresetServicesModal').close();"
                                     data-loading-target="#createQuoteServiceButton"
                                 >
@@ -103,7 +103,7 @@
     </div>
     <!-- END Add Quote Preset Services -->
     <!-- Quote Preset Services -->
-    <div id="servicesTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    <div id="quotePresetServicesTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         {{ quote_preset_service_table.render }}
     </div>
     <!-- END Quote Preset Services -->
