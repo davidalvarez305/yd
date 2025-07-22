@@ -136,7 +136,6 @@ urlpatterns = [
 
     # Quote Preset Services
     path('quote-preset-service/create/', views.QuotePresetServiceCreateView.as_view(), name='quotepresetservice_create'),
-    path('quote-preset-service/<int:pk>/edit/', views.QuotePresetServiceUpdateView.as_view(), name='quotepresetservice_update'),
     path('quote-preset-service/<int:pk>/delete/', views.QuotePresetServiceDeleteView.as_view(), name='quotepresetservice_delete'),
 
     # Quick Quote
