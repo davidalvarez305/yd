@@ -33,7 +33,7 @@ class CallTrackingMixin:
             if tracking_numbers:
                 call_tracking_number = random.choice(tracking_numbers)
             else:
-                call_tracking_number = CallTrackingNumber.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
+                call_tracking_number = CallTrackingNumber.objects.get(phone_number=settings.DEFAULT_TRACKING_NUMBER)
 
             data = {
                 'phone_number': call_tracking_number.phone_number,
