@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from .env import EnvConfig
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,6 +63,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'website.wsgi.application'
 
+# Cors
+CORS_ALLOWED_ORIGINS = [env.get('ROOT_DOMAIN')]
 
 # Database
 POSTGRES_HOST = env.get("POSTGRES_HOST")
