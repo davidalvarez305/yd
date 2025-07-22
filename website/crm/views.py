@@ -12,14 +12,14 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuoteService, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from crm.forms import FacebookAccessTokenForm, InternalLogForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
+from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, MessageTable, PhoneCallTable, PhoneCallTranscriptionTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
@@ -920,12 +920,44 @@ class QuotePresetUpdateView(CRMUpdateView):
     form_class = QuotePresetForm
 
 class QuotePresetDetailView(CRMDetailTemplateView):
+    template_name = 'crm/quote_preset_detail.html'
     model = QuotePreset
     form_class = QuotePresetForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        
+        quote_preset = self.object
+        data = QuotePresetService.objects.filter(quote_preset=quote_preset)
+        quote_preset_service_table = QuotePresetServiceTable(data=data, request=self.request)
+
+        quote_preset_service_form = QuotePresetServiceForm(initial={
+            'quote_preset': quote_preset,
+            'services': Service.objects.all()
+        })
+
+        ctx.update({
+            'quote_preset_service_table': quote_preset_service_table,
+            'quote_preset_service_form': quote_preset_service_form
+        })
+
+        return ctx
 
 class QuotePresetDeleteView(CRMDeleteView):
     model = QuotePreset
     form_class = QuotePresetForm
+
+class QuotePresetServiceCreateView(CRMCreateTemplateView):
+    model = QuotePresetService
+    form_class = QuotePresetServiceForm
+
+class QuotePresetServiceUpdateView(CRMUpdateView):
+    model = QuotePresetService
+    form_class = QuotePresetServiceForm
+
+class QuotePresetServiceDeleteView(CRMDeleteView):
+    model = QuotePresetService
+    form_class = QuotePresetServiceForm
 
 class QuickQuoteCreateView(CRMCreateTemplateView):
     model = Quote

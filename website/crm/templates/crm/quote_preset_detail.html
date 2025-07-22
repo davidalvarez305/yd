@@ -1,0 +1,110 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="space-y-4 dark:text-gray-100 lg:space-y-8">
+    <!-- Quote Detail -->
+    <div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
+        <div class="grow p-5 md:flex lg:p-8">
+            <div class="mb-5 md:w-1/3 md:flex-none md:border-0">
+                <h3 class="mb-1 flex items-center justify-start gap-2 font-semibold">
+                    <svg class="hi-mini hi-user-circle inline-block size-5 text-primary-500"
+                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span>Quote Preset Details</span>
+                </h3>
+                <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+                    Package information.
+                </p>
+            </div>
+            <div class="md:w-2/3 md:pl-24">
+                <form class="space-y-6 xl:w-2/3"
+                    hx-post="{% url 'quotepreset_update' pk=object.pk %}"
+                    hx-target="#servicesTable"
+                    hx-ext="loading-states"
+                    data-loading-target="#saveChangesButton"
+                    data-loading-class-remove="hidden"
+                >
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 bg-primary-700 px-3 py-2 text-sm font-semibold leading-5 text-white hover:border-primary-600 hover:bg-primary-600 hover:text-white focus:ring focus:ring-primary-400/50 active:border-primary-700 active:bg-primary-700 dark:focus:ring-primary-400/90">
+                        <svg id="saveChangesButton" class="hidden lucide lucide-loader-circle inline-block size-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>  
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END Quote Detail -->
+    <!-- Add Quote Preset Services -->
+    <div class="flex flex-col my-6 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
+        <div
+            class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <button type="button" data-modal-id="quotePresetServicesModal"
+                class="openModal inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                Add Package Service
+            </button>
+        </div>
+    </div>
+    <div data-modal-id="quotePresetServicesModal" data-modal="form" style="display: none;">
+        <div>
+            <div tabindex="-1" role="dialog"
+                class="fixed inset-0 z-90 overflow-y-auto overflow-x-hidden bg-gray-900/75 p-4 backdrop-blur-sm lg:p-8">
+                <div role="document"
+                    class="mx-auto flex w-full sm:w-1/2 flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
+                    <div class="flex items-center justify-between bg-gray-50 px-5 py-4 dark:bg-gray-700/50">
+                        <h3 class="flex items-center gap-2 font-medium">
+                            <span>Add Service To Preset</span>
+                        </h3>
+                        <div class="-my-4">
+                            <button type="button" data-modal-id="quotePresetServicesModal"
+                                class="closeModal inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-transparent dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grow px-5">
+                        <div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
+                            <div class="grow p-5 md:px-16 md:py-6">
+                                <form method="post" class="space-y-6 p-2 md:p-2"
+                                    hx-post="{% url 'quotepresetservice_create' %}"
+                                    hx-target="#servicesTable"
+                                    hx-on--after-request="modalHelper.get('quotePresetServicesModal').close();"
+                                    data-loading-target="#createQuoteServiceButton"
+                                >
+                                    {% csrf_token %}
+                                    {{ quote_preset_service_form.as_p }}
+                                    <button type="submit"
+                                        class="w-full rounded-lg bg-primary-700 px-8 py-4 font-semibold text-white hover:bg-primary-600 focus:ring focus:ring-primary-400/50">
+                                        <svg id="createQuoteServiceButton" class="hidden lucide lucide-loader-circle inline-block size-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                                        </svg>
+                                        Add Service To Package
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-x-1 bg-gray-50 px-5 py-4 text-right dark:bg-gray-700/50">
+                        <button type="button" data-modal-id="quotePresetServicesModal"
+                            class="closeModal inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END Add Quote Preset Services -->
+    <!-- Quote Preset Services -->
+    <div id="servicesTable" class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        {{ quote_preset_service_table.render }}
+    </div>
+    <!-- END Quote Preset Services -->
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.urls import reverse
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, seconds_to_minutes
 
@@ -476,3 +476,19 @@ class HTTPLogTable(Table):
             'url',
             'method',
         ]
+
+class QuotePresetServiceTable(Table):
+    service = TableField(
+        label='Service',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'service.service', '')
+            }
+        )
+    )
+
+    class Meta:
+        model = QuotePresetService
+        extra_fields = ['delete']
+        exclude=['quote_preset_service_id', 'quote_preset']
+        pk = 'quote_preset_service_id'

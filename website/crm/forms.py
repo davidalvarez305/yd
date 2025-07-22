@@ -4,7 +4,7 @@ import re
 
 from django.urls import reverse
 
-from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuoteService, Service, StoreItem, Visit
+from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, BaseForm, DataAttributeModelSelect, FilterFormMixin
 from core.models import LeadMarketing, Cocktail, Event
 from marketing.enums import ConversionServiceType
@@ -639,6 +639,15 @@ class QuotePresetForm(BaseModelForm):
     class Meta:
         model = QuotePreset
         fields = '__all__'
+
+class QuotePresetServiceForm(BaseModelForm):
+    class Meta:
+        model = QuotePresetService
+        fields = '__all__'
+        widgets = {
+            'quote_preset': forms.Select(),
+            'service': forms.Select(),
+        }
 
 class QuickQuoteForm(BaseModelForm):
     presets = forms.ModelMultipleChoiceField(
