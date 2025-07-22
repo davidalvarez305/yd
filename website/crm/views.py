@@ -451,6 +451,10 @@ class PhoneCallListView(CRMTableView):
     table_class = PhoneCallTable
     show_add_button = False
 
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('-date_created')
+        return queryset
+
 class PhoneCallDetailView(CRMDetailTemplateView):
     model = PhoneCall
     form_class = PhoneCallForm
