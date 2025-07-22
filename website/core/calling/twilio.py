@@ -373,8 +373,10 @@ class TwilioCallingService(CallingServiceInterface):
             recording_list = self.client.calls(call.sid).recordings.list()
 
             for recording in recording_list:
-                recording_url = f"https://api.twilio.com{recording.uri.replace('.json', '')}"
-                recordings.append(recording_url)
+                recordings.append({
+                    "url": f"https://api.twilio.com{recording.uri.replace('.json', '')}",
+                    "content_type": getattr(recording, 'content_type', 'audio/mpeg')
+                })
 
             results.append({
                 "sid": call.sid,
@@ -388,7 +390,6 @@ class TwilioCallingService(CallingServiceInterface):
                 "date_created": str_to_datetime(call.date_created) if call.date_created else None,
                 "date_updated": str_to_datetime(call.date_updated) if call.date_updated else None,
                 "call_recordings": recordings,
-                "child_calls": [],
             })
 
         return results
