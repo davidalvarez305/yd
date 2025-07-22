@@ -366,7 +366,6 @@ class TwilioCallingService(CallingServiceInterface):
         
     def get_phone_calls(self):
         calls = self.client.calls.list()
-
         results = []
 
         for call in calls:
@@ -389,6 +388,7 @@ class TwilioCallingService(CallingServiceInterface):
                 "date_created": str_to_datetime(call.date_created) if call.date_created else None,
                 "date_updated": str_to_datetime(call.date_updated) if call.date_updated else None,
                 "call_recordings": recordings,
+                "child_calls": [],
             })
 
         return results
