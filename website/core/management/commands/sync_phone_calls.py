@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
         normalized_company_number = "+1" + settings.COMPANY_PHONE_NUMBER
         EXCLUDED_NUMBERS = [normalized_company_number]
-        superadmins = User.objects.filter(is_superadmin=True)
+        superadmins = User.objects.filter(is_superuser=True)
         for user in superadmins:
             if user.forward_phone_number:
                 EXCLUDED_NUMBERS.append(user.forward_phone_number.strip())
