@@ -537,7 +537,10 @@ class InvoiceTable(Table):
         label='Paid',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: localtime(row.date_paid).strftime("%m/%d/%Y %I:%M %p")
+                'value': lambda row: (
+                    localtime(row.date_paid).strftime("%m/%d/%Y %I:%M %p") 
+                    if row.date_paid else ''
+                )
             }
         )
     )
@@ -546,7 +549,7 @@ class InvoiceTable(Table):
         label='Due',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: localtime(row.due_date).strftime("%m/%d/%Y %I:%M %p")
+                'value': lambda row: localtime(row.due_date).strftime("%m/%d/%Y")
             }
         )
     )
