@@ -517,7 +517,7 @@ class InvoiceTable(Table):
             data={
                 'value': lambda row: (
                     f'<a href="{deep_getattr(row, "receipt.file.url", "#")}" target="_blank">Receipt</a>'
-                    if deep_getattr(row, 'receipt', None) and deep_getattr(row, 'receipt.file', None) else 'No receipt available'
+                    if deep_getattr(row, 'receipt', None) and deep_getattr(row, 'receipt.file', None) else ''
                 ),
                 'is_html': True,
             }
@@ -543,7 +543,7 @@ class InvoiceTable(Table):
     )
 
     due_date = TableField(
-        label='Paid',
+        label='Due',
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: localtime(row.due_date).strftime("%m/%d/%Y %I:%M %p")
