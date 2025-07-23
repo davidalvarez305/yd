@@ -133,7 +133,7 @@ class TwilioCallingService(CallingServiceInterface):
                 self.handle_missed_call(phone_call=phone_call, ctx={ 'user': user })
 
         except Exception as e:
-            logger.error(e, exc_info=True)
+            logger.exception(e, exc_info=True)
             return HttpResponse("Call not found", status=500)
         
         return HttpResponse('Success!', status=200)
@@ -205,7 +205,7 @@ class TwilioCallingService(CallingServiceInterface):
             return HttpResponse("Success!", status=200)
 
         except Exception as e:
-            logger.error(e, exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return HttpResponse("Internal server error", status=500)
         
         finally:

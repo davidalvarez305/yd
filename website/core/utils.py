@@ -23,6 +23,7 @@ from moviepy import VideoFileClip
 
 from pydub import AudioSegment
 from core.messaging.utils import MIME_EXTENSION_MAP
+from core.logger import logger
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
@@ -89,6 +90,7 @@ def download_file_from_twilio(twilio_resource: str, local_file_path: str) -> Non
             )
             response.raise_for_status()
         except requests.RequestException as e:
+            logger.exception(str(e), exc_info=True)
             raise Exception(f"Failed to download file: {e}")
 
         try:
@@ -96,6 +98,7 @@ def download_file_from_twilio(twilio_resource: str, local_file_path: str) -> Non
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
         except Exception as e:
+            logger.exception(str(e), exc_info=True)
             raise Exception(f"Failed to save file locally: {e}")
 
 def format_phone_number(phone_number: str) -> str:
