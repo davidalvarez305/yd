@@ -18,7 +18,7 @@ class AWSTranscriptionService:
         self.cdn = settings.AWS_S3_CUSTOM_DOMAIN
     
     def _get_s3_media_uri(self, file_name):
-        return "s3://" + self.bucket_name + "/audio/" + file_name
+        return "s3://" + self.bucket_name + "/audio/" + file_name + ".mp3"
 
     def transcribe_audio(self, transcription: PhoneCallTranscription) -> dict:
         self.client.start_transcription_job(
