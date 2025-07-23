@@ -18,7 +18,7 @@ from communication.enums import TwilioWebhookCallbacks, TwilioWebhookEvents
 from core.models import PhoneCall, PhoneCallTranscription
 from core.messaging import messaging_service
 
-MISSED_STATUSES = {"busy", "failed", "no-answer"}
+MISSED_STATUSES = {"busy", "failed", "no-answer", "missed"}
 
 class TwilioCallingService(CallingServiceInterface):
     def __init__(self, account_sid, auth_token, transcription_service, ai_agent):
