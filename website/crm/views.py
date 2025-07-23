@@ -378,6 +378,13 @@ class EventCreateView(CRMCreateTemplateView):
     model = Event
     form_class = EventForm
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        self.instance.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.instance)
+
+        return response
+
 class EventUpdateView(CRMUpdateView):
     model = Event
     form_class = EventForm
