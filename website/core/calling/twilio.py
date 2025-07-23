@@ -128,6 +128,8 @@ class TwilioCallingService(CallingServiceInterface):
 
             user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
             user = User.objects.filter(phone_number=user_phone).first()
+            if user is None:
+                user = User.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER) # Send default message as me
 
             if phone_call.status in MISSED_STATUSES:
                 self.handle_missed_call(phone_call=phone_call, ctx={ 'user': user })
