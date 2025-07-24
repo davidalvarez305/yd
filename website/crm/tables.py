@@ -452,7 +452,7 @@ class PhoneCallTranscriptionTable(Table):
     )
     class Meta:
         model = PhoneCallTranscription
-        exclude = ['phone_call_transcription_id', 'external_id', 'text']
+        exclude = ['phone_call_transcription_id', 'external_id', 'text', 'job', 'phone_call']
 
 class HTTPLogTable(Table):
     date_created = TableField(
