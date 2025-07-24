@@ -8,17 +8,6 @@
         <ul id="chatSidebar" class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" role="listbox">
             {% include 'crm/chat_sidebar.html' %}
         </ul>
-        <!-- Infinity Scroll Trigger -->
-        <div
-            id="infinityScrollTrigger"
-            hx-get="{% url 'load_chat_leads' %}?count=0"
-            hx-trigger="revealed"
-            hx-target="#chatSidebar"
-            hx-swap="beforeend"
-            hx-on="htmx:beforeRequest: updateHtmxUrl();"
-        >
-        </div>
-        <!-- END Infinity Scroll Trigger -->
     </div>
     <!-- END Leads -->
 
@@ -26,8 +15,7 @@
     {% if is_mobile %}
         <!-- Modal wrapper for mobile -->
         <div class="flex flex-col my-6 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
-            <div
-                class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <div class="flex flex-col gap-3 bg-gray-50 px-5 py-4 text-center dark:bg-gray-700/50 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <button type="button" data-modal-id="chatModal"
                     class="openModal inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700">
                     Add Quote Service
@@ -76,22 +64,42 @@
     {% endif %}
     <!-- END Messages -->
 </div>
+
 <script>
     let counter = 20;
+    const chatSidebar = document.getElementById('chatSidebar');
 
-    function updateHtmxUrl() {
+    function triggerHtmxOnScroll() {
+        const lastChild = chatSidebar.querySelector('li:last-child');
+
+        if (!lastChild) throw new Error('Lead elements not found on page.');
+
+        const rect = lastChild.getBoundingClientRect();
+        let isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
+
+        if (!isVisible) return;
+
         counter += 20;
-        const element = document.getElementById('infinityScrollTrigger');
 
-        const url = "{% url 'load_chat_leads' %}?count=" + counter;
-        element.setAttribute('hx-get', url);
+        htmx.ajax('GET', "{% url 'load_chat_leads' %}?count=" + counter, {
+            target: '#chatSidebar',
+            swap: 'beforeend',
+        });
+    }
+
+    window.addEventListener('scroll', function () {
+        triggerHtmxOnScroll();
+    });
+
+    triggerHtmxOnScroll();
+</script>
+
+<script>
+    function handleChatModal() {
+        let isMobile = "{{ is_mobile }}" == "True";
+        const chatModal = modalHelper.get('chatModal');
+        if (chatModal && isMobile) chatModal.open();
     }
 </script>
-<script>
-	function handleChatModal() {
-		let isMobile = "{{ is_mobile }}" == "True";
-		const chatModal = modalHelper.get('chatModal');
-		if (chatModal && isMobile) chatModal.open();
-	}
-</script>
+
 {% endblock %}
