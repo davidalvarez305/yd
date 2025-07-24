@@ -155,7 +155,7 @@ class Lead(models.Model):
         elif last_call:
             latest_activity = last_call.date_created
         
-        last_status = LeadStatusHistory.objects.filter(lead=self).order_by('-date_created').first()
+        last_status = LeadStatusHistory.objects.filter(lead=self).order_by('-date_changed').first()
 
         return (not latest_activity and last_status.date_changed < two_weeks_ago) or latest_activity < two_weeks_ago
     
