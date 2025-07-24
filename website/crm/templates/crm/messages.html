@@ -89,7 +89,6 @@
         htmx.ajax('GET', "{% url 'load_chat_leads' %}?count=" + counter, {
             target: '#chatSidebar',
             swap: 'beforeend',
-            indicator: '#loadingIndicator'
         });
     }
 
