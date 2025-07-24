@@ -8,6 +8,22 @@
         <ul id="chatSidebar" class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" role="listbox">
             {% include 'crm/chat_sidebar.html' %}
         </ul>
+        <!-- Infinite Scroll Trigger -->
+        <div
+            id="infinityScrollTrigger"
+            hx-get="{% url 'load_chat_leads' %}?count=0"
+            hx-trigger="revealed"
+            hx-target="#chatSidebar"
+            hx-swap="beforeend"
+            hx-indicator="#loadingIndicator"
+            hx-on="htmx:beforeRequest: updateHtmxUrl();"
+        >
+            <!-- Loading indicator when new items are being fetched -->
+            <div id="loadingIndicator" class="text-center py-2" style="display:none;">
+                Getting more...
+            </div>
+        </div>
+        <!-- END Infinite Scroll Trigger -->
     </div>
     <!-- END Leads -->
 
@@ -65,4 +81,15 @@
     {% endif %}
     <!-- END Messages -->
 </div>
+<script>
+    let counter = 0;
+
+    function updateHtmxUrl() {
+        counter += 20;
+        const element = document.getElementById('infinityScrollTrigger');
+
+        const url = "{% url 'load_chat_leads' %}?count=" + counter;
+        element.setAttribute('hx-get', url);
+    }
+</script>
 {% endblock %}

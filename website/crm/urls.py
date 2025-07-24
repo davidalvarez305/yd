@@ -8,6 +8,7 @@ urlpatterns = [
 
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),
+    path('chat/leads', views.LoadChatLeadsView.as_view(), name='load_chat_leads'),
     path('chat/messages/<int:pk>/', views.LeadChatMessagesView.as_view(), name='chat_messages'),
 
     # Call Tracking

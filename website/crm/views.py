@@ -555,6 +555,33 @@ class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
         context['leads'] = leads
         return context
 
+class LoadChatLeadsView(LoginRequiredMixin, CRMContextMixin, ListView):
+    model = Message
+    template_name = 'crm/chat_sidebar.html'
+    context_object_name = 'messages'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        count = self.request.GET.get('count', 0)
+        try:
+            count = int(count)
+        except ValueError:
+            count = 0
+
+        leads = Lead.objects.annotate(
+            last_message_date=Subquery(
+                Message.objects.filter(
+                    Q(text_from=OuterRef('phone_number')) | Q(text_to=OuterRef('phone_number'))
+                ).order_by('-date_created').values('date_created')[:1]
+            )
+        ).annotate(
+            last_message_date_coalesced=Coalesce('last_message_date', timezone.make_aware(timezone.datetime(1970, 1, 1)))
+        ).order_by('-last_message_date_coalesced')[count:count+20]
+
+        context['leads'] = leads
+        return context
+
 class LeadChatMessagesView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'crm/lead_chat.html'
