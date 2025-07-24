@@ -551,7 +551,7 @@ class LeadChatView(LoginRequiredMixin, CRMContextMixin, ListView):
             )
         ).annotate(
             last_message_date_coalesced=Coalesce('last_message_date', timezone.make_aware(timezone.datetime(1970, 1, 1)))
-        ).order_by('-last_message_date_coalesced')
+        ).order_by('-last_message_date_coalesced')[:20]
         context['leads'] = leads
         return context
 
