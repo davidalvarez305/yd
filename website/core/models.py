@@ -207,9 +207,6 @@ class Lead(models.Model):
 
         lead_status = LeadStatus.objects.get(status=status)
 
-        if self.lead_status_id == lead_status.pk:
-            raise ValidationError('Same lead status.')
-
         self.lead_status = lead_status
         self.save()
 
