@@ -99,7 +99,7 @@
 			<div class="mx-auto flex w-full max-w-10xl justify-center px-4 lg:px-8">
 				<!-- Center Section -->
 				<div class="flex items-center">
-					<a href="/?{% querystring %}"
+					<a href="/{% querystring %}"
 						class="group inline-flex items-center gap-2 text-2xl font-bold tracking-wide text-gray-900 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">
 						<img src="{% static 'files/mobile_header.png' %}" alt="yd cocktails logo" />
 					</a>
@@ -138,7 +138,7 @@
 			<div
 				class="container mx-auto flex flex-row items-center justify-between space-y-0 lg:px-4 xl:max-w-7xl">
 				<div>
-					<a href="/"
+					<a href="/{% querystring %}"
 						class="group inline-flex items-center space-x-2 text-xl font-bold tracking-wide text-gray-900 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">
 						<img src="{% static 'files/logo_header.png' %}" alt="yd cocktails logo" />
 					</a>
@@ -270,15 +270,15 @@
 							</a>
 						</nav>
 						<nav class="space-x-2 sm:space-x-4">
-							<a href="{% url 'terms_and_conditions' %}"
+							<a href="{% url 'terms_and_conditions' %}{% querystring %}"
 								class="font-medium text-gray-700 hover:text-gray-950 dark:text-gray-400 dark:hover:text-gray-50">
 								Terms of Service
 							</a>
-							<a href="{% url 'privacy_policy' %}"
+							<a href="{% url 'privacy_policy' %}{% querystring %}"
 								class="font-medium text-gray-700 hover:text-gray-950 dark:text-gray-400 dark:hover:text-gray-50">
 								Privacy Policy
 							</a>
-							<a href="{% url 'contact' %}"
+							<a href="{% url 'contact' %}{% querystring %}"
 								class="font-medium text-gray-700 hover:text-gray-950 dark:text-gray-400 dark:hover:text-gray-50">
 								Contact
 							</a>
