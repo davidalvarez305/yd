@@ -469,14 +469,14 @@ class Invoice(models.Model):
         old_invoice = Invoice.objects.get(pk=self.pk) if is_existing else None
 
         # Prevent changes after payment, except for receipt
-        """ if is_existing and old_invoice.date_paid is not None:
+        if is_existing and old_invoice.date_paid is not None:
             changed_fields = {
                 field.name: getattr(self, field.name)
                 for field in self._meta.fields
                 if field.name != 'receipt' and getattr(self, field.name) != getattr(old_invoice, field.name)
             }
             if changed_fields:
-                raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.") """
+                raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.")
 
         super().save(*args, **kwargs)
 
