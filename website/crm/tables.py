@@ -450,18 +450,6 @@ class FacebookAccessTokenTable(Table):
         extra_fields = ['view', 'delete']
         exclude = ['facebook_access_token_id', 'date_expires']
 
-class PhoneCallTranscriptionTable(Table):
-    audio = TableField(
-        cell_widget=AudioWidget(
-            data={
-                'value': lambda row: row.audio.url
-            }
-        )
-    )
-    class Meta:
-        model = PhoneCallTranscription
-        exclude = ['phone_call_transcription_id', 'external_id', 'text', 'job', 'phone_call']
-
 class HTTPLogTable(Table):
     date_created = TableField(
         label='Date',
