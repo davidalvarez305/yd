@@ -773,3 +773,10 @@ class InvoiceForm(BaseModelForm):
     class Meta:
         model = Invoice
         fields = ['date_paid', 'amount']
+        widgets = {
+            'date_paid': forms.DateTimeInput(attrs={
+                'required': True,
+                'name': 'date_paid',
+                'type': 'datetime-local',
+            })
+        }
