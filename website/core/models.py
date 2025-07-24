@@ -464,7 +464,7 @@ class Invoice(models.Model):
     class Meta:
         db_table = 'invoice'
 
-    def save(self, *args, **kwargs):
+    """ def save(self, *args, **kwargs):
         if self.pk:
             invoice = Invoice.objects.get(pk=self.pk)
             if invoice.date_paid is not None:
@@ -475,7 +475,7 @@ class Invoice(models.Model):
                 }
                 if changed_fields:
                     raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.")
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs) """
 
 class LeadNote(models.Model):
     lead_note_id = models.AutoField(primary_key=True)
@@ -612,7 +612,12 @@ class PhoneCallStatusHistory(models.Model):
 
 class PhoneCallTranscription(models.Model):
     phone_call_transcription_id = models.AutoField(primary_key=True)
-    phone_call = models.ForeignKey(PhoneCall, related_name='transcriptions', on_delete=models.CASCADE, db_column='phone_call_id')
+    phone_call = models.OneToOneField(
+        PhoneCall,
+        on_delete=models.CASCADE,
+        db_column='phone_call_id',
+        related_name='transcription'
+    )
     external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
     text = models.TextField()
     audio = models.FileField(upload_to='audio/')
