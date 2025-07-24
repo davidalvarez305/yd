@@ -67,9 +67,12 @@
 
 <script>
     let counter = 20;
+    let isLoading = false;
     const chatSidebar = document.getElementById('chatSidebar');
 
     function triggerHtmxOnScroll() {
+        if (isLoading) return;
+
         const lastChild = chatSidebar.querySelector('li:last-child');
 
         if (!lastChild) throw new Error('Lead elements not found on page.');
@@ -81,17 +84,28 @@
 
         counter += 20;
 
+        isLoading = true;
+
         htmx.ajax('GET', "{% url 'load_chat_leads' %}?count=" + counter, {
             target: '#chatSidebar',
             swap: 'beforeend',
+            indicator: '#loadingIndicator'
         });
     }
+
+    document.body.addEventListener('htmx:beforeRequest', function() {
+        isLoading = true;
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.target.id === 'chatSidebar') {
+            isLoading = false;
+        }
+    });
 
     window.addEventListener('scroll', function () {
         triggerHtmxOnScroll();
     });
-
-    triggerHtmxOnScroll();
 </script>
 
 <script>
