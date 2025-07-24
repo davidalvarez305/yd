@@ -464,18 +464,27 @@ class Invoice(models.Model):
     class Meta:
         db_table = 'invoice'
 
-    """ def save(self, *args, **kwargs):
-        if self.pk:
-            invoice = Invoice.objects.get(pk=self.pk)
-            if invoice.date_paid is not None:
-                changed_fields = {
-                    field.name: getattr(self, field.name)
-                    for field in self._meta.fields
-                    if field.name != 'receipt' and getattr(self, field.name) != getattr(invoice, field.name)
-                }
-                if changed_fields:
-                    raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.")
-        super().save(*args, **kwargs) """
+    def save(self, *args, **kwargs):
+        is_existing = self.pk is not None
+        old_invoice = Invoice.objects.get(pk=self.pk) if is_existing else None
+
+        # Prevent changes after payment, except for receipt
+        """ if is_existing and old_invoice.date_paid is not None:
+            changed_fields = {
+                field.name: getattr(self, field.name)
+                for field in self._meta.fields
+                if field.name != 'receipt' and getattr(self, field.name) != getattr(old_invoice, field.name)
+            }
+            if changed_fields:
+                raise Exception("Invoice cannot be modified because it has already been paid, except for the receipt.") """
+
+        super().save(*args, **kwargs)
+
+        if self.date_paid is not None:
+            from crm.utils import update_quote_invoices
+
+            if self.invoice_type.type == InvoiceTypeEnum.DEPOSIT:
+                update_quote_invoices(self.quote)
 
 class LeadNote(models.Model):
     lead_note_id = models.AutoField(primary_key=True)
