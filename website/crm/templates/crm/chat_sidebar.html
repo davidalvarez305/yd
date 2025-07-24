@@ -2,7 +2,7 @@
 <li
 	hx-get="{% url 'chat_messages' pk=lead.pk %}"
 	hx-target="#leadChat"
-	hx-on:htmx:after-request="handleChatModal()"
+	hx-on:htmx:after-request="handleChatModal();"
 	class="flex items-center justify-between p-4 cursor-pointer"
 >
 	<div class="flex items-center gap-4">
@@ -18,11 +18,3 @@
 	</span>
 </li>
 {% endfor %}
-
-<script>
-	let isMobile = "{{ is_mobile }}" == "True";
-	function handleChatModal() {
-		const chatModal = modalHelper.get('chatModal');
-		if (chatModal && isMobile) chatModal.open();
-	}
-</script>

@@ -563,7 +563,7 @@ class LoadChatLeadsView(LoginRequiredMixin, CRMContextMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        count = self.request.GET.get('count', 0)
+        count = self.request.GET.get('count')
         try:
             count = int(count)
         except ValueError:
