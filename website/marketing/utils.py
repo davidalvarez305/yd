@@ -1,5 +1,8 @@
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
+from dateutil import parser
+
+from core.utils import normalize_phone_number
 from .enums import ConversionServiceType, MarketingParams
 from core.models import Ad, AdCampaign, AdGroup
 
@@ -161,3 +164,51 @@ def is_paid_traffic(request: HttpRequest) -> bool:
             return True
 
     return False
+
+def get_facebook_form_values(form_values):
+    FIELD_MAP = {
+        'full_name': ['full_name', 'nombre_completo', 'name'],
+        'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
+        'phone_number': ['phone_number', 'telefono'],
+        'platform': ['platform'],
+        'form_id': ['form_id'],
+        'is_organic': ['is_organic'],
+        'campaign_id': ['campaign_id'],
+        'campaign_name': ['campaign_name'],
+        'adset_id': ['adset_id'],
+        'adset_name': ['adset_name'],
+        'ad_id': ['ad_id'],
+        'ad_name': ['ad_name'],
+        'email': ['email'],
+        'city': ['city', 'ciudad']
+    }
+
+    data = {}
+
+    for key in FIELD_MAP:
+        if key in form_values:
+            data[key] = form_values[key]
+
+    for key, possible_names in FIELD_MAP.items():
+        if key not in data:
+            value = get_field_value(form_values, possible_names)
+            if value:
+                if key == 'phone_number':
+                    data[key] = normalize_phone_number(value)
+                else:
+                    data[key] = value
+    
+    return data
+
+
+def get_field_value(form_values, possible_names):
+    field_data = form_values.get('field_data', [])
+    if not isinstance(field_data, list):
+        return None
+
+    for name in possible_names:
+        for field in field_data:
+            if name.lower() in field.get('name', '').lower():
+                return field.get('values', [None])[0]
+
+    return None

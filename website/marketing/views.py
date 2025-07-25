@@ -11,6 +11,7 @@ from marketing.enums import ConversionServiceType
 from website import settings
 from core.facebook.api import FacebookAPIService
 from core.utils import normalize_phone_number
+from marketing.utils import get_facebook_form_values
 
 @csrf_exempt
 def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
@@ -61,14 +62,15 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
             facebook_api_service = FacebookAPIService()
 
             for entry in entries:
-                data = facebook_api_service.get_lead_data(lead=entry)
+                form_values = facebook_api_service.get_lead_data(lead=entry)
+                data = get_facebook_form_values(form_values=form_values)
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(
                         phone_number=normalize_phone_number(data.get('phone_number')),
                         defaults={ 
                             'full_name': data.get('full_name'),
-                            'message': data.get('city'),
+                            'message': data.get('message'),
                          }
                     )
 
