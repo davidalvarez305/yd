@@ -622,7 +622,8 @@ class QuoteServiceForm(BaseModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        if self.instance.quote.is_paid_off() and not self.instance.is_extend_service():
+        quote = self.cleaned_data.get('quote')
+        if quote.is_paid_off() and not self.instance.is_extend_service():
             raise forms.ValidationError('Paid off quote cannot be modified.')
         return cleaned_data
     
