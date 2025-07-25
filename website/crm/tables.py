@@ -36,6 +36,8 @@ class EventTable(Table):
             data = {
                 'value': lambda row: (
                     f"{row.start_time.astimezone(get_current_timezone()).strftime('%B, %d %#I %p')} - {row.end_time.astimezone(get_current_timezone()).strftime('%#I %p')}"
+                    if row.start_time and row.end_time
+                    else ""
                 )
             }
         )
