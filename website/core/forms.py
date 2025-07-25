@@ -64,12 +64,26 @@ class FilterFormMixin:
             elif isinstance(widget, (forms.Select, forms.ChoiceField)):
                 add_form_field_class(widget, 'block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold leading-5 focus:border-blue-500 focus:ring focus:ring-blue-500/50 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-blue-500 sm:w-36')
 
+class NormalizeEmptyStringsMixin:
+    def normalize_empty_string(self, value):
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for field_name, value in cleaned_data.items():
+            field = self.fields.get(field_name)
+            if isinstance(field, (forms.CharField, forms.TextInput, forms.Textarea)):
+                cleaned_data[field_name] = self.normalize_empty_string(value)
+        return cleaned_data
+
 class BaseForm(StyledFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_styling()
 
-class BaseModelForm(StyledFormMixin, forms.ModelForm):
+class BaseModelForm(StyledFormMixin, NormalizeEmptyStringsMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.apply_styling()
