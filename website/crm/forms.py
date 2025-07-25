@@ -620,6 +620,12 @@ class QuoteServiceForm(BaseModelForm):
             'price_per_unit': forms.NumberInput(attrs={'id': 'price'})
         }
     
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.quote.is_paid_off() and not self.instance.is_extend_service():
+            raise forms.ValidationError('Paid off quote cannot be modified.')
+        return cleaned_data
+    
     def save(self, commit=True):
         instance = super().save(commit)
         if instance.quote.is_paid_off():
