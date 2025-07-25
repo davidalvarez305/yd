@@ -63,7 +63,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
 
             for entry in entries:
                 form_values = facebook_api_service.get_lead_data(lead=entry)
-                data = get_facebook_form_values(form_values=form_values)
+                data = get_facebook_form_values(form_values=form_values, should_parse_datetime=True)
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(
@@ -71,6 +71,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                         defaults={ 
                             'full_name': data.get('full_name'),
                             'message': data.get('message'),
+                            'created_at': data.get('created_time'),
                          }
                     )
 

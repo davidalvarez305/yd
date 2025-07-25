@@ -165,7 +165,7 @@ def is_paid_traffic(request: HttpRequest) -> bool:
 
     return False
 
-def get_facebook_form_values(form_values):
+def get_facebook_form_values(form_values, should_parse_datetime):
     FIELD_MAP = {
         'full_name': ['full_name', 'nombre_completo', 'name'],
         'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
@@ -180,7 +180,8 @@ def get_facebook_form_values(form_values):
         'ad_id': ['ad_id'],
         'ad_name': ['ad_name'],
         'email': ['email'],
-        'city': ['city', 'ciudad']
+        'city': ['city', 'ciudad'],
+        'created_time': ['created_time'],
     }
 
     data = {}
@@ -195,6 +196,8 @@ def get_facebook_form_values(form_values):
             if value:
                 if key == 'phone_number':
                     data[key] = normalize_phone_number(value)
+                if key == 'created_time':
+                    data[key] = parse_datetime(value) if should_parse_datetime else value
                 else:
                     data[key] = value
     
@@ -212,3 +215,11 @@ def get_field_value(form_values, possible_names):
                 return field.get('values', [None])[0]
 
     return None
+
+def parse_datetime(value):
+        if not value:
+            return None
+        try:
+            return parser.isoparse(value)
+        except (ValueError, TypeError):
+            return None

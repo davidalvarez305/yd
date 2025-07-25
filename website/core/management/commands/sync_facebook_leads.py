@@ -8,6 +8,7 @@ from core.facebook.api import facebook_api_service
 from core.models import Lead, LeadMarketing, AdCampaign, AdGroup, Ad
 from marketing.enums import ConversionServiceType
 from core.utils import normalize_phone_number
+from website.marketing.utils import get_facebook_form_values
 
 
 class Command(BaseCommand):
@@ -40,8 +41,7 @@ class Command(BaseCommand):
             form_id = form.get('id')
             leads = facebook_api_service.get_all_leads_for_form(form_id)
             for lead in leads:
-                entry = self.extract_lead_data(lead)
-                entries.append(entry)
+                entries.append(get_facebook_form_values(lead, options['save']))
 
         if options['json']:
             with open('data.json', 'w', encoding='utf-8') as f:
@@ -82,9 +82,9 @@ class Command(BaseCommand):
                                     defaults={'name': entry.get('campaign_name')}
                                 )
                                 ad_group, _ = AdGroup.objects.get_or_create(
-                                    ad_group_id=entry.get('ad_group_id'),
+                                    ad_group_id=entry.get('adset_id'),
                                     defaults={
-                                        'name': entry.get('ad_group_name'),
+                                        'name': entry.get('adset_name'),
                                         'ad_campaign': ad_campaign,
                                     }
                                 )
@@ -103,49 +103,3 @@ class Command(BaseCommand):
                     self.stderr.write(self.style.ERROR(f"❌ Failed to process lead {entry.get('leadgen_id')}: {e}"))
 
             self.stdout.write(self.style.SUCCESS(f"✅ Successfully saved {count} new leads to the database"))
-
-    def extract_lead_data(self, lead):
-        data = {
-            'leadgen_id': lead.get('id'),
-            'created_time': self.parse_datetime(lead.get('created_time')) if self.options['save'] else lead.get('created_time'),
-            'ad_id': lead.get('ad_id'),
-            'ad_name': lead.get('ad_name'),
-            'ad_group_id': lead.get('adset_id'),
-            'ad_group_name': lead.get('adset_name'),
-            'campaign_id': lead.get('campaign_id'),
-            'campaign_name': lead.get('campaign_name'),
-            'platform': lead.get('platform'),
-            'is_organic': lead.get('is_organic'),
-            'form_id': lead.get('form_id'),
-        }
-
-        for key, possible_names in self.FIELD_MAP.items():
-            try:
-                if 'phone_number' in key:
-                    value = self.get_field_value(lead, possible_names)
-                    if value:
-                        data[key] = normalize_phone_number(value)
-                else:
-                    data[key] = self.get_field_value(lead, possible_names)
-            except Exception as e:
-                print(f'Error extracting lead data: {e}')
-                continue
-
-        return data
-
-    def get_field_value(self, lead, possible_names):
-        field_data = lead.get('field_data', [])
-        for name in possible_names:
-            for field in field_data:
-                if name.lower() in field.get('name', '').lower():
-                    return field.get('values', [None])[0]
-        return None
-    
-    def parse_datetime(self, value):
-        if not value:
-            return None
-        try:
-            return parser.isoparse(value)
-        except (ValueError, TypeError):
-            self.stderr.write(self.style.WARNING(f"⚠️ Invalid datetime format: {value}"))
-            return None
