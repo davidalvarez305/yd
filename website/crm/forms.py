@@ -52,7 +52,7 @@ class LeadForm(BaseModelForm):
         queryset=LeadStatus.objects.all(),
         required=False,
         label="Lead Status",
-        widget=forms.Select(attrs={'placeholder': 'Select a status'}),
+        widget=forms.Select(attrs={'placeholder': 'Select a status', 'disabled': True}),
     )
 
     lead_interest = forms.ModelChoiceField(
@@ -65,24 +65,9 @@ class LeadForm(BaseModelForm):
     def clean_phone_number(self):
         return normalize_phone_number(self.cleaned_data.get('phone_number'))
     
-    def has_lead_status_changed(self):
-        return 'lead_status' in self.changed_data
-
-    def save(self):
-        lead = self.instance
-
-        status = self.cleaned_data.get('lead_status')
-        if self.has_lead_status_changed():
-            enum_status = LeadStatus.find_enum(status.pk)
-            lead.change_lead_status(enum_status)
- 
-        lead.save()
-
-        return lead
-
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'message', 'lead_interest']
+        fields = ['full_name', 'phone_number', 'message', 'lead_interest', 'lead_status']
 
 class LeadFilterForm(FilterFormMixin, BaseForm):
     search = forms.CharField(
