@@ -273,7 +273,8 @@ def normalize_phone_number(value: str, default_region: str = "US") -> str | None
         number = phonenumbers.parse(value, default_region)
         if phonenumbers.is_valid_number(number):
             return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
-    except NumberParseException:
+    except NumberParseException as e:
+        logger.exception(str(e), exc_info=True)
         pass
 
     return None
