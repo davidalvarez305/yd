@@ -863,8 +863,8 @@ class QuoteUpdateView(CRMUpdateView):
         try:
             self.object = form.save()
 
-            qs = Quote.objects.filter(lead=self.object.lead)
-            table = QuoteTable(data=qs, request=self.request)
+            qs = QuoteService.objects.filter(quote=self.object)
+            table = QuoteServiceTable(data=qs, request=self.request)
 
             return HttpResponse(table.render())
         except Exception as e:
