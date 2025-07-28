@@ -307,3 +307,12 @@ def parse_money(value: str) -> float:
         return float(clean)
     except ValueError:
         return 0.0
+
+def safe_file_url(obj, attr, default="#"):
+    try:
+        file = getattr(obj, attr, None)
+        if file and hasattr(file, 'url'):
+            return file.url
+    except ValueError:
+        return default
+    return default

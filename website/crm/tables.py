@@ -1,7 +1,7 @@
 from core.tables import Table, TableField, TableCellWidget
 from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
-from core.utils import deep_getattr, seconds_to_minutes
+from core.utils import deep_getattr, safe_file_url, seconds_to_minutes
 
 from django.urls import reverse
 from django.utils.html import format_html
@@ -513,10 +513,9 @@ class InvoiceTable(Table):
         label='Receipt',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: format_html(
-                    '<a href="{}" target="_blank">Receipt</a>',
-                    deep_getattr(row, 'receipt.file.url', '#')
-                ) if deep_getattr(row, 'receipt.file', None) else '',
+                'value': lambda row: (
+                    format_html('<a href="{}" target="_blank">Receipt</a>', safe_file_url(row, 'receipt'))
+                ) if row.receipt else '',
                 'is_html': True
             }
         )
