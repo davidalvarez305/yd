@@ -1,6 +1,5 @@
 from django import forms
 from django.forms.widgets import CheckboxInput
-from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.utils.html import format_html, escape
@@ -155,19 +154,22 @@ class PriceCellWidget(TableCellWidget):
 
 class AudioWidget(TableCellWidget):
     def render(self, row=None, request=None):
-        object_key = self.data.get('value')
-        if object_key:
-            src = object_key(row)
+        value_fn = self.data.get('value')
+        if not callable(value_fn):
+            return "<td></td>"
 
-            return f"""
-                <td>
-                    <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                        <source src="{src}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                </td>
-            """
-        return "<td></td>"
+        src = value_fn(row)
+        if not src:
+            return "<td></td>"
+
+        return f"""
+            <td>
+                <audio controls class="w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                    <source src="{src}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        """
 
 class ViewButton(TemplateCellWidget):
     def __init__(self, context={}, context_resolver=None):

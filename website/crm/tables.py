@@ -115,7 +115,7 @@ class PhoneCallTable(Table):
     audio = TableField(
         cell_widget=AudioWidget(
             data={
-                'value': lambda row: deep_getattr(row, 'transcription.audio.url', '')
+                'value': lambda row: deep_getattr(row, 'transcription.audio.url')
             }
         )
     )
