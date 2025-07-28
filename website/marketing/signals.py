@@ -50,11 +50,8 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     This function is used to report marketing funnel events.
     """
     from core.models import LeadMarketing, LeadStatusEnum, PhoneCall, CallTracking
-    lead_marketing = LeadMarketing.objects.filter(lead=instance).first()
+    lead_marketing = LeadMarketing.objects.get(lead=instance)
 
-    if not lead_marketing:
-        raise ValueError('Lead marketing not found.')
-    
     # Report Conversion Event
     status_event_map = {
         'LEAD_CREATED': 'generate_lead',
@@ -89,7 +86,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                         date_assigned__lt=first_call.date_created,
                         date_expires__gt=first_call.date_created,
                     )
-                    .order_by('call_tracking_id')
+                    .order_by('date_assigned')
                     .first()
                 )
 
