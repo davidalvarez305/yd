@@ -149,7 +149,7 @@ class PriceCellWidget(TableCellWidget):
     def render(self, row=None, request=None):
         value = getattr(row, self.data.get("value"), None)
         if value is not None:
-            return format_html(f"<td>${value:.2f}</td>")
+            return format_html(f'<td class="p-3 text-center">${value:.2f}</td>')
         return "<td>$0.00</td>"
 
 class AudioWidget(TableCellWidget):
