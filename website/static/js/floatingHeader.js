@@ -1,5 +1,5 @@
 const floatingHeader = document.getElementById("floatingHeader");
-const scrollPercentageTrigger = 5;
+const scrollPercentageTrigger = 2.5;
 
 function handleScroll() {
   const scrollTop = window.scrollY || document.documentElement.scrollTop;
