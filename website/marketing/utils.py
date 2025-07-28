@@ -170,6 +170,8 @@ def get_facebook_form_values(form_values, should_parse_datetime):
         'full_name': ['full_name', 'nombre_completo', 'name'],
         'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
         'phone_number': ['phone_number', 'telefono'],
+        'email': ['email'],
+        'city': ['city', 'ciudad'],
         'platform': ['platform'],
         'form_id': ['form_id'],
         'is_organic': ['is_organic'],
@@ -179,12 +181,14 @@ def get_facebook_form_values(form_values, should_parse_datetime):
         'adset_name': ['adset_name'],
         'ad_id': ['ad_id'],
         'ad_name': ['ad_name'],
-        'email': ['email'],
-        'city': ['city', 'ciudad'],
         'created_time': ['created_time'],
     }
 
     data = {}
+
+    field_data = form_values.get('field_data', [])
+    if not isinstance(field_data, list):
+        raise TypeError('Field data is not a list.')
 
     for key in FIELD_MAP:
         if key in form_values:
@@ -192,28 +196,25 @@ def get_facebook_form_values(form_values, should_parse_datetime):
 
     for key, possible_names in FIELD_MAP.items():
         if key not in data:
-            value = get_field_value(form_values, possible_names)
+            value = get_field_value(field_data, possible_names)
             if value:
                 if key == 'phone_number':
                     data[key] = normalize_phone_number(value)
-                if key == 'created_time':
-                    data[key] = parse_datetime(value) if should_parse_datetime else value
+                elif key == 'created_time' and should_parse_datetime:
+                    data[key] = parse_datetime(value)
                 else:
                     data[key] = value
-    
+
     return data
 
 
-def get_field_value(form_values, possible_names):
-    field_data = form_values.get('field_data', [])
-    if not isinstance(field_data, list):
-        return None
-
-    for name in possible_names:
-        for field in field_data:
-            if name.lower() in field.get('name', '').lower():
-                return field.get('values', [None])[0]
-
+def get_field_value(field_data, possible_names):
+    for field in field_data:
+        field_name = field.get('name', '')
+        if any(name in field_name for name in possible_names):
+            values = field.get('values')
+            if values:
+                return values[0]
     return None
 
 def parse_datetime(value):
