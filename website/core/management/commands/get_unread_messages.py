@@ -12,10 +12,8 @@ class Command(BaseCommand):
             unread_messages = Message.objects.filter(is_read=False).count()
 
             if unread_messages > 0:
-                email = settings.COMPANY_EMAIL
-
                 email_service.send_email(
-                    to=email,
+                    to=settings.COMPANY_EMAIL,
                     subject=f'{unread_messages} UNREAD MESSAGES',
                     body=f'<a href="{reverse("chat")}">View unread messages</a>'
                 )
