@@ -12,12 +12,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             unread_messages = Message.objects.filter(is_read=False).count()
-            email = settings.COMPANY_EMAIL
 
-            email_service.send_email(
-                to=email,
-                subject=f'{unread_messages} UNREAD MESSAGES',
-                body=f'<a href="{reverse("chat")}">View unread messages</a>'
-            )
+            if unread_messages > 0:
+                email = settings.COMPANY_EMAIL
+
+                email_service.send_email(
+                    to=email,
+                    subject=f'{unread_messages} UNREAD MESSAGES',
+                    body=f'<a href="{reverse("chat")}">View unread messages</a>'
+                )
         except Exception as e:
             raise CommandError(f'Error retrieving unread messages: {e}')
