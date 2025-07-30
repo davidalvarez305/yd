@@ -95,8 +95,8 @@ class FacebookConversionService(ConversionService):
         if lead_id:
             return True
 
-        client_id = data.get('client_id')
-        if client_id and self._is_valid_client_id(client_id):
+        click_id = data.get('click_id')
+        if click_id:
             return True
 
         return False
