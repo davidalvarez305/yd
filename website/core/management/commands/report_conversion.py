@@ -34,6 +34,7 @@ class Command(BaseCommand):
             raise ValueError('There must always be an event name provided.')
 
         data = {
+            'created_at': lead.created_at,
             'event_name': event_name,
             'ip_address': lead.lead_marketing.ip,
             'user_agent': lead.lead_marketing.user_agent,
@@ -53,7 +54,6 @@ class Command(BaseCommand):
             'click_id',
             'instant_form_lead_id',
             'landing_page',
-            'external_id',
         ]
 
         for attr in attributes:
