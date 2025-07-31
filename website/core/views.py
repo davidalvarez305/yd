@@ -12,9 +12,10 @@ from website import settings
 
 from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
+from core.email import email_service
 from .logger import logger
 from .models import Event, GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
-from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number
+from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number, normalize_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
 
@@ -403,17 +404,32 @@ class LeadCreateView(BaseView, CreateView):
         phone_errors = form.errors.get('phone_number')
         if phone_errors and any('already submitted' in error for error in phone_errors):
 
-            phone_number = form.cleaned_data.get('phone_number')
+            phone_number = normalize_phone_number(form.data.get('phone_number'))
             lead = Lead.objects.filter(phone_number=phone_number).first()
 
             if not lead:
                 return self.alert(self.request, 'Error while querying lead.', AlertStatus.INTERNAL_ERROR)
             
-            if lead.is_inactive():
-                lead.change_lead_status(LeadStatusEnum.RE_ENGAGED)
-                return self.alert(self.request, "Welcome back, we'll be in touch soon!", AlertStatus.SUCCESS)
-
-            return self.alert(self.request, 'This phone number already exists in our system.', AlertStatus.BAD_REQUEST)
+            try:
+                lead_details = settings.ROOT_DOMAIN + reverse("lead_detail", kwargs={ 'pk': lead.pk })
+                
+                html = f"""
+                    <html>
+                    <body>
+                        <p><a href="{lead_details}">View lead</a></p>
+                    </body>
+                    </html>
+                """
+                
+                email_service.send_html_email(
+                    to=settings.COMPANY_EMAIL,
+                    subject=f'{lead.full_name} CAME BACK',
+                    html=html
+                )
+            except Exception as e:
+                logger.exception(str(e), exc_info=True)
+            
+            return self.alert(self.request, f"Welcome back {lead.full_name}, we'll be in touch soon!", AlertStatus.SUCCESS)
 
         errors = '\n'.join([f"{', '.join(errors)}" for _, errors in form.errors.items()])
         return self.alert(self.request, errors, AlertStatus.BAD_REQUEST)
