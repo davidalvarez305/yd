@@ -24,7 +24,7 @@ class FacebookConversionService(ConversionService):
                 custom_data.update({
                     'currency': settings.DEFAULT_CURRENCY,
                     'value': data.get('value'),
-                    'order_id': data.get('event_id'),
+                    'event_id': data.get('event_id'),
                 })
 
         return {
@@ -52,6 +52,9 @@ class FacebookConversionService(ConversionService):
             'client_user_agent': data.get('user_agent'),
             'fbc': data.get('click_id'),
             'fbp': data.get('client_id'),
+            'external_id': [
+                data.get('external_id')
+            ]
         }
 
         event = {
@@ -67,7 +70,7 @@ class FacebookConversionService(ConversionService):
                     'custom_data': {
                         'currency': settings.DEFAULT_CURRENCY,
                         'value': data.get('value'),
-                        'order_id': data.get('event_id'),
+                        'event_id': data.get('event_id'),
                     }
                 })
 
