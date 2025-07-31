@@ -9,14 +9,14 @@ from core.models import CallTrackingNumber, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
-def create_data_dict(lead_marketing, lead, event_name=None, event=None):
+def create_data_dict(lead: Lead, event_name=None, event=None):
     """
     Creates the data dictionary used to report marketing funnel events.
     """
     data = {
         'event_name': event_name,
-        'ip_address': lead_marketing.ip,
-        'user_agent': lead_marketing.user_agent,
+        'ip_address': lead.lead_marketing.ip,
+        'user_agent': lead.lead_marketing.user_agent,
         'event_time': int(now().timestamp()),
         'phone_number': lead.phone_number,
     }
@@ -37,7 +37,7 @@ def create_data_dict(lead_marketing, lead, event_name=None, event=None):
     ]
     
     for attr in attributes:
-        attr_value = getattr(lead_marketing, attr, None)
+        attr_value = getattr(lead.lead_marketing, attr, None)
         if attr_value:
             data[attr] = attr_value
     
@@ -108,7 +108,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                         lead_marketing.save()
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
-    data = create_data_dict(lead_marketing, instance, event_name, event)
+    data = create_data_dict(instance, event_name, event)
 
     # Always send conversion for LEAD_CREATED and EVENT BOOKED
     if lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_status.status == LeadStatusEnum.EVENT_BOOKED:
