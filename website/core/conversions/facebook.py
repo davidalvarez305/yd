@@ -1,4 +1,5 @@
 import re
+from django.utils import timezone
 from website import settings
 from .base import ConversionService
 
@@ -45,7 +46,8 @@ class FacebookConversionService(ConversionService):
     def _build_website_leads_payload(self, data: dict) -> dict:
         event_name = data.get('event_name')
 
-        click_id = f"fb.1.{data.get('event_time')}.{data.get('click_id')}"
+        lead_date_created = int(data.get('lead_date_created').timestamp() * 1000)
+        click_id = f"fb.1.{lead_date_created}.{data.get('click_id')}"
 
         user_data = {
             'ph': [
