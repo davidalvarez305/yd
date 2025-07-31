@@ -17,14 +17,7 @@ class BaseHttpClient:
             **kwargs
         )
 
-        try:
-            if not response.content:
-                data = {'data': None}
-            elif 'application/json' in response.headers.get('Content-Type', ''):
-                data = response.json()
-        except Exception as e:
-            logger.error(f"Failed to decode JSON from {url}: {e}", exc_info=True)
-            data = {'data': response.text or None}
+        data = self._parse_response(response=response, url=url)
 
         error = data.get('error')
 
@@ -36,14 +29,14 @@ class BaseHttpClient:
             params=params,
             response=data,
             start_time=start,
+            status_code=response.status_code,
             error=error
         )
 
         return response
 
-    def log_request(self, method, url, payload, headers, params, response, start_time, error=None, retries=0):
+    def log_request(self, method, url, payload, headers, params, response, start_time, status_code, error=None, retries=0):
         duration = time.time() - start_time
-        status_code = getattr(response, "status_code", None)
 
         try:
             log = HTTPLog(
@@ -53,8 +46,8 @@ class BaseHttpClient:
                 payload=self._safe_serialize(payload),
                 headers=self._safe_serialize(headers),
                 response=self._safe_serialize(response),
-                status_code=status_code or 500,
-                error={"message": error} if error else None,
+                status_code=status_code,
+                error=error,
                 duration_seconds=round(duration, 3),
                 retries=retries,
                 service_name=self.__class__.__name__
@@ -73,3 +66,22 @@ class BaseHttpClient:
         if isinstance(value, list):
             return [self._safe_serialize(v) for v in value]
         return value
+    
+    def _parse_response(self, response, url):
+        """Parses the HTTP response based on its content type."""
+        data = {'data': None}
+
+        try:
+            if not response.content:
+                return data
+
+            if 'application/json' in response.headers.get('Content-Type', ''):
+                data = response.json()
+
+            elif 'text' in response.headers.get('Content-Type', ''):
+                data['data'] = response.text
+        
+        except Exception as e:
+            logger.exception(f"Failed to decode JSON from {url}: {e}", exc_info=True)
+        
+        return data
