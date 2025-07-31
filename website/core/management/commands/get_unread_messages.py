@@ -11,6 +11,9 @@ class Command(BaseCommand):
         try:
             unread_messages = Message.objects.filter(is_read=False).count()
 
+            if unread_messages == 0:
+                return
+
             chat_url = settings.ROOT_DOMAIN + reverse("chat")
 
             html = f"""
