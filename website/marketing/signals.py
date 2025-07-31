@@ -38,6 +38,8 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
     
     for attr in attributes:
         val = getattr(lead.lead_marketing, attr, None)
+        if attr == 'external_id' and val: # uuid
+            data[attr] = str(val)
         if val:
             data[attr] = val
     
