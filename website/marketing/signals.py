@@ -1,4 +1,5 @@
 import json
+import uuid
 from django.dispatch import receiver
 from django.db.models.signals import Signal
 from django.db.models import Q
@@ -38,8 +39,8 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
     
     for attr in attributes:
         val = getattr(lead.lead_marketing, attr, None)
-        if attr == 'external_id' and val: # uuid
-            data[attr] = str(val)
+        if isinstance(val, uuid.UUID):
+                data[attr] = str(val)
         if val:
             data[attr] = val
     
