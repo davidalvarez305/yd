@@ -14,7 +14,7 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
     Creates the data dictionary used to report marketing funnel events.
     """
     data = {
-        'lead_date_created': lead.created_at,
+        'created_at': lead.created_at,
         'event_name': event_name,
         'ip_address': lead.lead_marketing.ip,
         'user_agent': lead.lead_marketing.user_agent,

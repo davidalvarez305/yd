@@ -45,9 +45,10 @@ class FacebookConversionService(ConversionService):
 
     def _build_website_leads_payload(self, data: dict) -> dict:
         event_name = data.get('event_name')
+        created_at = data.get('created_at')
 
-        lead_date_created = int(data.get('lead_date_created').timestamp() * 1000)
-        click_id = f"fb.1.{lead_date_created}.{data.get('click_id')}"
+        date_created = int(created_at.timestamp() * 1000)
+        click_id = f"fb.1.{date_created}.{data.get('click_id')}"
 
         user_data = {
             'ph': [
