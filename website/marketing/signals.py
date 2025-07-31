@@ -21,6 +21,8 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         'phone_number': lead.phone_number,
     }
 
+    print('data: ', data)
+
     if event_name == 'event_booked' and event:
         data.update({
             'event_id': event.pk,
