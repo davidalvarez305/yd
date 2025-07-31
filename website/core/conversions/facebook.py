@@ -55,9 +55,6 @@ class FacebookConversionService(ConversionService):
             'client_user_agent': data.get('user_agent'),
             'fbc': click_id,
             'fbp': data.get('client_id'),
-            'external_id': [
-                data.get('external_id')
-            ]
         }
 
         event = {
