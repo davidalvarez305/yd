@@ -16,3 +16,7 @@ class GoogleAPIServiceInterface(ABC):
     @abstractmethod
     def send_email(self, to: str, subject: str, body: str) -> None:
         pass
+
+    @abstractmethod
+    def send_html_email(self, to: str, subject: str, html: str) -> None:
+        pass

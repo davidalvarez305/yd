@@ -5,3 +5,7 @@ class EmailServiceInterface:
     def send_email(self, to: str, subject: str, body: str) -> None:
         """Method to send an email. To be implemented by subclasses."""
         raise NotImplementedError("Subclasses must implement send_email method")
+
+    def send_html_email(self, to: str, subject: str, html: str) -> None:
+        """Method to send HTML within an email. To be implemented by subclasses."""
+        raise NotImplementedError("Subclasses must implement send_email method")
