@@ -37,9 +37,9 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
     ]
     
     for attr in attributes:
-        attr_value = getattr(lead.lead_marketing, attr, None)
-        if attr_value:
-            data[attr] = attr_value
+        val = getattr(lead.lead_marketing, attr, None)
+        if val:
+            data[attr] = val
     
     return data
 
