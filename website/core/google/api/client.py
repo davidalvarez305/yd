@@ -85,6 +85,20 @@ class GoogleAPIService:
         except Exception as e:
             logger.error("Failed to send email via Gmail API", exc_info=True)
             raise
+    
+    def send_html_email(self, to: str, subject: str, html: str) -> None:
+        try:
+            message = MIMEText(html, "html")
+            message["to"] = to
+            message["subject"] = subject
+            raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+            self.gmail.users().messages().send(
+                userId="me", body={"raw": raw}
+            ).execute()
+        except Exception as e:
+            logger.error("Failed to send email via Gmail API", exc_info=True)
+            raise
 
     def get_sheet_data(self, spreadsheet_id: str, range: str) -> list[dict]:
         try:

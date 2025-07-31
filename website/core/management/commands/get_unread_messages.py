@@ -11,11 +11,24 @@ class Command(BaseCommand):
         try:
             unread_messages = Message.objects.filter(is_read=False).count()
 
-            if unread_messages > 0:
-                email_service.send_email(
-                    to=settings.COMPANY_EMAIL,
-                    subject=f'{unread_messages} UNREAD MESSAGES',
-                    body=f'<a href="{reverse("chat")}">View unread messages</a>'
-                )
+            if unread_messages == 0:
+                return
+
+            chat_url = settings.ROOT_DOMAIN + reverse("chat")
+
+            html = f"""
+                <html>
+                <body>
+                    <p>You have <strong>{unread_messages}</strong> unread messages.</p>
+                    <p><a href="{chat_url}">View unread messages</a></p>
+                </body>
+                </html>
+            """
+
+            email_service.send_html_email(
+                to=settings.COMPANY_EMAIL,
+                subject=f'{unread_messages} UNREAD MESSAGES',
+                html=html
+            )
         except Exception as e:
             raise CommandError(f'Error retrieving unread messages: {e}')
