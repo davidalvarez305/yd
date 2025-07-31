@@ -17,7 +17,7 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         'event_name': event_name,
         'ip_address': lead.lead_marketing.ip,
         'user_agent': lead.lead_marketing.user_agent,
-        'event_time': int(now().timestamp()),
+        'event_time': int(now().timestamp() * 1000),
         'phone_number': lead.phone_number,
     }
 
