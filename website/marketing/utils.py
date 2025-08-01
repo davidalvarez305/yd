@@ -4,7 +4,7 @@ from dateutil import parser
 
 from core.utils import normalize_phone_number
 from .enums import ConversionServiceType, MarketingParams
-from core.models import Ad, AdCampaign, AdGroup
+from core.models import Ad, AdCampaign, AdGroup, LeadMarketing, LeadMarketingMetadata
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -17,25 +17,36 @@ class MarketingHelper:
             if self.request.method == 'POST'
             else self.request.build_absolute_uri()
         )
-        parsed_url = urlparse(self.landing_page)
-        self.params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
-
+        
+        self.params = self.request_params()
         self.external_id = self.request.session.get('external_id')
         self.ip = self.get_client_ip()
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
-
-        self.keyword = self.params.get('keyword')
-        self.source = self.params.get('source')
         self.medium = self.params.get('medium', self.get_medium())
-        self.channel = self.params.get('channel')
-
-        marketing_params = self._get_marketing_params()
-
-        self.click_id = marketing_params.get('click_id')
-        self.platform_id = marketing_params.get('platform_id')
-        self.client_id = marketing_params.get('client_id')
-
+        self.platform_id = self.get_platform_id()
         self.ad = self.get_or_create_ad()
+    
+    def request_params(self):
+        parsed_url = urlparse(self.landing_page)
+        params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
+        return params
+
+    def save_metadata(self, lead_marketing: LeadMarketing):
+        metadata = {}
+
+        for key, value in self.request.COOKIES.items():
+            metadata[key] = value
+
+        for key, value in self.params.items():
+            metadata[key] = value
+
+        for key, value in metadata.items():
+            entry = LeadMarketingMetadata(
+                key=key,
+                value=value,
+                lead_marketing=lead_marketing,
+            )
+            entry.save()
 
     def to_dict(self):
         exclude = {'request', 'ad'}
@@ -54,12 +65,6 @@ class MarketingHelper:
             data['ad_campaign_name'] = self.ad.ad_group.ad_campaign.name
 
         return data
-
-    def get_cookie(self, cookie_name):
-        """
-        Returns the value of a cookie if it exists, otherwise None.
-        """
-        return self.request.COOKIES.get(cookie_name)
 
     def get_medium(self):
         if self.is_paid():
@@ -121,40 +126,17 @@ class MarketingHelper:
         
         return ad
 
-    def _get_marketing_params(self) -> dict:
-        """
-        Utility function to extract marketing parameters from the URL and cookies.
-        Extracts click_id from the URL, client_id from cookies, and platform_id based on the URL parameters.
-        """
-        # Step 1: Extract `click_id` and `platform_id` from the URL
-        click_id = None
-        platform_id = None
-        client_id = None
-
+    def get_platform_id(self) -> dict:
         for key in MarketingParams.GoogleURLClickIDKeys.value:
             click_id = self.params.get(key)
             if click_id:
-                platform_id = ConversionServiceType.GOOGLE.value
-                break
+                return ConversionServiceType.GOOGLE.value
+        
+        fbclid = self.params.get(MarketingParams.FacebookURLClickID.value)
+        if fbclid:
+            return ConversionServiceType.FACEBOOK.value
 
-        if not click_id:
-            fbclid = self.params.get(MarketingParams.FacebookURLClickID.value)
-            if fbclid:
-                click_id = fbclid
-                platform_id = ConversionServiceType.FACEBOOK.value
-
-        # Step 2: Extract `client_id` from cookies based on `platform_id`
-        if platform_id == ConversionServiceType.GOOGLE:
-            client_id = self.request.COOKIES.get(MarketingParams.GoogleAnalyticsCookieClientID.value)
-        elif platform_id == ConversionServiceType.FACEBOOK:
-            client_id = self.request.COOKIES.get(MarketingParams.FacebookCookieClientID.value)
-
-        # Step 3: Return the extracted values
-        return {
-            "click_id": click_id,
-            "client_id": client_id,
-            "platform_id": platform_id
-        }
+        return None
 
 def is_paid_traffic(request: HttpRequest) -> bool:
     landing_page = request.build_absolute_uri()

@@ -678,6 +678,8 @@ class Ad(models.Model):
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
     lead = models.OneToOneField(Lead, related_name='lead_marketing', db_column='lead_id', on_delete=models.CASCADE)
+    
+    # Metadata
     source = models.CharField(max_length=255, null=True)
     medium = models.CharField(max_length=255, null=True)
     channel = models.CharField(max_length=255, null=True)
@@ -685,12 +687,14 @@ class LeadMarketing(models.Model):
     keyword = models.CharField(max_length=255, null=True)
     click_id = models.TextField(unique=True, null=True)
     client_id = models.TextField(unique=True, null=True)
+    
+    # Keep -- identifiers
     ip = models.GenericIPAddressField(null=True)
     external_id = models.UUIDField(unique=True, db_index=True, editable=False, null=True)
     user_agent = models.TextField(null=True)
     instant_form_lead_id = models.BigIntegerField(null=True, unique=True, db_index=True)
     instant_form_id = models.BigIntegerField(null=True)
-    ad = models.ForeignKey(Ad, null=True, db_column='ad_id', on_delete=models.RESTRICT)
+    ad = models.ForeignKey(Ad, related_name='leads', null=True, db_column='ad_id', on_delete=models.RESTRICT)
 
     referred_by = models.ForeignKey(
         'self',
@@ -713,6 +717,22 @@ class LeadMarketing(models.Model):
 
     class Meta:
         db_table = 'lead_marketing'
+
+class LeadMarketingMetadata(models.Model):
+    lead_marketing_metadata_id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=255)
+    value = models.TextField()
+    date_created = models.DateTimeField(default=timezone.now)
+    lead_marketing = models.ForeignKey(LeadMarketing, related_name='metadata', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.key
+
+    class Meta:
+        db_table = 'lead_marketing_metadata'
+        constraints = [
+            models.UniqueConstraint(fields=['lead_marketing', 'key'], name='unique_lead_marketing_key')
+        ]
 
 class HTTPLog(models.Model):
     http_log_id = models.AutoField(primary_key=True)

@@ -1,6 +1,6 @@
 import re
 
-from marketing.enums import ConversionServiceType
+from marketing.enums import MarketingParams
 from website import settings
 from .base import ConversionService
 
@@ -9,10 +9,14 @@ class GoogleAnalyticsConversionService(ConversionService):
         event_name = data.get('event_name')
 
         params = {
-            'gclid': data.get('click_id'),
             'value': data.get('value', settings.DEFAULT_LEAD_VALUE),
             'currency': settings.DEFAULT_CURRENCY,
         }
+
+        for key in MarketingParams.GoogleURLClickIDKeys:
+            value = data.get(key)
+            if value:
+                params[key] = value
 
         if event_name == 'event_booked':
             if data.get('event_id'):
@@ -22,7 +26,7 @@ class GoogleAnalyticsConversionService(ConversionService):
                 })
 
         return {
-            'client_id': data.get('client_id'),
+            'client_id': data.get('ga'),
             'user_id': data.get('external_id'),
             'user_agent': data.get('user_agent'),
             'events': [

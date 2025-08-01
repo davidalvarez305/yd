@@ -381,16 +381,17 @@ class LeadCreateView(BaseView, CreateView):
             with transaction.atomic():
                 lead = form.save()
 
-                helper = MarketingHelper(self.request)
-                marketing = LeadMarketing()
+                marketing_helper = MarketingHelper(self.request)
+                lead_marketing = LeadMarketing()
 
-                for key, value in helper.to_dict().items():
-                    if hasattr(marketing, key):
-                        setattr(marketing, key, value)
+                lead_marketing.ip = marketing_helper.ip
+                lead_marketing.external_id = marketing_helper.external_id
+                lead_marketing.user_agent = marketing_helper.user_agent
+                lead_marketing.ad = marketing_helper.ad
+                lead_marketing.lead = lead
+                lead_marketing.save()
 
-                marketing.ad = helper.ad
-                marketing.lead = lead
-                marketing.save()
+                marketing_helper.save_metadata(lead_marketing=lead_marketing)
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 

@@ -45,11 +45,6 @@ class FacebookConversionService(ConversionService):
 
     def _build_website_leads_payload(self, data: dict) -> dict:
         event_name = data.get('event_name')
-        click_id = data.get('click_id')
-        date_created = int(data.get('created_at').timestamp() * 1000)
-        
-        fbc = f"fb.1.{date_created}.{click_id}"
-        fbp = data.get('client_id')
 
         user_data = {
             'ph': [
@@ -60,8 +55,8 @@ class FacebookConversionService(ConversionService):
             ],
             'client_ip_address': data.get('ip_address'),
             'client_user_agent': data.get('user_agent'),
-            'fbc': fbc,
-            'fbp': fbp
+            'fbc': data.get('fbc'),
+            'fbp': data.get('fbp')
         }
 
         event = {
@@ -105,13 +100,16 @@ class FacebookConversionService(ConversionService):
         if lead_id:
             return True
 
-        click_id = data.get('click_id')
-        if click_id:
+        if self._is_valid_click_id(data.get('click_id')):
             return True
 
         return False
     
-    def _is_valid_client_id(self, fbp_cookie: str) -> bool:
-        fbp_pattern = re.compile(r'^fb\.\d+\.\d+\.\d+$')
-        
-        return bool(fbp_pattern.match(fbp_cookie))
+    def _is_valid_click_id(self, click_id: str | None) -> bool:
+        if not click_id:
+            return False
+
+        # Regular expression to match: fb.1.<unix_timestamp_in_ms>.<click_id>
+        # fb.1 is fixed, followed by a timestamp (positive integer, 10 or more digits), and click_id (alphanumeric)
+        fbc = re.compile(r'^fb\.1\.\d{10,}\.[a-zA-Z0-9]+$')
+        return bool(fbc.match(click_id))
