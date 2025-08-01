@@ -34,12 +34,14 @@ class Command(BaseCommand):
             raise ValueError('There must always be an event name provided.')
 
         data = {
-            'created_at': lead.created_at,
             'event_name': event_name,
             'ip_address': lead.lead_marketing.ip,
             'user_agent': lead.lead_marketing.user_agent,
+            'landing_page': lead.lead_marketing.landing_page,
+            'instant_form_lead_id': lead.lead_marketing.instant_form_lead_id,
             'event_time': int(timezone.now().timestamp()),
             'phone_number': lead.phone_number,
+            'external_id': str(lead.lead_marketing.external_id)
         }
 
         if event_name == 'event_booked':
@@ -49,20 +51,19 @@ class Command(BaseCommand):
                 'value': event.amount,
             })
 
-        attributes = [
-            'client_id',
-            'click_id',
-            'instant_form_lead_id',
-            'landing_page',
-            'external_id',
-        ]
-
-        for attr in attributes:
-            val = getattr(lead.lead_marketing, attr, None)
-            if attr == 'external_id':
-                data[attr] = str(val)
-            elif val:
-                data[attr] = val
+        for metadata in lead.lead_marketing.metadata.all():
+            if metadata.key == '_fbc':
+                data['fbc'] = metadata.value
+            if metadata.key == '_fbp':
+                data['fbp'] = metadata.value
+            if metadata.key == '_ga':
+                data['ga'] = metadata.value
+            if metadata.key == 'gclid':
+                data['gclid'] = metadata.value
+            if metadata.key == 'gbraid':
+                data['gbraid'] = metadata.value
+            if metadata.key == 'wbraid':
+                data['wbraid'] = metadata.value
 
         try:
             conversion_service.send_conversion(data=data)
