@@ -111,7 +111,7 @@
 			class="fixed left-0 right-0 top-0 z-30 flex h-12 mt-16 items-stretch bg-white shadow-sm">
 			<!-- Emerald-colored element -->
 			<a href="tel:{{ phone_number }}"
-				class="phoneNumberCTA flex-1 flex items-center justify-center bg-emerald-600 text-white text-lg font-bold">
+				class="flex-1 flex items-center justify-center bg-emerald-600 text-white text-lg font-bold">
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
 					class="hi-mini hi-device-phone-mobile inline-block size-5">
 					<path d="M8 16.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" />
@@ -366,14 +366,6 @@
 	};
 
 	window.addEventListener("load", () => handleConfirmationLogic());
-
-	const phoneNumbers = document.querySelectorAll('.phoneNumberCTA');
-
-	phoneNumbers.forEach(number => {
-		number.addEventListener('click', () => {
-			fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
-		});
-	});
 </script>
 <!-- END JS Scripts -->
 
