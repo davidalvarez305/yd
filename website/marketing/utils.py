@@ -1,3 +1,4 @@
+import json
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
 from dateutil import parser
@@ -22,16 +23,27 @@ class MarketingHelper:
         self.external_id = self.request.session.get('external_id')
         self.ip = self.get_client_ip()
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
-        self.medium = self.params.get('medium', self.get_medium())
         self.platform_id = self.get_platform_id()
         self.ad = self.get_or_create_ad()
+        self.metadata = self.create_metadata()
+        self.lead_marketing = self.create_marketing_data()
     
     def request_params(self):
         parsed_url = urlparse(self.landing_page)
         params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
         return params
+    
+    def create_marketing_data(self):
+        return {
+            'ip': self.ip,
+            'external_id': self.external_id,
+            'user_agent': self.user_agent,
+            'instant_form_lead_id': self.instant_form_lead_id,
+            'instant_form_id': self.instant_form_id,
+            'metadata': json.dumps(self.metadata),
+        }
 
-    def save_metadata(self, lead_marketing: LeadMarketing):
+    def create_metadata(self):
         metadata = {}
 
         for key, value in self.request.COOKIES.items():
@@ -40,43 +52,16 @@ class MarketingHelper:
         for key, value in self.params.items():
             metadata[key] = value
 
-        for key, value in metadata.items():
+        return metadata
+
+    def save_metadata(self, lead_marketing: LeadMarketing):
+        for key, value in self.metadata.items():
             entry = LeadMarketingMetadata(
                 key=key,
                 value=value,
                 lead_marketing=lead_marketing,
             )
             entry.save()
-
-    def to_dict(self):
-        exclude = {'request', 'ad'}
-        data = {
-            key: value
-            for key, value in self.__dict__.items()
-            if key not in exclude
-        }
-
-        if self.ad:
-            data['ad_id'] = self.ad.ad_id
-            data['ad_name'] = self.ad.name
-            data['ad_group_id'] = self.ad.ad_group.ad_group_id
-            data['ad_group_name'] = self.ad.ad_group.name
-            data['ad_campaign_id'] = self.ad.ad_group.ad_campaign.ad_campaign_id
-            data['ad_campaign_name'] = self.ad.ad_group.ad_campaign.name
-
-        return data
-
-    def get_medium(self):
-        if self.is_paid():
-            return "paid"
-        else:
-            return "organic"
-
-    def is_paid(self):
-        """
-        Determines if the traffic is from a paid source (based on query params).
-        """
-        return any(self.params.get(key) for key in CLICK_ID_KEYS)
 
     def get_client_ip(self):
         x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')

@@ -42,11 +42,11 @@ class CallTrackingMixin:
 
             request.session['tracking_number'] = data
 
-            metadata = MarketingHelper(request)
+            marketing_helper = MarketingHelper(request)
             
             call_tracking = CallTracking(
                 call_tracking_number=call_tracking_number,
-                metadata=json.dumps(metadata.to_dict()),
+                metadata=json.dumps(marketing_helper.lead_marketing),
                 external_id=request.session.get('external_id')
             )
             call_tracking.save()
