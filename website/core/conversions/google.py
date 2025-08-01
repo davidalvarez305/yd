@@ -23,7 +23,7 @@ class GoogleAnalyticsConversionService(ConversionService):
 
         return {
             'client_id': data.get('client_id'),
-            'user_id': str(data.get('external_id')),
+            'user_id': data.get('external_id'),
             'user_agent': data.get('user_agent'),
             'events': [
                 {

@@ -55,10 +55,13 @@ class FacebookConversionService(ConversionService):
             'ph': [
                 self.hash_to_sha256(data.get('phone_number'))
             ],
+            'external_id': [
+                data.get('external_id')
+            ],
             'client_ip_address': data.get('ip_address'),
             'client_user_agent': data.get('user_agent'),
             'fbc': fbc,
-            'fbp': fbp,
+            'fbp': fbp
         }
 
         event = {

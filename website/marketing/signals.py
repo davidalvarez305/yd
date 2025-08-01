@@ -34,11 +34,14 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         'click_id',
         'instant_form_lead_id',
         'landing_page',
+        'external_id',
     ]
     
     for attr in attributes:
         val = getattr(lead.lead_marketing, attr, None)
-        if val:
+        if attr == 'external_id':
+            data[attr] = str(val)
+        elif val:
             data[attr] = val
     
     return data
