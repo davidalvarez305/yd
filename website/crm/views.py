@@ -150,7 +150,7 @@ class CRMListView(CRMBaseView, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.setdefault("js_files", [])
-        context["js_files"] += ["js/pagination.js", "js/filter.js"]
+        context["js_files"] += ["js/filter.js"]
 
         if self.filter_form_class:
             context["filter_form"] = getattr(self, "filter_form", self.filter_form_class())
