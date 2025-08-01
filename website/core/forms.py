@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import models
 
 class MultiFileInput(forms.FileInput):
     allow_multiple_selected = True
@@ -404,3 +405,57 @@ class MultiMediaFileField(forms.FileField):
             size=size,
             charset=charset
         )
+
+def generate_filter_form(model: models.Model, max_depth=1):
+    """
+    Dynamically generate a FilterForm class for `model` including its related fields up to `max_depth`.
+    Field names for related fields use Django ORM double underscore notation.
+    All fields are optional (required=False).
+    """
+    form_fields = {}
+
+    def add_fields(mdl, prefix='', depth=0):
+        if depth > max_depth:
+            return
+        
+        for field in mdl._meta.get_fields():
+            if field.auto_created and not field.concrete:
+                continue
+            
+            field_name = prefix + field.name
+
+            if field.get_internal_type() in ['CharField', 'TextField']:
+                form_fields[field_name] = forms.CharField(required=False, label=field.verbose_name)
+            elif field.get_internal_type() in ['IntegerField', 'BigIntegerField', 'SmallIntegerField', 'PositiveIntegerField']:
+                form_fields[field_name] = forms.IntegerField(required=False, label=field.verbose_name)
+            elif field.get_internal_type() == 'BooleanField':
+                form_fields[field_name] = forms.NullBooleanField(required=False, label=field.verbose_name)
+            elif field.get_internal_type() == 'DateField':
+                form_fields[field_name] = forms.DateField(required=False, label=field.verbose_name, widget=forms.DateInput(attrs={'type': 'date'}))
+            elif field.get_internal_type() == 'DateTimeField':
+                form_fields[field_name] = forms.DateTimeField(required=False, label=field.verbose_name, widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
+            elif field.get_internal_type() == 'DecimalField':
+                form_fields[field_name] = forms.DecimalField(required=False, label=field.verbose_name)
+           
+            # Foreign keys and OneToOne - recurse to add their fields with nested names
+            elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
+                # Add a ModelChoiceField for the FK itself (by id)
+                form_fields[field_name] = forms.ModelChoiceField(
+                    queryset=field.related_model.objects.all(),
+                    required=False,
+                    label=field.verbose_name
+                )
+                # Add nested related model fields recursively (if depth allows)
+                add_fields(field.related_model, prefix=field_name + '__', depth=depth + 1)
+            # ManyToMany - add a ModelMultipleChoiceField
+            elif isinstance(field, models.ManyToManyField):
+                form_fields[field_name] = forms.ModelMultipleChoiceField(
+                    queryset=field.related_model.objects.all(),
+                    required=False,
+                    label=field.verbose_name,
+                )
+
+    add_fields(model)
+
+    DynamicFilterForm = type(f'{model.__name__}FilterForm', (forms.Form,), form_fields)
+    return DynamicFilterForm

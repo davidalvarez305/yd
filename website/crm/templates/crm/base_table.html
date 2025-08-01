@@ -12,6 +12,9 @@
     </div>
 </div>
 {% endif %}
+{% if filter_form_class %}
+    {{ form.render }}
+{% endif %}
 
 <div class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
     {{ table.render }}

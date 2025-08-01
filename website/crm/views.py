@@ -15,8 +15,8 @@ from website import settings
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
-from core.forms import ServiceForm, UserForm
-from crm.forms import FacebookAccessTokenForm, InternalLogForm, InvoiceForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, HTTPLogFilterForm, CallTrackingNumberForm, IngredientForm, LeadForm, LeadFilterForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitFilterForm, VisitForm
+from core.forms import ServiceForm, UserForm, generate_filter_form
+from crm.forms import FacebookAccessTokenForm, InternalLogForm, InvoiceForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -136,15 +136,16 @@ class CRMListView(CRMBaseView, ListView):
 
     def get_queryset(self):
         queryset = self.model.objects.all()
+
         if self.filter_form_class:
             self.filter_form = self.filter_form_class(self.request.GET)
+
             if self.filter_form.is_valid():
-                model_fields = {f.name for f in self.model._meta.get_fields()}
                 filters = {
                     k: v for k, v in self.filter_form.cleaned_data.items()
-                    if k in model_fields and v not in [None, '']
                 }
                 queryset = queryset.filter(**filters)
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -154,6 +155,9 @@ class CRMListView(CRMBaseView, ListView):
 
         if self.filter_form_class:
             context["filter_form"] = getattr(self, "filter_form", self.filter_form_class())
+        else:
+            context['filter_form'] = generate_filter_form(model=self.model)
+
         if self.create_form_class:
             context["create_form"] = self.create_form_class()
 
@@ -221,7 +225,6 @@ class CRMTableView(CRMListView):
 class LeadListView(CRMListView):
     model = Lead
     template_name = 'crm/lead_list.html'
-    filter_form_class = LeadFilterForm
     context_object_name = 'leads'
 
     def get_queryset(self):
@@ -467,7 +470,6 @@ class PhoneCallUpdateView(CRMUpdateView):
 class HTTPLogListView(CRMTableView):
     model = HTTPLog
     table_class = HTTPLogTable
-    filter_form_class = HTTPLogFilterForm
     show_add_button = False
 
 class CallTrackingNumberListView(CRMTableView):
