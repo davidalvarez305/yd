@@ -38,8 +38,6 @@ class MarketingHelper:
             'ip': self.ip,
             'external_id': self.external_id,
             'user_agent': self.user_agent,
-            'instant_form_lead_id': self.instant_form_lead_id,
-            'instant_form_id': self.instant_form_id,
             'metadata': json.dumps(self.metadata),
         }
 

@@ -1,5 +1,3 @@
-import re
-from django.shortcuts import render
 from core.enums import AlertStatus
 from core.utils import default_alert_handler
 
