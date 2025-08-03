@@ -678,17 +678,6 @@ class Ad(models.Model):
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)
     lead = models.OneToOneField(Lead, related_name='lead_marketing', db_column='lead_id', on_delete=models.CASCADE)
-    
-    # Metadata
-    source = models.CharField(max_length=255, null=True)
-    medium = models.CharField(max_length=255, null=True)
-    channel = models.CharField(max_length=255, null=True)
-    landing_page = models.TextField(null=True)
-    keyword = models.CharField(max_length=255, null=True)
-    click_id = models.TextField(unique=True, null=True)
-    client_id = models.TextField(unique=True, null=True)
-    
-    # Keep -- identifiers
     ip = models.GenericIPAddressField(null=True)
     external_id = models.UUIDField(unique=True, db_index=True, editable=False, null=True)
     user_agent = models.TextField(null=True)
