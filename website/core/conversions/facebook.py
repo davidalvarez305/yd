@@ -109,7 +109,5 @@ class FacebookConversionService(ConversionService):
         if not click_id:
             return False
 
-        # Regular expression to match: fb.1.<unix_timestamp_in_ms>.<click_id>
-        # fb.1 is fixed, followed by a timestamp (positive integer, 10 or more digits), and click_id (alphanumeric)
-        fbc = re.compile(r'^fb\.1\.\d{10,}\.[a-zA-Z0-9]+$')
+        fbc = re.compile(r'^fb\.1\.\d{10,}\..+$')
         return bool(fbc.match(click_id))

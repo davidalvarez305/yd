@@ -131,20 +131,31 @@ class CRMDeleteView(CRMBaseView, AlertMixin, DeleteView):
 
 class CRMListView(CRMBaseView, ListView):
     paginate_by = 10
-    filter_form_class = None
+    filter_form_class = None  # optional override
     create_form_class = None
+
+    def get_filter_form_class(self):
+        # fallback to dynamically generated form
+        return self.filter_form_class or generate_filter_form(model=self.model)
+
+    def get_filter_initial(self):
+        # optionally override this to provide default filter values
+        return {}
 
     def get_queryset(self):
         queryset = self.model.objects.all()
+        filter_class = self.get_filter_form_class()
 
-        if self.filter_form_class:
-            self.filter_form = self.filter_form_class(self.request.GET)
+        self.filter_form = filter_class(
+            self.request.GET or None,
+            initial=self.get_filter_initial()
+        )
 
-            if self.filter_form.is_valid():
-                filters = {
-                    k: v for k, v in self.filter_form.cleaned_data.items()
-                }
-                queryset = queryset.filter(**filters)
+        if self.filter_form.is_valid():
+            filters = {
+                k: v for k, v in self.filter_form.cleaned_data.items() if v is not None
+            }
+            queryset = queryset.filter(**filters)
 
         return queryset
 
@@ -153,10 +164,7 @@ class CRMListView(CRMBaseView, ListView):
         context.setdefault("js_files", [])
         context["js_files"] += ["js/filter.js"]
 
-        if self.filter_form_class:
-            context["filter_form"] = getattr(self, "filter_form", self.filter_form_class())
-        else:
-            context['filter_form'] = generate_filter_form(model=self.model)
+        context["filter_form"] = getattr(self, "filter_form", self.get_filter_form_class()(initial=self.get_filter_initial()))
 
         if self.create_form_class:
             context["create_form"] = self.create_form_class()

@@ -84,6 +84,11 @@ class BaseForm(StyledFormMixin, forms.Form):
         super().__init__(*args, **kwargs)
         self.apply_styling()
 
+class StyledFilterForm(FilterFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.apply_styling()
+
 class BaseModelForm(StyledFormMixin, NormalizeEmptyStringsMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -407,11 +412,6 @@ class MultiMediaFileField(forms.FileField):
         )
 
 def generate_filter_form(model: models.Model, max_depth=1):
-    """
-    Dynamically generate a FilterForm class for `model` including its related fields up to `max_depth`.
-    Field names for related fields use Django ORM double underscore notation.
-    All fields are optional (required=False).
-    """
     form_fields = {}
 
     def add_fields(mdl, prefix='', depth=0):
@@ -423,39 +423,23 @@ def generate_filter_form(model: models.Model, max_depth=1):
                 continue
             
             field_name = prefix + field.name
-
-            if field.get_internal_type() in ['CharField', 'TextField']:
-                form_fields[field_name] = forms.CharField(required=False, label=field.verbose_name)
-            elif field.get_internal_type() in ['IntegerField', 'BigIntegerField', 'SmallIntegerField', 'PositiveIntegerField']:
-                form_fields[field_name] = forms.IntegerField(required=False, label=field.verbose_name)
-            elif field.get_internal_type() == 'BooleanField':
-                form_fields[field_name] = forms.NullBooleanField(required=False, label=field.verbose_name)
-            elif field.get_internal_type() == 'DateField':
-                form_fields[field_name] = forms.DateField(required=False, label=field.verbose_name, widget=forms.DateInput(attrs={'type': 'date'}))
-            elif field.get_internal_type() == 'DateTimeField':
-                form_fields[field_name] = forms.DateTimeField(required=False, label=field.verbose_name, widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
-            elif field.get_internal_type() == 'DecimalField':
-                form_fields[field_name] = forms.DecimalField(required=False, label=field.verbose_name)
-           
-            # Foreign keys and OneToOne - recurse to add their fields with nested names
-            elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
-                # Add a ModelChoiceField for the FK itself (by id)
+            if isinstance(field, (models.ForeignKey, models.OneToOneField)):
                 form_fields[field_name] = forms.ModelChoiceField(
                     queryset=field.related_model.objects.all(),
                     required=False,
-                    label=field.verbose_name
+                    label=field.verbose_name,
+                    widget=forms.Select(attrs={'onchange': 'this.form.submit();'})
                 )
-                # Add nested related model fields recursively (if depth allows)
                 add_fields(field.related_model, prefix=field_name + '__', depth=depth + 1)
-            # ManyToMany - add a ModelMultipleChoiceField
             elif isinstance(field, models.ManyToManyField):
                 form_fields[field_name] = forms.ModelMultipleChoiceField(
                     queryset=field.related_model.objects.all(),
                     required=False,
                     label=field.verbose_name,
+                    widget=forms.SelectMultiple(attrs={'onchange': 'this.form.submit();'})
                 )
 
     add_fields(model)
 
-    DynamicFilterForm = type(f'{model.__name__}FilterForm', (forms.Form,), form_fields)
+    DynamicFilterForm = type(f'{model.__name__}FilterForm', (StyledFilterForm,), form_fields)
     return DynamicFilterForm

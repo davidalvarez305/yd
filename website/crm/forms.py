@@ -1,13 +1,9 @@
-from http import HTTPStatus
 from django import forms
-import re
-
 from django.urls import reverse
 
 from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadMarketingMetadata, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect
 from core.models import LeadMarketing, Cocktail, Event
-from marketing.enums import ConversionServiceType
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple, ContainedCheckboxSelectMultiple
 from core.messaging import messaging_service
