@@ -45,7 +45,6 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         else:
             data[metadata.key] = metadata.value
         
-    print(data)
     return data
 
 @receiver(lead_status_changed)

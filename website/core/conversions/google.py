@@ -13,7 +13,7 @@ class GoogleAnalyticsConversionService(ConversionService):
             'currency': settings.DEFAULT_CURRENCY,
         }
 
-        for key in MarketingParams.GoogleURLClickIDKeys:
+        for key in MarketingParams.GoogleURLClickIDKeys.value:
             value = data.get(key)
             if value:
                 params[key] = value
