@@ -202,22 +202,24 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
+    instant_form_lead_id = forms.GenericIPAddressField(
+        label="FB Lead ID",
+        required=False,
+        widget=forms.TextInput()
+    )
+
     referred_by = forms.ModelChoiceField(
         queryset=Lead.objects.all(),
         required=False,
         label="Referred By",
-        widget=forms.Select(attrs={
-            'placeholder': 'Select Lead'
-        })
+        widget=forms.Select()
     )
 
     ad = forms.ModelChoiceField(
         queryset=Ad.objects.all(),
         required=False,
         label="Ad",
-        widget=forms.Select(attrs={
-            'placeholder': 'Select Ad'
-        })
+        widget=forms.Select()
     )
 
     class Meta:
