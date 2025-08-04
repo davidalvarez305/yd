@@ -6,8 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F
-from django.db.models import OuterRef, Subquery, Q
+from django.db.models import OuterRef, Subquery, Q, F, QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -152,9 +151,16 @@ class CRMListView(CRMBaseView, ListView):
         )
 
         if self.filter_form.is_valid():
-            filters = {
-                k: v for k, v in self.filter_form.cleaned_data.items() if v is not None
-            }
+            filters = {}
+
+            for k, v in self.filter_form.cleaned_data.items():
+                if not v:
+                    continue
+                if isinstance(v, QuerySet):
+                    filters[f"{k}__in"] = v
+                else:
+                    filters[k] = v
+
             queryset = queryset.filter(**filters)
 
         return queryset

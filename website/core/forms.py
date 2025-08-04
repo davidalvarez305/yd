@@ -1,6 +1,5 @@
 from io import BytesIO
 import mimetypes
-import re
 import os
 
 from core.messaging.utils import MIME_EXTENSION_MAP
