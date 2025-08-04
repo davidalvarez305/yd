@@ -159,4 +159,8 @@ urlpatterns = [
     # Invoice
     path('invoice/<int:pk>/', views.InvoiceDetailView.as_view(), name='invoice_detail'),
     path('invoice/<int:pk>/edit/', views.InvoiceUpdateView.as_view(), name='invoice_update'),
+
+    # Lead Marketing Metadata
+    path('lead-marketing-metadata/create/', views.LeadMarketingMetadataCreateView.as_view(), name='leadmarketingmetadata_create'),
+    path('lead-marketing-metadata/<int:pk>/delete/', views.LeadMarketingMetadataDeleteView.as_view(), name='leadmarketingmetadata_delete'),
 ]

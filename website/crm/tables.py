@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadMarketingMetadata, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, safe_file_url, seconds_to_minutes
 
@@ -556,3 +556,26 @@ class InvoiceTable(Table):
         exclude = ['invoice_id', 'quote', 'session_id', 'external_id', 'date_created']
         extra_fields = ['view']
         pk = 'invoice_id'
+
+class LeadMarketingMetadataTable(Table):
+    delete = TableField(
+        name='delete',
+        label='Delete',
+        cell_widget=DeleteButton(
+            context = {
+                'attrs': {
+                    'hx-post': lambda row, request: reverse('leadmarketingmetadata_delete', kwargs={ 'pk': row.pk }),
+                    'hx-target': '#leadMarketingMetadataTable',
+                    'hx-ext': 'loading-states',
+                    'data-loading-target': '#deleteMetadata',
+                    'id': 'deleteMetadata',
+                }
+            }
+        )
+    )
+
+    class Meta:
+        model = LeadMarketingMetadata
+        exclude = ['lead_marketing_metadata_id', 'lead_marketing', 'date_created']
+        pk = 'lead_marketing_metadata_id'
+        delete_url = 'leadmarketingmetadata_delete'
