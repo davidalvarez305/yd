@@ -17,7 +17,6 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         'event_name': event_name,
         'ip_address': lead.lead_marketing.ip,
         'user_agent': lead.lead_marketing.user_agent,
-        'landing_page': lead.lead_marketing.landing_page,
         'instant_form_lead_id': lead.lead_marketing.instant_form_lead_id,
         'event_time': int(now().timestamp()),
         'phone_number': lead.phone_number,
@@ -33,17 +32,20 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
     for metadata in lead.lead_marketing.metadata.all():
         if metadata.key == '_fbc':
             data['fbc'] = metadata.value
-        if metadata.key == '_fbp':
+        elif metadata.key == '_fbp':
             data['fbp'] = metadata.value
-        if metadata.key == '_ga':
+        elif metadata.key == '_ga':
             data['ga'] = metadata.value
-        if metadata.key == 'gclid':
+        elif metadata.key == 'gclid':
             data['gclid'] = metadata.value
-        if metadata.key == 'gbraid':
+        elif metadata.key == 'gbraid':
             data['gbraid'] = metadata.value
-        if metadata.key == 'wbraid':
+        elif metadata.key == 'wbraid':
             data['wbraid'] = metadata.value
-
+        else:
+            data[metadata.key] = metadata.value
+        
+    print(data)
     return data
 
 @receiver(lead_status_changed)
