@@ -203,6 +203,9 @@ class LeadForm(BaseModelForm):
 
         cleaned_phone_number = normalize_phone_number(phone_number)
 
+        if not cleaned_phone_number:
+            raise forms.ValidationError('Phone number field cannot be empty.')
+
         if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
             raise forms.ValidationError('Someone has already submitted a request from this phone number.')
 
