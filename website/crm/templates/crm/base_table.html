@@ -28,10 +28,10 @@
             <ul class="inline-flex flex-wrap items-center gap-1 text-sm">
                 {% if page_obj.has_previous %}
                 <li>
-                    <a href="?page=1" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">« First</a>
+                    <a href="{% querystring page=1 %}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">« First</a>
                 </li>
                 <li>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">‹ Prev</a>
+                    <a href="{% querystring page=page_obj.previous_page_number %}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">‹ Prev</a>
                 </li>
                 {% else %}
                 <li>
@@ -48,10 +48,10 @@
                 </li>
                 {% if page_obj.has_next %}
                 <li>
-                    <a href="?page={{ page_obj.next_page_number }}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Next ›</a>
+                    <a href="{% querystring page=page_obj.next_page_number %}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Next ›</a>
                 </li>
                 <li>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Last »</a>
+                    <a href="{% querystring page=page_obj.paginator.num_pages %}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">Last »</a>
                 </li>
                 {% else %}
                 <li>
