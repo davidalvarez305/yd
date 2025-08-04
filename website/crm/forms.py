@@ -194,67 +194,6 @@ class EventForm(BaseModelForm):
         ]
 
 class LeadMarketingForm(BaseModelForm):
-    source = forms.CharField(
-        max_length=255,
-        label="Source",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., Google, Facebook'
-        })
-    )
-
-    medium = forms.CharField(
-        max_length=255,
-        label="Medium",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., CPC, email'
-        })
-    )
-
-    channel = forms.CharField(
-        max_length=255,
-        label="Channel",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., Paid, Organic, Social'
-        })
-    )
-
-    landing_page = forms.CharField(
-        label="Landing Page URL",
-        required=False,
-        widget=forms.Textarea(attrs={
-            'placeholder': 'https://example.com/landing-page',
-            'rows': 2
-        })
-    )
-
-    keyword = forms.CharField(
-        max_length=255,
-        label="Keyword",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., event catering nyc'
-        })
-    )
-
-    click_id = forms.CharField(
-        label="Click ID",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'gclid, fbclid, etc.'
-        })
-    )
-
-    client_id = forms.CharField(
-        label="Client ID",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Google Analytics Client ID'
-        })
-    )
-
     ip = forms.GenericIPAddressField(
         label="IP Address",
         required=False,
@@ -283,10 +222,12 @@ class LeadMarketingForm(BaseModelForm):
 
     class Meta:
         model = LeadMarketing
-        fields = [
-            'source', 'medium', 'channel', 'landing_page', 'keyword',
-            'click_id', 'client_id', 'ip', 'ad'
-        ]
+        fields = ['ip', 'ad', 'user_agent', 'instant_form_lead_id']
+        widgets = {
+            'user_agent': forms.TextInput(attrs={
+                'placeholder': 'e.g., 192.168.1.1'
+            })
+        }
     
     def clean_referred_by(self):
         lead = self.cleaned_data.get('referred_by')
