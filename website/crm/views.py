@@ -130,29 +130,34 @@ class CRMDeleteView(CRMBaseView, AlertMixin, DeleteView):
 
 class CRMListView(CRMBaseView, ListView):
     paginate_by = 10
-    filter_form_class = None  # optional override
+    filter_form_class = None
     create_form_class = None
+    context_object_name = 'object_list'
+    filter_form = None
 
     def get_filter_form_class(self):
-        # fallback to dynamically generated form
         return self.filter_form_class or generate_filter_form(model=self.model)
 
     def get_filter_initial(self):
-        # optionally override this to provide default filter values
         return {}
+
+    def get_filtered_data(self):
+        querystring = self.request.GET.copy()
+        form_fields = self.get_filter_form_class()().fields.keys()
+        return {k: v for k, v in querystring.items() if k in form_fields}
 
     def get_queryset(self):
         queryset = self.model.objects.all()
-        filter_class = self.get_filter_form_class()
+        filter_form_class = self.get_filter_form_class()
+        filtered_data = self.get_filtered_data()
 
-        self.filter_form = filter_class(
-            self.request.GET or None,
+        self.filter_form = filter_form_class(
+            data=filtered_data,
             initial=self.get_filter_initial()
         )
 
         if self.filter_form.is_valid():
             filters = {}
-
             for k, v in self.filter_form.cleaned_data.items():
                 if not v:
                     continue
@@ -160,21 +165,19 @@ class CRMListView(CRMBaseView, ListView):
                     filters[f"{k}__in"] = v
                 else:
                     filters[k] = v
-
             queryset = queryset.filter(**filters)
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["filter_form"] = self.filter_form or self.get_filter_form_class()(initial=self.get_filter_initial())
         context.setdefault("js_files", [])
         context["js_files"] += ["js/filter.js"]
 
-        context["filter_form"] = getattr(self, "filter_form", self.get_filter_form_class()(initial=self.get_filter_initial()))
-
         if self.create_form_class:
             context["create_form"] = self.create_form_class()
-
+        
         return context
 
 class CRMDetailView(CRMBaseView, DetailView):
@@ -229,7 +232,7 @@ class CRMTableView(CRMListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.table_class:
-            table = self.table_class(self.object_list)
+            table = self.table_class(context.get('page_obj'))
             table.request = self.request
             context["table"] = table
         context["create_url"] = self.get_create_url()

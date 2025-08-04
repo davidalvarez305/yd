@@ -15,6 +15,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.text import capfirst
 
 class MultiFileInput(forms.FileInput):
     allow_multiple_selected = True
@@ -416,27 +417,54 @@ def generate_filter_form(model: models.Model, max_depth=1):
     def add_fields(mdl, prefix='', depth=0):
         if depth > max_depth:
             return
-        
+
         for field in mdl._meta.get_fields():
             if field.auto_created and not field.concrete:
                 continue
-            
+
+            if field.many_to_one and field.auto_created:
+                continue
+
+            if '_id' in field.name:
+                continue
+
             field_name = prefix + field.name
+            verbose = capfirst(field.verbose_name)
+
+            if isinstance(field, (models.DateField, models.DateTimeField)):
+                continue
+
             if isinstance(field, (models.ForeignKey, models.OneToOneField)):
                 form_fields[field_name] = forms.ModelChoiceField(
                     queryset=field.related_model.objects.all(),
                     required=False,
-                    label=field.verbose_name,
+                    label=verbose,
                     widget=forms.Select(attrs={'onchange': 'this.form.submit();'})
                 )
                 add_fields(field.related_model, prefix=field_name + '__', depth=depth + 1)
+
             elif isinstance(field, models.ManyToManyField):
                 form_fields[field_name] = forms.ModelMultipleChoiceField(
                     queryset=field.related_model.objects.all(),
                     required=False,
-                    label=field.verbose_name,
+                    label=verbose,
                     widget=forms.SelectMultiple(attrs={'onchange': 'this.form.submit();'})
                 )
+
+            elif isinstance(field, models.Field):
+                try:
+                    distinct_values = model.objects.order_by().values_list(field.name, flat=True).distinct()
+                    choices = [(val, val) for val in distinct_values if val is not None]
+                except Exception:
+                    continue
+
+                if choices:
+                    form_fields[field_name] = forms.ChoiceField(
+                        choices=[('', '-----')] + choices,
+                        required=False,
+                        label=verbose,
+                        widget=forms.Select(attrs={'onchange': 'this.form.submit();'})
+                    )
 
     add_fields(model)
 
