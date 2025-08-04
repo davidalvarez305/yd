@@ -53,7 +53,7 @@ class GoogleAnalyticsConversionService(ConversionService):
         return 'google_analytics_4'
     
     def _is_valid(self, data: dict) -> bool:
-        client_id = data.get('client_id')
+        client_id = data.get('ga')
         if not client_id or not self._is_valid_client_id(client_id):
             return False
 
