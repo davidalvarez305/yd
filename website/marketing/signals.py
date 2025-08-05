@@ -72,11 +72,18 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
 
     # Assign lead marketing data if lead came from phone call and the lead was just created
     if not lead_marketing.is_instant_form_lead() and lead_status.status == LeadStatusEnum.LEAD_CREATED:
-        first_call = instance.phone_calls().order_by('date_created').first()
+        tracking_numbers = CallTrackingNumber.objects.values_list('phone_number', flat=True)
+
+        first_call = (
+            instance.phone_calls()
+            .filter(call_to__in=tracking_numbers)
+            .order_by('date_created')
+            .first()
+        )
+
         if first_call:
             if first_call.is_inbound and first_call.date_created < instance.created_at:
                     call_tracking_number = CallTrackingNumber.objects.filter(phone_number=first_call.call_to).first()
-
                     if call_tracking_number:
                         tracking_call = (
                             CallTracking.objects
@@ -115,7 +122,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                                         lead_marketing=lead_marketing,
                                     )
                                     entry.save()
-
+                                
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(instance, event_name, event)
 
