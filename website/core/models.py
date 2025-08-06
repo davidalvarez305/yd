@@ -499,7 +499,7 @@ class LeadNote(models.Model):
 class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
     external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
-    text = models.TextField()
+    text = models.TextField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     text_from = models.CharField(max_length=15)
     text_to = models.CharField(max_length=15)
@@ -532,6 +532,15 @@ class Message(models.Model):
 
     def audios(self):
         return self.media.filter(content_type__startswith="audio/")
+    
+    def clean(self):
+        super().clean()
+        if not self.text and not self.media.exists():
+            raise ValidationError("Message must have text or at least one media file.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class MessageMedia(models.Model):
     message_media_id = models.AutoField(primary_key=True)
