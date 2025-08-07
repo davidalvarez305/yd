@@ -73,7 +73,7 @@ class StripeBillingService(BillingServiceInterface):
             
             invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
 
-            users_to_notify = self.phone_numbers
+            users_to_notify = list(self.phone_numbers)
             users_to_notify.append(invoice.quote.lead.phone_number)
 
             for phone_number in users_to_notify:
@@ -131,7 +131,7 @@ class StripeBillingService(BillingServiceInterface):
                         filename = f"{invoice.external_id}.html"
                         invoice.receipt.save(filename, ContentFile(response.content), save=True)
 
-                        users_to_notify = self.phone_numbers
+                        users_to_notify = list(self.phone_numbers)
                         users_to_notify.append(invoice.quote.lead.phone_number)
 
                         for phone_number in users_to_notify:
