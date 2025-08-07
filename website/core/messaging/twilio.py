@@ -114,6 +114,7 @@ class TwilioMessagingService(MessagingServiceInterface):
         message.text_to = form.cleaned_data.get("text_to")
         message.is_inbound = False
         message.is_read = True
+        message.status = 'sent'
 
         media_urls = []
         temp_media = []
