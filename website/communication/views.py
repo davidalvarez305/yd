@@ -27,24 +27,20 @@ class MessageCreateView(CRMCreateView):
     model = Message
     form_class = MessageForm
 
-    def post(self, request, *args, **kwargs):
-        if request.method != "POST":
-            return self.alert(request, "Only POST headers allowed.", AlertStatus.BAD_REQUEST)
-            
-        form = MessageForm(request.POST, request.FILES)
-
-        if not form.is_valid():
-            return self.alert(request, form.errors.as_text(), AlertStatus.BAD_REQUEST)
-
+    def form_valid(self, form):
         try:
             messaging_service.handle_outbound_message(form)
 
             lead = Lead.objects.filter(phone_number=form.cleaned_data.get('text_to')).first()
 
-            return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
+            return render(self.request, 'crm/lead_chat_messages.html', { 'lead': lead })
+
         except Exception as e:
-            logger.error(e, exc_info=True)
-            return self.alert(request, f'{str(e)}', AlertStatus.INTERNAL_ERROR)
+            logger.error("Failed to handle outbound message", exc_info=True)
+            return self.alert(self.request, str(e), AlertStatus.INTERNAL_ERROR)
+
+    def form_invalid(self, form):
+        return self.alert(self.request, form.errors.as_text(), AlertStatus.BAD_REQUEST)
 
 @csrf_exempt
 def handle_inbound_call(request: HttpRequest):

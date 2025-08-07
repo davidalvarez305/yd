@@ -535,7 +535,7 @@ class Message(models.Model):
     
     def clean(self):
         super().clean()
-        if not self.text and not self.media.exists():
+        if not self.text.strip() and not self.media.exists():
             raise ValidationError("Message must have text or at least one media file.")
 
     def save(self, *args, **kwargs):

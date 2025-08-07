@@ -29,7 +29,7 @@ class MessageForm(BaseModelForm):
         text = cleaned_data.get('text')
         message_media = cleaned_data.get('message_media')
 
-        if not text and not message_media:
+        if not text.strip() and not message_media:
             raise forms.ValidationError("Either a text or media file must be provided.")
 
         return cleaned_data
