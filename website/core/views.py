@@ -430,7 +430,7 @@ class LeadCreateView(BaseView, CreateView):
             except Exception as e:
                 logger.exception(str(e), exc_info=True)
             
-            return self.alert(self.request, f"Welcome back {lead.full_name}, we'll be in touch soon!", AlertStatus.SUCCESS)
+            return self.alert(self.request, f"Welcome back {lead.full_name}, we'll be in touch soon!", AlertStatus.BAD_REQUEST)
 
         errors = '\n'.join([f"{', '.join(errors)}" for _, errors in form.errors.items()])
         return self.alert(self.request, errors, AlertStatus.BAD_REQUEST)
