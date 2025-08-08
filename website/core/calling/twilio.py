@@ -73,7 +73,7 @@ class TwilioCallingService(CallingServiceInterface):
 
         try:
             dial = Dial(
-                record='record-from-ringing-dual',
+                record='record-from-answer-dual',
                 recording_status_callback=recording_callback_url,
                 recording_status_callback_event="completed",
                 status_callback_event=TwilioWebhookEvents.all(),
@@ -244,6 +244,7 @@ class TwilioCallingService(CallingServiceInterface):
 
             dial.number(
                 client_phone_number,
+                record='record-from-answer-dual',
                 status_callback=status_callback_url,
                 status_callback_method='POST',
                 status_callback_event=TwilioWebhookEvents.outbound(),
