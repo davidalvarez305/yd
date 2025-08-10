@@ -506,6 +506,7 @@ class Message(models.Model):
     is_inbound = models.BooleanField(default=False)
     status = models.CharField(max_length=50)
     is_read = models.BooleanField(default=False)
+    is_notified = models.BooleanField(default=False)
 
     class Meta:
         db_table = "message"
