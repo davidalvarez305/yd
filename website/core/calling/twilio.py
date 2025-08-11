@@ -21,11 +21,10 @@ from core.messaging import messaging_service
 MISSED_STATUSES = {"busy", "failed", "no-answer", "missed"}
 
 class TwilioCallingService(CallingServiceInterface):
-    def __init__(self, account_sid, auth_token, transcription_service, ai_agent):
+    def __init__(self, account_sid, auth_token, transcription_service):
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.transcription_service = transcription_service
-        self.ai_agent = ai_agent
         self.client = Client(account_sid, auth_token)
         self.validator = RequestValidator(auth_token)
 
@@ -188,22 +187,6 @@ class TwilioCallingService(CallingServiceInterface):
             self.transcription_service.transcribe_audio(transcription=transcription)
 
             self._delete_call_recording(recording_sid)
-
-            user_phone = phone_call.call_to if phone_call.is_inbound else phone_call.call_from
-            user = User.objects.filter(phone_number=user_phone).first()
-
-            lead_phone = phone_call.call_from if phone_call.is_inbound else phone_call.call_to
-            lead = Lead.objects.filter(phone_number=lead_phone).first()
-
-            if lead is not None:
-                ctx = { 'lead': lead, 'transcription': transcription, 'user': user }
-                note = self.ai_agent.summarize_phone_call(ctx=ctx)
-
-                LeadNote.objects.create(
-                    note=note,
-                    lead=lead,
-                    user=user,
-                )
         
             return HttpResponse("Success!", status=200)
 

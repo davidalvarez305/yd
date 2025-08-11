@@ -1,17 +1,21 @@
+import json
 from django.views.generic.edit import CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+import requests
 
 from crm.views import CRMCreateView
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
-from core.models import Lead, Message
+from core.models import Lead, Message, PhoneCallTranscription
 from core.messaging import messaging_service
 from core.calling import calling_service
 from core.logger import logger
+from core.transcription import transcription_service
 from communication.forms import OutboundPhoneCallForm
+from core.utils import get_transcription_external_id_from_object_key
 
 from .forms import MessageForm
 
@@ -22,6 +26,39 @@ def handle_inbound_message(request: HttpRequest):
 @csrf_exempt
 def handle_message_status_callback(request: HttpRequest):
     return messaging_service.handle_message_status_callback(request)
+
+@csrf_exempt
+def handle_transcription_subcription_callback(request: HttpRequest):
+    message_type = request.headers.get("x-amz-sns-message-type")
+    payload = json.loads(request.body)
+    print('payload: ', payload)
+
+    # Step 1: Confirm subscription if needed
+    if message_type == "SubscriptionConfirmation":
+        subscribe_url = payload.get('SubscribeURL')
+        requests.get(subscribe_url)
+        return HttpResponse("Subscription confirmed", status=200)
+
+    # Step 2: Handle notification
+    if message_type == "Notification":
+        message = json.loads(payload.get('Message'))
+        records = message.get("Records", [])
+        if not records:
+            return
+        
+        s3_object_key = records[0].get("s3", {}).get("object", {}).get("key")
+        if not s3_object_key:
+            return
+
+        external_id = get_transcription_external_id_from_object_key(s3_object_key)
+        transcription = PhoneCallTranscription.objects.filter(external_id=external_id).first()
+        
+        if not transcription:
+            return
+        
+        transcription_service.process_transcription(transcription=transcription)
+
+    return HttpResponse(status=200)
 
 class MessageCreateView(CRMCreateView):
     model = Message

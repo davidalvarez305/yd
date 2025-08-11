@@ -1,11 +1,13 @@
 import json
+import os
 
 import requests
 import boto3
 import time
 
 from website import settings
-from core.models import PhoneCallTranscription
+from core.models import Lead, LeadNote, PhoneCallTranscription, User
+from core.ai import ai_agent
 
 class AWSTranscriptionService:
     def __init__(self):
@@ -28,35 +30,39 @@ class AWSTranscriptionService:
             IdentifyMultipleLanguages=True,
             LanguageOptions=["en-US", "es-US"],
             OutputBucketName=self.bucket_name,
-            OutputKey=self.output_prefix + transcription.external_id + ".json"
+            OutputKey=self.output_prefix + transcription.external_id + ".json",
         )
+    
+    def process_transcription(self, transcription: PhoneCallTranscription):
+        response = self.client.get_transcription_job(TranscriptionJobName=transcription.external_id)
+        transcription_job = response.get("TranscriptionJob", {})
 
-        while True:
-            response = self.client.get_transcription_job(TranscriptionJobName=transcription.external_id)
-            job_info = response.get("TranscriptionJob", {})
-            status = job_info.get("TranscriptionJobStatus")
+        if transcription_job.get('TranscriptionJobStatus') == "FAILED":
+            print("Transcription failed.")
+            return
 
-            if status in ("COMPLETED", "FAILED"):
-                break
-            time.sleep(5)
-
-        if status == "FAILED":
-            raise Exception(f"Transcription failed: {job_info.get('FailureReason', 'Unknown error')}")
-
-        transcript_url = job_info.get("Transcript", {}).get("TranscriptFileUri")
+        transcript_url = transcription_job.get("Transcript", {}).get("TranscriptFileUri")
         if not transcript_url:
-            raise Exception("Transcript URL not found in response.")
+            print("Transcript URL not found in response.")
+            return
 
         response = requests.get(transcript_url)
-        response.raise_for_status()
-        full_json = response.json()
 
-        raw_results = full_json.get("results", {})
+        if response.status_code != 200:
+            print('Bad Response for Transcription URL: ', response.status_code)
+            return
+
+        data = response.json()
+
+        raw_results = data.get("results", {})
 
         transcript_text = raw_results.get("transcripts", [{}])[0].get("transcript", "")
 
+        if not transcript_text:
+            return
+
         job = {
-            "language": job_info.get("LanguageCode"),
+            "language": transcription_job.get("LanguageCode"),
             "transcript": transcript_text,
             "items": raw_results.get("items", []),
             "speaker_labels": raw_results.get("speaker_labels", {}),
@@ -65,3 +71,19 @@ class AWSTranscriptionService:
         transcription.job = json.dumps(job)
         transcription.text = transcript_text
         transcription.save()
+
+        user_phone = transcription.phone_call.call_to if transcription.phone_call.is_inbound else transcription.phone_call.call_from
+        user = User.objects.filter(phone_number=user_phone).first()
+
+        lead_phone = transcription.phone_call.call_from if transcription.phone_call.is_inbound else transcription.phone_call.call_to
+        lead = Lead.objects.filter(phone_number=lead_phone).first()
+
+        if lead is not None:
+            ctx = { 'lead': lead, 'transcription': transcription, 'user': user }
+            note = ai_agent.summarize_phone_call(ctx=ctx)
+
+            LeadNote.objects.create(
+                note=note,
+                lead=lead,
+                user=user,
+            )

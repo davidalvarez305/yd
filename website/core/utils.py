@@ -316,3 +316,8 @@ def safe_file_url(obj, attr, default="#"):
     except ValueError:
         return default
     return default
+
+def get_transcription_external_id_from_object_key(key: str) -> str:
+        filename = os.path.basename(key)
+        uuid_part = filename.rsplit('.', 1)[0]
+        return uuid_part
