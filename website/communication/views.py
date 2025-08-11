@@ -31,7 +31,6 @@ def handle_message_status_callback(request: HttpRequest):
 def handle_transcription_subcription_callback(request: HttpRequest):
     message_type = request.headers.get("x-amz-sns-message-type")
     payload = json.loads(request.body)
-    print('payload: ', payload)
 
     # Step 1: Confirm subscription if needed
     if message_type == "SubscriptionConfirmation":
@@ -44,17 +43,17 @@ def handle_transcription_subcription_callback(request: HttpRequest):
         message = json.loads(payload.get('Message'))
         records = message.get("Records", [])
         if not records:
-            return
+            return HttpResponse(status=400)
         
         s3_object_key = records[0].get("s3", {}).get("object", {}).get("key")
         if not s3_object_key:
-            return
+            return HttpResponse(status=400)
 
         external_id = get_transcription_external_id_from_object_key(s3_object_key)
         transcription = PhoneCallTranscription.objects.filter(external_id=external_id).first()
         
         if not transcription:
-            return
+            return HttpResponse(status=400)
         
         transcription_service.process_transcription(transcription=transcription)
 
