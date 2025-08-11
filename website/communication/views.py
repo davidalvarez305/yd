@@ -31,6 +31,7 @@ def handle_message_status_callback(request: HttpRequest):
 def handle_transcription_subcription_callback(request: HttpRequest):
     message_type = request.headers.get("x-amz-sns-message-type")
     payload = json.loads(request.body)
+    print('payload: ', payload)
 
     # Step 1: Confirm subscription if needed
     if message_type == "SubscriptionConfirmation":
