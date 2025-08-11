@@ -41,18 +41,21 @@ def handle_transcription_subcription_callback(request: HttpRequest):
     # Step 2: Handle notification
     if message_type == "Notification":
         message = json.loads(payload.get('Message'))
+        print('message: ', message)
         records = message.get("Records", [])
         if not records:
             return HttpResponse(status=400)
         
         s3_object_key = records[0].get("s3", {}).get("object", {}).get("key")
         if not s3_object_key:
+            print('Transcription object invalid: ', s3_object_key)
             return HttpResponse(status=400)
 
         external_id = get_transcription_external_id_from_object_key(s3_object_key)
         transcription = PhoneCallTranscription.objects.filter(external_id=external_id).first()
         
         if not transcription:
+            print('Transcription not found: ', external_id)
             return HttpResponse(status=400)
         
         transcription_service.process_transcription(transcription=transcription)
