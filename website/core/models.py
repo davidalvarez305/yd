@@ -635,8 +635,8 @@ class PhoneCallTranscription(models.Model):
         related_name='transcription'
     )
     external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
-    text = models.TextField()
     audio = models.FileField(upload_to='audio/')
+    text = models.TextField(null=True)
     job = models.JSONField(null=True)
 
     class Meta:

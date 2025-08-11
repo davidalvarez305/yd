@@ -181,8 +181,9 @@ class TwilioCallingService(CallingServiceInterface):
                 transcription = PhoneCallTranscription(
                     phone_call=phone_call,
                     external_id=job_name,
+                    audio=File(audio, name=audio_filename)
                 )
-                transcription.audio.save(audio_filename, File(audio), save=False)
+                transcription.save()
 
             self.transcription_service.transcribe_audio(transcription=transcription)
 
