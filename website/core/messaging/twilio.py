@@ -47,6 +47,9 @@ class TwilioMessagingService(MessagingServiceInterface):
             num_media = int(request.POST.get("NumMedia", 0))
             sms_status = request.POST.get("SmsStatus")
 
+            if isinstance(body, str) and not body.strip():
+                body = None
+
             message = Message.objects.create(
                 external_id=message_sid,
                 text=body,

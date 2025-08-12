@@ -26,10 +26,8 @@ class MessageForm(BaseModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        text = cleaned_data.get('text')
-        message_media = cleaned_data.get('message_media')
 
-        if not text and not message_media:
+        if not cleaned_data.get('text') and not cleaned_data.get('message_media'):
             raise forms.ValidationError("Either a text or media file must be provided.")
 
         return cleaned_data
