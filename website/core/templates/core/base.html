@@ -366,13 +366,6 @@
 	};
 
 	window.addEventListener("load", () => handleConfirmationLogic());
-
-	// Temporary Phone Number Click Reporting
-	document.querySelectorAll('.phoneNumberCTA').forEach(number => {
-		number.addEventListener("click", () => {
-			fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
-		});
-	});
 </script>
 <!-- END JS Scripts -->
 
