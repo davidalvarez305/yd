@@ -1038,6 +1038,13 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
         except Exception as e:
             logger.exception(str(e), exc_info=True)
             return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)
+    
+    def form_invalid(self, form):
+        data = super().form_invalid(form)
+
+        print(form.errors)
+
+        return data
 
 class ExternalQuoteView(CRMContextMixin, DetailView):
     template_name = 'crm/external_quote_view.html'

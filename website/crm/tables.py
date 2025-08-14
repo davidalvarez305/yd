@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadMarketingMetadata, Message, PhoneCall, PhoneCallTranscription, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadMarketingMetadata, Message, PhoneCall, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, safe_file_url, seconds_to_minutes
 

@@ -384,6 +384,7 @@ class LeadCreateView(BaseView, CreateView):
 
                 lead_marketing = LeadMarketing()
                 lead_marketing.lead = lead
+                lead_marketing.save()
 
                 if not self.request.user.is_authenticated:
                     marketing_helper = MarketingHelper(self.request)
@@ -394,7 +395,7 @@ class LeadCreateView(BaseView, CreateView):
 
                     marketing_helper.save_metadata(lead_marketing=lead_marketing)
 
-                lead_marketing.save()
+                    lead_marketing.save()
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 

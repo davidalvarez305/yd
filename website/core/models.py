@@ -287,7 +287,8 @@ class Quote(models.Model):
     quote_id = models.AutoField(primary_key=True)
     external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, related_name='quotes', db_column='lead_id', on_delete=models.CASCADE)
-    guests = models.IntegerField()
+    adults = models.IntegerField()
+    minors = models.IntegerField(null=True)
     hours = models.FloatField()
     event_date = models.DateField()
 
