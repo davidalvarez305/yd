@@ -17,6 +17,7 @@ def handle_new_lead_notification(sender, instance, created, **kwargs):
     text_content = "\n".join([
         f"NEW LEAD:",
         f"FULL NAME: {instance.full_name}",
+        f"PHONE NUMBER: {instance.phone_number}",
         f"MESSAGE: {str(instance.message)}",
         f"LINK: {settings.ROOT_DOMAIN + reverse('lead_detail', kwargs={'pk': instance.pk})}",
     ])
