@@ -198,6 +198,12 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
+    user_agent = forms.CharField(
+        label="User Agent",
+        required=False,
+        widget=forms.TextInput()
+    )
+
     instant_form_lead_id = forms.GenericIPAddressField(
         label="FB Lead ID",
         required=False,
@@ -221,11 +227,6 @@ class LeadMarketingForm(BaseModelForm):
     class Meta:
         model = LeadMarketing
         fields = ['ip', 'ad', 'user_agent', 'instant_form_lead_id']
-        widgets = {
-            'user_agent': forms.TextInput(attrs={
-                'placeholder': 'e.g., 192.168.1.1'
-            })
-        }
     
     def clean_referred_by(self):
         lead = self.cleaned_data.get('referred_by')
