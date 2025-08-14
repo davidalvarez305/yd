@@ -1,3 +1,4 @@
+import uuid
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
 from django.utils import timezone
@@ -381,17 +382,19 @@ class LeadCreateView(BaseView, CreateView):
             with transaction.atomic():
                 lead = form.save()
 
-                marketing_helper = MarketingHelper(self.request)
                 lead_marketing = LeadMarketing()
-
-                lead_marketing.ip = marketing_helper.ip
-                lead_marketing.external_id = marketing_helper.external_id
-                lead_marketing.user_agent = marketing_helper.user_agent
-                lead_marketing.ad = marketing_helper.ad
                 lead_marketing.lead = lead
-                lead_marketing.save()
 
-                marketing_helper.save_metadata(lead_marketing=lead_marketing)
+                if not self.request.user.is_authenticated:
+                    marketing_helper = MarketingHelper(self.request)
+                    lead_marketing.ip = marketing_helper.ip
+                    lead_marketing.external_id = marketing_helper.external_id
+                    lead_marketing.user_agent = marketing_helper.user_agent
+                    lead_marketing.ad = marketing_helper.ad
+
+                    marketing_helper.save_metadata(lead_marketing=lead_marketing)
+
+                lead_marketing.save()
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
