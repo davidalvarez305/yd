@@ -58,12 +58,12 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
         price = suggested_price
         return {'units': units, 'price': price}
     
-    elif guest_ratio and service_type in ['Bar Rental', 'Cooler Rental']:
+    elif guest_ratio and service_type in {'Bar Rental', 'Cooler Rental'}:
         units = math.ceil(adults / guest_ratio)
         price = suggested_price
         return {'units': units, 'price': price}
     
-    elif guest_ratio and service_type in ['Table Rental', 'Chair Rental']:
+    elif guest_ratio and service_type in {'Table Rental', 'Chair Rental'}:
         units = math.ceil(guests / guest_ratio)
         price = suggested_price
         return {'units': units, 'price': price}
