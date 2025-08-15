@@ -16,7 +16,7 @@
                             data-hx-swap="outerHTML"
                             data-hx-headers='{"X-Message-ID": "{{ message.pk }}", "X-Lead-ID": "{{ lead.pk }}", "X-Is-Read": "{{ message.is_read|yesno:"true,false" }}"}'
                             class="message relative max-w-full rounded-2xl rounded-bl-none {% if not message.is_read %}bg-secondary-100 dark:bg-secondary-700/50{% else %}bg-gray-100 dark:bg-gray-700/50{% endif %} px-3 py-2.5 text-sm sm:max-w-[80%]">
-                            <p>{{ message.text }}</p>
+                            <p>{{ message.text|default:"" }}</p>
                             {% if message.media.all %}
                                 {% for media in message.media.all %}
                                     {% if media.is_image %}
@@ -65,7 +65,7 @@
                             data-hx-swap="outerHTML"
                             data-hx-headers='{"X-Message-ID": "{{ message.pk }}", "X-Lead-ID": "{{ lead.pk }}", "X-Is-Read": "{{ message.is_read|yesno:"true,false" }}"}'
                             class="message relative max-w-full rounded-2xl rounded-br-none bg-primary-700 px-3 py-2.5 text-sm text-white sm:max-w-[80%]">
-                            <p>{{ message.text }}</p>
+                            <p>{{ message.text|default:"" }}</p>
                             {% if message.media.all %}
                                 {% for media in message.media.all %}
                                     {% if media.is_image %}
