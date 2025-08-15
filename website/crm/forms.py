@@ -198,6 +198,12 @@ class LeadMarketingForm(BaseModelForm):
         })
     )
 
+    user_agent = forms.CharField(
+        label="User Agent",
+        required=False,
+        widget=forms.TextInput()
+    )
+
     instant_form_lead_id = forms.GenericIPAddressField(
         label="FB Lead ID",
         required=False,
@@ -221,11 +227,6 @@ class LeadMarketingForm(BaseModelForm):
     class Meta:
         model = LeadMarketing
         fields = ['ip', 'ad', 'user_agent', 'instant_form_lead_id']
-        widgets = {
-            'user_agent': forms.TextInput(attrs={
-                'placeholder': 'e.g., 192.168.1.1'
-            })
-        }
     
     def clean_referred_by(self):
         lead = self.cleaned_data.get('referred_by')
@@ -335,23 +336,24 @@ class StoreItemForm(BaseModelForm):
         fields = '__all__'
 
 class QuoteForm(BaseModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields['event_date'].error_messages = {'required': ''}
-        self.fields['guests'].error_messages = {'required': ''}
+        self.fields['adults'].error_messages = {'required': ''}
+        self.fields['minors'].error_messages = {'required': ''}
         self.fields['hours'].error_messages = {'required': ''}
 
     class Meta:
         model = Quote
-        fields = ['lead', 'guests', 'hours', 'event_date']
+        fields = ['lead', 'adults', 'minors', 'hours', 'event_date']
         widgets = {
             'lead': forms.HiddenInput(),
             'event_date': forms.DateInput(attrs={
                 'type': 'date'
             }),
-            'guests': forms.NumberInput(attrs={'id': 'guests'}),
+            'adults': forms.NumberInput(attrs={'id': 'adults'}),
+            'minors': forms.NumberInput(attrs={'id': 'minors' }),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
 
@@ -368,7 +370,8 @@ class QuoteForm(BaseModelForm):
         quote_services = instance.quote_services.all()
         for quote_service in quote_services:
             data = calculate_quote_service_values(
-                guests=instance.guests,
+                adults=instance.adults,
+                minors=instance.minors,
                 hours=instance.hours,
                 suggested_price=quote_service.price_per_unit,
                 unit_type=quote_service.service.unit_type.type,
@@ -467,17 +470,15 @@ class QuickQuoteForm(BaseModelForm):
 
     def clean_presets(self):
         presets = self.cleaned_data.get('presets')
-        empty_presets = "You must select at least one preset."
-        if not presets:
-            raise forms.ValidationError(empty_presets)
-        if len(presets) == 0:
-            raise forms.ValidationError(empty_presets)
+        if not presets or len(presets) == 0:
+            raise forms.ValidationError("You must select at least one preset.")
         return presets
     
     def save(self):
         try:
             lead = self.cleaned_data.get('lead')
-            guests = self.cleaned_data.get('guests')
+            adults = self.cleaned_data.get('adults')
+            minors = self.cleaned_data.get('minors')
             hours = self.cleaned_data.get('hours')
             event_date = self.cleaned_data.get('event_date')
 
@@ -488,7 +489,8 @@ class QuickQuoteForm(BaseModelForm):
                 quote_services = []
                 quote = Quote(
                     lead=lead,
-                    guests=guests,
+                    adults=adults,
+                    minors=minors,
                     hours=hours,
                     event_date=event_date,
                 )
@@ -496,7 +498,8 @@ class QuickQuoteForm(BaseModelForm):
                 services = preset.services.all()
                 for service in services:
                     values = calculate_quote_service_values(
-                        guests=guests,
+                        adults=adults,
+                        minors=minors,
                         hours=hours,
                         suggested_price=service.suggested_price,
                         service_type=service.service_type.type,
@@ -546,20 +549,22 @@ class QuickQuoteForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['guests'].error_messages = {'required': ''}
+        self.fields['adults'].error_messages = {'required': ''}
+        self.fields['minors'].error_messages = {'required': ''}
         self.fields['hours'].error_messages = {'required': ''}
         self.fields['event_date'].error_messages = {'required': ''}
         self.fields['presets'].error_messages = {'required': ''}
 
     class Meta:
         model = Quote
-        fields = ['lead', 'guests', 'hours', 'event_date']
+        fields = ['lead', 'adults', 'minors', 'hours', 'event_date']
         widgets = {
             'lead': forms.HiddenInput(),
             'event_date': forms.DateInput(attrs={
                 'type': 'date'
             }),
-            'guests': forms.NumberInput(attrs={'id': 'guests'}),
+            'adults': forms.NumberInput(attrs={'id': 'adults'}),
+            'minors': forms.NumberInput(attrs={'id': 'minors'}),
             'hours': forms.NumberInput(attrs={'id': 'hours'})
         }
 

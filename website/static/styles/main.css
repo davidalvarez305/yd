@@ -4298,6 +4298,14 @@ select{
     display: flex;
   }
 
+  .sm\:inline-flex{
+    display: inline-flex;
+  }
+
+  .sm\:\!inline-flex{
+    display: inline-flex !important;
+  }
+
   .sm\:size-72{
     width: 18rem;
     height: 18rem;
@@ -4467,6 +4475,10 @@ select{
 
   .md\:flex{
     display: flex;
+  }
+
+  .md\:inline-flex{
+    display: inline-flex;
   }
 
   .md\:hidden{
@@ -4690,10 +4702,6 @@ select{
 
   .lg\:grid-cols-3{
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .lg\:grid-cols-4{
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .lg\:grid-cols-6{

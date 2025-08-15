@@ -33,14 +33,24 @@ def convert_to_item_quantity(cocktail_ingredient: CocktailIngredient, store_item
     return round_up_to_nearest(total, store_item.product_quantity)
 
 BASELINE_HOURS = 4.00
-def calculate_quote_service_values(guests, hours, suggested_price, unit_type, service_type, guest_ratio):
+def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_type, service_type, guest_ratio):
+    minors = minors or 0
+    adults = adults or 0
+
+    guests = adults + minors
+
     if unit_type == 'Per Person':
-        units = guests
+        units = guests if service_type != 'Alcohol' else adults
         price = suggested_price
 
-        if service_type == "Add On":
+        if service_type in ["Add On", "Alcohol"]:
             price *= (hours / BASELINE_HOURS)
 
+        return {'units': units, 'price': price}
+    
+    elif unit_type == 'Ratio' and service_type == 'Hourly Service':
+        units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
+        price = suggested_price
         return {'units': units, 'price': price}
 
     elif unit_type == 'Hourly':
@@ -48,7 +58,12 @@ def calculate_quote_service_values(guests, hours, suggested_price, unit_type, se
         price = suggested_price
         return {'units': units, 'price': price}
     
-    elif guest_ratio and 'Rental' in service_type:
+    elif guest_ratio and service_type in ['Bar Rental', 'Cooler Rental']:
+        units = math.ceil(adults / guest_ratio)
+        price = suggested_price
+        return {'units': units, 'price': price}
+    
+    elif guest_ratio and service_type in ['Table Rental', 'Chair Rental']:
         units = math.ceil(guests / guest_ratio)
         price = suggested_price
         return {'units': units, 'price': price}

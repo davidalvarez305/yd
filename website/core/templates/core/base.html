@@ -16,7 +16,7 @@
 	</script>
 
 	<script>
-		gtag('config', '{{ google_ads_id }}/{{ google_ads_conversion_label }}', {
+		gtag('config', '{{ google_ads_id }}/{{ google_ads_call_conversion_label }}', {
 			'phone_conversion_number': '{{ phone_number }}',
 			'phone_conversion_css_class': 'phoneNumber'
 		});
@@ -366,13 +366,6 @@
 	};
 
 	window.addEventListener("load", () => handleConfirmationLogic());
-
-	// Temporary Phone Number Click Reporting
-	document.querySelectorAll('.phoneNumberCTA').forEach(number => {
-		number.addEventListener("click", () => {
-			fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
-		});
-	});
 </script>
 <!-- END JS Scripts -->
 
