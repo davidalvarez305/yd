@@ -76,6 +76,7 @@ class MessageCreateView(CRMCreateView):
             return self.alert(self.request, str(e), AlertStatus.INTERNAL_ERROR)
 
     def form_invalid(self, form):
+        logger.error("Invalid form.", exc_info=True)
         return self.alert(self.request, form.errors.as_text(), AlertStatus.BAD_REQUEST)
 
 @csrf_exempt
