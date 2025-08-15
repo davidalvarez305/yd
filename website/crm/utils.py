@@ -43,7 +43,7 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
         units = guests if service_type != 'Alcohol' else adults
         price = suggested_price
 
-        if service_type in ["Add On", "Alcohol"]:
+        if service_type in ("Add On", "Alcohol"):
             price *= (hours / BASELINE_HOURS)
 
         return {'units': units, 'price': price}
