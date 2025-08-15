@@ -534,15 +534,6 @@ class Message(models.Model):
     def audios(self):
         return self.media.filter(content_type__startswith="audio/")
     
-    def clean(self):
-        super().clean()
-        if not self.text.strip() and not self.media.exists():
-            raise ValidationError("Message must have text or at least one media file.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
 class MessageMedia(models.Model):
     message_media_id = models.AutoField(primary_key=True)
     message = models.ForeignKey(Message, related_name="media", on_delete=models.CASCADE)
