@@ -382,20 +382,18 @@ class LeadCreateView(BaseView, CreateView):
             with transaction.atomic():
                 lead = form.save()
 
-                lead_marketing = LeadMarketing()
-                lead_marketing.lead = lead
-                lead_marketing.save()
-
-                if not self.request.user.is_authenticated:
+                if self.request.user.is_authenticated:
+                    lead_marketing = LeadMarketing.objects.create(lead=lead)
+                else:
                     marketing_helper = MarketingHelper(self.request)
-                    lead_marketing.ip = marketing_helper.ip
-                    lead_marketing.external_id = marketing_helper.external_id
-                    lead_marketing.user_agent = marketing_helper.user_agent
-                    lead_marketing.ad = marketing_helper.ad
-
+                    lead_marketing = LeadMarketing.objects.create(
+                        lead=lead,
+                        ip=marketing_helper.ip,
+                        external_id=marketing_helper.external_id,
+                        user_agent=marketing_helper.user_agent,
+                        ad=marketing_helper.ad,
+                    )
                     marketing_helper.save_metadata(lead_marketing=lead_marketing)
-
-                    lead_marketing.save()
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
