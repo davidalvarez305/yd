@@ -213,28 +213,22 @@ class TwilioCallingService(CallingServiceInterface):
             raise ValueError('Missing context in request.')
 
         try:
-            recording_callback_url = TwilioWebhookCallbacks.get_full_url(
-                TwilioWebhookCallbacks.RECORDING.value
-            )
-            status_callback_url = TwilioWebhookCallbacks.get_full_url(
-                TwilioWebhookCallbacks.OUTBOUND_STATUS.value
-            )
+            recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
+            status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.OUTBOUND_STATUS.value)
 
             response = VoiceResponse()
-            
+
             dial = Dial(
                 caller_id=company_phone_number,
-            )
-
-            dial.number(
-                client_phone_number,
                 record='record-from-answer-dual',
+                recording_status_callback=recording_callback_url,
+                recording_status_callback_event="completed",
                 status_callback=status_callback_url,
                 status_callback_method='POST',
-                status_callback_event=TwilioWebhookEvents.outbound(),
-                recording_status_callback=recording_callback_url,
-                recording_status_callback_event="completed"
+                status_callback_event=TwilioWebhookEvents.outbound()
             )
+
+            dial.number(client_phone_number)
             response.append(dial)
 
             self.client.calls.create(

@@ -54,9 +54,9 @@ class AWSTranscriptionService:
 
         data = response.json()
 
-        raw_results = data.get("results", {})
+        results = data.get("results", {})
 
-        transcript_text = raw_results.get("transcripts", [{}])[0].get("transcript", "")
+        transcript_text = results.get("transcripts", [{}])[0].get("transcript", "")
 
         if not transcript_text:
             return
@@ -64,8 +64,8 @@ class AWSTranscriptionService:
         job = {
             "language": transcription_job.get("LanguageCode"),
             "transcript": transcript_text,
-            "items": raw_results.get("items", []),
-            "speaker_labels": raw_results.get("speaker_labels", {}),
+            "items": results.get("items", []),
+            "speaker_labels": results.get("speaker_labels", {}),
         }
 
         transcription.job = json.dumps(job)
