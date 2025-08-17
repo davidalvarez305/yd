@@ -254,8 +254,7 @@ class TwilioCallingService(CallingServiceInterface):
             if not valid:
                 return HttpResponse("Invalid Twilio signature.", status=403)
 
-        child_call_sid = request.POST.get('DialCallSid')
-        call_sid = child_call_sid if child_call_sid else request.POST.get("CallSid")
+        call_sid = request.POST.get("CallSid")
         call_status = request.POST.get("CallStatus")
         call_duration = int(request.POST.get("CallDuration", "0"))
         call_from = request.POST.get("From")
