@@ -4,6 +4,7 @@ from core.models import CallTracking, CallTrackingNumber, EventRole, FacebookAcc
 admin.site.register(CallTracking)
 admin.site.register(CallTrackingNumber)
 
+admin.site.register(Lead)
 admin.site.register(LeadStatus)
 admin.site.register(LeadInterest)
 
