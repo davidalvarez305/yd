@@ -28,7 +28,6 @@ class Command(BaseCommand):
         remote_db_port = env.get("REMOTE_DB_PORT")
         remote_db_password = env.get("REMOTE_DB_PASSWORD")
 
-        # 🔹 Prepare pg_dump command
         dump_cmd = f'PGPASSWORD="{remote_db_password}" pg_dump -h localhost -U {remote_db_user} -d {remote_db_name} -p {remote_db_port} > {remote_sql_path}'
 
         ssh = paramiko.SSHClient()
