@@ -9,6 +9,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import OuterRef, Subquery, Q, F, QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.db import transaction
 
 from website import settings
 from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, StoreItem, Visit
@@ -23,7 +24,7 @@ from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
 from website.settings import ARCHIVED_LEAD_STATUS_ID
-from crm.utils import convert_to_item_quantity, update_quote_invoices
+from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
 
 class CRMContextMixin:
@@ -1025,11 +1026,73 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
 
     def form_valid(self, form):
         try:
-            form.save()
             lead = form.cleaned_data.get('lead')
+            adults = form.cleaned_data.get('adults')
+            minors = form.cleaned_data.get('minors')
+            hours = form.cleaned_data.get('hours')
+            event_date = form.cleaned_data.get('event_date')
+            presets = form.cleaned_data.get('presets')
 
-            if not lead:
-                raise ValueError('Lead not found.')
+            text_messages = []
+
+            with transaction.atomic():
+                for preset in presets:
+                    quote_services = []
+                    quote = Quote(
+                        lead=lead,
+                        adults=adults,
+                        minors=minors,
+                        hours=hours,
+                        event_date=event_date,
+                    )
+                    quote.save()
+                    for service in preset.services.all():
+                        values = calculate_quote_service_values(
+                            adults=adults,
+                            minors=minors,
+                            hours=hours,
+                            suggested_price=service.suggested_price,
+                            service_type=service.service_type.type,
+                            guest_ratio=service.guest_ratio,
+                            unit_type=service.unit_type.type,
+                        )
+                        quote_services.append(
+                            QuoteService(
+                                service=service,
+                                quote=quote,
+                                units=values.get('units'),
+                                price_per_unit=values.get('price'),
+                            )
+                        )
+                    QuoteService.objects.bulk_create(quote_services)
+                    
+                    update_quote_invoices(quote=quote)
+                    
+                    text_messages.append({
+                        'message': preset.text_content,
+                        'external_id': str(quote.external_id)
+                    })
+
+                text_content = "\n\n".join(
+                    f"{t['message']}\n{settings.ROOT_DOMAIN}{reverse('external_quote_view', kwargs={'external_id': t['external_id']})}"
+                    for t in text_messages
+                )
+
+                if hasattr(self.request.user, 'phone_number'):
+                    message = Message(
+                        text=format_text_message(text_content),
+                        text_from=self.request.user.phone_number,
+                        text_to=lead.phone_number,
+                        is_inbound=False,
+                        status='Sent',
+                        is_read=True,
+                    )
+                    resp = messaging_service.send_text_message(message=message)
+                    message.external_id = resp.sid
+                    message.status = resp.status
+                    message.save()
+
+                lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)
 
             qs = Quote.objects.filter(lead=lead)
             table = QuoteTable(data=qs, request=self.request)
@@ -1038,13 +1101,6 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
         except Exception as e:
             logger.exception(str(e), exc_info=True)
             return self.alert(request=self.request, message='Error while creating quick quote.', status=AlertStatus.INTERNAL_ERROR)
-    
-    def form_invalid(self, form):
-        data = super().form_invalid(form)
-
-        print(form.errors)
-
-        return data
 
 class ExternalQuoteView(CRMContextMixin, DetailView):
     template_name = 'crm/external_quote_view.html'
@@ -1069,7 +1125,7 @@ class QuoteSendView(CRMBaseView, AlertMixin, FormView):
                 text_content = settings.COMPANY_NAME + ' QUOTE:\n' + settings.ROOT_DOMAIN + reverse('external_quote_view', kwargs={ 'external_id': quote.external_id })
                 message = Message(
                         text=format_text_message(text_content),
-                        text_from=settings.COMPANY_PHONE_NUMBER,
+                        text_from=request.user.phone_number,
                         text_to=quote.lead.phone_number,
                         is_inbound=False,
                         status='sent',

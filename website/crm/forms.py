@@ -1,14 +1,11 @@
 from django import forms
-from django.urls import reverse
 
 from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, Lead, LeadMarketingMetadata, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect
 from core.models import LeadMarketing, Cocktail, Event
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple, ContainedCheckboxSelectMultiple
-from core.messaging import messaging_service
-from website import settings
-from core.utils import format_text_message, normalize_phone_number
+from core.utils import normalize_phone_number
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -474,78 +471,6 @@ class QuickQuoteForm(BaseModelForm):
             raise forms.ValidationError("You must select at least one preset.")
         return presets
     
-    def save(self):
-        try:
-            lead = self.cleaned_data.get('lead')
-            adults = self.cleaned_data.get('adults')
-            minors = self.cleaned_data.get('minors')
-            hours = self.cleaned_data.get('hours')
-            event_date = self.cleaned_data.get('event_date')
-
-            text_messages = []
-
-            presets = self.cleaned_data.get('presets')
-            for preset in presets:
-                quote_services = []
-                quote = Quote(
-                    lead=lead,
-                    adults=adults,
-                    minors=minors,
-                    hours=hours,
-                    event_date=event_date,
-                )
-                quote.save()
-                services = preset.services.all()
-                for service in services:
-                    values = calculate_quote_service_values(
-                        adults=adults,
-                        minors=minors,
-                        hours=hours,
-                        suggested_price=service.suggested_price,
-                        service_type=service.service_type.type,
-                        guest_ratio=service.guest_ratio,
-                        unit_type=service.unit_type.type,
-                    )
-                    quote_service = QuoteService(
-                        service = service,
-                        quote = quote,
-                        units = values.get('units'),
-                        price_per_unit = values.get('price'),
-                    )
-                    quote_services.append(quote_service)
-                QuoteService.objects.bulk_create(quote_services)
-                text_messages.append({ 'message': preset.text_content, 'external_id': str(quote.external_id) })
-                update_quote_invoices(quote=quote)
-
-            text_content = ''
-            for i, text in enumerate(text_messages):
-                preset_content = text.get('message')
-                external_id = text.get('external_id')
-                path = reverse(viewname='external_quote_view', kwargs={'external_id': external_id})
-
-                text_content += f"{preset_content}\n{settings.ROOT_DOMAIN}{path}"
-
-                if i < len(text_messages) - 1:
-                    text_content += "\n\n"
-
-            message = Message(
-                text=format_text_message(text_content),
-                text_from=settings.COMPANY_PHONE_NUMBER,
-                text_to=lead.phone_number,
-                is_inbound=False,
-                status='Sent',
-                is_read=True,
-            )
-            resp = messaging_service.send_text_message(message=message)
-            message.external_id = resp.sid
-            message.status = resp.status
-            message.save()
-
-            lead.change_lead_status(LeadStatusEnum.INVOICE_SENT)
-        except Exception as e:
-            print(f'ERROR: {e}')
-            raise Exception('Error saving quick quote form.')
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
