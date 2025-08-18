@@ -51,7 +51,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
-
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'LEAD_CREATED'
     INVOICE_SENT = 'INVOICE_SENT'

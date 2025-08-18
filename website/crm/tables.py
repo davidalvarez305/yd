@@ -126,7 +126,7 @@ class PhoneCallTable(Table):
         extra_fields = ['view']
         pk = 'phone_call_id'
         detail_url = 'phonecall_detail'
-        exclude = ['external_id', 'phone_call_id', 'recording_url']
+        exclude = ['external_id', 'phone_call_id', 'recording_url', 'parent_id']
 
 class MessageTable(Table):
     date_created = TableField(
