@@ -33,6 +33,13 @@ class MarketingHelper:
         params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
         return params
     
+    def add_metadata_from_list(self, data = []):
+        metadata = {}
+        for entry in data:
+            metadata[entry.get('key')] = entry.get('value')
+
+        self.metadata = metadata
+
     def create_marketing_data(self):
         return {
             'ip': self.ip,
@@ -151,36 +158,24 @@ def get_facebook_form_values(form_values, should_parse_datetime):
 
     data = {}
 
-    field_data = form_values.get('field_data', [])
-    if not isinstance(field_data, list):
-        raise TypeError('Field data is not a list.')
+    for key, aliases in FIELD_MAP.items():
+        if key in data:
+            continue
 
-    for key in FIELD_MAP:
-        if key in form_values:
-            data[key] = form_values[key]
-
-    for key, possible_names in FIELD_MAP.items():
-        if key not in data:
-            value = get_field_value(field_data, possible_names)
-            if value:
-                if key == 'phone_number':
-                    data[key] = normalize_phone_number(value)
-                elif key == 'created_time' and should_parse_datetime:
-                    data[key] = parse_datetime(value)
-                else:
-                    data[key] = value
+        for form_key, form_value in form_values.items():
+            for alias in aliases:
+                if alias.lower() in form_key.lower() and form_value not in (None, ''):
+                    if key == 'phone_number':
+                        data[key] = normalize_phone_number(form_value)
+                    elif key == 'created_time' and should_parse_datetime:
+                        data[key] = parse_datetime(form_value)
+                    else:
+                        data[key] = form_value
+                    break
+            if key in data:
+                break
 
     return data
-
-
-def get_field_value(field_data, possible_names):
-    for field in field_data:
-        field_name = field.get('name', '')
-        if any(name in field_name for name in possible_names):
-            values = field.get('values')
-            if values:
-                return values[0]
-    return None
 
 def parse_datetime(value):
         if not value:

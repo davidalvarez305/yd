@@ -148,11 +148,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             raise Exception('Error during request.')
 
         data = response.json()
-        expires_in = data.get('expires_in')
 
-        if not data.get('access_token') or not isinstance(expires_in, int):
-            raise ValueError('Invalid response.')
-        
         token = FacebookAccessToken(
             access_token=data.get('access_token'),
             date_expires=get_facebook_token_expiry_date(),

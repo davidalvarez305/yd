@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadStatusEnum
+from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadMarketingMetadata, LeadStatusEnum
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.facebook.api import FacebookAPIService
@@ -67,7 +67,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(
-                        phone_number=normalize_phone_number(data.get('phone_number')),
+                        phone_number=data.get('phone_number'),
                         defaults={ 
                             'full_name': data.get('full_name'),
                             'message': data.get('message'),
@@ -80,9 +80,6 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                             instant_form_lead_id=entry.get('leadgen_id'),
                             defaults={
                                 'lead': lead,
-                                'source': data.get('platform'),
-                                'medium': 'paid',
-                                'channel': 'social',
                                 'instant_form_id': data.get('form_id'),
                             }
                         )
@@ -109,8 +106,32 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                                     'ad_group': ad_group,
                                 }
                             )
+                            
                             marketing.ad = ad
                             marketing.save()
+
+                        metadata = [
+                            {
+                                'key': 'source',
+                                'value': data.get('platform'),
+                            },
+                            {
+                                'key': 'medium',
+                                'value': 'paid',
+                            },
+                            {
+                                'key': 'channel',
+                                'value': 'social',
+                            }
+                        ]
+
+                        for data in metadata:
+                            entry = LeadMarketingMetadata(
+                                key=data.get('key'),
+                                value=data.get('value'),
+                                lead_marketing=marketing,
+                            )
+                            entry.save()
 
                         lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
                     elif lead.is_inactive():
