@@ -9,9 +9,7 @@ from django.db import transaction
 from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadMarketingMetadata, LeadStatusEnum
 from marketing.enums import ConversionServiceType
 from website import settings
-from core.facebook.api import FacebookAPIService
-from core.utils import normalize_phone_number
-from marketing.utils import get_facebook_form_values
+from core.facebook.api import facebook_api_service
 
 @csrf_exempt
 def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
@@ -59,11 +57,12 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                             'created_time': value.get('created_time'),
                         })
 
-            facebook_api_service = FacebookAPIService()
-
             for entry in entries:
-                form_values = facebook_api_service.get_lead_data(lead=entry)
-                data = get_facebook_form_values(form_values=form_values, should_parse_datetime=True)
+                data = facebook_api_service.get_lead_data(lead=entry)
+
+                # Skip malformatted phone numbers without throwing errors.
+                if not data.get('phone_number'):
+                    continue
 
                 with transaction.atomic():
                     lead, created = Lead.objects.get_or_create(

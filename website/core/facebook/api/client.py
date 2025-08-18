@@ -4,7 +4,8 @@ from core.facebook.api.base import FacebookAPIServiceInterface
 from core.models import FacebookAccessToken
 from core.logger import logger
 from website import settings
-from core.utils import get_facebook_token_expiry_date
+from core.utils import get_facebook_token_expiry_date, normalize_phone_number
+from marketing.utils import parse_datetime
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str):
@@ -15,48 +16,34 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
     def get_lead_data(self, lead):
         try:
-            leadgen_id = lead.get('leadgen_id')
-
+            leadgen_id = lead.get("leadgen_id")
             if not leadgen_id:
-                raise ValueError('leadgen_id cannot be missing from entry.')
-            
+                raise ValueError("leadgen_id cannot be missing from entry.")
+
             if self.page_access_token.refresh_needed:
                 self._refresh_access_token()
 
-            url = f'https://graph.facebook.com/{self.api_version}/{leadgen_id}'
+            url = f"https://graph.facebook.com/{self.api_version}/{leadgen_id}"
             params = {
-                'access_token': self.page_access_token.access_token,
-                'fields': 'campaign_id,ad_id,form_id,campaign_name,field_data,adset_id,adset_name,created_time,is_organic,ad_name,platform'
+                "access_token": self.page_access_token.access_token,
+                "fields": "campaign_id,ad_id,form_id,campaign_name,field_data,"
+                        "adset_id,adset_name,created_time,is_organic,ad_name,platform"
             }
 
             response = requests.get(url, params=params, timeout=20)
             response.raise_for_status()
-            if response.status_code != 200:
-                logger.error(e, exc_info=True)
-                raise Exception(f'Failed to retrieve Facebook lead.')
-
             data = response.json()
-            fields = data.get('field_data')
-            
-            if not fields:
-                raise Exception('Incorrectly formatted response: missing field_data.')
+
+            if not data.get("field_data"):
+                raise Exception("Incorrectly formatted response: missing field_data.")
 
             entry = lead.copy()
-
-            for field in fields:
-                name = field.get('name')
-                value = field.get('values', [None])[0]
-                if name and value and not entry.get(name):
-                    entry[name] = value
-
-            for key in ['campaign_id', 'campaign_name', 'ad_id', 'ad_name', 'form_id', 'adset_id', 'adset_name', 'created_time', 'is_organic', 'platform']:
-                if key in data:
-                    entry[key] = data[key]
+            entry = self._normalize_field_data(entry, data)
 
             return entry
         except Exception as e:
             logger.error(e, exc_info=True)
-            raise Exception('Error while getting lead data from Facebook.')
+            raise Exception("Error while getting lead data from Facebook.")
     
     def get_ig_followers(self):
         try:
@@ -156,3 +143,68 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         token.save()
 
         self.page_access_token = token
+
+    def _normalize_field_name(self, field_name):
+        FIELD_MAP = {
+            'full_name': ['full_name', 'nombre_completo', 'name'],
+            'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
+            'phone_number': ['phone_number', 'telefono'],
+            'email': ['email'],
+            'city': ['city', 'ciudad'],
+            'platform': ['platform'],
+            'form_id': ['form_id'],
+            'is_organic': ['is_organic'],
+            'campaign_id': ['campaign_id'],
+            'campaign_name': ['campaign_name'],
+            'adset_id': ['adset_id'],
+            'adset_name': ['adset_name'],
+            'ad_id': ['ad_id'],
+            'ad_name': ['ad_name'],
+            'created_time': ['created_time'],
+        }
+
+        for key, aliases in FIELD_MAP.items():
+            for alias in aliases:
+                if alias in field_name:
+                    return key
+    
+    def _normalize_field_data(self, lead: dict, data: dict) -> dict:
+        fields = data.get("field_data", [])
+
+        for field in fields:
+            field_name = self._normalize_field_name(field.get("name"))
+            value = field.get("values", [None])[0]
+
+            if field_name and value and not lead.get(field_name):
+                if field_name == "phone_number":
+                    lead.update({
+                        'phone_number': normalize_phone_number(value)
+                    })
+                else:
+                    lead.update({
+                        field_name: value
+                    })
+
+        for key in [
+            "campaign_id",
+            "campaign_name",
+            "ad_id",
+            "ad_name",
+            "form_id",
+            "adset_id",
+            "adset_name",
+            "created_time",
+            "is_organic",
+            "platform",
+        ]:
+            if key in data:
+                if key == 'created_time':
+                    lead.update({
+                        'created_time': parse_datetime(data[key])
+                    })
+                else:
+                    lead.update({
+                        key: data[key]
+                    })
+
+        return lead

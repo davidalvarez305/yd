@@ -137,46 +137,6 @@ def is_paid_traffic(request: HttpRequest) -> bool:
 
     return False
 
-def get_facebook_form_values(form_values, should_parse_datetime):
-    FIELD_MAP = {
-        'full_name': ['full_name', 'nombre_completo', 'name'],
-        'message': ['message', 'services', 'city', 'brief_description', 'ciudad'],
-        'phone_number': ['phone_number', 'telefono'],
-        'email': ['email'],
-        'city': ['city', 'ciudad'],
-        'platform': ['platform'],
-        'form_id': ['form_id'],
-        'is_organic': ['is_organic'],
-        'campaign_id': ['campaign_id'],
-        'campaign_name': ['campaign_name'],
-        'adset_id': ['adset_id'],
-        'adset_name': ['adset_name'],
-        'ad_id': ['ad_id'],
-        'ad_name': ['ad_name'],
-        'created_time': ['created_time'],
-    }
-
-    data = {}
-
-    for key, aliases in FIELD_MAP.items():
-        if key in data:
-            continue
-
-        for form_key, form_value in form_values.items():
-            for alias in aliases:
-                if alias.lower() in form_key.lower() and form_value not in (None, ''):
-                    if key == 'phone_number':
-                        data[key] = normalize_phone_number(form_value)
-                    elif key == 'created_time' and should_parse_datetime:
-                        data[key] = parse_datetime(form_value)
-                    else:
-                        data[key] = form_value
-                    break
-            if key in data:
-                break
-
-    return data
-
 def parse_datetime(value):
         if not value:
             return None
