@@ -3,6 +3,7 @@ import uuid
 
 from django.http import HttpResponse
 from django.core.files import File
+from django.db.models import Q
 
 from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.request_validator import RequestValidator
@@ -163,7 +164,11 @@ class TwilioCallingService(CallingServiceInterface):
         recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{self.account_sid}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
 
         try:
-            phone_call = PhoneCall.objects.get(external_id=call_sid)
+            phone_call = PhoneCall.objects.filter(Q(external_id=call_sid) | Q(parent_id=call_sid)).first()
+
+            if not phone_call:
+                return HttpResponse("Failed to find phone call.", status=500)
+
             phone_call.recording_url = recording_url
             phone_call.save()
 
@@ -258,6 +263,7 @@ class TwilioCallingService(CallingServiceInterface):
                 return HttpResponse("Invalid Twilio signature.", status=403)
 
         call_sid = request.POST.get("CallSid")
+        parent_sid = request.POST.get("ParentCallSid")
         call_status = request.POST.get("CallStatus")
         call_duration = int(request.POST.get("CallDuration", "0"))
         call_from = request.POST.get("From")
@@ -274,6 +280,7 @@ class TwilioCallingService(CallingServiceInterface):
                 "call_duration": call_duration,
                 "is_inbound": False,
                 "status": call_status,
+                "parent_id": parent_sid,
             }
         )
 

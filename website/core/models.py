@@ -553,6 +553,7 @@ class MessageMedia(models.Model):
 class PhoneCall(models.Model):
     phone_call_id = models.AutoField(primary_key=True)
     external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
+    parent_id = models.CharField(unique=True, null=True, db_index=True, max_length=255)
     call_duration = models.IntegerField()
     date_created = models.DateTimeField(default=timezone.now)
     call_from = models.CharField(max_length=15)
