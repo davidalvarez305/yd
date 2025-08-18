@@ -222,13 +222,16 @@ class TwilioCallingService(CallingServiceInterface):
                 caller_id=company_phone_number,
                 record='record-from-answer-dual',
                 recording_status_callback=recording_callback_url,
-                recording_status_callback_event="completed",
+                recording_status_callback_event="completed"
+            )
+
+            dial.number(
+                client_phone_number,
                 status_callback=status_callback_url,
                 status_callback_method='POST',
                 status_callback_event=TwilioWebhookEvents.outbound()
             )
 
-            dial.number(client_phone_number)
             response.append(dial)
 
             self.client.calls.create(
