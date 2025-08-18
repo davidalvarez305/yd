@@ -161,47 +161,13 @@ class TwilioCallingService(CallingServiceInterface):
         if not call_sid or not recording_sid:
             return HttpResponse("Missing CallSid or RecordingSid", status=400)
 
-        recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{self.account_sid}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
-
         try:
-            phone_call = PhoneCall.objects.filter(Q(external_id=call_sid) | Q(parent_id=call_sid)).first()
-
-            if not phone_call:
-                return HttpResponse("Failed to find phone call.", status=500)
-
-            phone_call.recording_url = recording_url
-            phone_call.save()
-
-            if phone_call.status != "completed" or phone_call.call_duration < 30:
-                return HttpResponse("Success!", status=200)
-
-            job_name = str(uuid.uuid4())
-            audio_filename = job_name + ".mp3"
-
-            local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
-
-            download_file_from_twilio(phone_call.recording_url, local_audio_path)
-
-            with open(local_audio_path, 'rb') as audio:
-                transcription = PhoneCallTranscription(
-                    phone_call=phone_call,
-                    external_id=job_name,
-                    audio=File(audio, name=audio_filename)
-                )
-                transcription.save()
-
-            self.transcription_service.transcribe_audio(transcription=transcription)
-
-            self._delete_call_recording(recording_sid)
-        
+            self.download_call_recording(recording_sid=recording_sid, call_sid=call_sid)
+            
             return HttpResponse("Success!", status=200)
-
         except Exception as e:
             logger.exception(str(e), exc_info=True)
             return HttpResponse("Internal server error", status=500)
-        
-        finally:
-            cleanup_dir_files(settings.UPLOADS_URL)
     
     def _delete_call_recording(self, recording_sid: str) -> None:
         try:
@@ -365,14 +331,8 @@ class TwilioCallingService(CallingServiceInterface):
         results = []
 
         for call in calls:
-            recordings = []
-            recording_list = self.client.calls(call.sid).recordings.list()
-
-            for recording in recording_list:
-                recordings.append({
-                    "url": f"https://api.twilio.com{recording.uri.replace('.json', '')}",
-                    "content_type": getattr(recording, 'content_type', 'audio/mpeg')
-                })
+            recordings = self.client.calls(call.sid).recordings.list()
+            recording = recordings[0] if recordings else None
 
             results.append({
                 "sid": call.sid,
@@ -385,7 +345,42 @@ class TwilioCallingService(CallingServiceInterface):
                 "end_time": str_to_datetime(call.end_time) if call.end_time else None,
                 "date_created": str_to_datetime(call.date_created) if call.date_created else None,
                 "date_updated": str_to_datetime(call.date_updated) if call.date_updated else None,
-                "call_recordings": recordings,
+                "recording": recording,
             })
 
         return results
+    
+    def download_call_recording(self, recording_sid: str, call_sid: str):
+        recording_url = f"https://api.twilio.com/2010-04-01/Accounts/{self.account_sid}/Recordings/{recording_sid}.mp3?RequestedChannels=2"
+        
+        phone_call = PhoneCall.objects.filter(Q(external_id=call_sid) | Q(parent_id=call_sid)).first()
+        if not phone_call:
+            raise ValueError(f"PhoneCall not found for CallSid {call_sid}")
+
+        phone_call.recording_url = recording_url
+        phone_call.save()
+
+        if phone_call.status != "completed" or phone_call.call_duration < 30:
+            return None
+
+        job_name = str(uuid.uuid4())
+        audio_filename = job_name + ".mp3"
+        local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
+
+        download_file_from_twilio(recording_url, local_audio_path)
+
+        try:
+            with open(local_audio_path, 'rb') as audio_file:
+                transcription = PhoneCallTranscription(
+                    phone_call=phone_call,
+                    external_id=job_name,
+                    audio=File(audio_file, name=audio_filename)
+                )
+                transcription.save()
+
+            self.transcription_service.transcribe_audio(transcription=transcription)
+
+            self._delete_call_recording(recording_sid)
+        
+        finally:
+            cleanup_dir_files(settings.UPLOADS_URL)
