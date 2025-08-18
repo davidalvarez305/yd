@@ -44,6 +44,10 @@ class Command(BaseCommand):
                         },
                     )
 
+                    if not created:
+                        phone_call.date_created = call.get("date_created")
+                        phone_call.save()
+
                     transcriptions = PhoneCallTranscription.objects.filter(phone_call=phone_call)
                     if transcriptions.count() == 0 and recording and phone_call.duration > 30:
                         calling_service.download_call_recording(recording.sid, phone_call.external_id)
@@ -62,7 +66,7 @@ class Command(BaseCommand):
                             continue
 
                         recording = call.get('recording')
-                        child_call, _ = PhoneCall.objects.get_or_create(
+                        child_call, child_created = PhoneCall.objects.get_or_create(
                             external_id=call.get("sid"),
                             defaults={
                                 "call_from": call.get("from"),
@@ -73,6 +77,10 @@ class Command(BaseCommand):
                                 "date_created": call.get("date_created"),
                             },
                         )
+
+                        if not child_created:
+                            child_call.date_created = call.get("date_created")
+                            child_call.save()
 
                         transcriptions = PhoneCallTranscription.objects.filter(phone_call=child_call)
                         if transcriptions.count() == 0 and recording and child_call.duration > 30:
