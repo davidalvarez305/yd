@@ -69,7 +69,7 @@ class StripeBillingService(BillingServiceInterface):
                 lead=invoice.quote.lead,
                 date_paid=now,
                 amount=invoice.quote.amount(),
-                guests=invoice.quote.guests,
+                guests=invoice.quote.adults + invoice.quote.minors,
             )
             event.save()
             
