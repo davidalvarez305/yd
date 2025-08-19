@@ -13,6 +13,7 @@ from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
 from core.enums import AlertStatus
 from core.utils import default_alert_handler
+from core.logger import logger
 
 class StripeBillingService(BillingServiceInterface):
     def __init__(self, api_key: str, webhook_secret: str):
@@ -44,6 +45,7 @@ class StripeBillingService(BillingServiceInterface):
             return HttpResponse(status=200)
 
         except Exception as e:
+            logger.exception(str(e), exc_info=True)
             return HttpResponse(status=500)
 
     def _handle_checkout_completed(self, session):
@@ -95,7 +97,9 @@ class StripeBillingService(BillingServiceInterface):
                     message.external_id = response.sid
                     message.save()
                 except Exception as e:
-                    return HttpResponse(status=500)
+                    logger.exception(str(e), exc_info=True)
+                    print(f"Failed to send message to {phone_number}: {e}")
+                    continue
 
         return HttpResponse(status=200)
 
@@ -152,6 +156,7 @@ class StripeBillingService(BillingServiceInterface):
 
         except Exception as e:
             print(f"Charge.updated processing failed: {e}")
+            logger.exception(str(e), exc_info=True)
             return HttpResponse(status=500)
 
         return HttpResponse(status=200)
