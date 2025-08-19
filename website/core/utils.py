@@ -3,6 +3,7 @@ import mimetypes
 import os
 import random
 import re
+import subprocess
 from urllib.parse import parse_qs, urlparse
 import uuid
 from pathlib import Path
@@ -321,3 +322,11 @@ def get_transcription_external_id_from_object_key(key: str) -> str:
         filename = os.path.basename(key)
         uuid_part = filename.rsplit('.', 1)[0]
         return uuid_part
+
+def run_cmd(cmd, env_vars=None):
+    env = os.environ.copy()
+    if env_vars:
+        env.update(env_vars)
+    result = subprocess.run(cmd, shell=True, env=env)
+    if result.returncode != 0:
+        raise Exception(f"Command failed: {cmd}")
