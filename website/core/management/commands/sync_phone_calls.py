@@ -32,7 +32,7 @@ class Command(BaseCommand):
 
                 if is_inbound:
                     recording = call.get('recording')
-                    phone_call, created = PhoneCall.objects.get_or_create(
+                    phone_call, created = PhoneCall.objects.update_or_create(
                         external_id=call.get("sid"),
                         defaults={
                             "call_from": call.get("from"),
