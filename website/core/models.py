@@ -484,7 +484,7 @@ class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
     external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
     text = models.TextField(null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(default=timezone.now)
     text_from = models.CharField(max_length=15)
     text_to = models.CharField(max_length=15)
     is_inbound = models.BooleanField(default=False)
