@@ -14,3 +14,4 @@ class Command(BaseCommand):
             message = Message.objects.filter(external_id=sid).first()
             if message:
                 message.date_created = msg.get('date_created')
+                message.save()
