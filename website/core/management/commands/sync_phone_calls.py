@@ -49,7 +49,7 @@ class Command(BaseCommand):
                         phone_call.save()
 
                     transcriptions = PhoneCallTranscription.objects.filter(phone_call=phone_call)
-                    if transcriptions.count() == 0 and recording and phone_call.duration > 30:
+                    if transcriptions.count() == 0 and recording and phone_call.call_duration > 30:
                         calling_service.download_call_recording(recording.sid, phone_call.external_id)
 
                 else:
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                             child_call.save()
 
                         transcriptions = PhoneCallTranscription.objects.filter(phone_call=child_call)
-                        if transcriptions.count() == 0 and recording and child_call.duration > 30:
+                        if transcriptions.count() == 0 and recording and child_call.call_duration > 30:
                             calling_service.download_call_recording(recording.sid, child_call.external_id)
 
             except Exception as e:
