@@ -66,7 +66,7 @@ class Command(BaseCommand):
                             continue
 
                         recording = call.get('recording')
-                        child_call, child_created = PhoneCall.objects.get_or_create(
+                        child_call, child_created = PhoneCall.objects.update_or_create(
                             external_id=call.get("sid"),
                             defaults={
                                 "call_from": call.get("from"),
