@@ -348,28 +348,30 @@
 		fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
 	}
 
-	const user = "{{ request.user.username|escapejs }}";
-
-	if (!user) {
-		window.onload = function() {
-			var startTime = Date.now();
-			
-			window.onbeforeunload = function() {
-				var endTime = Date.now();
-				
-				const data = new FormData();
-				data.set('visit_id', '{{ visit_id }}');
-				data.set('session_duration', (endTime - startTime) / 1000);
-				data.set('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-				const url = "{% url 'visit_update' pk=visit_id %}";
-				
-				navigator.sendBeacon(url, data);
-			};
-		};
-	}
-
 	window.addEventListener("load", () => handleConfirmationLogic());
+</script>
+<script>
+	window.addEventListener("load", () => {
+		let startTime = Date.now();
+		const user = "{{ request.user.username|escapejs }}";
+
+		document.addEventListener("visibilitychange", () => {
+			const shouldTrack = document.visibilityState === "hidden" && !user;
+
+			if (!shouldTrack) return;
+
+			var endTime = Date.now();
+				
+			const data = new FormData();
+			data.set('visit_id', '{{ visit_id }}');
+			data.set('session_duration', (endTime - startTime) / 1000);
+			data.set('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+			const url = "{% url 'visit_update' pk=visit_id %}";
+			
+			navigator.sendBeacon(url, data);
+		});
+	});
 </script>
 <!-- END JS Scripts -->
 
