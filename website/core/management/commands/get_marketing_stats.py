@@ -9,6 +9,10 @@ class Command(BaseCommand):
             cutoff_date = datetime(2025, 7, 28)
             
             events = Event.objects.filter(lead__created_at__gte=cutoff_date)
+
+            for event in events:
+                print('Lead: ', event.lead.full_name)
+                print('Amount: ', event.amount)
             
             total_revenue = events.aggregate(total_amount=Sum('amount'))
             
