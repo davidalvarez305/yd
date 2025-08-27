@@ -54,7 +54,7 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
         return {'units': units, 'price': price}
 
     elif unit_type == 'Hourly':
-        units = (math.ceil(guests / guest_ratio) * hours) if guest_ratio else hours
+        units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
         price = suggested_price
         return {'units': units, 'price': price}
     
