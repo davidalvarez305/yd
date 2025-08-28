@@ -1,4 +1,5 @@
 import json
+import random
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse
 from dateutil import parser
@@ -87,6 +88,8 @@ class MarketingHelper:
         ad_campaign_id = self.params.get('ad_campaign_id')
         ad_campaign_name = self.params.get('ad_campaign_name')
 
+        keyword = self.params.get('keyword')
+
         if not all([ad_id, ad_group_id, ad_campaign_id, self.platform_id]):
             return None
 
@@ -104,6 +107,14 @@ class MarketingHelper:
                 'ad_campaign': ad_campaign,
             }
         )
+
+        if keyword:
+            ad = Ad.objects.filter(name=keyword).first()
+            if ad:
+                return ad
+
+            ad_id = generate_random_big_int_id()
+            ad_name = keyword
 
         ad, _ = Ad.objects.get_or_create(
             ad_id=ad_id,
@@ -144,3 +155,6 @@ def parse_datetime(value):
             return parser.isoparse(value)
         except (ValueError, TypeError):
             return None
+
+def generate_random_big_int_id() -> int:
+    return random.randint(1, (2**63) - 1)
