@@ -370,7 +370,7 @@ class QuoteForm(BaseModelForm):
                 adults=instance.adults,
                 minors=instance.minors,
                 hours=instance.hours,
-                suggested_price=quote_service.price_per_unit,
+                suggested_price=quote_service.service.price_per_unit, # Use quote_service.service.price_per_unit in order to always use the 'default' price, not the current price
                 unit_type=quote_service.service.unit_type.type,
                 service_type=quote_service.service.service_type.type,
                 guest_ratio=quote_service.service.guest_ratio,
