@@ -1127,6 +1127,7 @@ class LandingPage(models.Model):
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
     is_default = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -1162,7 +1163,7 @@ class LandingPageConversion(models.Model):
     conversion_type = models.CharField(max_length=20, choices=CONVERSION_TYPE_CHOICES, default=FORM_SUBMISSION)
 
     def __str__(self):
-        return f"{self.lead.full_name} - {self.landing_page.name} ({self.date_created.strftime("%b, %d")})"
+        return f"{self.lead.full_name} - {self.landing_page.name} ({self.date_created.strftime('%b, %d')})"
 
 class Visit(models.Model):
     visit_id = models.AutoField(primary_key=True)

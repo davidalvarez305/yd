@@ -8,8 +8,6 @@ class MarketingParams(Enum):
     FacebookCookieClientID = '_fbp'
     FacebookCookieClickID = '_fbc'
 
-    CallTrackingNumberSessionValue = 'call_tracking_number'
-
     def __str__(self):
         return self.value
     
