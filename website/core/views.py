@@ -11,11 +11,11 @@ from django.core.files.storage import storages
 
 from website import settings
 
-from marketing.mixins import VisitTrackingMixin, CallTrackingMixin
+from marketing.mixins import LandingPageMixin, VisitTrackingMixin, CallTrackingMixin
 from marketing.utils import MarketingHelper
 from core.email import email_service
 from .logger import logger
-from .models import Event, GoogleReview, Invoice, Lead, LeadMarketing, LeadStatusEnum
+from .models import Event, GoogleReview, Invoice, LandingPage, Lead, LeadMarketing, LeadStatusEnum
 from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number, normalize_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -56,7 +56,7 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
         visit_id = self.request.session.get('visit_id')
         if external_id is None or visit_id is None:
             return HttpResponseServerError('Error retrieving external or visit ID.')
-        
+
         form = LeadForm()
 
         context.update({
@@ -79,9 +79,22 @@ class BaseWebsiteView(VisitTrackingMixin, CallTrackingMixin, BaseView):
 
         return context
 
-class HomeView(BaseWebsiteView):
+class HomeView(LandingPageMixin, BaseWebsiteView):
     template_name = "core/home2.html"
     page_title = f"Miami Mobile Bartending Services — {settings.COMPANY_NAME}"
+
+    def get_template_names(self):
+        default = [self.template_name]
+        landing_page_id = self.request.session.get("landing_page_id")
+
+        if not landing_page_id:
+            return default
+
+        landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+        if not landing_page:
+            return default
+
+        return [f"core/landing_pages/{landing_page.template_name}"]
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

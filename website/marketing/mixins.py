@@ -4,10 +4,11 @@ import uuid
 import random
 
 from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
 from django.utils.timezone import now, timedelta
 from django.utils.dateparse import parse_datetime
 
-from core.models import LeadMarketing, CallTrackingNumber, CallTracking, Visit
+from core.models import LandingPage, LeadMarketing, CallTrackingNumber, CallTracking, Visit
 from core.logger import logger
 from website import settings
 
@@ -102,3 +103,21 @@ class VisitTrackingMixin:
             request.session['visit_id'] = visit.visit_id
 
         return super().dispatch(request, *args, **kwargs)
+    
+class LandingPageMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if is_paid_traffic(request=request):
+            visit_id = request.session.get("visit_id")
+
+            if visit_id:
+                landing_page = self.get_random_landing_page()
+                if landing_page:
+                    request.session["landing_page_id"] = landing_page.pk
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_random_landing_page(self) -> LandingPage | None:
+        pages = list(LandingPage.objects.all())
+        if not pages:
+            return None
+        return random.choice(pages)

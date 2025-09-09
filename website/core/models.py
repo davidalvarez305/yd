@@ -844,23 +844,6 @@ class EventStaff(models.Model):
     class Meta:
         db_table = 'event_staff'
 
-class Visit(models.Model):
-    visit_id = models.AutoField(primary_key=True)
-    external_id = models.UUIDField(editable=False)
-    referrer = models.TextField(null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    url = models.TextField()
-    session_duration = models.FloatField(default=0.0)
-    
-    lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
-
-    def __str__(self):
-        return f"Visit {self.visit_id} - {self.url} from {self.referrer}"
-
-    class Meta:
-        db_table = 'visit'
-        ordering = ['-date_created']
-
 class IngredientCategory(models.Model):
     ingredient_category_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
@@ -1166,3 +1149,45 @@ class GoogleReview(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+class LandingPage(models.Model):
+    landing_page_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+    template_name = models.CharField(max_length=255, unique=True)
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+    
+    # When one page is marked as default, all other landing pages are set to False
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            LandingPage.objects.exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["is_default"],
+                condition=models.Q(is_default=True),
+                name="unique_default_landing_page",
+            )
+        ]
+
+class Visit(models.Model):
+    visit_id = models.AutoField(primary_key=True)
+    external_id = models.UUIDField(editable=False)
+    referrer = models.TextField(null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    url = models.TextField()
+    session_duration = models.FloatField(default=0.0)
+    
+    lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
+    landing_page = models.ForeignKey(LandingPage, null=True, on_delete=models.SET_NULL, related_name='visits')
+
+    def __str__(self):
+        return f"Visit {self.visit_id} - {self.url} from {self.referrer}"
+
+    class Meta:
+        db_table = 'visit'
+        ordering = ['-date_created']

@@ -158,3 +158,6 @@ def parse_datetime(value):
 
 def generate_random_big_int_id() -> int:
     return random.randint(1, (2**63) - 1)
+
+def random_selection(length: int) -> int:
+    return random.randint(0, length)
