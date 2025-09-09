@@ -15,7 +15,7 @@ from marketing.mixins import LandingPageMixin, VisitTrackingMixin, CallTrackingM
 from marketing.utils import MarketingHelper
 from core.email import email_service
 from .logger import logger
-from .models import Event, GoogleReview, Invoice, LandingPage, Lead, LeadMarketing, LeadStatusEnum
+from .models import Event, GoogleReview, Invoice, LandingPage, LandingPageConversion, Lead, LeadMarketing, LeadStatusEnum
 from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number, normalize_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus
@@ -407,6 +407,16 @@ class LeadCreateView(BaseView, CreateView):
                         ad=marketing_helper.ad,
                     )
                     marketing_helper.save_metadata(lead_marketing=lead_marketing)
+
+                    lp_pk = self.request.session.get("landing_page_id")
+                    if lp_pk:
+                        landing_page = LandingPage.objects.filter(pk=lp_pk).first()
+                        if landing_page:
+                            conversion = LandingPageConversion(
+                                lead=lead,
+                                landing_page=landing_page,
+                            )
+                            conversion.save()
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 

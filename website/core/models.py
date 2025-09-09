@@ -735,42 +735,14 @@ class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=15, unique=True)
     forward_phone_number = models.CharField(max_length=15)
-    date_expires = models.DateTimeField(default=timezone.now)
+    date_assigned = models.DateTimeField(auto_now_add=True)
+    landing_page = models.ForeignKey('LandingPage', on_delete=models.RESTRICT, related_name="tracking_numbers")
 
     def __str__(self):
         return self.phone_number
-    
-    def is_free(self):
-        return self.date_expires > timezone.now()
 
     class Meta:
         db_table = 'call_tracking_number'
-
-class CallTracking(models.Model):
-    call_tracking_id = models.AutoField(primary_key=True)
-    call_tracking_number = models.ForeignKey(
-        CallTrackingNumber,
-        on_delete=models.CASCADE,
-        db_column='call_tracking_number_id',
-        related_name='calls'
-    )
-    date_assigned = models.DateTimeField(auto_now_add=True)
-    date_expires = models.DateTimeField()
-    metadata = models.JSONField(null=True)
-    external_id = models.UUIDField(db_index=True, editable=False)
-
-    def __str__(self):
-        return str(self.call_tracking_number)
-    
-    def save(self, *args, **kwargs):
-        expiry = timezone.now() + timedelta(minutes=settings.CALL_TRACKING_EXPIRATION_LIMIT)
-        self.date_expires = expiry
-        self.call_tracking_number.date_expires = expiry
-        self.call_tracking_number.save()
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        db_table = 'call_tracking'
 
 class Cocktail(models.Model):
     cocktail_id = models.AutoField(primary_key=True)
@@ -1174,6 +1146,24 @@ class LandingPage(models.Model):
             )
         ]
 
+class LandingPageConversion(models.Model):
+    PHONE_CALL = "phone_call"
+    FORM_SUBMISSION = "form_submission"
+
+    CONVERSION_TYPE_CHOICES = [
+        (PHONE_CALL, "Phone Call"),
+        (FORM_SUBMISSION, "Form Submission"),
+    ]
+
+    landing_page_conversion_id = models.AutoField(primary_key=True)
+    landing_page = models.ForeignKey(LandingPage, on_delete=models.RESTRICT, related_name="conversions")
+    lead = models.ForeignKey(Lead, on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+    conversion_type = models.CharField(max_length=20, choices=CONVERSION_TYPE_CHOICES, default=FORM_SUBMISSION)
+
+    def __str__(self):
+        return f"{self.lead.full_name} - {self.landing_page.name} ({self.date_created.strftime("%b, %d")})"
+
 class Visit(models.Model):
     visit_id = models.AutoField(primary_key=True)
     external_id = models.UUIDField(editable=False)
@@ -1183,7 +1173,6 @@ class Visit(models.Model):
     session_duration = models.FloatField(default=0.0)
     
     lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
-    landing_page = models.ForeignKey(LandingPage, null=True, on_delete=models.SET_NULL, related_name='visits')
 
     def __str__(self):
         return f"Visit {self.visit_id} - {self.url} from {self.referrer}"

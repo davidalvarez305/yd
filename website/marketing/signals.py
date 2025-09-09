@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import CallTrackingNumber, Lead, LeadMarketingMetadata, LeadStatusHistory
+from core.models import CallTrackingNumber, LandingPageConversion, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
@@ -53,7 +53,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     This function is called when a lead status is saved.
     This function is used to report marketing funnel events.
     """
-    from core.models import LeadMarketing, LeadStatusEnum, PhoneCall, CallTracking
+    from core.models import LeadMarketing, LeadStatusEnum, CallTracking
     lead_marketing = LeadMarketing.objects.get(lead=instance)
 
     # Report Conversion Event
@@ -70,59 +70,6 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     if not event_name:
         return
 
-    # Assign lead marketing data if lead came from phone call and the lead was just created
-    if not lead_marketing.is_instant_form_lead() and lead_status.status == LeadStatusEnum.LEAD_CREATED:
-        tracking_numbers = CallTrackingNumber.objects.values_list('phone_number', flat=True)
-
-        first_call = (
-            instance.phone_calls()
-            .filter(call_to__in=tracking_numbers)
-            .order_by('date_created')
-            .first()
-        )
-
-        if first_call:
-            if first_call.is_inbound and first_call.date_created < instance.created_at:
-                    call_tracking_number = CallTrackingNumber.objects.filter(phone_number=first_call.call_to).first()
-                    if call_tracking_number:
-                        tracking_call = (
-                            CallTracking.objects
-                            .filter(
-                                call_tracking_number=call_tracking_number,
-                                date_assigned__lt=first_call.date_created,
-                                date_expires__gt=first_call.date_created,
-                            )
-                            .order_by('date_assigned')
-                            .first()
-                        )
-
-                        if tracking_call and tracking_call.metadata:
-                            marketing_data = tracking_call.metadata
-                            if isinstance(marketing_data, str):
-                                try:
-                                    marketing_data = json.loads(marketing_data)
-                                except json.JSONDecodeError:
-                                    marketing_data = {}
-
-                            if isinstance(marketing_data, dict):
-                                model_fields = {f.name for f in LeadMarketing._meta.fields}
-
-                                for key, value in marketing_data.items():
-                                    if key in model_fields:
-                                        setattr(lead_marketing, key, value)
-
-                                lead_marketing.save()
-                                
-                                metadata = json.loads(marketing_data.metadata)
-
-                                for key, value in metadata.items():
-                                    entry = LeadMarketingMetadata(
-                                        key=key,
-                                        value=value,
-                                        lead_marketing=lead_marketing,
-                                    )
-                                    entry.save()
-                                
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(instance, event_name, event)
 
@@ -135,3 +82,38 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         count = LeadStatusHistory.objects.filter(lead_status=lead_status, lead=instance).count()
         if count == 1:
             conversion_service.send_conversion(data=data)
+
+    # Assign lead marketing data if lead came from phone call and the lead was just created
+    if not lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_marketing.is_instant_form_lead():
+        return
+
+    tracking_numbers = CallTrackingNumber.objects.values_list('phone_number', flat=True)
+
+    first_call = (
+        instance.phone_calls()
+        .filter(call_to__in=tracking_numbers)
+        .order_by('date_created')
+        .first()
+    )
+
+    if not first_call:
+        return
+
+    if not first_call.is_inbound or not first_call.date_created < instance.created_at:
+        return
+
+    call_tracking_number = CallTrackingNumber.objects.filter(
+        phone_number=first_call.call_to,
+        date_assigned__lt=first_call.date_created
+    ).order_by('-date_assigned').first()
+
+    if not call_tracking_number:
+        return
+
+    conversion = LandingPageConversion(
+        lead=instance,
+        landing_page=call_tracking_number.landing_page,
+        conversion_type=LandingPageConversion.PHONE_CALL
+    )
+
+    conversion.save()
