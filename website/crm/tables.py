@@ -1,5 +1,5 @@
 from core.tables import Table, TableField, TableCellWidget
-from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LeadMarketingMetadata, Message, PhoneCall, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
+from core.models import CocktailIngredient, EventCocktail, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, Message, PhoneCall, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, User, Cocktail, Event, Visit
 from core.widgets import AudioWidget, DeleteButton, PriceCellWidget
 from core.utils import deep_getattr, safe_file_url, seconds_to_minutes
 
@@ -579,3 +579,38 @@ class LeadMarketingMetadataTable(Table):
         exclude = ['lead_marketing_metadata_id', 'lead_marketing', 'date_created']
         pk = 'lead_marketing_metadata_id'
         delete_url = 'leadmarketingmetadata_delete'
+
+class LandingPageTable(Table):
+    tracking_number = TableField(
+        label='Phone Number',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'tracking_number.phone_number', '')
+            }
+        )
+    )
+
+    leads = TableField(
+        label='Lead',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'conversions.count', '')
+            }
+        )
+    )
+
+    clicks = TableField(
+        label='Clicks',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: deep_getattr(row, 'visits.count', '')
+            }
+        )
+    )
+
+    class Meta:
+        model = LandingPage
+        extra_fields = ['delete']
+        exclude = ['landing_page_id']
+        pk = 'landing_page_id'
+        delete_url = 'landingpage_delete'

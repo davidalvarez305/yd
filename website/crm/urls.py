@@ -163,4 +163,11 @@ urlpatterns = [
     # Lead Marketing Metadata
     path('lead-marketing-metadata/create/', views.LeadMarketingMetadataCreateView.as_view(), name='leadmarketingmetadata_create'),
     path('lead-marketing-metadata/<int:pk>/delete/', views.LeadMarketingMetadataDeleteView.as_view(), name='leadmarketingmetadata_delete'),
+
+    # Landing Pages
+    path('landing-page/', views.LandingPageListView.as_view(), name='landingpage_list'),
+    path('landing-page/create/', views.LandingPageCreateView.as_view(), name='landingpage_create'),
+    path('landing-page/<int:pk>/', views.LandingPageDetailView.as_view(), name='landingpage_detail'),
+    path('landing-page/<int:pk>/edit/', views.LandingPageUpdateView.as_view(), name='landingpage_update'),
+    path('landing-page/<int:pk>/delete/', views.LandingPageDeleteView.as_view(), name='landingpage_delete'),
 ]

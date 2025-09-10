@@ -9,18 +9,26 @@ class VisitTrackingMixin:
         if not request.user.is_authenticated:
             referrer = request.META.get('HTTP_REFERER')
             url = request.build_absolute_uri()
+            landing_page = None
 
             external_id = request.session.get('external_id')
             if not external_id:
                 external_id = str(uuid.uuid4())
                 request.session['external_id'] = external_id
 
+            landing_page_id = request.session.get('landing_page_id')
+            
+            if landing_page_id:
+                landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
+
             visit = Visit.objects.create(
                 external_id=external_id,
                 referrer=referrer,
                 url=url,
                 lead_marketing=lead_marketing,
+                landing_page=landing_page,
             )
 
             request.session['visit_id'] = visit.visit_id
@@ -30,12 +38,9 @@ class VisitTrackingMixin:
 class LandingPageMixin:
     def dispatch(self, request, *args, **kwargs):
         if is_paid_traffic(request=request):
-            visit_id = request.session.get("visit_id")
-
-            if visit_id:
-                landing_page = self.get_random_landing_page()
-                if landing_page:
-                    request.session["landing_page_id"] = landing_page.pk
+            landing_page = self.get_random_landing_page()
+            if landing_page:
+                request.session["landing_page_id"] = landing_page.pk
 
         return super().dispatch(request, *args, **kwargs)
 

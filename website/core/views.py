@@ -1,4 +1,3 @@
-import uuid
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
 from django.utils import timezone
@@ -51,7 +50,7 @@ class BaseView(TemplateView):
 class BaseWebsiteView(VisitTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         external_id = self.request.session.get('external_id')
         visit_id = self.request.session.get('visit_id')
         if external_id is None or visit_id is None:
@@ -98,6 +97,13 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        lp_pk = self.request.session.get('landing_page_id')
+        if lp_pk:
+            landing_page = LandingPage.objects.filter(pk=lp_pk).first()
+            if landing_page:
+                context['phone_number'] = format_phone_number(phone_number=landing_page.tracking_number.phone_number)
+
         context['js_files'] += ['js/floatingHeader.js']
 
         media_storage = storages['media']

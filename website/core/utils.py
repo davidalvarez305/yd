@@ -102,16 +102,13 @@ def download_file_from_twilio(twilio_resource: str, local_file_path: str) -> Non
             logger.exception(str(e), exc_info=True)
             raise Exception(f"Failed to save file locally: {e}")
 
-def format_phone_number(phone_number: str) -> str:
-    """
-    Format a 10-digit US phone number into (XXX) XXX - XXXX format.
-    Returns the original string if not 10 digits.
-    """
-    digits = ''.join(filter(str.isdigit, phone_number))
-    
-    if len(digits) == 10:
-        return f"({digits[:3]}) {digits[3:6]} - {digits[6:]}"
-    
+def format_phone_number(phone_number: str, region: str = "US") -> str:
+    try:
+        p = phonenumbers.parse(phone_number, region)
+        if phonenumbers.is_valid_number(p):
+            return phonenumbers.format_number(p, phonenumbers.PhoneNumberFormat.NATIONAL)
+    except phonenumbers.NumberParseException:
+        pass
     return phone_number
 
 def get_first_field_error(form):

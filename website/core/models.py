@@ -736,7 +736,6 @@ class CallTrackingNumber(models.Model):
     phone_number = models.CharField(max_length=15, unique=True)
     forward_phone_number = models.CharField(max_length=15)
     date_assigned = models.DateTimeField(auto_now_add=True)
-    landing_page = models.ForeignKey('LandingPage', on_delete=models.RESTRICT, related_name="tracking_numbers")
 
     def __str__(self):
         return self.phone_number
@@ -1128,6 +1127,7 @@ class LandingPage(models.Model):
     template_name = models.CharField(max_length=255, unique=True)
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    tracking_number = models.ForeignKey(CallTrackingNumber, on_delete=models.RESTRICT, related_name="landing_pages", null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -1139,6 +1139,7 @@ class LandingPage(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        db_table = 'landing_page'
         constraints = [
             models.UniqueConstraint(
                 fields=["is_default"],
@@ -1164,6 +1165,9 @@ class LandingPageConversion(models.Model):
 
     def __str__(self):
         return f"{self.lead.full_name} - {self.landing_page.name} ({self.date_created.strftime('%b, %d')})"
+    
+    class Meta:
+        db_table = 'landing_page_conversion'
 
 class Visit(models.Model):
     visit_id = models.AutoField(primary_key=True)
@@ -1174,6 +1178,7 @@ class Visit(models.Model):
     session_duration = models.FloatField(default=0.0)
     
     lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
+    landing_page = models.ForeignKey(LandingPage, null=True, on_delete=models.RESTRICT, related_name='visits')
 
     def __str__(self):
         return f"Visit {self.visit_id} - {self.url} from {self.referrer}"
