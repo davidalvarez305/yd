@@ -414,9 +414,9 @@ class LeadCreateView(BaseView, CreateView):
                     )
                     marketing_helper.save_metadata(lead_marketing=lead_marketing)
 
-                    lp_pk = self.request.session.get("landing_page_id")
-                    if lp_pk:
-                        landing_page = LandingPage.objects.filter(pk=lp_pk).first()
+                    lp = self.request.session.get("landing_page_id")
+                    if lp:
+                        landing_page = LandingPage.objects.filter(pk=lp).first()
                         if landing_page:
                             conversion = LandingPageConversion(
                                 lead=lead,

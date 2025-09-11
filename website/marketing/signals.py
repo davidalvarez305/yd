@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 
 from core.conversions import conversion_service
-from core.models import CallTrackingNumber, LandingPageConversion, Lead, LeadStatusHistory
+from core.models import CallTrackingNumber, LandingPage, LandingPageConversion, Lead, LeadStatusHistory
 
 lead_status_changed = Signal()
 
@@ -91,15 +91,16 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
 
     first_call = (
         instance.phone_calls()
-        .filter(call_to__in=tracking_numbers)
+        .filter(
+            call_to__in=tracking_numbers,
+            is_inbound=True,
+            date_created__lt=instance.created_at,
+        )
         .order_by('date_created')
         .first()
     )
 
     if not first_call:
-        return
-
-    if not first_call.is_inbound or not first_call.date_created < instance.created_at:
         return
 
     call_tracking_number = CallTrackingNumber.objects.filter(
@@ -110,9 +111,11 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     if not call_tracking_number:
         return
 
+    landing_page = LandingPage.objects.filter(call_tracking_number=call_tracking_number).first()
+    
     conversion = LandingPageConversion(
         lead=instance,
-        landing_page=call_tracking_number.landing_page,
+        landing_page=landing_page,
         conversion_type=LandingPageConversion.PHONE_CALL
     )
 

@@ -16,10 +16,9 @@ class VisitTrackingMixin:
                 external_id = str(uuid.uuid4())
                 request.session['external_id'] = external_id
 
-            landing_page_id = request.session.get('landing_page_id')
-            
-            if landing_page_id:
-                landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+            lp = request.session.get('landing_page_id')
+            if lp:
+                landing_page = LandingPage.objects.filter(pk=lp).first()
 
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
 

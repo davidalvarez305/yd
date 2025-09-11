@@ -9,7 +9,7 @@ from core.utils import format_text_message
 
 @receiver(post_save, sender=Lead)
 def handle_new_lead_notification(sender, instance, created, **kwargs):
-    if not created:
+    if not created or settings.DEBUG:
         return
     
     users = User.objects.filter(is_superuser=True)
