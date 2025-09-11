@@ -608,6 +608,18 @@ class LandingPageTable(Table):
         )
     )
 
+    cvr = TableField(
+        label='Conv %',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    f"{(row.conversions.count() / row.visits.count() * 100):.2f}%"
+                    if row.visits.count() > 0 else "0%"
+                )
+            }
+        )
+    )
+
     class Meta:
         model = LandingPage
         extra_fields = ['view', 'delete']

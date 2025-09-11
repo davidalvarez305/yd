@@ -1124,7 +1124,6 @@ class LandingPage(models.Model):
     landing_page_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
-    is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
 
     def __str__(self):
@@ -1133,21 +1132,8 @@ class LandingPage(models.Model):
     def latest_tracking_number(self):
         return self.tracking_numbers.order_by('-date_assigned').first()
     
-    # When one page is marked as default, all other landing pages are set to False
-    def save(self, *args, **kwargs):
-        if self.is_default:
-            LandingPage.objects.exclude(pk=self.pk).update(is_default=False)
-        super().save(*args, **kwargs)
-
     class Meta:
         db_table = 'landing_page'
-        constraints = [
-            models.UniqueConstraint(
-                fields=["is_default"],
-                condition=models.Q(is_default=True),
-                name="unique_default_landing_page",
-            )
-        ]
 
 class LandingPageTrackingNumber(models.Model):
     landing_page_phone_number_id = models.AutoField(primary_key=True)
