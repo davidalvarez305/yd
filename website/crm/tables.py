@@ -610,7 +610,7 @@ class LandingPageTable(Table):
 
     class Meta:
         model = LandingPage
-        extra_fields = ['delete']
+        extra_fields = ['view', 'delete']
         exclude = ['landing_page_id']
         pk = 'landing_page_id'
         delete_url = 'landingpage_delete'

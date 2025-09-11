@@ -735,7 +735,6 @@ class CallTrackingNumber(models.Model):
     call_tracking_number_id = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=15, unique=True)
     forward_phone_number = models.CharField(max_length=15)
-    date_assigned = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.phone_number
