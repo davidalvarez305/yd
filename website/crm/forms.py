@@ -1,6 +1,6 @@
 from django import forms
 
-from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, Lead, LeadMarketingMetadata, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
+from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect
 from core.models import LeadMarketing, Cocktail, Event
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
@@ -524,6 +524,31 @@ class LeadMarketingMetadataForm(BaseModelForm):
         }
 
 class LandingPageForm(BaseModelForm):
+    call_tracking_number = forms.ModelChoiceField(
+        queryset=CallTrackingNumber.objects.all(),
+        required=True,
+        label="Tracking Number",
+    )
+
     class Meta:
         model = LandingPage
-        fields = ['name', 'template_name', 'is_default', 'is_active', 'tracking_number']
+        fields = ["name", "template_name", "is_default", "is_active", "call_tracking_number"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            latest = self.instance.tracking_numbers.order_by('-date_assigned').first()
+            if latest:
+                self.fields["call_tracking_number"].initial = latest.call_tracking_number
+        
+    def save(self, commit=True):
+        landing_page = super().save(commit)
+
+        call_tracking_number = self.cleaned_data.get("call_tracking_number")
+
+        LandingPageTrackingNumber.objects.create(
+            landing_page=landing_page,
+            call_tracking_number=call_tracking_number,
+        )
+
+        return landing_page

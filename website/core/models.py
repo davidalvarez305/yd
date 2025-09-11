@@ -1126,10 +1126,12 @@ class LandingPage(models.Model):
     template_name = models.CharField(max_length=255, unique=True)
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
-    tracking_number = models.ForeignKey(CallTrackingNumber, on_delete=models.RESTRICT, related_name="landing_pages", null=True, blank=True)
 
     def __str__(self):
         return self.name
+    
+    def latest_tracking_number(self):
+        return self.tracking_numbers.order_by('-date_assigned').first()
     
     # When one page is marked as default, all other landing pages are set to False
     def save(self, *args, **kwargs):
@@ -1146,6 +1148,18 @@ class LandingPage(models.Model):
                 name="unique_default_landing_page",
             )
         ]
+
+class LandingPageTrackingNumber(models.Model):
+    landing_page_phone_number_id = models.AutoField(primary_key=True)
+    landing_page = models.ForeignKey(LandingPage, on_delete=models.RESTRICT, related_name="tracking_numbers")
+    call_tracking_number = models.ForeignKey(CallTrackingNumber, on_delete=models.RESTRICT, related_name="tracking_numbers")
+    date_assigned = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.landing_page + " - " + self.call_tracking_number
+    
+    class Meta:
+        db_table = 'landing_page_tracking_number'
 
 class LandingPageConversion(models.Model):
     PHONE_CALL = "phone_call"

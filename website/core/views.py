@@ -98,11 +98,13 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        lp_pk = self.request.session.get('landing_page_id')
-        if lp_pk:
-            landing_page = LandingPage.objects.filter(pk=lp_pk).first()
+        lp = self.request.session.get('landing_page_id')
+        if lp:
+            landing_page = LandingPage.objects.filter(pk=lp).first()
             if landing_page:
-                context['phone_number'] = format_phone_number(phone_number=landing_page.tracking_number.phone_number)
+                call_tracking_number = landing_page.latest_tracking_number()
+                if call_tracking_number:
+                    context['phone_number'] = format_phone_number(phone_number=call_tracking_number.phone_number)
 
         context['js_files'] += ['js/floatingHeader.js']
 

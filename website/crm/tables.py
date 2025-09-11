@@ -585,7 +585,7 @@ class LandingPageTable(Table):
         label='Phone Number',
         cell_widget=TableCellWidget(
             data={
-                'value': lambda row: deep_getattr(row, 'tracking_number.phone_number', '')
+                'value': lambda row: deep_getattr(row, 'latest_tracking_number.call_tracking_number.phone_number', '')
             }
         )
     )
