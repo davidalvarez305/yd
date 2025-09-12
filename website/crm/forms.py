@@ -362,31 +362,26 @@ class QuoteForm(BaseModelForm):
         return cleaned_data
     
     def save(self, commit=True):
-        try:
-            is_new = self.instance.pk is None
-            instance = super().save(commit=commit)
+        is_new = self.instance.pk is None
+        instance = super().save(commit=commit)
 
-            quote_services = instance.quote_services.all()
-            for quote_service in quote_services:
-                data = calculate_quote_service_values(
-                    adults=instance.adults,
-                    minors=instance.minors,
-                    hours=instance.hours,
-                    suggested_price=quote_service.service.price_per_unit, # Use quote_service.service.price_per_unit in order to always use the 'default' price, not the current price
-                    unit_type=quote_service.service.unit_type.type,
-                    service_type=quote_service.service.service_type.type,
-                    guest_ratio=quote_service.service.guest_ratio,
-                )
-                quote_service.price_per_unit = data.get('price')
-                quote_service.units = data.get('units')
-                quote_service.save()
-            
-            if not is_new:
-                update_quote_invoices(quote=instance)
-
-        except Exception as e:
-            logger.exception(str(e), exc_info=True)
-            raise Exception(e)
+        quote_services = instance.quote_services.all()
+        for quote_service in quote_services:
+            data = calculate_quote_service_values(
+                adults=instance.adults,
+                minors=instance.minors,
+                hours=instance.hours,
+                suggested_price=quote_service.service.suggested_price, # Use quote_service.service.price_per_unit in order to always use the 'default' price, not the current price
+                unit_type=quote_service.service.unit_type.type,
+                service_type=quote_service.service.service_type.type,
+                guest_ratio=quote_service.service.guest_ratio,
+            )
+            quote_service.price_per_unit = data.get('price')
+            quote_service.units = data.get('units')
+            quote_service.save()
+        
+        if not is_new:
+            update_quote_invoices(quote=instance)
 
         return instance
 
