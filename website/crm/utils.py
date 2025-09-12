@@ -86,6 +86,7 @@ def update_quote_invoices(quote: Quote):
                 invoice.amount = amount_due * invoice.invoice_type.amount_percentage
                 invoice.save()
     except Exception as e:
+        print(f'Error editing quote: {e}')
         logger.exception(str(e))
         raise Exception('Error updating quote services.')
 
