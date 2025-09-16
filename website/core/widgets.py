@@ -6,27 +6,28 @@ from django.utils.html import format_html, escape
 from django.template.context_processors import csrf
 
 from core.mixins import ContextResolverMixin
-from website import settings
 from .utils import deep_getattr
 
 # Form Widgets
 class ToggleSwitchWidget(CheckboxInput):
     def __init__(self, attrs=None):
         default_attrs = {
-            'class': 'peer sr-only',
+            "class": "peer sr-only",
         }
         if attrs:
             default_attrs.update(attrs)
-        self.attrs = default_attrs
+        super().__init__(attrs=default_attrs)
 
     def render(self, name, value, attrs=None, renderer=None):
-        if attrs:
-            self.attrs.update(attrs)
+        final_attrs = self.build_attrs(self.attrs, attrs)
+        field_id = final_attrs.get("id", name)
+        message = final_attrs.pop("message", "")
 
-        field_id = self.attrs.get('id', name)
-        message = self.attrs.get('message', '')
+        checked = ""
+        if self.check_test(value):
+            checked = " checked"
 
-        checkbox = super().render(name, value, attrs, renderer)
+        checkbox = f'<input type="checkbox" name="{name}" id="{field_id}"{checked} class="peer sr-only">'
 
         html = f"""
         <label for="{field_id}" class="group relative inline-flex items-center gap-3">
@@ -40,11 +41,7 @@ class ToggleSwitchWidget(CheckboxInput):
         return mark_safe(html)
 
     def check_test(self, value):
-        """
-        Determine if the checkbox should be checked based on the value.
-        If value is True, the checkbox is checked; otherwise, it is unchecked.
-        """
-        return value is True or value == 'on'
+        return value is True or value == "on"
 
 class BoxedCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
     template_name = "components/boxed_checkbox_multiple_select_widget.html"

@@ -102,9 +102,9 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
         if lp:
             landing_page = LandingPage.objects.filter(pk=lp).first()
             if landing_page:
-                call_tracking_number = landing_page.latest_tracking_number()
-                if call_tracking_number:
-                    context['phone_number'] = format_phone_number(phone_number=call_tracking_number.phone_number)
+                landing_page_tracking_number = landing_page.latest_tracking_number()
+                if landing_page_tracking_number:
+                    context['phone_number'] = format_phone_number(phone_number=landing_page_tracking_number.call_tracking_number.phone_number)
 
         context['js_files'] += ['js/floatingHeader.js']
 
