@@ -9,27 +9,27 @@ class VisitTrackingMixin:
         if not request.user.is_authenticated:
             referrer = request.META.get('HTTP_REFERER')
             url = request.build_absolute_uri()
-            landing_page = None
 
             external_id = request.session.get('external_id')
             if not external_id:
                 external_id = str(uuid.uuid4())
                 request.session['external_id'] = external_id
 
-            lp = request.session.get('landing_page_id')
-
-            if lp:
-                landing_page = LandingPage.objects.filter(pk=lp).first()
-
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
 
-            visit = Visit.objects.create(
+            visit = Visit(
                 external_id=external_id,
                 referrer=referrer,
                 url=url,
                 lead_marketing=lead_marketing,
-                landing_page=landing_page,
             )
+
+            if not request.GET.get('test'):
+                lp = request.session.get('landing_page_id')
+                if lp:
+                    visit.landing_page = LandingPage.objects.filter(pk=lp).first()
+
+            visit.save()
 
             request.session['visit_id'] = visit.visit_id
 
