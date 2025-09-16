@@ -22,15 +22,17 @@ class VisitTrackingMixin:
 
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
 
-            visit = Visit.objects.create(
-                external_id=external_id,
-                referrer=referrer,
-                url=url,
-                lead_marketing=lead_marketing,
-                landing_page=landing_page,
-            )
+            # If 'test' param is found in querystring, do not insert visit
+            if not request.GET.get('test'):
+                visit = Visit.objects.create(
+                    external_id=external_id,
+                    referrer=referrer,
+                    url=url,
+                    lead_marketing=lead_marketing,
+                    landing_page=landing_page,
+                )
 
-            request.session['visit_id'] = visit.visit_id
+                request.session['visit_id'] = visit.visit_id
 
         return super().dispatch(request, *args, **kwargs)
     
