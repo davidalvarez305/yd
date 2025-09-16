@@ -6,7 +6,7 @@ from .utils import is_paid_traffic
 
 class VisitTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticated and not request.GET.get('test'):
             referrer = request.META.get('HTTP_REFERER')
             url = request.build_absolute_uri()
             landing_page = None
@@ -17,22 +17,21 @@ class VisitTrackingMixin:
                 request.session['external_id'] = external_id
 
             lp = request.session.get('landing_page_id')
+
             if lp:
                 landing_page = LandingPage.objects.filter(pk=lp).first()
 
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
 
-            # If 'test' param is found in querystring, do not insert visit
-            if not request.GET.get('test'):
-                visit = Visit.objects.create(
-                    external_id=external_id,
-                    referrer=referrer,
-                    url=url,
-                    lead_marketing=lead_marketing,
-                    landing_page=landing_page,
-                )
+            visit = Visit.objects.create(
+                external_id=external_id,
+                referrer=referrer,
+                url=url,
+                lead_marketing=lead_marketing,
+                landing_page=landing_page,
+            )
 
-                request.session['visit_id'] = visit.visit_id
+            request.session['visit_id'] = visit.visit_id
 
         return super().dispatch(request, *args, **kwargs)
     
