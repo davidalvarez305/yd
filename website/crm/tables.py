@@ -638,7 +638,7 @@ class LandingPageTable(Table):
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f"${row.visits.aggregate(Sum('lead_marketing__lead__value'))['lead_marketing__lead__value__sum'] or 0:.2f}"
+                    f"${sum(visit.lead_marketing.lead.value() for visit in row.visits.all()):.2f}"
                     if row.visits.exists() else "$0.00"
                 )
             }
