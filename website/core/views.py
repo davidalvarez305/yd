@@ -53,6 +53,8 @@ class BaseWebsiteView(VisitTrackingMixin, BaseView):
 
         external_id = self.request.session.get('external_id')
         visit_id = self.request.session.get('visit_id')
+        if external_id is None or visit_id is None:
+            return HttpResponseServerError('Error retrieving external or visit ID.')
 
         form = LeadForm()
 

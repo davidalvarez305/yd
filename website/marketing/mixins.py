@@ -6,7 +6,7 @@ from .utils import is_paid_traffic
 
 class VisitTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated and not request.GET.get('test'):
+        if not request.user.is_authenticated:
             referrer = request.META.get('HTTP_REFERER')
             url = request.build_absolute_uri()
             landing_page = None
