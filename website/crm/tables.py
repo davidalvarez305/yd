@@ -6,8 +6,9 @@ from core.utils import deep_getattr, safe_file_url, seconds_to_minutes
 from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Avg, Sum
 from django.utils.timezone import localtime, make_aware, get_current_timezone
+
+from statistics import median
 from datetime import datetime, time
 
 class CocktailTable(Table):
@@ -622,11 +623,11 @@ class LandingPageTable(Table):
     )
 
     duration = TableField(
-        label='AVG. Duration',
+        label='Median Duration',
         cell_widget=TableCellWidget(
             data={
                 'value': lambda row: (
-                    f"{row.visits.aggregate(Avg('session_duration'))['session_duration__avg']:.2f}s" 
+                    f"{median([visit.session_duration for visit in row.visits.all()]):.2f}s"
                     if row.visits.exists() else "0s"
                 )
             }
