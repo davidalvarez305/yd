@@ -354,11 +354,12 @@
 	window.addEventListener("load", () => {
 		let startTime = Date.now();
 		const user = "{{ request.user.username|escapejs }}";
+		const isTesting = new URLSearchParams(window.location.search).has('test');
 
 		document.addEventListener("visibilitychange", () => {
 			const shouldTrack = document.visibilityState === "hidden" && !user;
 
-			if (!shouldTrack) return;
+			if (!shouldTrack || isTesting) return;
 
 			var endTime = Date.now();
 				
