@@ -178,6 +178,7 @@ class Lead(models.Model):
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
 
+    @property
     def value(self, visited=None) -> float:
         if visited is None:
             visited = set()
