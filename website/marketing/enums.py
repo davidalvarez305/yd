@@ -3,6 +3,7 @@ from enum import Enum
 class MarketingParams(Enum):
     GoogleURLClickIDKeys = 'gclid', 'gbraid', 'wbraid'
     GoogleAnalyticsCookieClientID = '_ga'
+    GoogleSearchCookieClickID = '_gcl_aw'
 
     FacebookURLClickID = 'fbclid'
     FacebookCookieClientID = '_fbp'

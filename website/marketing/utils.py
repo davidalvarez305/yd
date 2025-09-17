@@ -145,6 +145,15 @@ def is_paid_traffic(request: HttpRequest) -> bool:
     for key in CLICK_ID_KEYS:
         if key in landing_page:
             return True
+        
+    paid_cookies = [
+        MarketingParams.FacebookCookieClickID.value,
+        MarketingParams.GoogleSearchCookieClickID.value,
+    ]
+
+    for cookie in paid_cookies:
+        if request.COOKIES.get(cookie):
+            return True
 
     return False
 
