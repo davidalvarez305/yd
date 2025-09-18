@@ -33,11 +33,22 @@ def convert_to_item_quantity(cocktail_ingredient: CocktailIngredient, store_item
     return round_up_to_nearest(total, store_item.product_quantity)
 
 BASELINE_HOURS = 4.00
-def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_type, service_type, guest_ratio):
+HOLIDAY_MARKUPS = {
+    (11, 27),
+    (12, 25),
+    (12, 31),
+}
+
+def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_type, service_type, guest_ratio, date):
     minors = minors or 0
     adults = adults or 0
 
     guests = adults + minors
+
+    def apply_holiday_markup(price):
+        if (date.month, date.day) in HOLIDAY_MARKUPS:
+            return price * 1.5
+        return price
 
     if unit_type == 'Per Person':
         units = guests if service_type != 'Alcohol' else adults
@@ -46,26 +57,27 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
         if service_type in {"Add On", "Alcohol"}:
             price *= (hours / BASELINE_HOURS)
 
+        price = apply_holiday_markup(price)
         return {'units': units, 'price': price}
     
     elif unit_type == 'Ratio' and service_type == 'Hourly Service':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
-        price = suggested_price
+        price = apply_holiday_markup(suggested_price)
         return {'units': units, 'price': price}
 
     elif unit_type == 'Hourly':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
-        price = suggested_price
+        price = apply_holiday_markup(suggested_price)
         return {'units': units, 'price': price}
     
     elif guest_ratio and service_type in {'Bar Rental', 'Cooler Rental'}:
         units = math.ceil(adults / guest_ratio)
-        price = suggested_price
+        price = apply_holiday_markup(suggested_price)
         return {'units': units, 'price': price}
     
     elif guest_ratio and service_type in {'Table Rental', 'Chair Rental'}:
         units = math.ceil(guests / guest_ratio)
-        price = suggested_price
+        price = apply_holiday_markup(suggested_price)
         return {'units': units, 'price': price}
 
     else:

@@ -1055,6 +1055,7 @@ class QuickQuoteCreateView(CRMCreateTemplateView):
                             service_type=service.service_type.type,
                             guest_ratio=service.guest_ratio,
                             unit_type=service.unit_type.type,
+                            date=event_date,
                         )
                         quote_services.append(
                             QuoteService(

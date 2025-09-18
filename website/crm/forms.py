@@ -375,6 +375,7 @@ class QuoteForm(BaseModelForm):
                 unit_type=quote_service.service.unit_type.type,
                 service_type=quote_service.service.service_type.type,
                 guest_ratio=quote_service.service.guest_ratio,
+                date=instance.event_date,
             )
             quote_service.price_per_unit = data.get('price')
             quote_service.units = data.get('units')
