@@ -35,6 +35,7 @@ def convert_to_item_quantity(cocktail_ingredient: CocktailIngredient, store_item
 BASELINE_HOURS = 4.00
 HOLIDAY_MARKUPS = {
     (11, 27),
+    (12, 24),
     (12, 25),
     (12, 31),
 }
