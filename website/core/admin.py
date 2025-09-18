@@ -1,9 +1,9 @@
 from django.contrib import admin
-from core.models import CallTrackingNumber, EventRole, FacebookAccessToken, GoogleAccessToken, IngredientCategory, Invoice, Lead, LeadMarketing, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, Message, NextAction, PhoneCall, PhoneCallStatusHistory, PhoneCallTranscription, QuotePreset, QuotePresetService, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview, Visit
+from core.models import CallTrackingNumber, EventRole, FacebookAccessToken, GoogleAccessToken, IngredientCategory, Invoice, LandingPageConversion, Lead, LeadMarketing, LeadStatus, LeadInterest, AdCampaign, LeadStatusHistory, Message, NextAction, PhoneCall, PhoneCallStatusHistory, PhoneCallTranscription, QuotePreset, QuotePresetService, ServiceType, Store, Unit, UnitConversion, UnitType, InvoiceType, User, GoogleReview, Visit
 
+admin.site.register(Visit)
 admin.site.register(CallTrackingNumber)
-
-admin.site.register(PhoneCallTranscription)
+admin.site.register(LandingPageConversion)
 
 admin.site.register(Lead)
 admin.site.register(LeadStatus)
@@ -26,5 +26,3 @@ admin.site.register(FacebookAccessToken)
 
 admin.site.register(GoogleReview)
 admin.site.register(GoogleAccessToken)
-
-admin.site.register(QuotePresetService)
