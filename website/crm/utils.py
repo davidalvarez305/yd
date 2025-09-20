@@ -3,7 +3,7 @@ import math
 
 from django.forms import ValidationError
 from django.utils import timezone
-from core.models import CocktailIngredient, Invoice, InvoiceType, InvoiceTypeEnum, Quote, QuoteService, Service, StoreItem, UnitConversion
+from core.models import CocktailIngredient, Invoice, InvoiceType, InvoiceTypeEnum, LandingPage, Quote, QuoteService, Service, StoreItem, UnitConversion
 from core.logger import logger
 
 def round_up_to_nearest(quantity: float, step: float) -> int:

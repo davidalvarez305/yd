@@ -1125,6 +1125,7 @@ class LandingPage(models.Model):
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
     is_active = models.BooleanField(default=False)
+    is_control = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -1134,6 +1135,13 @@ class LandingPage(models.Model):
     
     class Meta:
         db_table = 'landing_page'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["is_active", "is_control"],
+                condition=models.Q(is_active=True, is_control=True),
+                name="unique_active_control_lp"
+            )
+        ]
 
 class LandingPageTrackingNumber(models.Model):
     landing_page_phone_number_id = models.AutoField(primary_key=True)

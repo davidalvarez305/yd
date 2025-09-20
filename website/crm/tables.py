@@ -582,72 +582,86 @@ class LeadMarketingMetadataTable(Table):
         delete_url = 'leadmarketingmetadata_delete'
 
 class LandingPageTable(Table):
-    tracking_number = TableField(
-        label='Phone Number',
-        cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: deep_getattr(row, 'latest_tracking_number.call_tracking_number.phone_number', '')
-            }
-        )
-    )
-
     leads = TableField(
         label='Lead',
         cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: deep_getattr(row, 'conversions.count', '')
-            }
+            data={'value': lambda row: deep_getattr(row, 'conversions.count', '')}
         )
     )
-
     clicks = TableField(
         label='Clicks',
         cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: deep_getattr(row, 'visits.count', '')
-            }
+            data={'value': lambda row: deep_getattr(row, 'visits.count', '')}
         )
     )
-
     cvr = TableField(
         label='Conv %',
         cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: (
-                    f"{(row.conversions.count() / row.visits.count() * 100):.2f}%"
-                    if row.visits.count() > 0 else "0%"
-                )
-            }
+            data={'value': lambda row: (
+                f"{(row.conversions.count() / row.visits.count() * 100):.2f}%" 
+                if row.visits.count() > 0 else "0%"
+            )}
         )
     )
-
     duration = TableField(
         label='AVG. Duration',
         cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: (
-                    f"{row.visits.aggregate(Avg('session_duration'))['session_duration__avg']:.2f}s" 
-                    if row.visits.exists() else "0s"
-                )
-            }
+            data={'value': lambda row: (
+                f"{row.visits.aggregate(Avg('session_duration'))['session_duration__avg']:.2f}s" 
+                if row.visits.exists() else "0s"
+            )}
         )
     )
-
     revenue = TableField(
         label='Revenue',
         cell_widget=TableCellWidget(
-            data={
-                'value': lambda row: (
-                    f"${sum(visit.lead_marketing.lead.value() if visit.lead_marketing else 0.0 for visit in row.visits.all()):.2f}"
-                    if row.visits.exists() else "$0.00"
-                )
-            }
+            data={'value': lambda row: (
+                f"${sum(visit.lead_marketing.lead.value() if visit.lead_marketing else 0.0 for visit in row.visits.all()):.2f}" 
+                if row.visits.exists() else "$0.00"
+            )}
+        )
+    )
+
+    confidence = TableField(
+        label='Confidence',
+        cell_widget=TableCellWidget(
+            data={'value': lambda row: LandingPageTable.confidence_against_control(row)}
         )
     )
 
     class Meta:
         model = LandingPage
         extra_fields = ['view', 'delete']
-        exclude = ['landing_page_id']
+        exclude = ['landing_page_id', 'template_name']
         pk = 'landing_page_id'
         delete_url = 'landingpage_delete'
+
+    @staticmethod
+    def confidence_against_control(row):
+        control = LandingPage.objects.filter(is_active=True, is_control=True).first()
+        if not control or control.pk == row.pk:
+            return "—"
+
+        control_clicks = control.visits.count()
+        control_convs = control.conversions.count()
+        test_clicks = row.visits.count()
+        test_convs = row.conversions.count()
+
+        if control_clicks == 0 or test_clicks == 0:
+            return "Insufficient data"
+
+        p1 = control_convs / control_clicks
+        p2 = test_convs / test_clicks
+
+        # Standard error for difference in proportions
+        se = ((p1 * (1 - p1) / control_clicks) + (p2 * (1 - p2) / test_clicks)) ** 0.5
+        if se == 0:
+            return "N/A"
+
+        z = (p2 - p1) / se
+
+        # Two-tailed confidence ~ convert Z to %
+        from math import erf, sqrt
+        confidence = erf(abs(z) / sqrt(2)) * 100
+
+        return f"{confidence:.1f}%"

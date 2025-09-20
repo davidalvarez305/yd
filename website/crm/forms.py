@@ -534,7 +534,7 @@ class LandingPageForm(BaseModelForm):
 
     class Meta:
         model = LandingPage
-        fields = ["name", "template_name", "is_active", "call_tracking_number"]
+        fields = ["name", "template_name", "is_active", "is_control", "call_tracking_number"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
