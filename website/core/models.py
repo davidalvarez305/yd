@@ -7,7 +7,7 @@ from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 from marketing.enums import ConversionServiceType
 from website import settings
@@ -187,12 +187,7 @@ class Lead(models.Model):
 
         visited.add(self.pk)
 
-        total = 0.0
-
-        for quote in self.quotes.all():
-            for invoice in quote.invoices.all():
-                if invoice.date_paid:
-                    total += invoice.amount
+        total = self.events.aggregate(total=Sum("amount"))["total"] or 0.0
 
         for referral in self.lead_marketing.referrals.all():
             total += referral.lead.value(visited=visited)
