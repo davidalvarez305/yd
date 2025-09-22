@@ -56,6 +56,7 @@ class LeadStatusEnum(Enum):
     INVOICE_SENT = 'INVOICE_SENT'
     EVENT_BOOKED = 'EVENT_BOOKED'
     RE_ENGAGED = 'RE_ENGAGED'
+    ARCHIVED = 'ARCHIVED'
 
     def __str__(self):
         return self.value

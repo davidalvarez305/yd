@@ -313,12 +313,13 @@ class LeadArchiveView(CRMUpdateView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        self.object.lead_status = LeadStatus.objects.get(lead_status_id=ARCHIVED_LEAD_STATUS_ID)
+
+        archived_status = LeadStatus.objects.get(status=LeadStatusEnum.ARCHIVED.value)
+        self.object.lead_status = archived_status
         self.object.save()
 
         query_params = request.GET.urlencode()
         redirect_url = f"{reverse('lead_list')}?{query_params}" if query_params else reverse('lead_list')
-
         return redirect(redirect_url)
     
 class CocktailListView(CRMTableView):
