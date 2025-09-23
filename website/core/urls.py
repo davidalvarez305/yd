@@ -13,4 +13,7 @@ urlpatterns = [
     path('thank-you/<str:external_id>/', views.SuccessPaymentView.as_view(), name='success_payment'),
     path('cancel/<str:external_id>/', views.SuccessPaymentView.as_view(), name='cancel_payment'),
     path('external/<str:external_id>/', views.redirect_external, name='redirect_external'),
+
+    # Landing Pages
+    path('chair-rentals/', views.ChairRentals.as_view(), name='chair-rentals'),
 ]

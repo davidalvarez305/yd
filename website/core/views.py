@@ -484,3 +484,135 @@ class SuccessPaymentView(BaseWebsiteView):
 
 def redirect_external(request, external_id):
     return redirect(reverse('external_quote_view', kwargs={'external_id': external_id}))
+
+class ChairRentals(BaseWebsiteView):
+    template_name = "core/landing_pages/chair_rentals.html"
+    page_title = f"Chair Rentals Miami — {settings.COMPANY_NAME}"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['js_files'] += ['js/floatingHeader.js']
+
+        reviews = GoogleReview.objects.all()
+        paired_reviews = get_paired_reviews()
+        reviews_ratings = get_average_ratings()
+        events = Event.objects.count()
+
+        session_data = self.request.session.get('call_tracking_number')
+        if isinstance(session_data, dict):
+            phone_number = session_data.get('call_tracking_number')
+            if phone_number is not None:
+                formatted_number = format_phone_number(phone_number)
+                context['formatted_call_tracking_number'] = formatted_number
+                context['phone_number'] = phone_number
+
+        media_storage = storages['media']
+        # 'image': media_storage.url('spicy_mango_margarita.webp'),
+
+        items = [
+            {
+                'name': 'Plastic Folding Chairs',
+                'price': 2.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/CFPW-AX-T.jpg?v=1757976350&width=1600',
+            },
+            {
+                'name': 'Resin Folding Chairs',
+                'price': 4.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/CFRW-CX-T-1.jpg?v=1758113383&width=1600',
+            },
+            {
+                'name': 'Chiavari Chairs',
+                'price': 7.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/Gold-Resin-Steel-Skeleton_1-1_de46bb55-adf0-4df6-9a1f-b9d8f94ee58b.jpg?v=1747389562&width=1600',
+            },
+            {
+                'name': 'Cross Back Chairs',
+                'price': 10.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/crossback-resin-chestnut_1_7c9b311d-ec08-44e4-8ef3-cbefdfed349b.jpg?v=1757595775&width=1600',
+            },
+            {
+                'name': 'Royal Chairs',
+                'price': 15.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/Royal-Resin-Gold-with-Ivory-Vinyl-Seat-and-Ivory-Vinyl-Tufted-Back_1-scaled.jpg?v=1747364239&width=1600',
+            },
+            {
+                'name': 'Bamboo Chairs',
+                'price': 10.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/bamboo_steel_skeleton_chair_01.jpg?v=1757602482&width=1600',
+            },
+            {
+                'name': 'O Chairs',
+                'price': 15.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/OChairGoldStainlessSteel_1.jpg?v=1747377300&width=1600',
+            },
+            {
+                'name': 'Bar Stools',
+                'price': 15.00,
+                'image': 'https://chiavarisales.com/cdn/shop/files/bcrg-st-ax-t2.jpg?v=1757602551&width=1600',
+            },
+        ]
+
+        faqs = [
+            {
+                'question': 'What types of events do you cater to?',
+                'answers': [
+                    "We specialize in weddings, corporate events, birthday parties, private events, festivals, and more. We can accommodate any occasion where drinks are part of the celebration!"
+                ]
+            },
+            {
+                'question': 'Do you provide the alcohol or should I supply it?',
+                'answers': [
+                    "We can either provide the alcohol for you or work with what you supply. We'll guide you on quantities and ensure the drinks are tailored to your preferences.",
+                    "Additionally, if anything special is needed for any custom drinks, we'll be sure to let you know."
+                ]
+            },
+            {
+                'question': 'What do you charge for your service?',
+                'answers': [
+                    "Our pricing varies depending on the event size, location, and duration. As well, we take into accounts if you need a portable bars, supplies, glass drinkware, and other variables that will affect the final quote."
+                ]
+            },
+            {
+                'question': 'Can you create a custom cocktail menu for my event?',
+                'answers': [
+                    "Absolutely! Our highly skilled bartenders can design a cocktail menu that matches your event theme or your personal tastes. We also have our signature cocktails that are sure to be hits at most events."
+                ]
+            },
+            {
+                'question': 'Can you serve non-alcoholic drinks?',
+                'answers': [
+                    "Absolutely, we can do mocktails as well as other soft drinks & juices if requested."
+                ]
+            },
+            {
+                'question': 'Is there a minimum number of guests required?',
+                'answers': [
+                    "We tend to focus on events with more than 25 people, but some events have less than that and we're willing to work out a deal that is mutually beneficial."
+                ]
+            }
+        ]
+
+        features = [
+            "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
+            "We'll always be early to setup & make sure everything that's necessary is ready for use.",
+            "We have high standards of service to make sure your guests enjoy their time with cold & delicious drinks.",
+            "We will clean up after ourselves and leave your area as clean as it was before we got there.",
+            "Our team can dress to the occasion if a specific outfit or theme is required.",
+            "We offer flexible capacity, serving both small and large events.",
+            "We provide detailed & customized quotes so you know exactly what you're paying for.",
+            "Your guests are our priority, ensuring an incredible service and experience.",
+            "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
+        ]
+
+        comments = [f"comment_{i}.webp" for i in range(1, 14)]
+
+        context['paired_reviews'] = paired_reviews
+        context['reviews'] = reviews
+        context['reviews_ratings'] = reviews_ratings
+        context['events'] = events
+        context['items'] = items
+        context['faqs'] = faqs
+        context['comments'] = comments
+        context['features'] = features
+        return context
