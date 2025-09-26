@@ -327,3 +327,23 @@ def run_cmd(cmd, env_vars=None):
     result = subprocess.run(cmd, shell=True, env=env)
     if result.returncode != 0:
         raise Exception(f"Command failed: {cmd}")
+
+def get_content_type_from_url(url: str) -> str:
+    response = requests.head(url, allow_redirects=True)
+    return response.headers.get("Content-Type")
+
+def download_file_from_url(url: str, local_file_path: str) -> None:
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logger.exception("Failed to download file", exc_info=True)
+        raise Exception(f"Failed to download file from {url}: {e}")
+
+    try:
+        with open(local_file_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+    except Exception as e:
+        logger.exception("Failed to save file locally", exc_info=True)
+        raise Exception(f"Failed to save file locally at {local_file_path}: {e}")

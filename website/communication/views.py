@@ -12,6 +12,7 @@ from core.mixins import AlertMixin
 from core.models import Lead, Message, PhoneCallTranscription
 from core.messaging import messaging_service
 from core.calling import calling_service
+from core.call_tracking import call_tracking_service
 from core.logger import logger
 from core.transcription import transcription_service
 from communication.forms import OutboundPhoneCallForm
@@ -108,3 +109,12 @@ class OutboundCallView(LoginRequiredMixin, AlertMixin, CreateView):
         except Exception as e:
             logger.error(e, exc_info=True)
             return self.alert(request, "Failed to initiate outbound call", AlertStatus.INTERNAL_ERROR)
+        
+
+@csrf_exempt
+def handle_inbound_tracking_call(request: HttpRequest):
+    return call_tracking_service.handle_inbound_tracking_call(request)
+
+@csrf_exempt
+def handle_inbound_tracking_message(request: HttpRequest):
+    return call_tracking_service.handle_inbound_tracking_message(request)

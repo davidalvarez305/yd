@@ -71,6 +71,10 @@ class EnvConfig:
 
         # OpenAI
         "OPEN_AI_API_KEY",
+
+        # Call Rail
+        "CALL_RAIL_API_KEY",
+        "CALL_RAIL_WEBHOOK_SIGNATURE_SECRET_TOKEN",
     ]
 
     def __init__(self):

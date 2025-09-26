@@ -617,6 +617,66 @@ class PhoneCallTranscription(models.Model):
     def __str__(self):
         return self.external_id
 
+class TrackingPhoneCall(models.Model):
+    tracking_phone_call_id = models.AutoField(primary_key=True)
+    external_id = models.CharField(unique=True, db_index=True, editable=False, max_length=255)
+    call_duration = models.IntegerField()
+    date_created = models.DateTimeField(default=timezone.now)
+    call_from = models.CharField(max_length=15)
+    call_to = models.CharField(max_length=15)
+    status = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = "tracking_phone_call"
+    
+class TrackingPhoneCallMetadata(models.Model):
+    tracking_phone_call_metadata_id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=255)
+    value = models.TextField()
+    date_created = models.DateTimeField(auto_now_add=True)
+    tracking_phone_call = models.ForeignKey(TrackingPhoneCall, related_name="metadata", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.key}: {self.value}"
+
+    class Meta:
+        db_table = "tracking_phone_call_metadata"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tracking_phone_call", "key"],
+                name="unique_tracking_phone_call_key"
+            )
+        ]
+
+class TrackingTextMessage(models.Model):
+    tracking_text_message_id = models.AutoField(primary_key=True)
+    external_id = models.CharField(unique=True, db_index=True, max_length=255)
+    message = models.TextField()
+    text_from = models.CharField(max_length=15)
+    text_to = models.CharField(max_length=15)
+    date_created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "tracking_text_message"
+
+class TrackingTextMessageMetadata(models.Model):
+    tracking_text_message_metadata_id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=255)
+    value = models.TextField()
+    date_created = models.DateTimeField(auto_now_add=True)
+    tracking_text_message = models.ForeignKey(
+        TrackingTextMessage, related_name="metadata", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "tracking_text_message_metadata"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tracking_text_message", "key"],
+                name="unique_tracking_text_message_key",
+            )
+        ]
+
 AD_PLATFORMS = [
     (ConversionServiceType.GOOGLE.value, "Google"),
     (ConversionServiceType.FACEBOOK.value, "Facebook"),
