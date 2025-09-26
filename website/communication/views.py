@@ -116,5 +116,9 @@ def handle_inbound_tracking_call(request: HttpRequest):
     return call_tracking_service.handle_inbound_tracking_call(request)
 
 @csrf_exempt
+def handle_inbound_tracking_call_end(request: HttpRequest):
+    return call_tracking_service.handle_inbound_tracking_call_end(request)
+
+@csrf_exempt
 def handle_inbound_tracking_message(request: HttpRequest):
     return call_tracking_service.handle_inbound_tracking_message(request)

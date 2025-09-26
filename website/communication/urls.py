@@ -12,6 +12,7 @@ urlpatterns = [
 
     # Tracking Calls
     path('calls/tracking/inbound', views.handle_inbound_tracking_call, name='inbound_tracking_call'),
+    path('calls/tracking/inbound/end', views.handle_inbound_tracking_call_end, name='inbound_tracking_call_end'),
     path('message/tracking/inbound', views.handle_inbound_tracking_message, name='inbound_tracking_message'),
 
     # Text SMS
