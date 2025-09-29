@@ -94,6 +94,17 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                     lead_marketing.save()
                     lead_marketing.assign_visits()
 
+                    landing_page_id = session.get('landing_page_id')
+                    if landing_page_id:
+                        landing_page = LandingPage.objects.filter(pk=landing_page_id)
+                        if landing_page:
+                            conversion = LandingPageConversion(
+                                lead=instance,
+                                landing_page=landing_page,
+                                conversion_type=LandingPageConversion.PHONE_CALL
+                            )
+                            conversion.save()
+
                 lp = params.get("calltrk_landing")
                 if lp:
                     params |= generate_params_dict_from_url(lp)
@@ -119,45 +130,3 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
         count = LeadStatusHistory.objects.filter(lead_status=lead_status, lead=instance).count()
         if count == 1:
             conversion_service.send_conversion(data=data)
-
-    # Assign lead marketing data if lead came from phone call and the lead was just created
-    if not lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_marketing.is_instant_form_lead():
-        return
-
-    tracking_numbers = CallTrackingNumber.objects.values_list('phone_number', flat=True)
-
-    first_call = (
-        instance.phone_calls()
-        .filter(
-            call_to__in=tracking_numbers,
-            is_inbound=True,
-            date_created__lt=instance.created_at,
-        )
-        .order_by('date_created')
-        .first()
-    )
-
-    if not first_call:
-        return
-    
-    
-    call_tracking_number = CallTrackingNumber.objects.filter(phone_number=first_call.call_to).first()
-
-    if not call_tracking_number:
-        return
-    
-    tracked_call = LandingPageTrackingNumber.objects.filter(
-        call_tracking_number=call_tracking_number,
-        date_assigned__lt=first_call.date_created,
-    ).first()
-
-    if not tracked_call:
-        return
-
-    conversion = LandingPageConversion(
-        lead=instance,
-        landing_page=tracked_call.landing_page,
-        conversion_type=LandingPageConversion.PHONE_CALL
-    )
-
-    conversion.save()

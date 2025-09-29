@@ -31,7 +31,6 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
     def handle_inbound_tracking_call(self, request) -> HttpResponse:
         try:
             data = json.loads(request.body.decode("utf-8"))
-            print('CALL START: ', data)
 
             tracking_phone_call = TrackingPhoneCall.objects.create(
                 external_id=data.get("resource_id"),
