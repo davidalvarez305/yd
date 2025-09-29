@@ -316,6 +316,8 @@
 <script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script defer src="https://unpkg.com/htmx-ext-response-targets@2.0.2" crossorigin="anonymous"></script>
 <script>
+	const user = "{{ request.user.username|escapejs }}";
+
 	function handleConfirmationLogic() {
 		const optIn = document.getElementById("opt_in_text_messaging");
 		const optInModal = modalHelper.get('optinConfirmationModal');
@@ -343,6 +345,8 @@
 
 		if (!event.detail.successful) return;
 
+		if (user) return; // Do not report conversion if logged in user created lead
+
 		// Report Google Conversion
 		gtag("event", "{{ event_name }}", {
 			currency: "{{ default_currency }}",
@@ -358,7 +362,6 @@
 <script>
 	window.addEventListener("load", () => {
 		let startTime = Date.now();
-		const user = "{{ request.user.username|escapejs }}";
 		const isTesting = new URLSearchParams(window.location.search).has('test');
 
 		document.addEventListener("visibilitychange", () => {
