@@ -744,7 +744,10 @@ class LeadMarketing(models.Model):
         is_new = self.pk is None
         super().save(*args, **kwargs)
         if is_new:
-            Visit.objects.filter(external_id=self.external_id).update(lead_marketing=self)
+            self.assign_visits()
+    
+    def assign_visits(self):
+        Visit.objects.filter(external_id=self.external_id).update(lead_marketing=self)
 
     class Meta:
         db_table = 'lead_marketing'

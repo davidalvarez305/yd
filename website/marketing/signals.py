@@ -6,6 +6,8 @@ from django.utils.timezone import now
 
 from core.conversions import conversion_service
 from core.models import CallTrackingNumber, LandingPage, LandingPageConversion, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatusHistory, TrackingPhoneCall, TrackingPhoneCallMetadata
+from marketing.utils import generate_params_dict_from_url
+from core.utils import get_session_data
 
 lead_status_changed = Signal()
 
@@ -69,6 +71,41 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
 
     if not event_name:
         return
+    
+    # Attach marketing metadata
+    last_inbound_call = TrackingPhoneCall.objects.filter(call_from=instance.phone_number).order_by('-date_created').first()
+
+    if last_inbound_call and lead_status.status == LeadStatusEnum.LEAD_CREATED:
+        phone_call_metadata = TrackingPhoneCallMetadata.objects.filter(tracking_phone_call=last_inbound_call)
+
+        metadata = phone_call_metadata.filter(key="custom").first()
+
+        if metadata:
+            try:
+                params = json.loads(metadata.value) or {}
+
+                session_id = params.get('sessionid')
+                if session_id:
+                    session = get_session_data(session_key=session_id)
+
+                    lead_marketing.ip = session.get('ip')
+                    lead_marketing.user_agent = session.get('user_agent')
+                    lead_marketing.external_id = session.get('external_id')
+                    lead_marketing.save()
+                    lead_marketing.assign_visits()
+
+                lp = params.get("calltrk_landing")
+                if lp:
+                    params |= generate_params_dict_from_url(lp)
+
+                for key, value in params.items():
+                    LeadMarketingMetadata.objects.create(
+                        key=key,
+                        value=value,
+                        lead_marketing=lead_marketing,
+                    )
+            except (TypeError, json.JSONDecodeError):
+                print("Failed to load params")
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(instance, event_name, event)
@@ -103,31 +140,6 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     if not first_call:
         return
     
-    # Attach marketing metadata
-    tracking_phone_call = TrackingPhoneCall.objects.filter(call_from=first_call.call_from).first()
-
-    if tracking_phone_call:
-        phone_call_metadata = TrackingPhoneCallMetadata.objects.filter(tracking_phone_call=tracking_phone_call)
-
-        values = {}
-
-        for metadata in phone_call_metadata.all():
-
-            if metadata.key in ['landing_page_url_params', 'custom']:
-                try:
-                    params = json.loads(metadata.value)
-                except (TypeError, json.JSONDecodeError):
-                    params = {}
-
-                for key, value in params.items():
-                    values[key] = value
-
-        for key, value in values.items():
-            LeadMarketingMetadata.objects.create(
-                key=key,
-                value=value,
-                lead_marketing=lead_marketing,
-            )
     
     call_tracking_number = CallTrackingNumber.objects.filter(phone_number=first_call.call_to).first()
 

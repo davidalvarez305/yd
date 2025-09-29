@@ -2,25 +2,27 @@ import uuid
 import random
 
 from core.models import LandingPage, LeadMarketing, Visit
-from .utils import is_paid_traffic
+from .utils import MarketingHelper, is_paid_traffic
 
 class VisitTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             referrer = request.META.get('HTTP_REFERER')
-            url = request.build_absolute_uri()
+            helper = MarketingHelper(request=request)
 
             external_id = request.session.get('external_id')
             if not external_id:
                 external_id = str(uuid.uuid4())
                 request.session['external_id'] = external_id
+                request.session['ip'] = helper.ip
+                request.session['user_agent'] = helper.user_agent
 
             lead_marketing = LeadMarketing.objects.filter(external_id=external_id).first()
 
             visit = Visit(
                 external_id=external_id,
                 referrer=referrer,
-                url=url,
+                url=request.build_absolute_uri(),
                 lead_marketing=lead_marketing,
             )
 

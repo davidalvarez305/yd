@@ -1,7 +1,7 @@
 import json
 import random
 from django.http import HttpRequest
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, parse_qsl
 from dateutil import parser
 
 from core.utils import normalize_phone_number
@@ -20,7 +20,7 @@ class MarketingHelper:
             else self.request.build_absolute_uri()
         )
         
-        self.params = self.request_params()
+        self.params = generate_params_dict_from_url(self.landing_page)
         self.external_id = self.request.session.get('external_id')
         self.ip = self.get_client_ip()
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
@@ -28,11 +28,6 @@ class MarketingHelper:
         self.ad = self.get_or_create_ad()
         self.metadata = self.create_metadata()
         self.lead_marketing = self.create_marketing_data()
-    
-    def request_params(self):
-        parsed_url = urlparse(self.landing_page)
-        params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
-        return params
     
     def add_metadata_from_list(self, data = []):
         metadata = {}
@@ -170,3 +165,6 @@ def generate_random_big_int_id() -> int:
 
 def random_selection(length: int) -> int:
     return random.randint(0, length)
+
+def generate_params_dict_from_url(url: str):
+    return dict(parse_qsl(urlparse(url).query))

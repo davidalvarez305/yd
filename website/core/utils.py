@@ -7,11 +7,13 @@ import subprocess
 from urllib.parse import parse_qs, urlparse
 import uuid
 from pathlib import Path
+
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware, is_naive
+from django.contrib.sessions.models import Session
 
 import requests
 
@@ -347,3 +349,10 @@ def download_file_from_url(url: str, local_file_path: str) -> None:
     except Exception as e:
         logger.exception("Failed to save file locally", exc_info=True)
         raise Exception(f"Failed to save file locally at {local_file_path}: {e}")
+    
+def get_session_data(session_key):
+    try:
+        session = Session.objects.get(session_key=session_key)
+        return session.get_decoded()
+    except Session.DoesNotExist:
+        return {}
