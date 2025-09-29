@@ -133,10 +133,6 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         try:
             data = json.loads(request.body.decode("utf-8"))
 
-            print(data)
-            for media in data.get('media_urls'):
-                print(media)
-
             tracking_text = TrackingTextMessage.objects.create(
                 external_id=data.get("resource_id"),
                 message=data.get("content"),
