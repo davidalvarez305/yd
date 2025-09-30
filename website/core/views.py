@@ -98,14 +98,6 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        lp = self.request.session.get('landing_page_id')
-        if lp:
-            landing_page = LandingPage.objects.filter(pk=lp).first()
-            if landing_page:
-                landing_page_tracking_number = landing_page.latest_tracking_number()
-                if landing_page_tracking_number:
-                    context['phone_number'] = format_phone_number(phone_number=landing_page_tracking_number.call_tracking_number.phone_number)
-
         context['js_files'] += ['js/floatingHeader.js']
 
         media_storage = storages['media']
@@ -182,14 +174,6 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
         paired_reviews = get_paired_reviews()
         reviews_ratings = get_average_ratings()
         events = Event.objects.count()
-
-        session_data = self.request.session.get('call_tracking_number')
-        if isinstance(session_data, dict):
-            phone_number = session_data.get('call_tracking_number')
-            if phone_number is not None:
-                formatted_number = format_phone_number(phone_number)
-                context['formatted_call_tracking_number'] = formatted_number
-                context['phone_number'] = phone_number
 
         signature_cocktails = [
             {
@@ -498,14 +482,6 @@ class ChairRentals(BaseWebsiteView):
         paired_reviews = get_paired_reviews()
         reviews_ratings = get_average_ratings()
         events = Event.objects.count()
-
-        session_data = self.request.session.get('call_tracking_number')
-        if isinstance(session_data, dict):
-            phone_number = session_data.get('call_tracking_number')
-            if phone_number is not None:
-                formatted_number = format_phone_number(phone_number)
-                context['formatted_call_tracking_number'] = formatted_number
-                context['phone_number'] = phone_number
 
         media_storage = storages['media']
         # 'image': media_storage.url('spicy_mango_margarita.webp'),
