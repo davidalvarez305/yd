@@ -3,9 +3,10 @@ from django.dispatch import receiver
 from django.db.models.signals import Signal
 from django.db.models import Q
 from django.utils.timezone import now
+from django.conf import settings
 
 from core.conversions import conversion_service
-from core.models import CallTrackingNumber, LandingPage, LandingPageConversion, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatusHistory, TrackingPhoneCall, TrackingPhoneCallMetadata
+from core.models import CallTrackingNumber, LandingPage, LandingPageConversion, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
 from marketing.utils import generate_params_dict_from_url
 from core.utils import get_session_data
 
@@ -84,26 +85,28 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
             try:
                 params = json.loads(metadata.value) or {}
 
-                session_id = params.get('sessionid')
-                if session_id:
-                    session = get_session_data(session_key=session_id)
+                external_id = params.get(settings.TRACKING_COOKIE_NAME)
+                if external_id:
+                    session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
+                    if session_mapping:
+                        session = get_session_data(session_key=session_mapping.session_key)
 
-                    lead_marketing.ip = session.get('ip')
-                    lead_marketing.user_agent = session.get('user_agent')
-                    lead_marketing.external_id = session.get('external_id')
-                    lead_marketing.save()
-                    lead_marketing.assign_visits()
+                        lead_marketing.ip = session.get('ip')
+                        lead_marketing.user_agent = session.get('user_agent')
+                        lead_marketing.external_id = external_id
+                        lead_marketing.save()
+                        lead_marketing.assign_visits()
 
-                    landing_page_id = session.get('landing_page_id')
-                    if landing_page_id:
-                        landing_page = LandingPage.objects.filter(pk=landing_page_id)
-                        if landing_page:
-                            conversion = LandingPageConversion(
-                                lead=instance,
-                                landing_page=landing_page,
-                                conversion_type=LandingPageConversion.PHONE_CALL
-                            )
-                            conversion.save()
+                        landing_page_id = session.get('landing_page_id')
+                        if landing_page_id:
+                            landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+                            if landing_page:
+                                conversion = LandingPageConversion(
+                                    lead=instance,
+                                    landing_page=landing_page,
+                                    conversion_type=LandingPageConversion.PHONE_CALL
+                                )
+                                conversion.save()
 
                 lp = params.get("calltrk_landing")
                 if lp:
