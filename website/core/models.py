@@ -1257,3 +1257,6 @@ class SessionMapping(models.Model):
     external_id = models.CharField(max_length=36, unique=True, db_index=True)
     session_key = models.CharField(max_length=40, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'session_mapping'
