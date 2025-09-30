@@ -833,7 +833,7 @@ class Event(models.Model):
     )
 
     def __str__(self):
-        return f"{self.lead}: {self.start_time.strftime('%B %d, %Y')} - {self.start_time.strftime('%#I %p')}"
+        return self.lead.full_name + " - " + self.amount
     
     @property
     def full_address(self):

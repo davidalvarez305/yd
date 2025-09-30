@@ -94,7 +94,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
 
             if not data.get('answered'):
                 ctx = {
-                    'user': User.objects.get(phone_number=settings.COMPANY_PHONE_NUMBER)
+                    'user': User.objects.get(phone_number="+1" + settings.COMPANY_PHONE_NUMBER)
                 }
                 calling_service.handle_missed_call(phone_call=phone_call, ctx=ctx)
                 return HttpResponse(status=200)

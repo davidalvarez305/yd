@@ -8,9 +8,6 @@ from .utils import MarketingHelper, is_paid_traffic
 class UserTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            if not request.session.session_key:
-                request.session.create()
-
             external_id = request.session.get("external_id")
             if not external_id:
                 external_id = str(uuid.uuid4())
@@ -23,6 +20,9 @@ class UserTrackingMixin:
         return super().dispatch(request, *args, **kwargs)
 
     def _init_user_tracking(self, request, external_id: str):
+        if not request.session.session_key:
+            request.session.save()
+
         helper = MarketingHelper(request=request)
 
         request.session["external_id"] = external_id

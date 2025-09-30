@@ -352,7 +352,7 @@ def download_file_from_url(url: str, local_file_path: str) -> None:
     
 def get_session_data(session_key):
     try:
-        session = Session.objects.get(session_key=session_key)
+        session = Session.objects.get(pk=session_key)
         return session.get_decoded()
     except Session.DoesNotExist:
         return {}
