@@ -1,5 +1,6 @@
 import json
 import random
+import re
 from django.http import HttpRequest
 from urllib.parse import parse_qs, urlparse, parse_qsl
 from dateutil import parser
@@ -181,3 +182,11 @@ def get_platform_id_from_params(params: dict, cookies: dict):
         return ConversionServiceType.FACEBOOK.value
 
     return None
+
+def parse_google_ads_cookie(value: str):
+    match = re.search(r'GCL\.[^\.]+\.(.*?)$', value)
+    
+    if match:
+        return match.group(1)
+    else:
+        return None

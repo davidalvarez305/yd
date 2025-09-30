@@ -6,7 +6,7 @@ from django.conf import settings
 
 from core.conversions import conversion_service
 from core.models import LandingPage, LandingPageConversion, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
-from marketing.utils import create_ad_from_params, generate_params_dict_from_url
+from marketing.utils import create_ad_from_params, generate_params_dict_from_url, parse_google_ads_cookie
 from core.utils import get_session_data
 
 lead_status_changed = Signal()
@@ -44,6 +44,9 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
             data['gbraid'] = metadata.value
         elif metadata.key == 'wbraid':
             data['wbraid'] = metadata.value
+        elif metadata.key == '_gcl_aw':
+            if 'gclid' not in data:
+                data['gclid'] = parse_google_ads_cookie(metadata.value)
         else:
             data[metadata.key] = metadata.value
         
