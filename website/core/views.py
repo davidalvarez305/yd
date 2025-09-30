@@ -10,7 +10,7 @@ from django.core.files.storage import storages
 
 from website import settings
 
-from marketing.mixins import LandingPageMixin, VisitTrackingMixin
+from marketing.mixins import LandingPageMixin, UserTrackingMixin, VisitTrackingMixin
 from marketing.utils import MarketingHelper
 from core.email import email_service
 from .logger import logger
@@ -47,7 +47,7 @@ class BaseView(TemplateView):
 
         return context
 
-class BaseWebsiteView(VisitTrackingMixin, BaseView):
+class BaseWebsiteView(UserTrackingMixin, VisitTrackingMixin, BaseView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
