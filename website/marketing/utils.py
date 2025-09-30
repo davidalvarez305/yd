@@ -112,6 +112,13 @@ def random_selection(length: int) -> int:
 def generate_params_dict_from_url(url: str):
     return dict(parse_qsl(urlparse(url).query))
 
+def is_valid_int(value):
+    try:
+        int(value)
+        return True
+    except (ValueError, TypeError):
+        return False
+
 def create_ad_from_params(params: dict, cookies: dict):
     ad_id = params.get('ad_id')
     ad_name = params.get('ad_name')
@@ -126,7 +133,7 @@ def create_ad_from_params(params: dict, cookies: dict):
 
     platform_id = get_platform_id_from_params(params=params, cookies=cookies)
 
-    if not all([ad_id, ad_group_id, ad_campaign_id, platform_id]):
+    if not all([is_valid_int(ad_id), is_valid_int(ad_group_id), is_valid_int(ad_campaign_id), platform_id]):
         return None
 
     ad_campaign, _ = AdCampaign.objects.get_or_create(
