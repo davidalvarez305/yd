@@ -533,52 +533,52 @@ class ChairRentals(BaseWebsiteView):
             {
                 'question': 'What types of events do you cater to?',
                 'answers': [
-                    "We specialize in weddings, corporate events, birthday parties, private events, festivals, and more. We can accommodate any occasion where drinks are part of the celebration!"
+                    "We specialize in weddings, corporate events, birthday parties, private events, festivals, and more. It doesn't matter if it's an event venue, a backyard party, an office building — we've got you covered."
                 ]
             },
             {
-                'question': 'Do you provide the alcohol or should I supply it?',
+                'question': 'Do you provide delivery & set-up or just pick-up?',
                 'answers': [
-                    "We can either provide the alcohol for you or work with what you supply. We'll guide you on quantities and ensure the drinks are tailored to your preferences.",
-                    "Additionally, if anything special is needed for any custom drinks, we'll be sure to let you know."
+                    "You can do whichever of the three options: delivery only, delivery + set-up, or pick-up. Whatever makes the most sense for you works for us, as well."
                 ]
             },
             {
                 'question': 'What do you charge for your service?',
                 'answers': [
-                    "Our pricing varies depending on the event size, location, and duration. As well, we take into accounts if you need a portable bars, supplies, glass drinkware, and other variables that will affect the final quote."
+                    "Once we've received some basic details from you, we'll provide with you a highly detailed & itemized invoice that will contain all the information you need about your rental services. Including chairs, delivery, set-up, any add-on's such as covers or cushions, etc..."
                 ]
             },
             {
-                'question': 'Can you create a custom cocktail menu for my event?',
+                'question': 'Do you offer delivery and setup for your chairs?',
                 'answers': [
-                    "Absolutely! Our highly skilled bartenders can design a cocktail menu that matches your event theme or your personal tastes. We also have our signature cocktails that are sure to be hits at most events."
+                    "Yes, we provide both delivery and setup services for all chair rentals. In the event that you do want it, delivery fees are dependent on distance & set-up is dependent on estimated labor hours."
                 ]
             },
             {
-                'question': 'Can you serve non-alcoholic drinks?',
+                'question': 'What types of chairs do you offer for different events?',
                 'answers': [
-                    "Absolutely, we can do mocktails as well as other soft drinks & juices if requested."
+                    "More than just the ones pictured on the website, we can meet your needs with whatever style and/or material you might desire for your party."
                 ]
             },
             {
-                'question': 'Is there a minimum number of guests required?',
+                'question': 'How far in advance should I book my chair rentals?',
                 'answers': [
-                    "We tend to focus on events with more than 25 people, but some events have less than that and we're willing to work out a deal that is mutually beneficial."
+                    "We recommend booking your chair rentals at least 2-4 weeks in advance to ensure availability, especially during peak event seasons."
+                    "However, we do our best to accommodate last-minute requests if needed, so feel free to contact us, and we’ll work with your timeline!"
                 ]
             }
         ]
 
         features = [
-            "We'll work with you to create a custom menu that features our signature cocktails + your favorites.",
-            "We'll always be early to setup & make sure everything that's necessary is ready for use.",
-            "We have high standards of service to make sure your guests enjoy their time with cold & delicious drinks.",
-            "We will clean up after ourselves and leave your area as clean as it was before we got there.",
-            "Our team can dress to the occasion if a specific outfit or theme is required.",
-            "We offer flexible capacity, serving both small and large events.",
-            "We provide detailed & customized quotes so you know exactly what you're paying for.",
-            "Your guests are our priority, ensuring an incredible service and experience.",
-            "Our bartenders are highly skilled with years of experience, making top-tier cocktails.",
+            "We’ll help you pick out the perfect chairs that fit your event’s vibe—whether it’s casual, classy, or somewhere in between.",
+            "We’re always early to set up—sometimes even hours before your event starts—so everything’s ready and waiting for your guests to arrive.",
+            "Our chairs are not just stylish, but also kept in top condition. They’re cleaned thoroughly and stored neatly after each event, ensuring they're fresh and sanitized for your big day.",
+            "We’re all about cleanliness—your event space will be spotless when we leave, and we’ll take care of the cleanup so you don’t have to worry about a thing.",
+            "Need the chairs to match a dress code or theme? We’ve got you covered—we can set up everything to fit your style, while keeping everything neat and organized.",
+            "Big event or small, we’ve got the seating you need to make sure everyone’s comfortable and everything looks perfect.",
+            "We’ll give you a straightforward, customized quote so you know exactly what you’re paying for—no surprises, just great service.",
+            "Your guests’ comfort is our number one priority—we’ll make sure every chair is spotless and ready to go before anyone sits down.",
+            "With years of experience, we’re proud to offer timely, reliable service that makes your event setup smooth and stress-free."
         ]
 
         comments = [f"comment_{i}.webp" for i in range(1, 14)]
