@@ -74,7 +74,7 @@ class MarketingHelper:
         create_ad_from_params(params=self.params)
 
     def get_platform_id(self):
-        return get_platform_id_from_params(params=self.params)
+        return get_platform_id_from_params(params=self.params, cookies=self.request.COOKIES)
 
 def is_paid_traffic(request: HttpRequest) -> bool:
     landing_page = request.build_absolute_uri()
@@ -111,7 +111,7 @@ def random_selection(length: int) -> int:
 def generate_params_dict_from_url(url: str):
     return dict(parse_qsl(urlparse(url).query))
 
-def create_ad_from_params(params: dict):
+def create_ad_from_params(params: dict, cookies: dict):
     ad_id = params.get('ad_id')
     ad_name = params.get('ad_name')
 
@@ -123,7 +123,7 @@ def create_ad_from_params(params: dict):
 
     keyword = params.get('keyword')
 
-    platform_id = get_platform_id_from_params(params=params)
+    platform_id = get_platform_id_from_params(params=params, cookies=cookies)
 
     if not all([ad_id, ad_group_id, ad_campaign_id, platform_id]):
         return None
@@ -162,14 +162,22 @@ def create_ad_from_params(params: dict):
     
     return ad
 
-def get_platform_id_from_params(params):
+def get_platform_id_from_params(params: dict, cookies: dict):
     for key in MarketingParams.GoogleURLClickIDKeys.value:
         click_id = params.get(key)
         if click_id:
             return ConversionServiceType.GOOGLE.value
     
+    gcl_aw = cookies.get(MarketingParams.GoogleSearchCookieClickID.value)
+    if gcl_aw:
+        return ConversionServiceType.GOOGLE.value
+
     fbclid = params.get(MarketingParams.FacebookURLClickID.value)
     if fbclid:
+        return ConversionServiceType.FACEBOOK.value
+    
+    fbc = cookies.get(MarketingParams.FacebookCookieClickID.value)
+    if fbc:
         return ConversionServiceType.FACEBOOK.value
 
     return None
