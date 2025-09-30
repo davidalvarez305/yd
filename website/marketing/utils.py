@@ -71,7 +71,7 @@ class MarketingHelper:
         return self.request.META.get('REMOTE_ADDR')
 
     def get_or_create_ad(self):
-        create_ad_from_params(params=self.params, platform_id=self.platform_id)
+        create_ad_from_params(params=self.params)
 
     def get_platform_id(self):
         return get_platform_id_from_params(params=self.params)
