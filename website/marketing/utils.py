@@ -71,68 +71,10 @@ class MarketingHelper:
         return self.request.META.get('REMOTE_ADDR')
 
     def get_or_create_ad(self):
-        """
-        Fetches or creates an ad based on URL parameters.
-        """
-        ad_id = self.params.get('ad_id')
-        ad_name = self.params.get('ad_name')
+        create_ad_from_params(params=self.params, platform_id=self.platform_id)
 
-        ad_group_id = self.params.get('ad_group_id')
-        ad_group_name = self.params.get('ad_group_name')
-
-        ad_campaign_id = self.params.get('ad_campaign_id')
-        ad_campaign_name = self.params.get('ad_campaign_name')
-
-        keyword = self.params.get('keyword')
-
-        if not all([ad_id, ad_group_id, ad_campaign_id, self.platform_id]):
-            return None
-
-        ad_campaign, _ = AdCampaign.objects.get_or_create(
-            ad_campaign_id=ad_campaign_id,
-            defaults={
-                'name': ad_campaign_name,
-            }
-        )
-
-        ad_group, _ = AdGroup.objects.get_or_create(
-            ad_group_id=ad_group_id,
-            defaults={
-                'name': ad_group_name,
-                'ad_campaign': ad_campaign,
-            }
-        )
-
-        if keyword:
-            ad = Ad.objects.filter(name=keyword).first()
-            if ad:
-                return ad
-
-            ad_id = generate_random_big_int_id()
-            ad_name = keyword
-
-        ad, _ = Ad.objects.get_or_create(
-            ad_id=ad_id,
-            defaults={
-                'platform_id': self.platform_id,
-                'name': ad_name,
-                'ad_group': ad_group,
-            }
-        )
-        
-        return ad
-
-    def get_platform_id(self) -> dict:
-        for key in MarketingParams.GoogleURLClickIDKeys.value:
-            click_id = self.params.get(key)
-            if click_id:
-                return ConversionServiceType.GOOGLE.value
-        
-        fbclid = self.params.get(MarketingParams.FacebookURLClickID.value)
-        if fbclid:
-            return ConversionServiceType.FACEBOOK.value
-
-        return None
+    def get_platform_id(self):
+        return get_platform_id_from_params(params=self.params)
 
 def is_paid_traffic(request: HttpRequest) -> bool:
     landing_page = request.build_absolute_uri()
@@ -168,3 +110,66 @@ def random_selection(length: int) -> int:
 
 def generate_params_dict_from_url(url: str):
     return dict(parse_qsl(urlparse(url).query))
+
+def create_ad_from_params(params: dict):
+    ad_id = params.get('ad_id')
+    ad_name = params.get('ad_name')
+
+    ad_group_id = params.get('ad_group_id')
+    ad_group_name = params.get('ad_group_name')
+
+    ad_campaign_id = params.get('ad_campaign_id')
+    ad_campaign_name = params.get('ad_campaign_name')
+
+    keyword = params.get('keyword')
+
+    platform_id = get_platform_id_from_params(params=params)
+
+    if not all([ad_id, ad_group_id, ad_campaign_id, platform_id]):
+        return None
+
+    ad_campaign, _ = AdCampaign.objects.get_or_create(
+        ad_campaign_id=ad_campaign_id,
+        defaults={
+            'name': ad_campaign_name,
+        }
+    )
+
+    ad_group, _ = AdGroup.objects.get_or_create(
+        ad_group_id=ad_group_id,
+        defaults={
+            'name': ad_group_name,
+            'ad_campaign': ad_campaign,
+        }
+    )
+
+    if keyword:
+        ad = Ad.objects.filter(name=keyword).first()
+        if ad:
+            return ad
+
+        ad_id = generate_random_big_int_id()
+        ad_name = keyword
+
+    ad, _ = Ad.objects.get_or_create(
+        ad_id=ad_id,
+        defaults={
+            'platform_id': platform_id,
+            'name': ad_name,
+            'ad_group': ad_group,
+        }
+    )
+    
+    return ad
+
+def get_platform_id_from_params(params):
+    for key in MarketingParams.GoogleURLClickIDKeys.value:
+        click_id = params.get(key)
+        if click_id:
+            return ConversionServiceType.GOOGLE.value
+    
+    fbclid = params.get(MarketingParams.FacebookURLClickID.value)
+    if fbclid:
+        return ConversionServiceType.FACEBOOK.value
+
+    return None

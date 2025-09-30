@@ -1,13 +1,12 @@
 import json
 from django.dispatch import receiver
 from django.db.models.signals import Signal
-from django.db.models import Q
 from django.utils.timezone import now
 from django.conf import settings
 
 from core.conversions import conversion_service
-from core.models import CallTrackingNumber, LandingPage, LandingPageConversion, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
-from marketing.utils import generate_params_dict_from_url
+from core.models import LandingPage, LandingPageConversion, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
+from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from core.utils import get_session_data
 
 lead_status_changed = Signal()
@@ -85,6 +84,10 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
             try:
                 params = json.loads(metadata.value) or {}
 
+                lp = params.get("calltrk_landing")
+                if lp:
+                    params |= generate_params_dict_from_url(lp)
+
                 external_id = params.get(settings.TRACKING_COOKIE_NAME)
                 if external_id:
                     session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
@@ -94,6 +97,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                         lead_marketing.ip = session.get('ip')
                         lead_marketing.user_agent = session.get('user_agent')
                         lead_marketing.external_id = external_id
+                        lead_marketing.ad = create_ad_from_params(params=params)
                         lead_marketing.save()
                         lead_marketing.assign_visits()
 
@@ -107,10 +111,6 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                                     conversion_type=LandingPageConversion.PHONE_CALL
                                 )
                                 conversion.save()
-
-                lp = params.get("calltrk_landing")
-                if lp:
-                    params |= generate_params_dict_from_url(lp)
 
                 for key, value in params.items():
                     LeadMarketingMetadata.objects.create(
