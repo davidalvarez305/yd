@@ -90,7 +90,11 @@ class HomeView(LandingPageMixin, BaseWebsiteView):
             return default
 
         landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
-        if not landing_page or not landing_page.is_active:
+        
+        if not landing_page:
+            return default
+        
+        if not landing_page.is_active:
             return default
 
         return [f"core/landing_pages/{landing_page.template_name}"]
