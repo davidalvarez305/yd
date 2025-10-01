@@ -592,3 +592,115 @@ class ChairRentals(BaseWebsiteView):
         context['comments'] = comments
         context['features'] = features
         return context
+
+class TableRentals(BaseWebsiteView):
+    template_name = "core/landing_pages/table_rentals.html"
+    page_title = f"Table Rentals Miami — {settings.COMPANY_NAME}"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['js_files'] += ['js/floatingHeader.js']
+
+        reviews = GoogleReview.objects.all()
+        paired_reviews = get_paired_reviews()
+        reviews_ratings = get_average_ratings()
+        events = Event.objects.count()
+
+        media_storage = storages['media']
+        
+        items = [
+            {
+                'name': 'Plastic Folding Tables',
+                'price': 14.00,
+                'image': media_storage.url('white_plastic_folding_chair.webp'),
+            },
+            {
+                'name': 'Serpentine Tables',
+                'price': 16.00,
+                'image': media_storage.url('resin_folding_chairs.webp'),
+            },
+            {
+                'name': 'Round Tables',
+                'price': 14.00,
+                'image': media_storage.url('chiavari_chair.webp'),
+            },
+            {
+                'name': "Banquet Tables",
+                'price': 15.00,
+                'image': media_storage.url('crossback_chair.webp'),
+            },
+            {
+                'name': 'Cocktail Tables',
+                'price': 12.00,
+                'image': media_storage.url('wiilow_chair.webp'),
+            },
+            {
+                'name': 'Farm Tables',
+                'price': 80.00,
+                'image': media_storage.url('bamboo_chair.webp'),
+            }
+        ]
+
+        faqs = [
+            {
+                'question': 'What types of events do you cater to?',
+                'answers': [
+                    "We specialize in weddings, corporate events, birthday parties, private gatherings, festivals, and more. Whether it's a formal venue or a backyard celebration, we’ve got the right tables for any occasion!"
+                ]
+            },
+            {
+                'question': 'Do you provide delivery & set-up or just pick-up?',
+                'answers': [
+                    "You can choose from three options: delivery only, delivery + set-up, or pick-up. Whatever works best for you, we're flexible and happy to accommodate."
+                ]
+            },
+            {
+                'question': 'What do you charge for your service?',
+                'answers': [
+                    "After gathering some details about your event, we'll send over a detailed and itemized quote. This will include everything you need for your table rentals, including delivery, set-up, and any add-ons like tablecloths or decorative touches."
+                ]
+            },
+            {
+                'question': 'Do you offer delivery and setup for your tables?',
+                'answers': [
+                    "Yes! We offer both delivery and setup services for all table rentals. Delivery fees depend on the distance, and setup costs will vary based on the labor needed to get everything perfect for your event."
+                ]
+            },
+            {
+                'question': 'What types of tables do you offer for different events?',
+                'answers': [
+                    "From classic round tables to long banquet styles, we offer a wide range of tables in various sizes and finishes to suit your event’s theme and needs."
+                ]
+            },
+            {
+                'question': 'How far in advance should I book my table rentals?',
+                'answers': [
+                    "We recommend booking at least 2-4 weeks in advance, especially during peak seasons. But if you find yourself in a pinch, don’t worry—we’ll do our best to accommodate last-minute requests!"
+                ]
+            }
+        ]
+
+        features = [
+            "We’ll help you choose the perfect tables that fit your event’s vibe—whether it's elegant, casual, or somewhere in between.",
+            "We’re always early to set up—sometimes even hours before your event starts—so everything’s ready and waiting for your guests to arrive.",
+            "Our tables are not only stylish but also maintained in excellent condition. They’re carefully cleaned and stored after each event, ensuring they’re fresh and sanitized for your big day.",
+            "We’re all about cleanliness—your event space will be spotless when we leave, and we’ll handle the cleanup so you can focus on enjoying your event.",
+            "Need your tables to match a specific theme or style? We can set everything up to fit your vision, from decor to layout, with everything neatly organized.",
+            "Whether it’s a small gathering or a grand event, we’ve got the right tables to make sure everyone is comfortable and your space looks amazing.",
+            "We provide a clear, customized quote so you know exactly what you’re paying for—no surprises, just great service.",
+            "Your guests’ comfort is our top priority—we’ll ensure every table is spotless and perfectly arranged before your event begins.",
+            "With years of experience, we pride ourselves on timely, reliable service that makes your event setup smooth and stress-free."
+        ]
+
+        comments = [f"comment_{i}.webp" for i in range(1, 14)]
+
+        context['paired_reviews'] = paired_reviews
+        context['reviews'] = reviews
+        context['reviews_ratings'] = reviews_ratings
+        context['events'] = events
+        context['items'] = items
+        context['faqs'] = faqs
+        context['comments'] = comments
+        context['features'] = features
+        return context
