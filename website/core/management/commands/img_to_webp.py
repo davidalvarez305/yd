@@ -6,8 +6,6 @@ from PIL import Image
 from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):
-    help = 'Convert PNG files in S3 media/ folder to lossless WebP using Pillow'
-
     def add_arguments(self, parser):
         parser.add_argument(
             '--bucket',
@@ -20,6 +18,11 @@ class Command(BaseCommand):
             help='S3 prefix/folder to scan for PNG files (default: media/)',
         )
         parser.add_argument(
+            '--ext',
+            required=True,
+            help='Which file extensions to go after',
+        )
+        parser.add_argument(
             '--dry-run',
             action='store_true',
             help='Show files to convert without performing conversion',
@@ -28,6 +31,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         bucket = options['bucket']
         prefix = options['prefix']
+        ext = options['ext']
         dry_run = options['dry_run']
 
         s3 = boto3.client('s3')
@@ -35,23 +39,23 @@ class Command(BaseCommand):
         paginator = s3.get_paginator('list_objects_v2')
         page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)
 
-        png_files = []
+        files = []
 
-        self.stdout.write(f"Scanning for PNG files in s3://{bucket}/{prefix}")
+        self.stdout.write(f"Scanning for {ext} files in s3://{bucket}/{prefix}")
 
         for page in page_iterator:
             for obj in page.get('Contents', []):
                 key = obj['Key']
-                if key.lower().endswith('.png'):
-                    png_files.append(key)
+                if key.lower().endswith(ext):
+                    files.append(key)
 
-        if not png_files:
+        if not files:
             self.stdout.write("No PNG files found.")
             return
 
-        self.stdout.write(f"Found {len(png_files)} PNG files.")
+        self.stdout.write(f"Found {len(files)} {ext} files.")
 
-        for key in png_files:
+        for key in files:
             webp_key = key[:-4] + '.webp'
 
             if dry_run:
@@ -59,7 +63,7 @@ class Command(BaseCommand):
                 continue
 
             with tempfile.TemporaryDirectory() as tmpdir:
-                png_path = os.path.join(tmpdir, 'input.png')
+                png_path = os.path.join(tmpdir, f'input.{ext}')
                 webp_path = os.path.join(tmpdir, 'output.webp')
 
                 self.stdout.write(f"Downloading {key}...")

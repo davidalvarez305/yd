@@ -484,48 +484,48 @@ class ChairRentals(BaseWebsiteView):
         events = Event.objects.count()
 
         media_storage = storages['media']
-        # 'image': media_storage.url('spicy_mango_margarita.webp'),
+        
 
         items = [
             {
                 'name': 'Plastic Folding Chairs',
                 'price': 2.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/CFPW-AX-T.jpg?v=1757976350&width=1600',
+                'image': media_storage.url('white_plastic_folding_chair.webp'),
             },
             {
                 'name': 'Resin Folding Chairs',
                 'price': 4.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/CFRW-CX-T-1.jpg?v=1758113383&width=1600',
+                'image': media_storage.url('resin_folding_chairs.webp'),
             },
             {
                 'name': 'Chiavari Chairs',
                 'price': 7.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/Gold-Resin-Steel-Skeleton_1-1_de46bb55-adf0-4df6-9a1f-b9d8f94ee58b.jpg?v=1747389562&width=1600',
+                'image': media_storage.url('chiavari_chair.webp'),
             },
             {
                 'name': 'Cross Back Chairs',
                 'price': 10.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/crossback-resin-chestnut_1_7c9b311d-ec08-44e4-8ef3-cbefdfed349b.jpg?v=1757595775&width=1600',
+                'image': media_storage.url('crossback_chair.webp'),
             },
             {
-                'name': 'Royal Chairs',
-                'price': 15.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/Royal-Resin-Gold-with-Ivory-Vinyl-Seat-and-Ivory-Vinyl-Tufted-Back_1-scaled.jpg?v=1747364239&width=1600',
+                'name': 'Willow Chairs',
+                'price': 10.00,
+                'image': media_storage.url('wiilow_chair.webp'),
             },
             {
                 'name': 'Bamboo Chairs',
                 'price': 10.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/bamboo_steel_skeleton_chair_01.jpg?v=1757602482&width=1600',
+                'image': media_storage.url('bamboo_chair.webp'),
             },
             {
                 'name': 'O Chairs',
                 'price': 15.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/OChairGoldStainlessSteel_1.jpg?v=1747377300&width=1600',
+                'image': media_storage.url('o_chair.webp'),
             },
             {
                 'name': 'Bar Stools',
-                'price': 15.00,
-                'image': 'https://chiavarisales.com/cdn/shop/files/bcrg-st-ax-t2.jpg?v=1757602551&width=1600',
+                'price': 13.00,
+                'image': media_storage.url('chiavari_bar_stool.webp'),
             },
         ]
 
