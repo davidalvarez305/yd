@@ -617,32 +617,27 @@ class TableRentals(BaseWebsiteView):
             {
                 'name': 'Plastic Folding Tables',
                 'price': 14.00,
-                'image': media_storage.url('white_plastic_folding_chair.webp'),
+                'image': media_storage.url('plastic_folding_tables.webp'),
             },
             {
                 'name': 'Serpentine Tables',
                 'price': 16.00,
-                'image': media_storage.url('resin_folding_chairs.webp'),
+                'image': media_storage.url('serpentine_tables.webp'),
             },
             {
                 'name': 'Round Tables',
                 'price': 14.00,
-                'image': media_storage.url('chiavari_chair.webp'),
+                'image': media_storage.url('round_tables.webp'),
             },
             {
                 'name': "Banquet Tables",
                 'price': 15.00,
-                'image': media_storage.url('crossback_chair.webp'),
+                'image': media_storage.url('banque_tables.webp'),
             },
             {
                 'name': 'Cocktail Tables',
                 'price': 12.00,
-                'image': media_storage.url('wiilow_chair.webp'),
-            },
-            {
-                'name': 'Farm Tables',
-                'price': 80.00,
-                'image': media_storage.url('bamboo_chair.webp'),
+                'image': media_storage.url('cocktail_tables.webp'),
             }
         ]
 
