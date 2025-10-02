@@ -76,14 +76,10 @@ class Command(BaseCommand):
         if not params:
             return
         
-        print('params: ', params)
-
         lp = params.get("calltrk_landing")
         if lp:
             params |= generate_params_dict_from_url(lp)
         
-        print('qs + params: ', params)
-
         external_id = params.get(settings.TRACKING_COOKIE_NAME)
         if external_id:
             session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
@@ -115,7 +111,7 @@ class Command(BaseCommand):
                     defaults={"value": value},
                 )
 
-        recording_url = data.get('recording') + ".json"
+        recording_url = call_tracking_service.get_public_recording_url(call_id=call_id)
         
         phone_call, _ = PhoneCall.objects.get_or_create(
             external_id=call_id,
@@ -130,7 +126,7 @@ class Command(BaseCommand):
             },
         )
 
-        if not data.get('recording'):
+        if not recording_url:
             return
         
         PhoneCallTranscription.objects.filter(phone_call=phone_call).delete()
@@ -144,11 +140,7 @@ class Command(BaseCommand):
         audio_filename = job_name + ".mp3"
         local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-        headers = {
-            "Authorization": f"Token token={settings.CALL_RAIL_API_KEY}"
-        }
-
-        download_file_from_url(phone_call.recording_url, local_audio_path, headers=headers)
+        download_file_from_url(recording_url, local_audio_path)
 
         try:
             with open(local_audio_path, 'rb') as audio_file:

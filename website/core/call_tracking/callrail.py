@@ -147,7 +147,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             tracking_phone_call.call_duration = int(data.get("duration", 0))
             tracking_phone_call.save()
 
-            recording_url = data.get('recording') if '.json' in data.get('recording') else data.get('recording') + '.json'
+            recording_url = self.get_public_recording_url(call_id=resource_id)
 
             phone_call = PhoneCall(
                 external_id=resource_id,
@@ -176,11 +176,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             audio_filename = job_name + ".mp3"
             local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-            headers = {
-                "Authorization": f"Token token={self.api_key}"
-            }
-
-            download_file_from_url(recording_url, local_audio_path, headers=headers)
+            download_file_from_url(recording_url, local_audio_path)
 
             try:
                 with open(local_audio_path, 'rb') as audio_file:
@@ -303,3 +299,30 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         return response.json()
+    
+    def get_public_recording_url(self, call_id: str):
+        url = f"https://api.callrail.com/v3/a/{self.account_id}/calls/{call_id}/recording.json"
+        headers = {
+            "Authorization": f"Token token={self.api_key}"
+        }
+
+        try:
+            response = requests.get(url, headers=headers)
+
+            if response.status_code == 404:
+                logger.warning(f"Recording not found for call_id={call_id}")
+                return None
+
+            response.raise_for_status()
+
+            try:
+                data = response.json()
+            except ValueError:
+                logger.error(f"Invalid JSON response for call_id={call_id}")
+                return None
+
+            return data.get("url")
+
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch recording for call_id={call_id}: {e}")
+            return None
