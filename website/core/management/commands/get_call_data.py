@@ -83,7 +83,6 @@ class Command(BaseCommand):
             if lp:
                 params |= generate_params_dict_from_url(lp)
 
-            print('params: ', params)
             external_id = params.get(settings.TRACKING_COOKIE_NAME)
             if external_id:
                 session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
@@ -115,10 +114,11 @@ class Command(BaseCommand):
                         defaults={"value": value},
                     )
 
-        except (TypeError, json.JSONDecodeError):
-            self.stdout.write(self.style.ERROR("Failed to load params"))
+        except (TypeError, json.JSONDecodeError) as e:
+            self.stdout.write(self.style.ERROR(f"Failed to load params: {e}"))
         
         recording_url = data.get('recording')
+        print('recording_url: ', recording_url)
         
         phone_call, _ = PhoneCall.objects.get_or_create(
             external_id=call_id,
