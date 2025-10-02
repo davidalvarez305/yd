@@ -72,51 +72,49 @@ class Command(BaseCommand):
                     defaults={"value": value},
                 )
 
-        metadata = data.get("custom")
-        if not metadata:
+        params = data.get("custom")
+        if not params:
             return
-
-        try:
-            params = json.loads(metadata) or {}
-
-            lp = params.get("calltrk_landing")
-            if lp:
-                params |= generate_params_dict_from_url(lp)
-
-            external_id = params.get(settings.TRACKING_COOKIE_NAME)
-            if external_id:
-                session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
-                if session_mapping:
-                    session = get_session_data(session_key=session_mapping.session_key)
-
-                    lead.lead_marketing.ip = session.get("ip")
-                    lead.lead_marketing.user_agent = session.get("user_agent")
-                    lead.lead_marketing.external_id = external_id
-                    lead.lead_marketing.ad = create_ad_from_params(params=params, cookies=metadata)
-                    lead.lead_marketing.save()
-                    lead.lead_marketing.assign_visits()
-
-                    landing_page_id = session.get("landing_page_id")
-                    if landing_page_id:
-                        landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
-                        if landing_page:
-                            LandingPageConversion.objects.create(
-                                lead=lead,
-                                landing_page=landing_page,
-                                conversion_type=LandingPageConversion.PHONE_CALL,
-                            )
-
-            for key, value in params.items():
-                if value:
-                    LeadMarketingMetadata.objects.update_or_create(
-                        lead_marketing=lead.lead_marketing,
-                        key=key,
-                        defaults={"value": value},
-                    )
-
-        except (TypeError, json.JSONDecodeError) as e:
-            self.stdout.write(self.style.ERROR(f"Failed to load params: {e}"))
         
+        print('params: ', params)
+
+        lp = params.get("calltrk_landing")
+        if lp:
+            params |= generate_params_dict_from_url(lp)
+        
+        print('qs + params: ', params)
+
+        external_id = params.get(settings.TRACKING_COOKIE_NAME)
+        if external_id:
+            session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
+            if session_mapping:
+                session = get_session_data(session_key=session_mapping.session_key)
+
+                lead.lead_marketing.ip = session.get("ip")
+                lead.lead_marketing.user_agent = session.get("user_agent")
+                lead.lead_marketing.external_id = external_id
+                lead.lead_marketing.ad = create_ad_from_params(params=params, cookies=data.get("custom"))
+                lead.lead_marketing.save()
+                lead.lead_marketing.assign_visits()
+
+                landing_page_id = session.get("landing_page_id")
+                if landing_page_id:
+                    landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+                    if landing_page:
+                        LandingPageConversion.objects.create(
+                            lead=lead,
+                            landing_page=landing_page,
+                            conversion_type=LandingPageConversion.PHONE_CALL,
+                        )
+
+        for key, value in params.items():
+            if value:
+                LeadMarketingMetadata.objects.update_or_create(
+                    lead_marketing=lead.lead_marketing,
+                    key=key,
+                    defaults={"value": value},
+                )
+
         recording_url = data.get('recording') + ".json"
         
         phone_call, _ = PhoneCall.objects.get_or_create(
