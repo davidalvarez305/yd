@@ -129,8 +129,6 @@ class Command(BaseCommand):
         if not recording_url:
             return
         
-        PhoneCallTranscription.objects.filter(phone_call=phone_call).delete()
-        
         has_transcription = PhoneCallTranscription.objects.filter(phone_call=phone_call).exists()
 
         if has_transcription:
