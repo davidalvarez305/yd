@@ -77,7 +77,7 @@ class Command(BaseCommand):
             return
 
         try:
-            params = json.loads(metadata.value) or {}
+            params = json.loads(metadata) or {}
 
             lp = params.get("calltrk_landing")
             if lp:
