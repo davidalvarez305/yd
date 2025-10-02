@@ -6,6 +6,7 @@ import uuid
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from django.core.files import File
+import requests
 
 from core.logger import logger
 from core.call_tracking.base import CallingTrackingServiceInterface
@@ -28,6 +29,10 @@ from core.transcription import transcription_service
 from core.calling import calling_service
 
 class CallRailTrackingService(CallingTrackingServiceInterface):
+    def __init__(self):
+        self.account_id = settings.CALL_RAIL_ACCOUNT_ID
+        self.api_key = settings.CALL_RAIL_API_KEY
+
     def handle_inbound_tracking_call(self, request) -> HttpResponse:
         try:
             data = json.loads(request.body.decode("utf-8"))
@@ -213,3 +218,16 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         except Exception as e:
             logger.error("Error handling CallRail webhook (text)", exc_info=True)
             return HttpResponse("An unexpected error occurred.", status=500)
+    
+    def get_call_by_id(self, call_id: str):
+        url = f"https://api.callrail.com/v3/a/{self.account_id}/calls/{call_id}.json"
+        headers = {
+            "Authorization": f"Token token={self.api_key}"
+        }
+        params = {
+            "fields": "custom"
+        }
+
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()

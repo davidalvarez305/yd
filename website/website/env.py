@@ -75,6 +75,7 @@ class EnvConfig:
         # Call Rail
         "CALL_RAIL_API_KEY",
         "CALL_RAIL_WEBHOOK_SIGNATURE_SECRET_TOKEN",
+        "CALL_RAIL_ACCOUNT_ID",
     ]
 
     def __init__(self):
