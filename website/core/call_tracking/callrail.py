@@ -28,6 +28,71 @@ from core.messaging.utils import MIME_EXTENSION_MAP
 from core.transcription import transcription_service
 from core.calling import calling_service
 
+CALLRAIL_FIELDS = [
+    "agent_email",
+    "call_highlights",
+    "call_summary",
+    "call_type",
+    "campaign",
+    "company_id",
+    "company_name",
+    "company_time_zone",
+    "conversational_transcript",
+    "created_at",
+    "custom",
+    "device_type",
+    "fbclid",
+    "first_call",
+    "formatted_call_type",
+    "formatted_customer_location",
+    "formatted_business_phone_number",
+    "formatted_customer_name",
+    "formatted_customer_name_or_phone_number",
+    "formatted_customer_phone_number",
+    "formatted_duration",
+    "formatted_tracking_phone_number",
+    "formatted_tracking_source",
+    "formatted_value",
+    "ga",
+    "gclid",
+    "good_lead_call_id",
+    "good_lead_call_time",
+    "integration_data",
+    "keypad_entries",
+    "keywords",
+    "keywords_spotted",
+    "landing_page_url",
+    "last_requested_url",
+    "lead_status",
+    "medium",
+    "milestones",
+    "msclkid",
+    "note",
+    "person_id",
+    "prior_calls",
+    "referrer_domain",
+    "referring_url",
+    "sentiment",
+    "session_uuid",
+    "source",
+    "source_name",
+    "speaker_percent",
+    "tags",
+    "timeline_url",
+    "total_calls",
+    "tracker_id",
+    "transcription",
+    "utm_campaign",
+    "utm_content",
+    "utm_medium",
+    "utm_source",
+    "utm_term",
+    "value",
+    "voice_assist_message",
+    "waveforms",
+    "zip_code",
+]
+
 class CallRailTrackingService(CallingTrackingServiceInterface):
     def __init__(self):
         self.account_id = settings.CALL_RAIL_ACCOUNT_ID
@@ -225,7 +290,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             "Authorization": f"Token token={self.api_key}"
         }
         params = {
-            "fields": "custom"
+            "fields": ",".join(CALLRAIL_FIELDS)
         }
 
         response = requests.get(url, headers=headers, params=params)
