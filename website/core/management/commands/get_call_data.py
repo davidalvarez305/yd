@@ -37,9 +37,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         call_id = options["id"]
         data = call_tracking_service.get_call_by_id(call_id=call_id)
+        print('data: ', data)
 
         tracking_phone_call, _ = TrackingPhoneCall.objects.get_or_create(
-            external_id=data.get("resource_id"),
+            external_id=call_id,
             defaults={
                 "call_duration": int(data.get("duration", 0)),
                 "call_from": data.get("customer_phone_number"),
@@ -118,7 +119,7 @@ class Command(BaseCommand):
         recording_url = data.get('recording')
         
         phone_call, _ = PhoneCall.objects.get_or_create(
-            external_id=data.get("resource_id"),
+            external_id=call_id,
             defaults={
                 "call_duration": tracking_phone_call.call_duration,
                 "date_created": tracking_phone_call.date_created,
