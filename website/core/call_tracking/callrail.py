@@ -147,7 +147,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             tracking_phone_call.call_duration = int(data.get("duration", 0))
             tracking_phone_call.save()
 
-            recording_url = data.get('recording')
+            recording_url = data.get('recording') if '.json' in data.get('recording') else data.get('recording') + '.json'
 
             phone_call = PhoneCall(
                 external_id=resource_id,
@@ -176,7 +176,11 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             audio_filename = job_name + ".mp3"
             local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-            download_file_from_url(recording_url, local_audio_path)
+            headers = {
+                "Authorization": f"Token token={self.api_key}"
+            }
+
+            download_file_from_url(recording_url, local_audio_path, headers=headers)
 
             try:
                 with open(local_audio_path, 'rb') as audio_file:
@@ -248,7 +252,10 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                 source_file_path = os.path.join(settings.UPLOADS_URL, source_file_name)
 
                 # Download the media file
-                download_file_from_url(twilio_resource=media_url, local_file_path=source_file_path)
+                headers = {
+                    "Authorization": f"Token token={self.api_key}"
+                }
+                download_file_from_url(twilio_resource=media_url, local_file_path=source_file_path, headers=headers)
 
                 # Handle audio conversion to mp3
                 if content_type.startswith("audio/"):

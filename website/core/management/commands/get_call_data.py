@@ -117,8 +117,7 @@ class Command(BaseCommand):
         except (TypeError, json.JSONDecodeError) as e:
             self.stdout.write(self.style.ERROR(f"Failed to load params: {e}"))
         
-        recording_url = data.get('recording')
-        print('recording_url: ', recording_url)
+        recording_url = data.get('recording') + ".json"
         
         phone_call, _ = PhoneCall.objects.get_or_create(
             external_id=call_id,
@@ -135,6 +134,8 @@ class Command(BaseCommand):
 
         if not data.get('recording'):
             return
+        
+        PhoneCallTranscription.objects.filter(phone_call=phone_call).delete()
         
         has_transcription = PhoneCallTranscription.objects.filter(phone_call=phone_call).exists()
 
