@@ -83,6 +83,7 @@ class Command(BaseCommand):
             if lp:
                 params |= generate_params_dict_from_url(lp)
 
+            print('params: ', params)
             external_id = params.get(settings.TRACKING_COOKIE_NAME)
             if external_id:
                 session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
@@ -144,7 +145,11 @@ class Command(BaseCommand):
         audio_filename = job_name + ".mp3"
         local_audio_path = os.path.join(settings.UPLOADS_URL, audio_filename)
 
-        download_file_from_url(phone_call.recording_url, local_audio_path)
+        headers = {
+            "Authorization": f"Token token={settings.CALL_RAIL_API_KEY}"
+        }
+
+        download_file_from_url(phone_call.recording_url, local_audio_path, headers=headers)
 
         try:
             with open(local_audio_path, 'rb') as audio_file:

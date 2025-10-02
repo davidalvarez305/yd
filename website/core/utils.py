@@ -334,21 +334,22 @@ def get_content_type_from_url(url: str) -> str:
     response = requests.head(url, allow_redirects=True)
     return response.headers.get("Content-Type")
 
-def download_file_from_url(url: str, local_file_path: str) -> None:
+def download_file_from_url(url: str, local_file_path: str, headers: dict | None = None, params: dict | None = None,) -> None:
     try:
-        response = requests.get(url, stream=True)
+        response = requests.get(url, stream=True, headers=headers, params=params)
         response.raise_for_status()
     except requests.RequestException as e:
         logger.exception("Failed to download file", exc_info=True)
-        raise Exception(f"Failed to download file from {url}: {e}")
+        raise Exception(f"Failed to download file from {url}: {e}") from e
 
     try:
         with open(local_file_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+                if chunk:
+                    f.write(chunk)
     except Exception as e:
         logger.exception("Failed to save file locally", exc_info=True)
-        raise Exception(f"Failed to save file locally at {local_file_path}: {e}")
+        raise Exception(f"Failed to save file locally at {local_file_path}: {e}") from e
     
 def get_session_data(session_key):
     try:
