@@ -251,7 +251,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                 headers = {
                     "Authorization": f"Token token={self.api_key}"
                 }
-                download_file_from_url(twilio_resource=media_url, local_file_path=source_file_path, headers=headers)
+                download_file_from_url(url=media_url, local_file_path=source_file_path, headers=headers)
 
                 # Handle audio conversion to mp3
                 if content_type.startswith("audio/"):
