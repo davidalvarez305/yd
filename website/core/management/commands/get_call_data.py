@@ -37,7 +37,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         call_id = options["id"]
         data = call_tracking_service.get_call_by_id(call_id=call_id)
-        print('data: ', data)
 
         tracking_phone_call, _ = TrackingPhoneCall.objects.get_or_create(
             external_id=call_id,
@@ -66,11 +65,12 @@ class Command(BaseCommand):
             if isinstance(value, (dict, list)):
                 value = json.dumps(value)
 
-            TrackingPhoneCallMetadata.objects.update_or_create(
-                tracking_phone_call=tracking_phone_call,
-                key=key,
-                defaults={"value": value},
-            )
+            if value:
+                TrackingPhoneCallMetadata.objects.update_or_create(
+                    tracking_phone_call=tracking_phone_call,
+                    key=key,
+                    defaults={"value": value},
+                )
 
         metadata = data.get("custom")
         if not metadata:
@@ -107,11 +107,12 @@ class Command(BaseCommand):
                             )
 
             for key, value in params.items():
-                LeadMarketingMetadata.objects.update_or_create(
-                    lead_marketing=lead.lead_marketing,
-                    key=key,
-                    defaults={"value": value},
-                )
+                if value:
+                    LeadMarketingMetadata.objects.update_or_create(
+                        lead_marketing=lead.lead_marketing,
+                        key=key,
+                        defaults={"value": value},
+                    )
 
         except (TypeError, json.JSONDecodeError):
             self.stdout.write(self.style.ERROR("Failed to load params"))
