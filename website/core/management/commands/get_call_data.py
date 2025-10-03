@@ -24,7 +24,7 @@ from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 
 
 class Command(BaseCommand):
-    help = "Get Instagram follower count via Facebook Graph API."
+    help = "Get call rail call details."
 
     def add_arguments(self, parser):
         parser.add_argument(

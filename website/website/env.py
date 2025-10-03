@@ -76,6 +76,9 @@ class EnvConfig:
         "CALL_RAIL_API_KEY",
         "CALL_RAIL_WEBHOOK_SIGNATURE_SECRET_TOKEN",
         "CALL_RAIL_ACCOUNT_ID",
+
+        # Jotform
+        'JOTFORM_API_KEY',
     ]
 
     def __init__(self):
