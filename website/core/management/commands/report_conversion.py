@@ -66,7 +66,6 @@ class Command(BaseCommand):
             else:
                 data[metadata.key] = metadata.value
 
-        print(data)
         try:
             conversion_service.send_conversion(data=data)
         except Exception as e:
