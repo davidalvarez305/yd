@@ -100,7 +100,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                         lead_marketing.ip = session.get('ip')
                         lead_marketing.user_agent = session.get('user_agent')
                         lead_marketing.external_id = external_id
-                        lead_marketing.ad = create_ad_from_params(params=params, cookies=metadata)
+                        lead_marketing.ad = create_ad_from_params(params=params, cookies=params)
                         lead_marketing.save()
                         lead_marketing.assign_visits()
 
