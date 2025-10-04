@@ -1242,6 +1242,7 @@ class Visit(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     url = models.TextField()
     session_duration = models.FloatField(default=0.0)
+    cookies = models.JSONField(default=dict)
     
     lead_marketing = models.ForeignKey(LeadMarketing, null=True, on_delete=models.SET_NULL, related_name='visits')
     landing_page = models.ForeignKey(LandingPage, null=True, on_delete=models.RESTRICT, related_name='visits')

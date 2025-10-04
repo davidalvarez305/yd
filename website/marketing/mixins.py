@@ -1,7 +1,9 @@
+import json
 import uuid
 import random
 
 from django.conf import settings
+from django.http import HttpRequest
 from core.models import LandingPage, LeadMarketing, SessionMapping, Visit
 from .utils import MarketingHelper, is_paid_traffic
     
@@ -51,7 +53,7 @@ class UserTrackingMixin:
         return response
 
 class VisitTrackingMixin:
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(self, request: HttpRequest, *args, **kwargs):
         if not request.user.is_authenticated:
             referrer = request.META.get('HTTP_REFERER')
             external_id = request.session.get('external_id')
@@ -63,6 +65,7 @@ class VisitTrackingMixin:
                 referrer=referrer,
                 url=request.build_absolute_uri(),
                 lead_marketing=lead_marketing,
+                cookies=request.COOKIES,
             )
 
             if not request.GET.get('test'):
