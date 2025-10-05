@@ -1,5 +1,6 @@
+import json
 from django.forms import ValidationError
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView, ListView, TemplateView
 from django.urls import reverse_lazy, reverse
@@ -12,7 +13,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm, generate_filter_form
@@ -22,8 +23,8 @@ from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, LandingPageTable, LeadMarketingMetadataTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
 from core.tables import Table
 from core.logger import logger
-from core.utils import format_phone_number, format_text_message, get_first_field_error, is_mobile
-from website.settings import ARCHIVED_LEAD_STATUS_ID
+from core.utils import format_phone_number, format_text_message, get_first_field_error, get_session_data, is_mobile, normalize_phone_number
+from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
 
@@ -1322,3 +1323,37 @@ class LandingPageDetailView(CRMDetailTemplateView):
 class LandingPageDeleteView(CRMDeleteView):
     model = LandingPage
     form_class = LandingPageForm
+
+class MarketingAssignment(CRMBaseView, TemplateView):
+    template_name = 'crm/marketing_assignment.html'
+
+    def post(self, request, *args, **kwargs):
+        data = request.POST.dict()
+
+        visit = get_object_or_404(Visit, url=data.get('landing_page'))
+        lead = get_object_or_404(Lead, phone_number=normalize_phone_number(data.get('phone_number')))
+
+        params = generate_params_dict_from_url(visit.url)
+        params |= visit.cookies or {}
+
+        session_data = {}
+        session_mapping = SessionMapping.objects.filter(external_id=visit.external_id).first()
+        if session_mapping:
+            session_data = get_session_data(session_key=session_mapping.session_key) or {}
+
+        lead_marketing = lead.lead_marketing
+        lead_marketing.ip = session_data.get('ip')
+        lead_marketing.user_agent = session_data.get('user_agent')
+        lead_marketing.external_id = visit.external_id
+        lead_marketing.ad = create_ad_from_params(params=params, cookies=params)
+        lead_marketing.save()
+        lead_marketing.assign_visits()
+
+        for key, value in params.items():
+            LeadMarketingMetadata.objects.update_or_create(
+                lead_marketing=lead_marketing,
+                key=key,
+                defaults={'value': value},
+            )
+
+        return redirect(reverse('lead_detail', kwargs={'pk': lead.pk}))

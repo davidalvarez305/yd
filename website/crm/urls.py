@@ -170,4 +170,7 @@ urlpatterns = [
     path('landing-page/<int:pk>/', views.LandingPageDetailView.as_view(), name='landingpage_detail'),
     path('landing-page/<int:pk>/edit/', views.LandingPageUpdateView.as_view(), name='landingpage_update'),
     path('landing-page/<int:pk>/delete/', views.LandingPageDeleteView.as_view(), name='landingpage_delete'),
+
+    # Marketing Assignment
+    path('marketing-assignment/', views.MarketingAssignment.as_view(), name='marketing_assignment'),
 ]
