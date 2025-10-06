@@ -125,7 +125,7 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                 print("Failed to load params")
 
     # Do not report calls for call asset calls
-    if is_google_ads_call_asset(phone_call=last_inbound_call):
+    if lead_status.status == LeadStatusEnum.LEAD_CREATED and is_google_ads_call_asset(phone_call=last_inbound_call):
         return
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
