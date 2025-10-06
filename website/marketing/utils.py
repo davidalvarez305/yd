@@ -201,7 +201,10 @@ def parse_google_ads_cookie(value: str):
 def is_google_ads_call_asset(phone_call: TrackingPhoneCall) -> bool:
     source_name = phone_call.metadata.filter(key='source_name').first()
 
-    if 'YD Cocktails Google Ads Call Assets' in source_name:
+    if not source_name:
+        return False
+
+    if 'YD Cocktails Google Ads Call Assets' in source_name.value:
         return True
 
     """ integrations = phone_call.metadata.filter(key='integration_data').first()
