@@ -7,7 +7,7 @@ from dateutil import parser
 
 from core.utils import normalize_phone_number
 from .enums import ConversionServiceType, MarketingParams
-from core.models import Ad, AdCampaign, AdGroup, LeadMarketing, LeadMarketingMetadata
+from core.models import Ad, AdCampaign, AdGroup, LeadMarketing, LeadMarketingMetadata, TrackingPhoneCall
 
 CLICK_ID_KEYS = ["gclid", "gbraid", "wbraid", "msclkid", "fbclid", "li_fat_id"]
 
@@ -197,3 +197,22 @@ def parse_google_ads_cookie(value: str):
         return match.group(1)
     else:
         return None
+
+def is_google_ads_call_asset(phone_call: TrackingPhoneCall) -> bool:
+    source_name = phone_call.metadata.filter(key='source_name').first()
+
+    if 'YD Cocktails Google Ads Call Assets' in source_name:
+        return True
+
+    """ integrations = phone_call.metadata.filter(key='integration_data').first()
+
+    google_ads = None
+
+    for integration in integrations:
+        if integration.get('integration') == 'Google Ads':
+            google_ads = integration.get('data')
+    
+    if google_ads:
+        return True """
+
+    return False

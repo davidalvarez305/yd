@@ -533,10 +533,16 @@ class VisitUpdateView(UpdateView):
     form_class = VisitForm
     model = Visit
     http_method_names = ['post']
-    
+
     def form_valid(self, form):
-        form.save()
-        return HttpResponse("Updated")
+        visit = form.save(commit=False)
+
+        if not visit.cookies:
+            visit.cookies = self.request.COOKIES
+
+        visit.save()
+
+        return HttpResponse(status=201)
 
 class LeadNoteDetailView(CRMDetailTemplateView):
     model = LeadNote

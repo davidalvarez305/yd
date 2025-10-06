@@ -6,7 +6,7 @@ from django.conf import settings
 
 from core.conversions import conversion_service
 from core.models import LandingPage, LandingPageConversion, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
-from marketing.utils import create_ad_from_params, generate_params_dict_from_url, parse_google_ads_cookie
+from marketing.utils import create_ad_from_params, generate_params_dict_from_url, is_google_ads_call_asset, parse_google_ads_cookie
 from core.utils import get_session_data
 
 lead_status_changed = Signal()
@@ -123,6 +123,10 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
                     )
             except (TypeError, json.JSONDecodeError):
                 print("Failed to load params")
+
+    # Do not report calls for call asset calls
+    if is_google_ads_call_asset(phone_call=last_inbound_call):
+        return
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
     data = create_data_dict(instance, event_name, event)
