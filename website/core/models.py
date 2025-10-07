@@ -178,6 +178,22 @@ class Lead(models.Model):
     
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
+    
+    def record_activity(self, activity: LeadActivityEnum):
+        lead_activity = LeadActivity.objects.get(activity=activity)
+
+        LeadActivityHistory.objects.create(
+            lead=self,
+            lead_activity=lead_activity
+        )
+    
+    def set_next_action(self, action: LeadAction):
+        lead_action = LeadAction.objects.get(action=action)
+
+        LeadActionHistory.objects.create(
+            lead=self,
+            lead_action=lead_action
+        )
 
     def value(self, visited=None) -> float:
         if visited is None:
