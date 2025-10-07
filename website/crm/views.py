@@ -1336,7 +1336,11 @@ class MarketingAssignment(CRMBaseView, TemplateView):
     def post(self, request, *args, **kwargs):
         data = request.POST.dict()
 
-        visit = get_object_or_404(Visit, url=data.get('landing_page'))
+        visit = Visit.objects.filter(url=data.get('landing_page')).first()
+
+        if not visit:
+            return HttpResponse(500)
+
         lead = get_object_or_404(Lead, phone_number=normalize_phone_number(data.get('phone_number')))
 
         params = generate_params_dict_from_url(visit.url)
