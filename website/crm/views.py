@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from django.forms import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -1367,3 +1368,18 @@ class MarketingAssignment(CRMBaseView, TemplateView):
             )
 
         return redirect(reverse('lead_detail', kwargs={'pk': lead.pk}))
+
+class MarketingAssignment(CRMBaseView, TemplateView):
+    template_name = 'crm/marketing_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        # In the future I can remove this once I do a full marketing & event review
+        initial_tracking_date = datetime(2025, 10, 1)
+
+        leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
+
+        ctx['leads'] = leads
+
+        return ctx
