@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Union
 import uuid
@@ -11,6 +11,7 @@ from django.db.models import Q, Sum
 
 from marketing.enums import ConversionServiceType
 from website import settings
+from core.enums import LeadActivityEnum, LeadTaskEnum
 from .utils import media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -90,7 +91,7 @@ class LeadStatus(models.Model):
 class LeadStatusHistory(models.Model):
     lead_status_history_id = models.AutoField(primary_key=True)
     lead = models.ForeignKey('Lead', on_delete=models.CASCADE)
-    lead_status = models.ForeignKey('LeadStatus', on_delete=models.RESTRICT)
+    lead_status = models.ForeignKey(LeadStatus, on_delete=models.RESTRICT)
     date_changed = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -99,25 +100,66 @@ class LeadStatusHistory(models.Model):
     class Meta:
         db_table = 'lead_status_history'
 
-class LeadInterest(models.Model):
-    lead_interest_id = models.AutoField(primary_key=True)
-    interest = models.CharField(max_length=100)
+class LeadActivity(models.Model):
+    lead_activity_id = models.AutoField(primary_key=True)
+    activity = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.interest
-    
-    class Meta:
-        db_table = 'lead_interest'
+        return self.activity
 
-class NextAction(models.Model):
-    next_action_id = models.AutoField(primary_key=True)
-    action = models.CharField(max_length=255)
+    class Meta:
+        db_table = 'lead_activity'
+
+class LeadActivityHistory(models.Model):
+    lead_activity_history_id = models.AutoField(primary_key=True)
+    lead_activity = models.ForeignKey(LeadActivity, db_column='lead_activity_id', on_delete=models.RESTRICT)
+    lead = models.ForeignKey('Lead', db_column='lead_id', on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.action
-    
+        return f"{self.lead.full_name} - {self.lead_activity.activity} - {self.formatted_date_created}"
+
+    @property
+    def formatted_date_created(self):
+        """
+        Formatted like '10/7 - 5:24 PM'
+        """
+        return timezone.localtime(self.date_created).strftime("%#m/%#d - %#I:%M %p")
+
     class Meta:
-        db_table = 'next_action'
+        db_table = 'lead_activity'
+
+class LeadTask(models.Model):
+    lead_task_id = models.AutoField(primary_key=True)
+    task = models.CharField(max_length=255)
+    is_automated = models.BooleanField()
+    during_work_hours = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.task
+
+    class Meta:
+        db_table = 'lead_task'
+
+class LeadTaskHistory(models.Model):
+    lead_task_history_id = models.AutoField(primary_key=True)
+    lead_task = models.ForeignKey(LeadTask, db_column='lead_task_id', on_delete=models.RESTRICT)
+    lead = models.ForeignKey('Lead', db_column='lead_id', on_delete=models.CASCADE)
+    date_scheduled = models.DateTimeField(auto_now_add=True)
+    date_completed = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f"{self.lead.full_name} - {self.lead_task.task} - {self.formatted_date_scheduled}"
+
+    @property
+    def formatted_date_scheduled(self):
+        """
+        Formatted like '10/7 - 5:24 PM'
+        """
+        return timezone.localtime(self.date_scheduled).strftime("%#m/%#d - %#I:%M %p")
+
+    class Meta:
+        db_table = 'lead_task'
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
@@ -127,9 +169,7 @@ class Lead(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     message = models.TextField(null=True)
     lead_status = models.ForeignKey(LeadStatus, null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
-    lead_interest = models.ForeignKey(LeadInterest, db_column='lead_interest_id', null=True, on_delete=models.SET_NULL)
-    actions = models.ManyToManyField('NextAction', through='LeadNextAction')
-
+    
     search_vector = SearchVectorField(null=True)
 
     def __str__(self):
@@ -179,21 +219,15 @@ class Lead(models.Model):
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
     
-    def record_activity(self, activity: LeadActivityEnum):
-        lead_activity = LeadActivity.objects.get(activity=activity)
+    def record_activity(self, activity: LeadActivityEnum | str):
+        value = activity.value if isinstance(activity, Enum) else activity
+        lead_activity = LeadActivity.objects.get(activity=value)
+        LeadActivityHistory.objects.create(lead=self, lead_activity=lead_activity)
 
-        LeadActivityHistory.objects.create(
-            lead=self,
-            lead_activity=lead_activity
-        )
-    
-    def set_next_action(self, action: LeadAction):
-        lead_action = LeadAction.objects.get(action=action)
-
-        LeadActionHistory.objects.create(
-            lead=self,
-            lead_action=lead_action
-        )
+    def create_lead_task(self, action: LeadTaskEnum | str, date_scheduled: datetime):
+        value = action.value if isinstance(action, Enum) else action
+        lead_task = LeadTask.objects.get(action=value)
+        LeadTaskHistory.objects.create(lead=self, lead_task=lead_task, date_scheduled=date_scheduled)
 
     def value(self, visited=None) -> float:
         if visited is None:
@@ -238,15 +272,6 @@ class Lead(models.Model):
     
     class Meta:
         db_table = 'lead'
-
-class LeadNextAction(models.Model):
-    lead_next_action_id = models.AutoField(primary_key=True)
-    next_action = models.ForeignKey(NextAction, db_column='next_action_id', on_delete=models.CASCADE)
-    lead = models.ForeignKey(Lead, db_column='lead_id', on_delete=models.CASCADE)
-    action_date = models.DateTimeField()
-
-    class Meta:
-        db_table = 'lead_next_action'
 
 class ServiceType(models.Model):
     service_type_id = models.AutoField(primary_key=True)
