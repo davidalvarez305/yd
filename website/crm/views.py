@@ -1379,7 +1379,9 @@ class MarketingAssignment(CRMBaseView, TemplateView):
         initial_tracking_date = datetime(2025, 10, 1)
 
         leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
+        ad_spend = AdSpend.objects.filter(date_created__gte=initial_tracking_date)
 
         ctx['leads'] = leads
+        ctx['ad_spend'] = ad_spend
 
         return ctx
