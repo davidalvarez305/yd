@@ -201,13 +201,9 @@ def parse_google_ads_cookie(value: str):
 def is_google_ads_call_asset(phone_call: TrackingPhoneCall) -> bool:
     integrations = phone_call.metadata.filter(key='integration_data').first()
 
-    data = None
-
     for integration in integrations:
         if integration.get('integration') == 'GoogleAdword':
-            data = integration.get('data')
+            if integration.get('data'):
+                return True
     
-    if data:
-        return True
-
     return False
