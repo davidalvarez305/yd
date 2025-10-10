@@ -46,7 +46,9 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
             data['wbraid'] = metadata.value
         elif metadata.key == '_gcl_aw':
             if 'gclid' not in data:
-                data['gclid'] = parse_google_ads_cookie(metadata.value)
+                cookie_click_id = parse_google_ads_cookie(metadata.value)
+                if cookie_click_id:
+                    data['gclid'] = cookie_click_id
         else:
             data[metadata.key] = metadata.value
         
