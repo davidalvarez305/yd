@@ -334,7 +334,9 @@
 
 		if (quoteModal) quoteModal.close();
 
-		if (!event.detail.successful) return;
+		console.log(event);
+
+		if (!event.detail.xhr.status) return;
 
 		if (user) return; // Do not report conversion if logged in user created lead
 
