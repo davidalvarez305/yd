@@ -1,6 +1,6 @@
 from django import forms
 
-from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadInterest, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
+from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect
 from core.models import LeadMarketing, Cocktail, Event
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
@@ -49,19 +49,12 @@ class LeadForm(BaseModelForm):
         widget=forms.Select(attrs={'placeholder': 'Select a status', 'disabled': True}),
     )
 
-    lead_interest = forms.ModelChoiceField(
-        queryset=LeadInterest.objects.all(),
-        required=False,
-        label="Lead Interest",
-        widget=forms.Select(attrs={'placeholder': 'Select interest'})
-    )
-
     def clean_phone_number(self):
         return normalize_phone_number(self.cleaned_data.get('phone_number'))
     
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'message', 'lead_interest', 'lead_status']
+        fields = ['full_name', 'phone_number', 'message', 'lead_status']
 
 class CocktailForm(BaseModelForm):
     name = forms.CharField(

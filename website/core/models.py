@@ -127,7 +127,7 @@ class LeadActivityHistory(models.Model):
         return timezone.localtime(self.date_created).strftime("%#m/%#d - %#I:%M %p")
 
     class Meta:
-        db_table = 'lead_activity'
+        db_table = 'lead_activity_history'
 
 class LeadTask(models.Model):
     lead_task_id = models.AutoField(primary_key=True)
@@ -159,7 +159,7 @@ class LeadTaskHistory(models.Model):
         return timezone.localtime(self.date_scheduled).strftime("%#m/%#d - %#I:%M %p")
 
     class Meta:
-        db_table = 'lead_task'
+        db_table = 'lead_task_history'
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
