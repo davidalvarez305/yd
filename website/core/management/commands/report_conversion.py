@@ -32,13 +32,18 @@ class Command(BaseCommand):
 
         if not event_name:
             raise ValueError('There must always be an event name provided.')
+        
+        event_time = int(timezone.now().timestamp())
+
+        if event_name == 'generate_lead':
+            event_time = lead.created_at.timestamp()
 
         data = {
             'event_name': event_name,
             'ip_address': lead.lead_marketing.ip,
             'user_agent': lead.lead_marketing.user_agent,
             'instant_form_lead_id': lead.lead_marketing.instant_form_lead_id,
-            'event_time': int(timezone.now().timestamp()),
+            'event_time': event_time,
             'phone_number': lead.phone_number,
             'external_id': str(lead.lead_marketing.external_id)
         }
@@ -48,6 +53,7 @@ class Command(BaseCommand):
             data.update({
                 'event_id': event.pk,
                 'value': event.amount,
+                'event_time': event.date_created.timestamp()
             })
 
         for metadata in lead.lead_marketing.metadata.all():
