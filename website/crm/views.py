@@ -1369,7 +1369,7 @@ class MarketingAssignment(CRMBaseView, TemplateView):
 
         return redirect(reverse('lead_detail', kwargs={'pk': lead.pk}))
 
-class MarketingAssignment(CRMBaseView, TemplateView):
+class MarketingAnalytics(CRMBaseView, TemplateView):
     template_name = 'crm/marketing_dashboard.html'
 
     def get_context_data(self, **kwargs):
@@ -1379,9 +1379,9 @@ class MarketingAssignment(CRMBaseView, TemplateView):
         initial_tracking_date = datetime(2025, 10, 1)
 
         leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
-        ad_spend = AdSpend.objects.filter(date_created__gte=initial_tracking_date)
+        # ad_spend = AdSpend.objects.filter(date_created__gte=initial_tracking_date)
 
         ctx['leads'] = leads
-        ctx['ad_spend'] = ad_spend
+        # ctx['ad_spend'] = ad_spend
 
         return ctx
