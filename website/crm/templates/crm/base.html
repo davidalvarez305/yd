@@ -73,6 +73,7 @@
             </div>
             <!-- END Sidebar Header -->
 
+            {% if user.is_authenticated %}
             <!-- Sidebar Navigation -->
             <div class="overflow-y-auto">
                 <div class="w-full p-4">
@@ -136,6 +137,7 @@
                 </div>
             </div>
             <!-- END Sidebar Navigation -->
+            {% endif %}
         </nav>
         <!-- Page Sidebar -->
 

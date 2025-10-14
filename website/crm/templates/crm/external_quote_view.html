@@ -25,10 +25,10 @@
 
                 <!-- Client Info -->
                 <div class="md:text-right print:text-right">
-                    <div class="mb-1 text-lg font-semibold">{{ quote.full_name }}</div>
+                    <div class="mb-1 text-lg font-semibold">{{ quote.lead.full_name }}</div>
                     <address class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ quote.email }}<br />
-                        {{ quote.phone_number }}<br />
+                        {{ quote.event_date }}<br />
+                        {{ quote.lead.phone_number }}<br />
                     </address>
                 </div>
                 <!-- END Client Info -->
@@ -166,6 +166,54 @@
                 {% endfor %}
             </div>
             <!-- END Buttons -->
+            <!-- Footer -->
+            <h2 class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                Terms & Conditions
+            </h2>
+            <!-- Terms & Conditions Section -->
+            <div class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto pb-10 space-y-4">
+                <p>
+                    (1) The bartender will arrive at the venue <u>one hour prior to the scheduled time of the service</u> 
+                    (for example: {{ quote.start_time }} - {{ quote.end_time }}) to begin setup.
+                </p>
+
+                <p>
+                    (2) The bartender will not start serving drinks until the official start time of the event.
+                </p>
+
+                <p>
+                    (3) The bartender will stop serving drinks at {{ quote.end_time }} unless an extension to the established time window is agreed upon. 
+                    In order to extend the service time, a full payment for the amount of 
+                    {{ quote.amount }} * 1 / {{ quote.hours }} via this quote must be made. 
+                    Any informal form of payment such as <strong>Zelle</strong>, <strong>CashApp</strong>, or <strong>Cash</strong> 
+                    does not constitute payment for this invoice.
+                </p>
+
+                <p>
+                    (4) The bartender(s) will not perform any duties that are not directly related to the serving of drinks, 
+                    such as cleaning, setting up, or breaking down items unrelated to the bar or bar area.
+                </p>
+
+                <p>
+                    (5) In order to reserve the date, a payment of <strong>{{ quote.amount }} * 0.25</strong> is required.
+                </p>
+
+                <p>
+                    (6) The remaining balance of <strong>{{ quote.amount }} * 0.75</strong> must be paid in full before bartenders are dispatched. 
+                    Failure to complete payment will result in cancellation of the event without refund.
+                </p>
+
+                <p>
+                    (7) In the event of cancellation by the client, a full refund will be available until <strong>{{ quote.due_date }}</strong>. 
+                    After this date, no refunds will be issued.
+                </p>
+
+                <p>
+                    (8) In the event that we must cancel the event, a full 100% refund will be issued for the deposit received. 
+                    We will provide a minimum of two weeks’ notice prior to the cancellation of any event, if necessary.
+                </p>
+            </div>
+            <!-- END Terms & Conditions Section -->
         </div>
     </div>
 </div>
