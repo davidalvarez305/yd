@@ -67,6 +67,12 @@ class TwilioCallingService(CallingServiceInterface):
 
         if not forward_number:
             return HttpResponse("No matching phone number found", status=400)
+        
+        response.say(
+            "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
+            voice='alice',
+            language='en-US'
+        )
 
         recording_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.RECORDING.value)
         action_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.STATUS.value)
@@ -188,6 +194,12 @@ class TwilioCallingService(CallingServiceInterface):
             status_callback_url = TwilioWebhookCallbacks.get_full_url(TwilioWebhookCallbacks.OUTBOUND_STATUS.value)
 
             response = VoiceResponse()
+
+            response.say(
+                "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
+                voice='alice',
+                language='en-US'
+            )
 
             dial = Dial(
                 caller_id=company_phone_number,
