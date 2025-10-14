@@ -5,7 +5,7 @@ from website import settings
 
 class ESignatureService(LazyObject):
     def _setup(self):
-        cls = import_string(settings.ESIGNATURE_SERVICE)
+        cls = import_string(settings.E_SIGNATURE_SERVICE)
         
         self._wrapped = cls()
 
