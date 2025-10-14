@@ -1,7 +1,7 @@
 from datetime import datetime
-import json
+from django.views.decorators.csrf import csrf_exempt
 from django.forms import ValidationError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView, ListView, TemplateView
 from django.urls import reverse_lazy, reverse
@@ -28,6 +28,7 @@ from core.utils import format_phone_number, format_text_message, get_first_field
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
+from core.esign import esignature_service
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -1385,3 +1386,7 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         # ctx['ad_spend'] = ad_spend
 
         return ctx
+
+@csrf_exempt
+def handle_esign_completed(request: HttpRequest):
+    return esignature_service.handle_esign_completed(request)

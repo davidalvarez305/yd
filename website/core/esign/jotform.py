@@ -5,6 +5,7 @@ from django.http import HttpResponse
 
 from core.esign.base import ESignatureServiceInterface
 from core.logger import logger
+from core.email import email_service
 from website import settings
 
 class JotformSignService(ESignatureServiceInterface):
@@ -18,13 +19,32 @@ class JotformSignService(ESignatureServiceInterface):
         for form in forms:
             print(form["title"])
     
-    def handle_agreement_signed(self, request) -> HttpResponse:
+    def handle_esign_completed(self, request) -> HttpResponse:
         try:
             data = json.loads(request.body.decode("utf-8"))
 
-            print(data)
+            html = """
+                <html>
+                <body>
+            """
+
+            for key, value in data.items():
+                html += f'<p><strong>{key}:</strong> {value}</p>'
+
+            html += """
+                </body>
+                </html>
+            """
+
+            email_service.send_html_email(
+                to=settings.COMPANY_EMAIL,
+                subject='AGREEMENT SIGNED',
+                html=html
+            )
+
             return HttpResponse(status=200)
 
+        except json.JSONDecodeError:
+            return HttpResponse("Invalid JSON", status=400)
         except Exception as e:
-            logger.error(f"Error handling Jotform Agreement Signed webhook {e}", exc_info=True)
-            return HttpResponse("An unexpected error occurred.", status=500)
+            return HttpResponse(f"Error: {str(e)}", status=500)
