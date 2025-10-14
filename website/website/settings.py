@@ -258,6 +258,7 @@ BILLING_SERVICE = 'core.billing.stripe.StripeBillingService'
 REVIEWS_SERVICE = 'core.reviews.google.GoogleReviewsService'
 GOOGLE_API_SERVICE = 'core.google.api.client.GoogleAPIService'
 CALL_TRACKING_SERVICE = 'core.call_tracking.callrail.CallRailTrackingService'
+E_SIGNATURE_SERVICE = 'core.esign.jotform.JotformSignService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
