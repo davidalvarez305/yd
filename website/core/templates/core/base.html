@@ -334,7 +334,7 @@
 
 		if (quoteModal) quoteModal.close();
 
-		if (event.detail.xhr.status !== 200) return;
+		if (event.detail.xhr.status > 300) return;
 
 		if (user) return; // Do not report conversion if logged in user created lead
 
