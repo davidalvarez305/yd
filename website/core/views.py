@@ -37,7 +37,7 @@ class BaseView(TemplateView):
             "page_title": self.page_title,
             "meta_description": self.meta_description,
             "site_name": settings.SITE_NAME,
-            "phone_number": format_phone_number(settings.COMPANY_PHONE_NUMBER),
+            "phone_number": format_phone_number(settings.GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER),
             "current_year": timezone.now().year,
             "company_name": settings.COMPANY_NAME,
             "page_path": f"{settings.ROOT_DOMAIN}{self.request.path}",
