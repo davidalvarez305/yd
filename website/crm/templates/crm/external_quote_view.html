@@ -173,30 +173,25 @@
             </h2>
             <!-- Terms & Conditions Section -->
             <div class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto pb-10 space-y-4">
-                <p>
-                    (1) The bartender will arrive at the venue <u>one hour prior to the scheduled time of the service</u> 
-                    (for example: {{ quote.start_time }} - {{ quote.end_time }}) to begin setup.
-                </p>
+                <p>(1) Service will begin from {{ quote.start_time }} to {{ quote.end_time }}.</p>
+                
+                <p>(2) The bartender will arrive at {{ quote.start_time }} - 1.</p>
+                
+                <p>(3) The bartender will not start serving drinks until {{ quote.start_time }}.</p>
+                
+                <p>(4) The bartender will stop serving drinks at {{ quote.end_time }} unless an extension to the established time window is agreed upon.</p>
+                
+                <p>(5) In order to extend the service time by an hour, a full payment for the amount of {{ quote.amount }} * 1 / {{ quote.hours }} via this quote must be made.</p>
+
+                <p>(6) Any informal form of payment for extension made to the bartender such as <strong>Zelle</strong>, <strong>CashApp</strong>, or <strong>Cash</strong> does not constitute payment for this invoice. <strong>The only acceptable form of payment for extension is via this invoice.</strong></p>
 
                 <p>
-                    (2) The bartender will not start serving drinks until the official start time of the event.
-                </p>
-
-                <p>
-                    (3) The bartender will stop serving drinks at {{ quote.end_time }} unless an extension to the established time window is agreed upon. 
-                    In order to extend the service time, a full payment for the amount of 
-                    {{ quote.amount }} * 1 / {{ quote.hours }} via this quote must be made. 
-                    Any informal form of payment such as <strong>Zelle</strong>, <strong>CashApp</strong>, or <strong>Cash</strong> 
-                    does not constitute payment for this invoice.
-                </p>
-
-                <p>
-                    (4) The bartender(s) will not perform any duties that are not directly related to the serving of drinks, 
+                    (7) The bartender(s) will not perform any duties that are not directly related to the serving of drinks, 
                     such as cleaning, setting up, or breaking down items unrelated to the bar or bar area.
                 </p>
 
                 <p>
-                    (5) In order to reserve the date, a payment of <strong>{{ quote.amount }} * 0.25</strong> is required.
+                    (8) In order to reserve the date, a payment of <strong>{{ quote.amount }} * 0.25</strong> is required.
                 </p>
 
                 <p>
