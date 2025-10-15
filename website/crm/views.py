@@ -60,6 +60,7 @@ class CRMContextMixin:
             "is_mobile": is_mobile(self.request.META.get('HTTP_USER_AGENT', '')),
             "unread_messages": Message.objects.filter(is_read=False).count(),
             "nav_links": nav_links,
+            "debug": settings.DEBUG,
         })
         context.setdefault('js_files', [])
         context['js_files'] += ['js/nav.js', 'js/main.js', 'js/modal/ModalHelper.js']
