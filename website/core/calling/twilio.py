@@ -195,12 +195,6 @@ class TwilioCallingService(CallingServiceInterface):
 
             response = VoiceResponse()
 
-            response.say(
-                "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
-                voice='alice',
-                language='en-US'
-            )
-
             dial = Dial(
                 caller_id=company_phone_number,
                 record='record-from-answer-dual',
@@ -213,6 +207,12 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback=status_callback_url,
                 status_callback_method='POST',
                 status_callback_event=TwilioWebhookEvents.outbound()
+            )
+
+            response.say(
+                "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
+                voice='alice',
+                language='en-US'
             )
 
             response.append(dial)
