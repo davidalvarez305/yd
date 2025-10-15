@@ -531,6 +531,7 @@ class VisitListView(CRMTableView):
     model = Visit
     table_class = VisitTable
     show_add_button = False
+    filter_form = None
 
 class VisitUpdateView(UpdateView):
     form_class = VisitForm
