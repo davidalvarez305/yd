@@ -12,7 +12,7 @@ from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.enums import LeadActivityEnum, LeadTaskEnum
-from .utils import media_upload_path, save_image_path
+from .utils import format_phone_number, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -174,6 +174,9 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+    def formatted_number(self):
+        return format_phone_number(self.phone_number)
     
     def phone_calls(self):
         return PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number))
@@ -360,14 +363,16 @@ class Quote(models.Model):
         return deposit_invoice.amount
     
     def is_paid_off(self) -> bool:
-        deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value).first()
-        remaining_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING.value).first()
-        full_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.FULL.value).first()
+        invoices = self.invoices.select_related('invoice_type')
 
-        return any([
-            deposit_invoice and remaining_invoice and deposit_invoice.date_paid and remaining_invoice.date_paid,
-            full_invoice and full_invoice.date_paid,
-        ])
+        full_invoice = invoices.filter(invoice_type__type=InvoiceTypeEnum.FULL.value, date_paid__isnull=False).exists()
+        if full_invoice:
+            return True
+
+        deposit_paid = invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value, date_paid__isnull=False).exists()
+        remaining_paid = invoices.filter(invoice_type__type=InvoiceTypeEnum.REMAINING.value, date_paid__isnull=False).exists()
+
+        return deposit_paid and remaining_paid
     
     def save(self, *args, **kwargs):
         from crm.utils import create_quote_due_date
@@ -384,7 +389,7 @@ class Quote(models.Model):
     
     def delete(self, *args, **kwargs):
         if self.is_paid_off() or self.is_deposit_paid():
-            raise Exception('Quote cannot be modified if it is already paid off.')
+            raise Exception('Quote cannot be modified if it is already paid.')
         return super().delete(*args, **kwargs)
     
 class Service(models.Model):
@@ -419,12 +424,21 @@ class QuoteService(models.Model):
         return self.service.service_type.type == 'Extend'
 
     def can_modify_quote(self):
-        return self.is_extend_service() or not self.quote.is_paid_off()
+        if self.is_extend_service():
+            return True
+        
+        if self.quote.is_paid_off():
+            return False
+
+        return True
 
     def save(self, *args, **kwargs):
         if not self.can_modify_quote():
             raise Exception('Cannot modify quote which is paid off')
-        return super().save(*args, **kwargs)
+        
+        resp = super().save(*args, **kwargs)
+
+        return resp
 
     def delete(self, *args, **kwargs):
         if not self.can_modify_quote():
@@ -433,6 +447,27 @@ class QuoteService(models.Model):
 
     class Meta:
         db_table = 'quote_service'
+
+class QuoteServiceActionChoices(models.TextChoices):
+    ADDED = 'Added', 'Added'
+    REMOVED = 'Removed', 'Removed'
+
+class QuoteServiceChangeHistory(models.Model):
+    quote_change_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    quote = models.ForeignKey(Quote, db_column='quote_id', related_name='changes', on_delete=models.RESTRICT)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
+    action = models.CharField(max_length=10, choices=QuoteServiceActionChoices.choices)
+    units = models.FloatField()
+    price_per_unit = models.FloatField()
+
+    def __str__(self):
+        formatted_date = self.date_created.strftime("%b %d, %#I:%M %p")
+        return f"{self.user.first_name} {self.action} {self.units} units @ ${self.price_per_unit} of {self.service.service} on {formatted_date}"
+
+    class Meta:
+        db_table = 'quote_service_change_history'
 
 class InvoiceTypeEnum(Enum):
     DEPOSIT = 'DEPOSIT'

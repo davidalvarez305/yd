@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, SessionMapping, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm, generate_filter_form
@@ -935,6 +935,16 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
     def form_valid(self, form):
         try:
             self.object = form.save()
+
+            QuoteServiceChangeHistory.objects.create(
+                user=self.request.user,
+                service=self.object.service,
+                quote=self.object.quote,
+                action=QuoteServiceActionChoices.ADDED,
+                units=self.object.units,
+                price_per_unit=self.object.price_per_unit,
+            )
+
             if not self.object.quote.is_paid_off():
                 update_quote_invoices(quote=self.object.quote)
             qs = QuoteService.objects.filter(quote=self.object.quote)
@@ -951,10 +961,26 @@ class QuoteServiceDeleteView(CRMDeleteView):
     def post(self, request, *args, **kwargs):
         try:
             self.object = self.get_object()
+
+            units = self.object.units
+            price_per_unit = self.object.price_per_unit
+            service = self.object.service
+            quote = self.object.quote
+
             self.object.delete()
-            if not self.object.quote.is_paid_off():
-                update_quote_invoices(quote=self.object.quote)
-            qs = QuoteService.objects.filter(quote=self.object.quote)
+
+            QuoteServiceChangeHistory.objects.create(
+                user=request.user,
+                quote=quote,
+                service=service,
+                action=QuoteServiceActionChoices.REMOVED,
+                units=units,
+                price_per_unit=price_per_unit,
+            )
+
+            if not quote.is_paid_off():
+                update_quote_invoices(quote=quote)
+            qs = QuoteService.objects.filter(quote=quote)
             table = QuoteServiceTable(data=qs, request=self.request)
 
             return HttpResponse(table.render())

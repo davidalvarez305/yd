@@ -28,7 +28,7 @@
                     <div class="mb-1 text-lg font-semibold">{{ quote.lead.full_name }}</div>
                     <address class="text-sm text-gray-500 dark:text-gray-400">
                         {{ quote.event_date }}<br />
-                        {{ quote.lead.phone_number }}<br />
+                        {{ quote.lead.formatted_number }}<br />
                     </address>
                 </div>
                 <!-- END Client Info -->
@@ -168,6 +168,26 @@
             <!-- END Buttons -->
         </div>
     </div>
+    
+    {% if quote.changes.count > 0 %}
+    <table class="min-w-full align-middle text-sm whitespace-nowrap">
+        <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-700/50">
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">Change Log</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for change in quote.changes.all %}
+            <tr class="border-b border-gray-100 dark:border-gray-700/50">
+                <td class="p-3">
+                    <p class="font-medium text-center">{{ change }}</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 </div>
 
 <!-- Service Agreement Modal -->
