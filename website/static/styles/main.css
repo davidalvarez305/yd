@@ -1325,6 +1325,10 @@ select{
   cursor: pointer;
 }
 
+.cursor-not-allowed{
+  cursor: not-allowed;
+}
+
 .list-none{
   list-style-type: none;
 }
@@ -2424,6 +2428,10 @@ select{
 
 .opacity-75{
   opacity: 0.75;
+}
+
+.opacity-60{
+  opacity: 0.6;
 }
 
 .shadow{
