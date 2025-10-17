@@ -1,12 +1,14 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.core.files import File
 
 from website import settings
 
-from core.models import EventStatusChoices, EventStatusHistory, Invoice, Quote, get_primary_invoices
+from core.models import EventDocument, EventStatusChoices, EventStatusHistory, Invoice, Message, Quote, get_primary_invoices
 from core.email import email_service
-from crm.utils import create_quote_due_date
+from core.messaging import messaging_service
+from crm.utils import create_quote_due_date, generate_event_pdf
 
 @receiver(post_save, sender=Quote)
 def handle_quote_saved(sender, instance: Quote, created, **kwargs):
@@ -45,5 +47,33 @@ def handle_event_status_change(sender, instance: EventStatusHistory, created, **
         )
 
         instance.event.change_event_status(EventStatusChoices.ONBOARDING)
+    
+    if status == EventStatusChoices.CONFIRMED:
+        path_to_pdf = generate_event_pdf(event=instance.event)
+
+        with open(path_to_pdf, 'rb') as f:
+            EventDocument.objects.create(
+                event=instance.event,
+                document=File(f)
+            )
+
+        text = "\n".join([
+            f"EVENT DETAILS CONFIRMED!",
+            f"Hi {instance.event.lead.full_name},",
+            f"Thank you for confirming all the details about your event. Here's trail of everything that's happened so far, for your records:",
+            f"LINK: {reverse('event_details_external_log_view', kwargs={ 'external_id': instance.event.external_id })}",
+            f"Store it somewhere safely!"
+        ])
+        message = Message(
+            text=text,
+            text_from=settings.COMPANY_PHONE_NUMBER,
+            text_to=instance.event.lead.phone_number,
+            is_inbound=False,
+            status='sent',
+            is_read=True,
+        )
+        response = messaging_service.send_text_message(message)
+        message.external_id = response.sid
+        message.save()
 
     return

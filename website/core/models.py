@@ -928,6 +928,14 @@ class Event(models.Model):
     class Meta:
         db_table = 'event'
 
+class EventDocument(models.Model):
+    event_document_id = models.AutoField(primary_key=True)
+    event = models.ForeignKey(Event, related_name='documents', db_column='event_id', on_delete=models.CASCADE)
+    document = models.FileField(upload_to='documents/')
+
+    class Meta:
+        db_table = 'event_document'
+
 class EventStatusChoices(models.TextChoices):
     BOOKED = 'Booked', 'Booked'
     ONBOARDING = 'Onboarding', 'Onboarding'

@@ -1414,7 +1414,7 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
         return ctx
 
-class EventClientConfirmation(CRMBaseView, AlertMixin, FormView):
+class EventSendClientConfirmation(CRMBaseView, AlertMixin, FormView):
     model = Event
     form_class = EventClientConfirmationForm
 
@@ -1446,6 +1446,24 @@ class EventClientConfirmation(CRMBaseView, AlertMixin, FormView):
                 message.save()
                 
                 event.change_event_status(EventStatusChoices.AWAITING_CLIENT_CONFIRMATION)
+                return self.alert(request=self.request, message="Client confirmation form sent!", status=AlertStatus.SUCCESS, reswap=True)
+            else:
+                return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)
+        except Exception as e:
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+        
+class EventReceiveClientConfirmation(CRMBaseView, AlertMixin, FormView):
+    model = Event
+    form_class = EventClientConfirmationForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                event = form.cleaned_data.get('event')
+                if not event:
+                    return self.alert(request=self.request, message="Event cannot be none!", status=AlertStatus.BAD_REQUEST, reswap=True)
+                event.change_event_status(EventStatusChoices.CONFIRMED)
                 return self.alert(request=self.request, message="Client confirmation form sent!", status=AlertStatus.SUCCESS, reswap=True)
             else:
                 return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)

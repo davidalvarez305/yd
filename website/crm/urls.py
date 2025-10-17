@@ -59,6 +59,10 @@ urlpatterns = [
     path('event/<int:pk>/edit/', views.EventUpdateView.as_view(), name='event_update'),
     path('event/<int:pk>/delete/', views.EventDeleteView.as_view(), name='event_delete'),
 
+    # Event Workflow
+    path('event/<int:pk>/send-confirmation', views.EventSendClientConfirmation.as_view(), name='event_send_confirmation'),
+    path('event/<int:pk>/receive-confirmation', views.EventReceiveClientConfirmation.as_view(), name='event_receive_confirmation'),
+
     # External Event Detail
     path('event/external/<str:external_id>/', views.ExternalEventDetail.as_view(), name='event_external_detail'),
 

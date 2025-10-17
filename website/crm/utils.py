@@ -134,3 +134,6 @@ def create_quote_due_date(event_date):
         return timezone.now()
 
     return due_datetime
+
+def generate_event_pdf(event: Event):
+    return
