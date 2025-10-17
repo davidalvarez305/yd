@@ -14,11 +14,11 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm, generate_filter_form
-from crm.forms import FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
+from crm.forms import EventClientConfirmationForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, LandingPageTable, LeadMarketingMetadataTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -28,7 +28,6 @@ from core.utils import format_phone_number, format_text_message, get_first_field
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
-from core.esign import esignature_service
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -1415,6 +1414,40 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
         return ctx
 
-@csrf_exempt
-def handle_esign_completed(request: HttpRequest):
-    return esignature_service.handle_esign_completed(request)
+class EventClientConfirmation(CRMBaseView, AlertMixin, FormView):
+    model = Event
+    form_class = EventClientConfirmationForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                event = form.cleaned_data.get('event')
+                if not event:
+                    return self.alert(request=self.request, message="Event cannot be none!", status=AlertStatus.BAD_REQUEST, reswap=True)
+                
+                text = "\n".join([
+                    f"Hi {event.lead.full_name}!",
+                    f"This is {settings.COMPANY_NAME}",
+                    f"We need you to review and confirm the details for your event!",
+                    f"Please review & approve here:"
+                    f"LINK: {reverse('external_event_confirmation_view', kwargs={ 'external_id': event.external_id })}",
+                ])
+                message = Message(
+                    text=text,
+                    text_from=settings.COMPANY_PHONE_NUMBER,
+                    text_to=event.lead.phone_number,
+                    is_inbound=False,
+                    status='sent',
+                    is_read=True,
+                )
+                response = messaging_service.send_text_message(message)
+                message.external_id = response.sid
+                message.save()
+                
+                event.change_event_status(EventStatusChoices.AWAITING_CLIENT_CONFIRMATION)
+                return self.alert(request=self.request, message="Client confirmation form sent!", status=AlertStatus.SUCCESS, reswap=True)
+            else:
+                return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)
+        except Exception as e:
+            return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)

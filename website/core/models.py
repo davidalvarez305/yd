@@ -889,6 +889,7 @@ class Cocktail(models.Model):
 
 class Event(models.Model):
     event_id = models.AutoField(primary_key=True)
+    external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, related_name='events', db_column='lead_id', on_delete=models.CASCADE)
     street_address = models.CharField(max_length=255, null=True)
     street_address_two = models.CharField(max_length=255, null=True)
@@ -915,12 +916,32 @@ class Event(models.Model):
     def full_address(self):
         return f"{self.street_address}, {self.street_address_two}, {self.city}, {self.zip_code}, FL"
 
+    def change_event_status(self, status: str, user: User | None):
+        event_status = EventStatus.objects.get(status=status)
+
+        EventStatusHistory.objects.create(
+            event=self,
+            event_status=event_status,
+            user=user,
+        )
+
     class Meta:
         db_table = 'event'
 
+class EventStatusChoices(models.TextChoices):
+    BOOKED = 'Booked', 'Booked'
+    ONBOARDING = 'Onboarding', 'Onboarding'
+    AWAITING_CLIENT_CONFIRMATION = 'Awaiting Client Confirmation', 'Awaiting Client Confirmation'
+    CONFIRMED = 'Confirmed', 'Confirmed'
+    AWAITING_STAFF_ASSIGNMENT = 'Awaiting Staff Assignment', 'Awaiting Staff Assignment'
+    ONBOARDING_COMPLETED = 'Onboarding Completed', 'Onboarding Completed'
+    IN_PROGRESS = 'In Progress', 'In Progress'
+    EXTENDED = 'Extended', 'Extended'
+    SERVICE_COMPLETED = 'Service Completed', 'Service Completed'
+
 class EventStatus(models.Model):
     event_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(max_length=255)
+    status = models.CharField(max_length=25, choices=EventStatusChoices)
 
     class Meta:
         db_table = 'event_status'
@@ -930,7 +951,7 @@ class EventStatusHistory(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     event_status = models.ForeignKey(EventStatus, db_column='event_status_id', on_delete=models.RESTRICT)
     event = models.ForeignKey(Event, db_column='event_id', related_name='statuses', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    user = models.ForeignKey(User,  null=True, db_column='user_id', on_delete=models.RESTRICT)
 
     class Meta:
         db_table = 'event_status_history'

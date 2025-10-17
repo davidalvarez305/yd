@@ -5,7 +5,6 @@ from . import views
 urlpatterns = [
     # Settings
     path('settings', views.SettingsView.as_view(), name='settings'),
-    path('e-sign/completed', views.handle_esign_completed, name='esign_completed'),
 
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),

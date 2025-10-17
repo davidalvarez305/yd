@@ -547,3 +547,9 @@ class LandingPageForm(BaseModelForm):
         )
 
         return landing_page
+
+class EventClientConfirmationForm(forms.Form):
+    event = forms.ModelChoiceField(
+        queryset=Event.objects.all(),
+        widget=forms.HiddenInput()
+    )

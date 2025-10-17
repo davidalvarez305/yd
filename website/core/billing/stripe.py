@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.core.files.base import ContentFile
 
-from core.models import Event, Invoice, Lead, LeadStatusEnum, Message, User
+from core.models import Event, EventStatus, EventStatusChoices, EventStatusHistory, Invoice, Lead, LeadStatusEnum, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
 from core.enums import AlertStatus
@@ -65,14 +65,15 @@ class StripeBillingService(BillingServiceInterface):
             invoice.save()
 
         if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
-            event = Event(
+            event = Event.objects.create(
                 lead=invoice.quote.lead,
                 date_paid=now,
                 amount=invoice.quote.amount(),
                 guests=invoice.quote.adults + invoice.quote.minors,
             )
-            event.save()
-            
+
+            event.change_event_status(EventStatusChoices.BOOKED)
+
             invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
 
             users_to_notify = list(self.phone_numbers)

@@ -38,7 +38,7 @@
                             {% endif %}
                         </div>
                         <div class="flex h-6 items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                            <span>{{ message.date_created|date:"h:i A" }}</span>
+                            <span>{{ message.date_created|date:"M d, h:i A" }}</span>
                             <span class="opacity-50">•</span>
                             {% if message.is_read %}
                                 <span class="text-primary-700 dark:text-primary-400">read</span>
@@ -87,7 +87,7 @@
                             {% endif %}
                         </div>
                         <div class="flex h-6 items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                            <span>{{ message.date_created|date:"h:i A" }}</span>
+                            <span>{{ message.date_created|date:"M d, h:i A" }}</span>
                             <span class="opacity-50">•</span>
                             <span>{{ message.user.username }}</span>
                             <span class="opacity-50">•</span>
