@@ -209,7 +209,7 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback_event=TwilioWebhookEvents.outbound()
             )
 
-            response.say(
+            dial.say(
                 "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
                 voice='alice',
                 language='en-US'
