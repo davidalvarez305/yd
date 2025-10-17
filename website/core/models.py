@@ -918,6 +918,23 @@ class Event(models.Model):
     class Meta:
         db_table = 'event'
 
+class EventStatus(models.Model):
+    event_status_id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'event_status'
+
+class EventStatusHistory(models.Model):
+    event_status_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    event_status = models.ForeignKey(EventStatus, db_column='event_status_id', on_delete=models.RESTRICT)
+    event = models.ForeignKey(Event, db_column='event_id', related_name='statuses', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+
+    class Meta:
+        db_table = 'event_status_history'
+
 class EventCocktail(models.Model):
     event_cocktail_id = models.AutoField(primary_key=True)
     cocktail = models.ForeignKey(Cocktail, db_column='cocktail_id', on_delete=models.CASCADE)
