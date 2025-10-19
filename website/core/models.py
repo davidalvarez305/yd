@@ -949,7 +949,7 @@ class EventStatusChoices(models.TextChoices):
 
 class EventStatus(models.Model):
     event_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(max_length=25, choices=EventStatusChoices)
+    status = models.CharField(max_length=60, choices=EventStatusChoices)
 
     class Meta:
         db_table = 'event_status'
