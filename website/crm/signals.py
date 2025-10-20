@@ -49,20 +49,14 @@ def handle_event_status_change(sender, instance: EventStatusHistory, created, **
         instance.event.change_event_status(EventStatusChoices.ONBOARDING)
     
     if status == EventStatusChoices.CONFIRMED:
-        path_to_pdf = generate_event_pdf(event=instance.event)
-
-        with open(path_to_pdf, 'rb') as f:
-            EventDocument.objects.create(
-                event=instance.event,
-                document=File(f)
-            )
+        document = generate_event_pdf(event=instance.event)
+        document_url = reverse('event_external_document_detail', kwargs={ 'external_id': instance.event.external_id, 'document_name': document.document.name.split('/')[-1] })
 
         text = "\n".join([
             f"EVENT DETAILS CONFIRMED!",
             f"Hi {instance.event.lead.full_name},",
-            f"Thank you for confirming all the details about your event. Here's trail of everything that's happened so far, for your records:",
-            f"LINK: {reverse('event_details_external_log_view', kwargs={ 'external_id': instance.event.external_id })}",
-            f"Store it somewhere safely!"
+            f"Thank you for confirming all the details about your event. Here's the trail of everything that's happened so far, for your records:",
+            f"LINK: {document_url}"
         ])
         message = Message(
             text=text,

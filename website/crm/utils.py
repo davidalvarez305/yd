@@ -1,9 +1,16 @@
 from datetime import datetime, timedelta
 import math
+import io
+import uuid
 
+from weasyprint import HTML
+
+from django.template.loader import render_to_string
 from django.forms import ValidationError
 from django.utils import timezone
-from core.models import CocktailIngredient, Event, Invoice, InvoiceType, InvoiceTypeEnum, LandingPage, Quote, QuoteService, Service, StoreItem, UnitConversion
+from django.core.files.base import ContentFile
+
+from core.models import CocktailIngredient, Event, EventDocument, Invoice, InvoiceType, InvoiceTypeEnum, LandingPage, Quote, QuoteService, Service, StoreItem, UnitConversion
 from core.logger import logger
 
 def round_up_to_nearest(quantity: float, step: float) -> int:
@@ -135,5 +142,27 @@ def create_quote_due_date(event_date):
 
     return due_datetime
 
-def generate_event_pdf(event: Event):
-    return
+def generate_event_pdf(event: Event) -> EventDocument:
+    quote = event.quotes.first()
+    if not quote:
+        raise ValueError("No quote found for event")
+
+    pages = [
+        render_to_string('crm/external_quote_view.html', {'quote': quote}),
+        render_to_string('crm/event_external_detail.html', {'event': event}),
+    ]
+
+    html_string = "<div style='page-break-after: always'></div>".join(pages)
+
+    pdf_buffer = io.BytesIO()
+    HTML(string=html_string).write_pdf(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    filename = f"{uuid.uuid4()}.pdf"
+
+    document = EventDocument.objects.create(
+        event=event,
+        document=ContentFile(pdf_buffer.read(), name=filename)
+    )
+
+    return document

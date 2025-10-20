@@ -70,6 +70,7 @@ class StripeBillingService(BillingServiceInterface):
                 date_paid=now,
                 amount=invoice.quote.amount(),
                 guests=invoice.quote.adults + invoice.quote.minors,
+                quote=invoice.quote,
             )
 
             event.change_event_status(EventStatusChoices.BOOKED)

@@ -908,6 +908,12 @@ class Event(models.Model):
         through='EventCocktail',
         related_name='events'
     )
+    quote = models.ForeignKey(
+        Quote,
+        related_name='quotes',
+        on_delete=models.CASCADE,
+        null=True,
+    )
 
     def __str__(self):
         return self.lead.full_name + " - " + self.amount

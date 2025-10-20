@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.forms import ValidationError
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView, ListView, TemplateView
 from django.urls import reverse_lazy, reverse
@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm, generate_filter_form
@@ -1469,3 +1469,23 @@ class EventReceiveClientConfirmation(CRMBaseView, AlertMixin, FormView):
                 return self.alert(request=self.request, message="Form invalid.", status=AlertStatus.BAD_REQUEST, reswap=True)
         except Exception as e:
             return self.alert(request=self.request, message=str(e), status=AlertStatus.INTERNAL_ERROR, reswap=True)
+        
+class ExternalEventPDFView(CRMContextMixin, DetailView):
+    model = Event
+    context_object_name = 'event'
+
+    def get(self, request, *args, **kwargs):
+        external_id = self.kwargs.get('external_id')
+        document_name = self.kwargs.get('document_name')
+
+        event = get_object_or_404(Event, external_id=external_id)
+
+        document = event.documents.filter(document__icontains=document_name).first()
+        if not document or not document.document:
+            raise Http404("No PDF document found for this event")
+
+        return FileResponse(
+            document.document.open('rb'),
+            content_type='application/pdf',
+            filename=document.document.name.split('/')[-1]
+        )

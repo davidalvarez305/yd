@@ -65,6 +65,7 @@ urlpatterns = [
 
     # External Event Detail
     path('event/external/<str:external_id>/', views.ExternalEventDetail.as_view(), name='event_external_detail'),
+    path('event/external/<str:external_id>/documents/<str:document_name>', views.ExternalEventPDFView.as_view(), name='event_external_document_detail'),
 
     # Event Cocktails
     path('event-cocktails/create/', views.EventCocktailCreateView.as_view(), name='eventcocktail_create'),
