@@ -463,7 +463,8 @@ class QuoteServiceChangeHistory(models.Model):
     price_per_unit = models.FloatField()
 
     def __str__(self):
-        formatted_date = self.date_created.strftime("%b %d, %#I:%M %p")
+        local_dt = timezone.localtime(self.date_created)
+        formatted_date = local_dt.strftime("%b %d, %#I:%M %p")
         return f"{self.user.first_name} {self.action} {self.units} units @ ${self.price_per_unit} of {self.service.service} on {formatted_date}"
 
     class Meta:
@@ -890,7 +891,7 @@ class Cocktail(models.Model):
 class Event(models.Model):
     event_id = models.AutoField(primary_key=True)
     external_id = models.UUIDField(unique=True, db_index=True, default=uuid.uuid4, editable=False)
-    lead = models.ForeignKey(Lead, related_name='events', db_column='lead_id', on_delete=models.CASCADE)
+    
     street_address = models.CharField(max_length=255, null=True)
     street_address_two = models.CharField(max_length=255, null=True)
     city = models.CharField(max_length=100, null=True)
@@ -903,33 +904,41 @@ class Event(models.Model):
     amount = models.FloatField()
     tip = models.FloatField(null=True)
     guests = models.IntegerField()
+
+    lead = models.ForeignKey(
+        Lead,
+        related_name='events',
+        db_column='lead_id',
+        on_delete=models.CASCADE
+    )
+    
+    event_status = models.ForeignKey(
+        'EventStatus',
+        db_column='event_status_id',
+        on_delete=models.RESTRICT,
+        related_name='current_events',
+    )
+
     cocktail = models.ManyToManyField(
         Cocktail,
         through='EventCocktail',
         related_name='events'
     )
+
     quote = models.ForeignKey(
         Quote,
-        related_name='quotes',
+        related_name='events',
         on_delete=models.CASCADE,
         null=True,
     )
 
     def __str__(self):
-        return self.lead.full_name + " - " + self.amount
+        return f"{self.lead.full_name} - ${self.amount:.2f}"
     
     @property
     def full_address(self):
-        return f"{self.street_address}, {self.street_address_two}, {self.city}, {self.zip_code}, FL"
-
-    def change_event_status(self, status: str, user: User | None):
-        event_status = EventStatus.objects.get(status=status)
-
-        EventStatusHistory.objects.create(
-            event=self,
-            event_status=event_status,
-            user=user,
-        )
+        parts = [self.street_address, self.street_address_two, self.city, self.zip_code, "FL"]
+        return ", ".join(filter(None, parts))
 
     class Meta:
         db_table = 'event'

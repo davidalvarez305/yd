@@ -296,7 +296,7 @@ class TwilioCallingService(CallingServiceInterface):
                 'name': 'first_inbound_call_missed',
                 'text': lambda: "Hi! This is YD Cocktails, sorry we missed your call. We'll get back to you shortly.",
                 'condition': is_first_call and phone_call.is_inbound,
-                'text_from': phone_call.call_to,
+                'text_from': settings.COMPANY_PHONE_NUMBER,
                 'text_to': phone_call.call_from,
             },
             {

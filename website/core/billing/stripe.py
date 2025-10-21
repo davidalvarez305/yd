@@ -8,12 +8,13 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.core.files.base import ContentFile
 
-from core.models import Event, EventStatus, EventStatusChoices, EventStatusHistory, Invoice, Lead, LeadStatusEnum, Message, User
+from core.models import Event, Invoice, Lead, Message, User
 from billing.enums import InvoiceTypeChoices
 from core.messaging import messaging_service
 from core.enums import AlertStatus
 from core.utils import default_alert_handler
 from core.logger import logger
+from core.managers.event import EventManager
 
 class StripeBillingService(BillingServiceInterface):
     def __init__(self, api_key: str, webhook_secret: str):
@@ -49,59 +50,36 @@ class StripeBillingService(BillingServiceInterface):
             return HttpResponse(status=500)
 
     def _handle_checkout_completed(self, session):
-        session_id = session.get('id')
-        external_id = session.get('metadata', {}).get('external_id')
-        now = timezone.now()
+        try:
+            session_id = session.get('id')
+            external_id = session.get('metadata', {}).get('external_id')
+            now = timezone.now()
 
-        if not session_id or not external_id:
-            return HttpResponse(status=400)
+            if not session_id or not external_id:
+                return HttpResponse(status=400)
 
-        invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
-        if not invoice:
-            return HttpResponse(status=404)
+            invoice = Invoice.objects.filter(external_id=external_id, session_id=session_id).first()
+            if not invoice:
+                return HttpResponse(status=404)
 
-        if not invoice.date_paid:
-            invoice.date_paid = now
-            invoice.save()
+            if not invoice.date_paid:
+                invoice.date_paid = now
+                invoice.save()
 
-        if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
-            event = Event.objects.create(
-                lead=invoice.quote.lead,
-                date_paid=now,
-                amount=invoice.quote.amount(),
-                guests=invoice.quote.adults + invoice.quote.minors,
-                quote=invoice.quote,
-            )
+            if invoice.invoice_type.type in [InvoiceTypeChoices.DEPOSIT.value, InvoiceTypeChoices.FULL.value]:
+                event = Event.objects.create(
+                    lead=invoice.quote.lead,
+                    date_paid=now,
+                    amount=invoice.quote.amount(),
+                    guests=invoice.quote.adults + invoice.quote.minors,
+                    quote=invoice.quote,
+                )
 
-            event.change_event_status(EventStatusChoices.BOOKED)
-
-            invoice.quote.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=event)
-
-            users_to_notify = list(self.phone_numbers)
-            users_to_notify.append(invoice.quote.lead.phone_number)
-
-            for phone_number in users_to_notify:
-                try:
-                    text = "\n".join([
-                        f"EVENT BOOKED:",
-                        f"Date: {invoice.quote.event_date.strftime('%b %d, %Y')}",
-                        f"Full Name: {invoice.quote.lead.full_name}",
-                    ])
-                    message = Message(
-                        text=text,
-                        text_from=settings.COMPANY_PHONE_NUMBER,
-                        text_to=phone_number,
-                        is_inbound=False,
-                        status='sent',
-                        is_read=True,
-                    )
-                    response = messaging_service.send_text_message(message)
-                    message.external_id = response.sid
-                    message.save()
-                except Exception as e:
-                    logger.exception(str(e), exc_info=True)
-                    print(f"Failed to send message to {phone_number}: {e}")
-                    continue
+                event_manager = EventManager(event=event)
+                event_manager.book()
+        except Exception as e:
+            logger.exception(str(e), exc_info=True)
+            return HttpResponse(status=500)
 
         return HttpResponse(status=200)
 
