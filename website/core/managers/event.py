@@ -1,15 +1,16 @@
+from datetime import datetime, time, timedelta
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from website import settings
 
-from core.models import Event, EventStatus, EventStatusHistory, EventStatusChoices, LeadStatusEnum, Message, User
+from core.models import Event, EventStatus, EventStatusHistory, EventStatusChoices, EventTaskLog, LeadStatusEnum, Message, PhoneCallTranscription, User
 from core.email import email_service
 from core.messaging import messaging_service
 from crm.utils import generate_event_pdf
-from core.logger import logger
-
+from core.ai import ai_agent
 class InvalidTransitionError(ValidationError):
+
     """Raised when an invalid event state transition is attempted."""
     pass
 
@@ -76,24 +77,32 @@ class EventManager:
 
         self._run_hooks(new_status)
     
-    def process_background_action(self, action: str, **kwargs):
-        """
-        Handle background or scheduled event actions (triggered via management command).
-        Example: process_action("send_onboarding_reminder")
-        """
+    def process_background_action(self, action: str, triggered_by="cron", **kwargs):
+        """Process a background action with automatic logging and error handling."""
+
         actions = {
             "send_onboarding_reminder": self._send_onboarding_reminder,
-            "send_finalize_event_details_reminder": self._send_finalize_event_details_reminder,
             "send_event_confirmation_notification": self._send_event_confirmation_notification,
-            "mark_service_completed": self.mark_service_completed,
+            "mark_service_completed": self._mark_service_completed,
+            "send_review_request": self._send_review_request,
         }
 
         if action not in actions:
-            logger.error(f"Unknown action '{action}' for event {self.event.pk}")
             raise ValidationError(f"Unknown action '{action}'")
 
-        logger.info(f"Executing action '{action}' for event {self.event.pk}")
-        return actions[action](**kwargs)
+        log = EventTaskLog.objects.create(
+            event=self.event,
+            action=action,
+            triggered_by=triggered_by,
+            started_at=timezone.now(),
+        )
+
+        try:
+            actions[action](**kwargs)
+
+            log.mark_completed(success=True)
+        except Exception as e:
+            log.mark_completed(success=False, message=str(e))
 
     def book(self):
         return self.transition_to(EventStatusChoices.BOOKED)
@@ -103,9 +112,6 @@ class EventManager:
 
     def start_service(self):
         return self.transition_to(EventStatusChoices.IN_PROGRESS)
-
-    def mark_service_completed(self):
-        return self.transition_to(EventStatusChoices.SERVICE_COMPLETED)
 
     def _run_hooks(self, new_status):
         match new_status:
@@ -134,6 +140,27 @@ class EventManager:
         print(f"Event {self.event.event_id} completed.")
     
     def _send_onboarding_reminder(self):
+        if not self.event.event_status or self.event.event_status.status != EventStatusChoices.ONBOARDING:
+            return
+
+        now = timezone.now()
+
+        time_until_event = self.event.quote.event_date - now
+        send_interval = timedelta(hours=24 if time_until_event <= timedelta(days=14) else 48)
+
+        last_log = (
+            EventTaskLog.objects.filter(
+                event=self.event,
+                action="send_onboarding_reminder",
+                status="success"
+            )
+            .order_by("-executed_at")
+            .first()
+        )
+
+        if last_log and now - last_log.executed_at < send_interval:
+            return
+
         event_details = settings.ROOT_DOMAIN + reverse("event_detail", kwargs={ 'pk': self.event.pk })
         html = f"""
             <html>
@@ -149,11 +176,55 @@ class EventManager:
             html=html
         )
     
+    def _send_client_confirmation_reminder(self):
+        if not self.event.event_status or self.event.event_status.status != EventStatusChoices.AWAITING_CLIENT_CONFIRMATION:
+            return
+
+        now = timezone.now()
+
+        time_until_event = self.event.quote.event_date - now
+        send_interval = timedelta(hours=24 if time_until_event <= timedelta(days=7) else 96)
+
+        last_log = (
+            EventTaskLog.objects.filter(
+                event=self.event,
+                action="send_client_confirmation_reminder",
+                status="success"
+            )
+            .order_by("-executed_at")
+            .first()
+        )
+
+        if last_log and now - last_log.executed_at < send_interval:
+            return
+
+        lead = self.event.lead
+        event_date = self.event.quote.event_date.strftime("%b %d, %Y")
+        event_details = settings.ROOT_DOMAIN + reverse("event_detail", kwargs={"pk": self.event.pk})
+
+        text = "\n".join([
+            f"Hi {lead.full_name},",
+            f"This is a friendly reminder to confirm your event details for {event_date}.",
+            f"You can review and confirm everything here:",
+            f"{event_details}",
+            "Once confirmed, we’ll finalize your staff and setup details 🍸",
+        ])
+        message = Message(
+            text=text,
+            text_from=settings.COMPANY_PHONE_NUMBER,
+            text_to=lead.phone_number,
+            is_inbound=False,
+            status='sent',
+            is_read=True,
+        )
+        response = messaging_service.send_text_message(message)
+        message.external_id = response.sid
+        message.save()
+
     def _send_event_confirmation_notification(self):
         document = generate_event_pdf(event=self.event)
         document_url = reverse('event_external_document_detail', kwargs={ 'external_id': self.event.external_id, 'document_name': document.document.name.split('/')[-1] })
 
-        # Client Text
         text = "\n".join([
             f"EVENT DETAILS CONFIRMED!",
             f"Hi {self.event.lead.full_name},",
@@ -208,3 +279,94 @@ class EventManager:
             response = messaging_service.send_text_message(message)
             message.external_id = response.sid
             message.save()
+
+    def _mark_service_completed(self):
+        if timezone.now() > self.event.end_time:
+            return self.transition_to(EventStatusChoices.SERVICE_COMPLETED)
+
+    def _send_review_request(self):
+        review_link = "https://g.page/r/CQaxh0zJ4KNwEAE/review"
+
+        if not self.event.event_status or self.event.event_status.status != EventStatusChoices.SERVICE_COMPLETED:
+            return
+
+        if EventTaskLog.objects.filter(event=self.event, action="send_review_request", status="success").exists():
+            return
+
+        completed_at = self.event.statuses.filter(event_status__status=EventStatusChoices.SERVICE_COMPLETED).order_by("-date_created").values_list("date_created", flat=True).first()
+
+        if not completed_at:
+            return
+
+        next_day_noon = timezone.make_aware(datetime.combine((completed_at + timedelta(days=1)).date(), time(12, 0)))
+
+        if timezone.now() < next_day_noon:
+            return
+
+        lead = self.event.lead
+        event_date = self.event.quote.event_date.strftime('%b %d, %Y')
+
+        first_transcription = (
+            PhoneCallTranscription.objects
+            .filter(phone_call__in=lead.phone_calls())
+            .order_by('date_created')
+            .values_list('text', flat=True)
+            .first()
+        )
+
+        if first_transcription:
+            language_context = first_transcription[:1000]
+        else:
+            recent_messages = (
+                Message.objects
+                .filter(text_to=lead.phone_number)
+                .order_by('-date_created')[:10]
+                .values_list('text', flat=True)
+            )
+            language_context = "\n".join(reversed(recent_messages))[:1000]
+
+        prompt = f"""
+    You are a friendly assistant for a bartending service.
+
+    The client may speak English or Spanish. Detect the language they use from the text below,
+    and generate the message in that same language.
+
+    Context for language detection (client communication sample):
+    {language_context}
+
+    Now, generate a short, friendly review request message for this client:
+
+    - Client Name: {lead.full_name}
+    - Event Date: {event_date}
+    - Review Link: {review_link}
+
+    Make it natural, positive, and no longer than 4 sentences.
+    Include the review link organically in the message.
+    """
+
+        ai_text = ai_agent.generate_response(prompt=prompt, stream=True)
+
+        if not ai_text.strip():
+            ai_text = "\n".join([
+                f"HOW DID IT GO? 🍸",
+                f"Date: {event_date}",
+                f"Hi {lead.full_name}, we hope you had an amazing time at your event!",
+                "We’d really appreciate it if you could take a minute to share your experience with us:",
+                review_link,
+                "Your feedback helps us improve and means a lot to our team. Thank you!"
+            ])
+
+        message = Message(
+            text=ai_text,
+            text_from=settings.COMPANY_PHONE_NUMBER,
+            text_to=lead.phone_number,
+            is_inbound=False,
+            status='sent',
+            is_read=True,
+        )
+
+        response = messaging_service.send_text_message(message)
+        message.external_id = response.sid
+        message.save()
+
+        return message

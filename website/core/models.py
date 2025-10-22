@@ -1010,6 +1010,44 @@ class EventStaff(models.Model):
     class Meta:
         db_table = 'event_staff'
 
+class TaskStatus(models.TextChoices):
+    SUCCESS = "success", "Success"
+    FAILED = "failed", "Failed"
+
+class EventTaskLog(models.Model):
+    event_task_log_id = models.AutoField(primary_key=True)
+    action = models.CharField(max_length=100, db_index=True)
+    message = models.TextField(null=True)
+    started_at = models.DateTimeField(default=timezone.now)
+    finished_at = models.DateTimeField(null=True)
+    duration_seconds = models.FloatField(null=True)
+    triggered_by = models.CharField(max_length=50, default="cron")
+
+    status = models.CharField(max_length=10, choices=TaskStatus.choices, default=TaskStatus.SUCCESS)
+    event = models.ForeignKey(Event, related_name="task_logs", db_column="event_id", on_delete=models.CASCADE, null=True)
+
+    class Meta:
+        db_table = "event_task_log"
+        ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["action"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["started_at"]),
+        ]
+
+    def mark_completed(self, success=True, message=None):
+        self.finished_at = timezone.now()
+        self.status = (self.TaskStatus.SUCCESS if success else self.TaskStatus.FAILED)
+        self.message = message
+        
+        if self.started_at and self.finished_at:
+            self.duration_seconds = (self.finished_at - self.started_at).total_seconds()
+        
+        self.save()
+
+    def __str__(self):
+        return f"{self.action} - [{self.status}] @ {self.started_at.strftime(("%b %d, %#I:%M %p"))}"
+
 class IngredientCategory(models.Model):
     ingredient_category_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
