@@ -85,6 +85,7 @@ class EventManager:
             "send_event_confirmation_notification": self._send_event_confirmation_notification,
             "mark_service_completed": self._mark_service_completed,
             "send_review_request": self._send_review_request,
+            "send_client_confirmation_reminder": self._send_client_confirmation_reminder,
         }
 
         if action not in actions:
@@ -207,7 +208,6 @@ class EventManager:
             f"This is a friendly reminder to confirm your event details for {event_date}.",
             f"You can review and confirm everything here:",
             f"{event_details}",
-            "Once confirmed, we’ll finalize your staff and setup details 🍸",
         ])
         message = Message(
             text=text,
