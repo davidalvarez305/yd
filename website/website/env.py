@@ -57,6 +57,7 @@ class EnvConfig:
         "GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER",
         "GOOGLE_ADS_DEVELOPER_TOKEN",
         "GOOGLE_ADS_ID",
+        "GOOGLE_ADS_CUSTOMER_ID",
 
         # Twilio
         "TWILIO_ACCOUNT_SID",

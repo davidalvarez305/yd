@@ -379,7 +379,7 @@ def load_google_credentials():
         token_uri="https://oauth2.googleapis.com/token",
         client_id=client_id,
         client_secret=client_secret,
-        scopes=token.scope.split(','),
+        scopes=settings.GOOGLE_API_SCOPES,
     )
 
     if creds.expired:

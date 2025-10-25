@@ -248,7 +248,8 @@ DEFAULT_FILE_STORAGE = "core.storage.MediaS3Storage"
 # Google API
 GOOGLE_API_SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/spreadsheets"
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/adwords",
     # "https://www.googleapis.com/auth/business.manage"
 ]
 

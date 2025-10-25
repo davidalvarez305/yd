@@ -1,6 +1,7 @@
-import datetime
+from datetime import datetime
+from django.utils import timezone
+
 from google.ads.googleads.client import GoogleAdsClient
-from google.ads.googleads.errors import GoogleAdsException
 
 from website import settings
 from core.utils import load_google_credentials
@@ -8,17 +9,18 @@ from .base import ConversionService
 from core.logger import logger
 
 class GoogleAdsConversionService(ConversionService):
-    def __init__(self, options: dict):
-        super().__init__(options)
+    def __init__(self, **options: dict):
+        super().__init__(**options)
         self.credentials = load_google_credentials()
-        opts = {
-            "developer_token": self.options.get('developer_token'),
+        google_ads_config = {
+            "developer_token": self.options.get("developer_token"),
             "client_id": self.credentials.client_id,
             "client_secret": self.credentials.client_secret,
             "refresh_token": self.credentials.refresh_token,
-            "login_customer_id": self.options.get('customer_id'),
+            "login_customer_id": self.options.get("customer_id"),
+            "use_proto_plus": True,
         }
-        self.client = GoogleAdsClient.load_from_dict(opts)
+        self.client = GoogleAdsClient.load_from_dict(google_ads_config)
         self.google_ads_customer_id = self.options.get('customer_id')
         self.conversion_actions = self.options.get('conversion_actions')
 
@@ -27,16 +29,21 @@ class GoogleAdsConversionService(ConversionService):
 
     def _is_valid(self, data: dict) -> bool:
         return bool(data.get('gclid'))
+    
+    def _get_endpoint(self) -> str:
+        pass
 
     def _construct_payload(self, data: dict) -> dict:
         timestamp = data.get('event_time')
-        event_time = datetime.fromtimestamp(timestamp, tz=datetime.timezone.get_current_timezone())
+        if not timestamp:
+            timestamp = datetime.now().timestamp()
+        event_time = datetime.fromtimestamp(timestamp, tz=timezone.get_current_timezone())
 
         payload = {
                 "customer_id": self.google_ads_customer_id,
                 "conversion_action_id": self.conversion_actions.get(data.get('event_name')),
                 "gclid": data.get("gclid"),
-                "conversion_date_time": event_time.strftime("%Y-%m-%d %H:%M:%S%z"),
+                "conversion_date_time": event_time.strftime("%Y-%m-%d %H:%M:%S%z")[:-2] + ":" + event_time.strftime("%z")[-2:],
                 "conversion_value": data.get('value'),
             }
         
@@ -76,8 +83,9 @@ class GoogleAdsConversionService(ConversionService):
             request.conversions.append(click_conversion)
             request.partial_failure = True
 
-            conversion_upload_service.upload_click_conversions(request=request)
+            resp = conversion_upload_service.upload_click_conversions(request=request)
 
+            return resp
         except Exception as e:
             logger.exception(f"Error during Google Ads Conv Reporting: {e}", exc_info=True)
             return None
