@@ -1046,7 +1046,7 @@ class EventTaskLog(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.action} - [{self.status}] @ {self.started_at.strftime(("%b %d, %#I:%M %p"))}"
+        return f"{self.action} - [{self.status}] @ {self.started_at.strftime('%b %d, %#I:%M %p')}"
 
 class IngredientCategory(models.Model):
     ingredient_category_id = models.AutoField(primary_key=True)

@@ -3,19 +3,24 @@ from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
 
 from website import settings
+from core.utils import load_google_credentials
 from .base import ConversionService
 from core.logger import logger
 
 class GoogleAdsConversionService(ConversionService):
     def __init__(self, options: dict):
         super().__init__(options)
-        self.client = GoogleAdsClient.load_from_env()
-        self.google_ads_customer_id = settings.GOOGLE_ADS_CUSTOMER_ID
-        self.conversion_action_dict = {
-            'generate_lead': settings.GENERATE_LEAD_GOOGLE_ADS_CONVERSION_ACTION_ID,
-            'invoice_sent': settings.INVOICE_SENT_GOOGLE_ADS_CONVERSION_ACTION_ID,
-            'event_booked': settings.EVENT_BOOKED_GOOGLE_ADS_CONVERSION_ACTION_ID,
+        self.credentials = load_google_credentials()
+        opts = {
+            "developer_token": self.options.get('developer_token'),
+            "client_id": self.credentials.client_id,
+            "client_secret": self.credentials.client_secret,
+            "refresh_token": self.credentials.refresh_token,
+            "login_customer_id": self.options.get('customer_id'),
         }
+        self.client = GoogleAdsClient.load_from_dict(opts)
+        self.google_ads_customer_id = self.options.get('customer_id')
+        self.conversion_actions = self.options.get('conversion_actions')
 
     def _get_service_name(self) -> str:
         return "google_ads"
@@ -29,7 +34,7 @@ class GoogleAdsConversionService(ConversionService):
 
         payload = {
                 "customer_id": self.google_ads_customer_id,
-                "conversion_action_id": self.conversion_action_dict.get(data.get('event_name')),
+                "conversion_action_id": self.conversion_actions.get(data.get('event_name')),
                 "gclid": data.get("gclid"),
                 "conversion_date_time": event_time.strftime("%Y-%m-%d %H:%M:%S%z"),
                 "conversion_value": data.get('value'),

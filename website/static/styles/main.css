@@ -1321,12 +1321,12 @@ select{
   animation: spin 1s linear infinite;
 }
 
-.cursor-pointer{
-  cursor: pointer;
-}
-
 .cursor-not-allowed{
   cursor: not-allowed;
+}
+
+.cursor-pointer{
+  cursor: pointer;
 }
 
 .list-none{
@@ -2426,12 +2426,12 @@ select{
   opacity: 0.5;
 }
 
-.opacity-75{
-  opacity: 0.75;
-}
-
 .opacity-60{
   opacity: 0.6;
+}
+
+.opacity-75{
+  opacity: 0.75;
 }
 
 .shadow{

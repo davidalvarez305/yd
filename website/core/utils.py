@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 import mimetypes
 import os
 import random
@@ -7,6 +8,9 @@ import subprocess
 from urllib.parse import parse_qs, urlparse
 import uuid
 from pathlib import Path
+
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
@@ -357,3 +361,39 @@ def get_session_data(session_key):
         return session.get_decoded()
     except Session.DoesNotExist:
         return {}
+
+def load_google_credentials():
+    from core.models import GoogleAccessToken
+    token = GoogleAccessToken.objects.order_by("-date_created").first()
+
+    with open(settings.GOOGLE_API_CREDENTIALS_PATH, "r") as f:
+        credentials_data = json.load(f)
+
+    client_info = credentials_data.get("installed") or credentials_data.get("web")
+    client_id = client_info.get('client_id')
+    client_secret = client_info.get('client_secret')
+
+    creds = Credentials(
+        token=token.access_token,
+        refresh_token=token.refresh_token,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=client_id,
+        client_secret=client_secret,
+        scopes=token.scope.split(','),
+    )
+
+    if creds.expired:
+        creds.refresh(Request())
+        date_expires = creds.expiry
+        if is_naive(date_expires):
+            date_expires = make_aware(date_expires)
+        
+        new_token = GoogleAccessToken(
+            access_token=creds.token,
+            refresh_token=creds.refresh_token,
+            scope=",".join(creds.scopes),
+            date_expires=date_expires,
+        )
+        new_token.save()
+
+    return creds
