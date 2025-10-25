@@ -28,7 +28,7 @@ class GoogleAdsConversionService(ConversionService):
         return "google_ads"
 
     def _is_valid(self, data: dict) -> bool:
-        return bool(data.get('gclid'))
+        return bool(data.get('gclid')) and bool(self.conversion_actions.get(data.get('event_name')))
     
     def _get_endpoint(self) -> str:
         pass

@@ -3,7 +3,7 @@ import math
 import io
 import uuid
 
-from weasyprint import HTML
+# from weasyprint import HTML
 
 from django.template.loader import render_to_string
 from django.forms import ValidationError
@@ -155,7 +155,7 @@ def generate_event_pdf(event: Event) -> EventDocument:
     html_string = "<div style='page-break-after: always'></div>".join(pages)
 
     pdf_buffer = io.BytesIO()
-    HTML(string=html_string).write_pdf(pdf_buffer)
+    # HTML(string=html_string).write_pdf(pdf_buffer)
     pdf_buffer.seek(0)
 
     filename = f"{uuid.uuid4()}.pdf"
