@@ -1,4 +1,5 @@
 from datetime import date
+import json
 import requests
 
 from core.facebook.api.base import FacebookAPIServiceInterface
@@ -211,13 +212,13 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
         return lead
     
-    def get_ad_spend(self, ad_id: str):
+    def get_ad_spend(self, since=None, until=None):
         if self.page_access_token.refresh_needed:
             self._refresh_access_token()
 
         ads = self.get_ads()
 
-        for ad in ads.get('data', []):
+        for ad in ads:
             try:
                 if not ad.get('id'):
                     continue
@@ -228,16 +229,19 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                     "fields": "ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend"
                 }
 
+                if since and until:
+                    params["time_range[since]"] = since
+                    params["time_range[until]"] = until
+                else:
+                    params["date_preset"] = "last_7d"
+
                 response = requests.get(url, params=params, timeout=20)
                 response.raise_for_status()
                 data = response.json()
 
                 results = data.get('data', [])[0] if data.get('data') else None
 
-                if not results:
-                    continue
-
-                db_ad = Ad.objects.filter(ad_id=ad_id).first()
+                db_ad = Ad.objects.filter(ad_id=ad.get('id')).first()
                 if not db_ad:
                     db_ad = self.create_ad_from_api(data=results)
 
@@ -261,17 +265,24 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             url = f"https://graph.facebook.com/{self.api_version}/act_{self.account_id}/ads"
             params = {
                 "access_token": self.page_access_token.access_token,
-                "fields": "adset_id,campaign_id,name,id"
+                "fields": "adset_id,campaign_id,name,id",
+                "limit": 100
             }
 
-            response = requests.get(url, params=params, timeout=20)
-            response.raise_for_status()
-            data = response.json()
+            all_ads = []
+            while url:
+                response = requests.get(url, params=params if "after" not in url else None, timeout=20)
+                response.raise_for_status()
+                data = response.json()
 
-            return data
+                all_ads.extend(data.get("data", []))
+                url = data.get("paging", {}).get("next")
+
+            return all_ads
+
         except Exception as e:
             logger.error(e, exc_info=True)
-            raise Exception("Error while getting lead data from Facebook.")
+            raise Exception("Error while getting ad data from Facebook.")
     
     def create_ad_from_api(self, data: dict):
         params = {
