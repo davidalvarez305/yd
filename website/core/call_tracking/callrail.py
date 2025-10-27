@@ -295,7 +295,18 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         params = {
             "fields": ",".join(CALLRAIL_FIELDS)
         }
-
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()
+    
+    def get_calls(self):
+        url = f"https://api.callrail.com/v3/a/{self.account_id}/calls.json"
+        headers = {
+            "Authorization": f"Token token={self.api_key}"
+        }
+        params = {
+            "fields": ",".join(CALLRAIL_FIELDS)
+        }
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         return response.json()
