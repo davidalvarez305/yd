@@ -1,0 +1,74 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-w-full overflow-x-auto rounded border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+    <table class="min-w-full whitespace-nowrap align-middle text-sm">
+        <thead>
+            <tr>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Platform
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Leads
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Events
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Revenue
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    AOV
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Closing %
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                <td class="p-3 text-center">
+                    <p class="font-medium">Google</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_count }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_event_count }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_revenue|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_aov|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_closing_percent|default:0|floatformat:2 }}</p>
+                </td>
+            </tr>
+
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                <td class="p-3 text-center">
+                    <p class="font-medium">Facebook</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_count }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_event_count }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_revenue|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_aov|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_closing_percent|default:0|floatformat:2 }}</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

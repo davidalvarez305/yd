@@ -8,7 +8,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import OuterRef, Subquery, Q, F, QuerySet
+from django.db.models import OuterRef, Subquery, Q, F, QuerySet, Count, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.db import transaction
@@ -1403,14 +1403,58 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
-        # In the future I can remove this once I do a full marketing & event review
         initial_tracking_date = datetime(2025, 10, 1)
 
         leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
-        # ad_spend = AdSpend.objects.filter(date_created__gte=initial_tracking_date)
 
-        ctx['leads'] = leads
-        # ctx['ad_spend'] = ad_spend
+        # Google leads filter
+        google_leads = Lead.objects.filter(
+            Q(lead_marketing__metadata__key='gclid') |
+            Q(lead_marketing__metadata__key='gbraid') |
+            Q(lead_marketing__metadata__key='_gcl_aw')
+        )
+
+        # Facebook leads filter
+        facebook_leads = Lead.objects.filter(
+            Q(lead_marketing__metadata__key='_fbc') |
+            Q(lead_marketing__metadata__key='fbclid')
+        )
+
+        # Google Events
+        google_events = Event.objects.filter(lead__in=google_leads)
+        google_event_count = google_events.count()
+        google_revenue = google_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
+        google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
+
+        # Facebook Events
+        facebook_events = Event.objects.filter(lead__in=facebook_leads)
+        facebook_event_count = facebook_events.count()
+        facebook_revenue = facebook_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
+        facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0
+
+        # Closing % for Google
+        google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
+        google_leads_without_events = google_leads.count() - google_leads_with_events.count()
+        google_closing_percent = (google_leads_with_events.count() / google_leads_without_events.count()) * 100 if google_leads_without_events.count() > 0 else 0
+
+        # Closing % for Facebook
+        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
+        facebook_leads_without_events = facebook_leads.count() - facebook_leads_with_events.count()
+        facebook_closing_percent = (facebook_leads_with_events.count() / facebook_leads_without_events.count()) * 100 if facebook_leads_without_events.count() > 0 else 0
+
+        ctx.update({
+            'google_count': google_leads.count(),
+            'google_event_count': google_event_count,
+            'google_revenue': google_revenue,
+            'google_aov': google_aov,
+            'google_closing_percent': google_closing_percent,
+            
+            'facebook_count': facebook_leads.count(),
+            'facebook_event_count': facebook_event_count,
+            'facebook_revenue': facebook_revenue,
+            'facebook_aov': facebook_aov,
+            'facebook_closing_percent': facebook_closing_percent,
+        })
 
         return ctx
 
