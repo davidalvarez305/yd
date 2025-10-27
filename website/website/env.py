@@ -45,6 +45,7 @@ class EnvConfig:
         "FACEBOOK_APP_CLIENT_TOKEN",
         "FACEBOOK_PAGE_ID",
         "FACEBOOK_API_VERSION",
+        "FACEBOOK_AD_ACCOUNT_ID",
 
         # Google Analytics & Ads
         "GOOGLE_ANALYTICS_API_KEY",

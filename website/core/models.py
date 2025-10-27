@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from enum import Enum
 from typing import Union
 import uuid
@@ -793,6 +793,18 @@ class Ad(models.Model):
     class Meta:
         db_table = 'ad'
         unique_together = ('ad_id', 'platform_id')
+
+class AdSpend(models.Model):
+    ad_spend_id = models.AutoField(primary_key=True)
+    date = models.DateField(default=date.today)
+    spend = models.FloatField()
+    ad = models.ForeignKey(Ad, related_name='spend_entries', db_column='ad_id', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.amount
+
+    class Meta:
+        db_table = 'ad_spend'
 
 class LeadMarketing(models.Model):
     lead_marketing_id = models.AutoField(primary_key=True)

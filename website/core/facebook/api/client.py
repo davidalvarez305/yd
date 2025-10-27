@@ -1,18 +1,20 @@
+from datetime import date
 import requests
 
 from core.facebook.api.base import FacebookAPIServiceInterface
-from core.models import FacebookAccessToken
+from core.models import Ad, AdSpend, FacebookAccessToken
 from core.logger import logger
 from website import settings
 from core.utils import get_facebook_token_expiry_date, normalize_phone_number
-from marketing.utils import parse_datetime
+from marketing.utils import create_ad_from_params, parse_datetime
 
 class FacebookAPIService(FacebookAPIServiceInterface):
-    def __init__(self, api_version: str, app_id: str, app_secret: str):
+    def __init__(self, api_version: str, app_id: str, app_secret: str, account_id: str):
         self.page_access_token = FacebookAccessToken.objects.order_by('-date_created').first()
         self.api_version = api_version
         self.app_id = app_id
         self.app_secret = app_secret
+        self.account_id = account_id
 
     def get_lead_data(self, lead):
         try:
@@ -208,3 +210,81 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                     })
 
         return lead
+    
+    def get_ad_spend(self, ad_id: str):
+        if self.page_access_token.refresh_needed:
+            self._refresh_access_token()
+
+        ads = self.get_ads()
+
+        for ad in ads.get('data', []):
+            try:
+                if not ad.get('id'):
+                    continue
+
+                url = f"https://graph.facebook.com/{self.api_version}/{ad.get('id')}/insights"
+                params = {
+                    "access_token": self.page_access_token.access_token,
+                    "fields": "ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend"
+                }
+
+                response = requests.get(url, params=params, timeout=20)
+                response.raise_for_status()
+                data = response.json()
+
+                results = data.get('data', [])[0] if data.get('data') else None
+
+                if not results:
+                    continue
+
+                db_ad = Ad.objects.filter(ad_id=ad_id).first()
+                if not db_ad:
+                    db_ad = self.create_ad_from_api(data=results)
+
+                spend = results.get('spend')
+                if not spend:
+                    continue
+
+                AdSpend.objects.create(
+                    spend=spend,
+                    ad=db_ad,
+                )
+            except Exception as e:
+                print(f'Failed to get ad spend: {e}')
+                continue
+
+    def get_ads(self):
+        try:
+            if self.page_access_token.refresh_needed:
+                self._refresh_access_token()
+
+            url = f"https://graph.facebook.com/{self.api_version}/act_{self.account_id}/ads"
+            params = {
+                "access_token": self.page_access_token.access_token,
+                "fields": "adset_id,campaign_id,name,id"
+            }
+
+            response = requests.get(url, params=params, timeout=20)
+            response.raise_for_status()
+            data = response.json()
+
+            return data
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            raise Exception("Error while getting lead data from Facebook.")
+    
+    def create_ad_from_api(self, data: dict):
+        params = {
+            'ad_id': data.get('ad_id'),
+            'ad_name': data.get('ad_name'),
+            'ad_group_id': data.get('adset_id'),
+            'ad_group_name': data.get('adset_name'),
+            'ad_campaign_id': data.get('campaign_id'),
+            'ad_campaign_name': data.get('campaign_name'),
+        }
+
+        cookies = {
+            '_fbc': 1
+        }
+
+        return create_ad_from_params(params=params, cookies=cookies)
