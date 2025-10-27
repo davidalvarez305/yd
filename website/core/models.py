@@ -782,7 +782,7 @@ class AdGroup(models.Model):
         unique_together = ('ad_group_id', 'ad_campaign_id')
 
 class Ad(models.Model):
-    ad_id = models.BigIntegerField()
+    ad_id = models.BigIntegerField(primary_key=True)
     name = models.TextField(blank=True, null=True)
     ad_group = models.ForeignKey(AdGroup, related_name='ads', db_column='ad_group_id', on_delete=models.RESTRICT)
     platform_id = models.IntegerField(choices=AD_PLATFORMS)

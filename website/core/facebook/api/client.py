@@ -240,6 +240,8 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                 data = response.json()
 
                 results = data.get('data', [])[0] if data.get('data') else None
+                if not results:
+                    continue
 
                 db_ad = Ad.objects.filter(ad_id=ad.get('id')).first()
                 if not db_ad:
