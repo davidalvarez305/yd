@@ -1398,7 +1398,7 @@ class MarketingAssignment(CRMBaseView, TemplateView):
         return redirect(reverse('lead_detail', kwargs={'pk': lead.pk}))
 
 class MarketingAnalytics(CRMBaseView, TemplateView):
-    template_name = 'crm/marketing_dashboard.html'
+    template_name = 'crm/marketing_analytics.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
