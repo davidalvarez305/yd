@@ -106,13 +106,16 @@ class GoogleAPIService:
 
             query = f"""
                 SELECT
-                    campaign.id,
-                    campaign.name,
+                    campaign.id AS campaign_id,
+                    campaign.name AS campaign_name,
+                    ad_group.id AS ad_group_id,
+                    ad_group.name AS ad_group_name,
+                    ad_group_criterion.keyword.text AS keyword,
                     segments.date,
                     metrics.cost_micros
-                FROM campaign
+                FROM keyword_view
                 WHERE segments.date BETWEEN '{start_date.date()}' AND '{end_date.date()}'
-                ORDER BY segments.date ASC
+                ORDER BY segments.date ASC;
             """
 
             response = service.search_stream(
