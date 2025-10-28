@@ -4,6 +4,11 @@ import uuid
 from django.db import migrations, models
 
 
+def generate_uuid():
+    """Generate a new UUID for each record when called."""
+    return uuid.uuid4()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +19,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='event',
             name='external_id',
-            field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True),
+            field=models.UUIDField(
+                db_index=True,
+                default=generate_uuid,
+                editable=False,
+                unique=True,
+            ),
         ),
     ]

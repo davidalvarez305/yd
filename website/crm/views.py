@@ -1408,17 +1408,17 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
 
         # Google leads filter
-        google_leads = Lead.objects.filter(
+        google_leads = leads.filter(
             Q(lead_marketing__metadata__key='gclid') |
             Q(lead_marketing__metadata__key='gbraid') |
             Q(lead_marketing__metadata__key='_gcl_aw')
-        )
+        ).distinct()
 
         # Facebook leads filter
-        facebook_leads = Lead.objects.filter(
+        facebook_leads = leads.filter(
             Q(lead_marketing__metadata__key='_fbc') |
             Q(lead_marketing__metadata__key='fbclid')
-        )
+        ).distinct()
 
         # Google Events
         google_events = Event.objects.filter(lead__in=google_leads)
@@ -1435,12 +1435,12 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         # Closing % for Google
         google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
         google_leads_without_events = google_leads.count() - google_leads_with_events.count()
-        google_closing_percent = (google_leads_with_events.count() / google_leads_without_events.count()) * 100 if google_leads_without_events.count() > 0 else 0
+        google_closing_percent = (google_leads_with_events.count() / google_leads_without_events) * 100 if google_leads_without_events > 0 else 0
 
         # Closing % for Facebook
         facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
         facebook_leads_without_events = facebook_leads.count() - facebook_leads_with_events.count()
-        facebook_closing_percent = (facebook_leads_with_events.count() / facebook_leads_without_events.count()) * 100 if facebook_leads_without_events.count() > 0 else 0
+        facebook_closing_percent = (facebook_leads_with_events.count() / facebook_leads_without_events) * 100 if facebook_leads_without_events > 0 else 0
 
         ctx.update({
             'google_count': google_leads.count(),

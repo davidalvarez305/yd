@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     # Settings
     path('settings', views.SettingsView.as_view(), name='settings'),
+    path('marketing-analytics', views.MarketingAnalytics.as_view(), name='marketing_analytics'),
 
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),
