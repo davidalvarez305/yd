@@ -1448,7 +1448,7 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             'google_revenue': google_revenue,
             'google_aov': google_aov,
             'google_closing_percent': google_closing_percent,
-            
+
             'facebook_count': facebook_leads.count(),
             'facebook_event_count': facebook_event_count,
             'facebook_revenue': facebook_revenue,

@@ -1,14 +1,13 @@
 import base64
-import json
-import os
 from email.mime.text import MIMEText
+from datetime import timedelta
 
 from django.conf import settings
-from django.utils.timezone import make_aware, is_naive
+from django.utils import timezone
 
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+
+from google.ads.googleads.client import GoogleAdsClient
 
 from core.models import GoogleAccessToken
 from core.logger import logger
@@ -21,15 +20,22 @@ class GoogleAPIService:
             raise Exception("No Google access token found in DB.")
 
         self.creds = load_google_credentials()
-        self.business_profile_location_id = settings.GOOGLE_BUSINESS_PROFILE_LOCATION_ID
-        self.business_profile_account_id = settings.GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID
-
         self.gmail = self.build("gmail", "v1")
         self.sheets = self.build("sheets", "v4")
-        # self.mybusiness = self.build("mybusiness", "v4")
+        self.google_ads_client = self.build_ads_client()
 
     def build(self, api_name: str, api_version: str):
         return build(api_name, api_version, credentials=self.creds)
+    
+    def build_ads_client(self):
+        return GoogleAdsClient.load_from_dict({
+            "developer_token": settings.GOOGLE_ADS_DEVELOPER_TOKEN,
+            "client_id": self.creds.client_id,
+            "client_secret": self.creds.client_secret,
+            "refresh_token": self.creds.refresh_token,
+            "login_customer_id": settings.GOOGLE_ADS_CUSTOMER_ID,
+            "use_proto_plus": True,
+        })
 
     def send_email(self, to: str, subject: str, body: str) -> None:
         try:
@@ -89,12 +95,43 @@ class GoogleAPIService:
             logger.error("Failed to append to Google Sheet", exc_info=True)
             raise
 
-    def get_mybusiness_reviews(self) -> list[dict]:
+    def get_ad_spend(self, start_date=None, end_date=None, campaign_id=None):
         try:
-            response = self.mybusiness.accounts().locations().reviews().list(
-                parent=f"locations/{self.business_profile_location_id}"
-            ).execute()
-            return response.get("reviews", [])
+            if not start_date:
+                start_date = timezone.now() - timedelta(days=7)
+            if not end_date:
+                end_date = timezone.now()
+
+            service = self.google_ads_client.get_service("GoogleAdsService")
+
+            query = f"""
+                SELECT
+                    campaign.id,
+                    campaign.name,
+                    segments.date,
+                    metrics.cost_micros
+                FROM campaign
+                WHERE segments.date BETWEEN '{start_date.date()}' AND '{end_date.date()}'
+                ORDER BY segments.date ASC
+            """
+
+            response = service.search_stream(
+                customer_id=settings.GOOGLE_ADS_CUSTOMER_ID,
+                query=query,
+            )
+
+            results = []
+            for batch in response:
+                for row in batch.results:
+                    results.append({
+                        "campaign_id": row.campaign.id,
+                        "campaign_name": row.campaign.name,
+                        "date": row.segments.date,
+                        "spend": float(row.metrics.cost_micros) / 1_000_000,
+                    })
+
+            return results
+
         except Exception as e:
-            logger.error("Failed to sync Google Reviews", exc_info=True)
-            raise
+            logger.exception(f"Error fetching Google Ads spend data: {e}", exc_info=True)
+            return []
