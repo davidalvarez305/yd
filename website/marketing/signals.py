@@ -131,7 +131,9 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
             return
 
     # Now that the marketing data has been assigned, generate the data dict and send conversion
-    data = create_data_dict(instance, event_name, event)
+    # Get the lead with the updated marketing data
+    lead = Lead.objects.get(pk=instance.pk)
+    data = create_data_dict(lead, event_name, event)
 
     # Always send conversion for LEAD_CREATED and EVENT BOOKED
     if lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_status.status == LeadStatusEnum.EVENT_BOOKED:
