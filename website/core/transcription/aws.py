@@ -73,7 +73,7 @@ class AWSTranscriptionService:
         transcription.save()
 
         user_phone = transcription.phone_call.call_to if transcription.phone_call.is_inbound else transcription.phone_call.call_from
-        user = User.objects.filter(phone_number=user_phone).first()
+        user = User.objects.filter(phone_number=user_phone).first() or User.objects.filter(phone_number=settings.COMPANY_PHONE_NUMBER).first()
 
         lead_phone = transcription.phone_call.call_from if transcription.phone_call.is_inbound else transcription.phone_call.call_to
         lead = Lead.objects.filter(phone_number=lead_phone).first()
