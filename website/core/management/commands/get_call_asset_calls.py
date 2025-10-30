@@ -37,24 +37,22 @@ class Command(BaseCommand):
                 if not tracking_call:
                     continue
 
-                # click_id = tracking_call.metadata.filter(key='gclid').first()
-                # if click_id:
-                    # continue
+                click_id = tracking_call.metadata.filter(key='gclid').first()
+                if click_id:
+                    continue
 
-                TrackingPhoneCallMetadata.objects.update_or_create(
+                TrackingPhoneCallMetadata.objects.create(
                     tracking_phone_call=tracking_call,
                     key='gclid',
-                    defaults={'value': gclid},
+                    value=gclid,
                 )
 
                 keyword_metadata = tracking_call.metadata.filter(key='keyword').first()
-                if keyword:
+                if not keyword_metadata and keyword:
                     TrackingPhoneCallMetadata.objects.update_or_create(
                         key='keyword',
                         tracking_phone_call=tracking_call,
-                        defaults={
-                            'value': keyword,
-                        }
+                        value=keyword,
                     )
 
                 lead = Lead.objects.filter(phone_number=tracking_call.call_from).first()
@@ -62,14 +60,12 @@ class Command(BaseCommand):
                     continue
 
                 marketing_click_id = lead.lead_marketing.metadata.filter(key='gclid').first()
-                # if not marketing_click_id:
-                LeadMarketingMetadata.objects.update_or_create(
-                    key='gclid',
-                    lead_marketing=lead.lead_marketing,
-                    defaults={
-                        'value': gclid,
-                    }
-                )
+                if not marketing_click_id:
+                    LeadMarketingMetadata.objects.update_or_create(
+                        key='gclid',
+                        lead_marketing=lead.lead_marketing,
+                        value=gclid,
+                    )
 
                 events = lead.events.all()
 
@@ -85,18 +81,16 @@ class Command(BaseCommand):
                             'order_id': event.pk,
                         }
 
-                        should_report = False
-                        if should_report:
-                            gads_service.send_conversion(data=data)
+                        gads_service.send_conversion(data=data)
                     except Exception as e:
                         print(f'Error trying to send Google Ads conv: {e}')
                         continue
 
-                # if not lead.lead_marketing.ad:
-                ad = Ad.objects.filter(name=keyword).first()
-                if ad:
-                    lead.lead_marketing.ad = ad
-                    lead.lead_marketing.save()
+                if not lead.lead_marketing.ad:
+                    ad = Ad.objects.filter(name=keyword).first()
+                    if ad:
+                        lead.lead_marketing.ad = ad
+                        lead.lead_marketing.save()
 
         except Exception as e:
             raise CommandError(f"❌ Failed to get calls: {e}")
