@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
                 data = {
                     'event_name': 'event_booked',
-                    'gclid': gclid,
+                    'gclid': gclid.value,
                     'event_time': event.date_paid.timestamp(),
                     'value': event.amount,
                     'order_id': event.pk,
