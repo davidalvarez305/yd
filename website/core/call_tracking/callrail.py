@@ -304,8 +304,12 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         headers = {
             "Authorization": f"Token token={self.api_key}"
         }
+        fields = CALLRAIL_FIELDS.copy()
+        fields.pop("conversational_transcript")
+        fields.pop("integration_data")
+
         params = {
-            "fields": ",".join(CALLRAIL_FIELDS)
+            "fields": ",".join(fields.keys())
         }
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()

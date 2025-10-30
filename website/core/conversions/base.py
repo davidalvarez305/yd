@@ -17,10 +17,6 @@ class ConversionService(ABC):
         pass
 
     @abstractmethod
-    def _get_endpoint(self) -> str:
-        pass
-
-    @abstractmethod
     def _get_service_name(self) -> str:
         """
         Returns a string identifying the name of the conversion service (e.g., 'facebook', 'google').

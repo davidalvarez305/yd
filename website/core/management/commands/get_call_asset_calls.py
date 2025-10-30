@@ -13,8 +13,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             data = call_tracking_service.get_calls()
+            print('data: ', data)
 
             calls = data.get('calls')
+            print('calls: ', calls)
             if not calls:
                 raise ValueError(f"❌ No phone calls attribute in data.")
 
@@ -23,6 +25,9 @@ class Command(BaseCommand):
                 gclid = call.get('gclid')
                 keyword = call.get('keyword')
                 tracking_phone_number = call.get('tracking_phone_number')
+
+                print('call: ', call)
+                continue
 
                 if not gclid:
                     continue
@@ -90,4 +95,4 @@ class Command(BaseCommand):
                         lead.lead_marketing.save()
 
         except Exception as e:
-            raise CommandError(f"❌ Failed to send Google Ads conversion: {e}")
+            raise CommandError(f"❌ Failed to get calls: {e}")
