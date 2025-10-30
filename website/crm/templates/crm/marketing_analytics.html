@@ -38,13 +38,13 @@
                     <p class="font-medium">{{ google_event_count }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ google_revenue|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ google_revenue|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ google_aov|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ google_aov|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ google_closing_percent|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">{{ google_closing_percent|default:0|floatformat:2 }}%</p>
                 </td>
             </tr>
 
@@ -59,13 +59,13 @@
                     <p class="font-medium">{{ facebook_event_count }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ facebook_revenue|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ facebook_revenue|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ facebook_aov|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ facebook_aov|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ facebook_closing_percent|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">{{ facebook_closing_percent|default:0|floatformat:2 }}%</p>
                 </td>
             </tr>
         </tbody>
