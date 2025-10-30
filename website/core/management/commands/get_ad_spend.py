@@ -12,8 +12,6 @@ class Command(BaseCommand):
             current = start
             while current <= end:
                 next_day = current + timedelta(days=1)
-                print('START: ', current)
-                print('END: ', next_day)
                 facebook_api_service.get_ad_spend(
                     start_date=current.isoformat(),
                     end_date=next_day.isoformat(),

@@ -128,8 +128,8 @@ class EventManager:
     def _on_book(self):
         self.event.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.event)
         self._send_lead_event_booking_notification()
-        self._send_onboarding_reminder()
-        self.transition_to(EventStatusChoices.ONBOARDING)
+        # self._send_onboarding_reminder()
+        # self.transition_to(EventStatusChoices.ONBOARDING)
 
     def _on_confirmed(self):
         self._send_event_confirmation_notification()
