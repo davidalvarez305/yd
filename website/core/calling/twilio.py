@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.files import File
 from django.db.models import Q
 
-from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.twiml.voice_response import VoiceResponse, Dial, Say
 from twilio.request_validator import RequestValidator
 from twilio.rest import Client
 
@@ -209,11 +209,11 @@ class TwilioCallingService(CallingServiceInterface):
                 status_callback_event=TwilioWebhookEvents.outbound()
             )
 
-            dial.say(
+            dial.append(Say(
                 "Please be aware that this conversation may be recorded. By remaining on the line, you are consenting to the recording.",
                 voice='alice',
                 language='en-US'
-            )
+            ))
 
             response.append(dial)
 
