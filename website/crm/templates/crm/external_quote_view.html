@@ -252,8 +252,12 @@
         serviceAgreementModal.setOnClose(() => initiateCheckout(invoiceId));
     }
 
-    initialPaymentButton.forEach(btn => {
+    /* initialPaymentButton.forEach(btn => {
         btn.addEventListener('click', () => handleInitiatePaymentFlow(btn.dataset.invoiceId));
+    }); */
+
+    initialPaymentButton.forEach(btn => {
+        btn.addEventListener('click', () => initiateCheckout(btn.dataset.invoiceId));
     });
 
     function initiateCheckout(invoiceId) {
