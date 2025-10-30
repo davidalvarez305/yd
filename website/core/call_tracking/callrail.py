@@ -299,21 +299,44 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
         response.raise_for_status()
         return response.json()
     
-    def get_calls(self):
+    def get_calls(self, **kwargs):
         url = f"https://api.callrail.com/v3/a/{self.account_id}/calls.json"
         headers = {
             "Authorization": f"Token token={self.api_key}"
         }
+
         fields = CALLRAIL_FIELDS.copy()
-        fields.pop("conversational_transcript")
-        fields.pop("integration_data")
+        for f in ["conversational_transcript", "integration_data"]:
+            if f in fields:
+                fields.remove(f)
 
         params = {
-            "fields": ",".join(fields.keys())
+            "fields": ",".join(fields),
+            "per_page": 100,
+            "page": 1
         }
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        return response.json()
+
+        params.update(kwargs)
+
+        all_calls = []
+
+        while True:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            calls = data.get("calls")
+            all_calls.extend(calls)
+
+            current_page = data.get("page", 1)
+            total_pages = data.get("total_pages", 1)
+
+            if current_page >= total_pages:
+                break
+
+            params["page"] += 1
+
+        return all_calls
     
     def get_public_recording_url(self, call_id: str):
         url = f"https://api.callrail.com/v3/a/{self.account_id}/calls/{call_id}/recording.json"

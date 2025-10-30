@@ -1,3 +1,4 @@
+from datetime import date
 from django.core.management.base import BaseCommand, CommandError
 
 from core.call_tracking import call_tracking_service
@@ -12,49 +13,48 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            data = call_tracking_service.get_calls()
-            print('data: ', data)
-
-            calls = data.get('calls')
-            print('calls: ', calls)
-            if not calls:
-                raise ValueError(f"❌ No phone calls attribute in data.")
+            params = {
+                'search': settings.GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER,
+                'start_date': date(2025, 10, 1).strftime("%Y-%m-%d"),
+                'end_date': date.today().strftime("%Y-%m-%d"),
+                'sort': 'start_time',
+                'order': 'desc'
+            }
+            calls = call_tracking_service.get_calls(**params)
 
             for call in calls:
                 id = call.get('id')
                 gclid = call.get('gclid')
                 keyword = call.get('keyword')
-                tracking_phone_number = call.get('tracking_phone_number')
-
-                print('call: ', call)
-                continue
 
                 if not gclid:
                     continue
 
-                if normalize_phone_number(tracking_phone_number) != normalize_phone_number(settings.GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER):
+                if call.get('tracking_phone_number') != normalize_phone_number(settings.GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER):
                     continue
 
                 tracking_call = TrackingPhoneCall.objects.filter(external_id=id).first()
                 if not tracking_call:
                     continue
 
-                click_id = tracking_call.metadata.filter(key='gclid').first()
-                if click_id:
-                    continue
+                # click_id = tracking_call.metadata.filter(key='gclid').first()
+                # if click_id:
+                    # continue
 
-                TrackingPhoneCallMetadata.objects.create(
-                    key='gclid',
-                    value=gclid,
+                TrackingPhoneCallMetadata.objects.update_or_create(
                     tracking_phone_call=tracking_call,
+                    key='gclid',
+                    defaults={'value': gclid},
                 )
 
                 keyword_metadata = tracking_call.metadata.filter(key='keyword').first()
-                if not keyword_metadata and keyword:
-                    TrackingPhoneCallMetadata.objects.create(
+                if keyword:
+                    TrackingPhoneCallMetadata.objects.update_or_create(
                         key='keyword',
-                        value=keyword,
                         tracking_phone_call=tracking_call,
+                        defaults={
+                            'value': keyword,
+                        }
                     )
 
                 lead = Lead.objects.filter(phone_number=tracking_call.call_from).first()
@@ -62,37 +62,41 @@ class Command(BaseCommand):
                     continue
 
                 marketing_click_id = lead.lead_marketing.metadata.filter(key='gclid').first()
-                if not marketing_click_id:
-                    LeadMarketingMetadata.objects.create(
-                        key='gclid',
-                        value=gclid,
-                        lead_marketing=lead.lead_marketing,
-                    )
+                # if not marketing_click_id:
+                LeadMarketingMetadata.objects.update_or_create(
+                    key='gclid',
+                    lead_marketing=lead.lead_marketing,
+                    defaults={
+                        'value': gclid,
+                    }
+                )
 
-                    events = lead.events.all()
+                events = lead.events.all()
 
-                    for event in events:
-                        try:
-                            gads_service = conversion_service.get("gads")
+                for event in events:
+                    try:
+                        gads_service = conversion_service.get("gads")
 
-                            data = {
-                                'event_name': 'event_booked',
-                                'gclid': gclid,
-                                'event_time': event.date_paid.timestamp(),
-                                'value': event.amount,
-                                'order_id': event.pk,
-                            }
+                        data = {
+                            'event_name': 'event_booked',
+                            'gclid': gclid,
+                            'event_time': event.date_paid.timestamp(),
+                            'value': event.amount,
+                            'order_id': event.pk,
+                        }
 
+                        should_report = False
+                        if should_report:
                             gads_service.send_conversion(data=data)
-                        except Exception as e:
-                            print(f'Error trying to send Google Ads conv: {e}')
-                            continue
+                    except Exception as e:
+                        print(f'Error trying to send Google Ads conv: {e}')
+                        continue
 
-                if not lead.lead_marketing.ad:
-                    ad = Ad.objects.filter(name=keyword).first()
-                    if ad:
-                        lead.lead_marketing.ad = ad
-                        lead.lead_marketing.save()
+                # if not lead.lead_marketing.ad:
+                ad = Ad.objects.filter(name=keyword).first()
+                if ad:
+                    lead.lead_marketing.ad = ad
+                    lead.lead_marketing.save()
 
         except Exception as e:
             raise CommandError(f"❌ Failed to get calls: {e}")
