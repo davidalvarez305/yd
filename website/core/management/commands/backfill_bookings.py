@@ -10,7 +10,11 @@ class Command(BaseCommand):
         try:
             events = Event.objects.all()
             for event in events:
-                gclid = event.lead.lead_marketing.metadata.filter(key='gclid').first()
+                lead_marketing = getattr(event.lead, "lead_marketing", None)
+                if not lead_marketing:
+                    continue
+
+                gclid = lead_marketing.metadata.filter(key='gclid').first()
                 if not gclid:
                     continue
 
