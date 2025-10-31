@@ -8,10 +8,13 @@ from core.conversions import conversion_service
 
 from website import settings
 
+
 class Command(BaseCommand):
     help = "Send a conversion event via the Google Ads conversion service using either a JSON string (--event) or file (--event_file)."
 
     def handle(self, *args, **options):
+        print("🚀 Starting Google Ads call conversion sync...")
+
         try:
             params = {
                 'search': settings.GOOGLE_ADS_CALL_ASSET_PHONE_NUMBER,
@@ -91,6 +94,8 @@ class Command(BaseCommand):
                     if ad:
                         lead.lead_marketing.ad = ad
                         lead.lead_marketing.save()
+
+            print("✅ Finished Google Ads call conversion sync successfully.")
 
         except Exception as e:
             raise CommandError(f"❌ Failed to get calls: {e}")
