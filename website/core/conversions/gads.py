@@ -54,7 +54,7 @@ class GoogleAdsConversionService(ConversionService):
             click_conversion.currency_code = settings.DEFAULT_CURRENCY
 
             if payload.get("order_id"):
-                click_conversion.order_id = payload["order_id"]
+                click_conversion.order_id = str(payload["order_id"])
 
             request = self.client.get_type("UploadClickConversionsRequest")
             request.customer_id = payload["customer_id"]
