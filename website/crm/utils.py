@@ -55,7 +55,7 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
 
     def apply_holiday_markup(price):
         if (date.month, date.day) in HOLIDAY_MARKUPS:
-            return price * 2.25
+            return price * 1.50
         return price
 
     if unit_type == 'Per Person':
