@@ -929,7 +929,7 @@ class Event(models.Model):
         db_column='event_status_id',
         on_delete=models.RESTRICT,
         related_name='current_events',
-        default=1,
+        null=True,
     )
 
     cocktail = models.ManyToManyField(
