@@ -26,8 +26,7 @@ class Command(BaseCommand):
             for call in calls:
                 id = call.get('id')
                 gclid = call.get('gclid')
-                keyword = call.get('keyword')
-                print(f"call: {call}")
+                keyword = call.get('keywords')
 
                 if not gclid:
                     continue
