@@ -55,11 +55,25 @@ class EventTable(Table):
         )
     )
 
+    amount = TableField(
+        name='amount',
+        label='Amount',
+        cell_widget=PriceCellWidget(
+            data = {
+                'value': lambda row: row.amount
+            }
+        )
+    )
+
     class Meta:
         model = Event
         extra_fields = ['view', 'delete']
         exclude = [
             'event_id',
+            'external_id',
+            'special_instrucions',
+            'event_status',
+            'quote',
             'date_created',
             'date_paid',
             'tip',
@@ -71,7 +85,6 @@ class EventTable(Table):
             'special_instrucions',
             'city',
             'zip_code',
-            'amount',
         ]
         pk = 'event_id'
         detail_url = 'event_detail'
