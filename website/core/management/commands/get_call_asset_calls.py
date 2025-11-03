@@ -41,18 +41,17 @@ class Command(BaseCommand):
                     continue
 
                 click_id = tracking_call.metadata.filter(key='gclid').first()
-                if click_id:
-                    continue
-
-                TrackingPhoneCallMetadata.objects.create(
-                    tracking_phone_call=tracking_call,
-                    key='gclid',
-                    value=gclid,
-                )
+                if not click_id and gclid:
+                    TrackingPhoneCallMetadata.objects.create(
+                        tracking_phone_call=tracking_call,
+                        key='gclid',
+                        value=gclid,
+                    )
 
                 keyword_metadata = tracking_call.metadata.filter(key='keyword').first()
+                print(f"Associated keyword to: {lead}")
                 if not keyword_metadata and keyword:
-                    TrackingPhoneCallMetadata.objects.update_or_create(
+                    TrackingPhoneCallMetadata.objects.create(
                         key='keyword',
                         tracking_phone_call=tracking_call,
                         value=keyword,
@@ -63,31 +62,34 @@ class Command(BaseCommand):
                     continue
 
                 marketing_click_id = lead.lead_marketing.metadata.filter(key='gclid').first()
-                if not marketing_click_id:
-                    LeadMarketingMetadata.objects.update_or_create(
+                if not marketing_click_id and gclid:
+                    print(f"Associated gclid to: {lead}")
+                    LeadMarketingMetadata.objects.create(
                         key='gclid',
                         lead_marketing=lead.lead_marketing,
                         value=gclid,
                     )
 
-                events = lead.events.all()
+                    # When lead is first associated, report all events
+                    events = lead.events.all()
 
-                for event in events:
-                    try:
-                        gads_service = conversion_service.get("gads")
+                    print(f"Reporting: {lead.events.count()} event(s)!")
+                    for event in events:
+                        try:
+                            gads_service = conversion_service.get("gads")
 
-                        data = {
-                            'event_name': 'event_booked',
-                            'gclid': gclid,
-                            'event_time': event.date_paid.timestamp(),
-                            'value': event.amount,
-                            'order_id': event.pk,
-                        }
+                            data = {
+                                'event_name': 'event_booked',
+                                'gclid': gclid,
+                                'event_time': event.date_paid.timestamp(),
+                                'value': event.amount,
+                                'order_id': event.pk,
+                            }
 
-                        gads_service.send_conversion(data=data)
-                    except Exception as e:
-                        print(f'Error trying to send Google Ads conv: {e}')
-                        continue
+                            gads_service.send_conversion(data=data)
+                        except Exception as e:
+                            print(f'Error trying to send Google Ads conv: {e}')
+                            continue
 
                 if not lead.lead_marketing.ad:
                     ad = Ad.objects.filter(name=keyword).first()
