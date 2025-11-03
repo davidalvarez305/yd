@@ -1420,27 +1420,28 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             Q(lead_marketing__metadata__key='fbclid')
         ).distinct()
 
+        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
+        google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
+
         # Google Events
         google_events = Event.objects.filter(lead__in=google_leads)
-        google_event_count = google_events.count()
+        google_event_count = google_leads_with_events.count()
         google_revenue = google_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
         google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
 
         # Facebook Events
         facebook_events = Event.objects.filter(lead__in=facebook_leads)
-        facebook_event_count = facebook_events.count()
+        facebook_event_count = facebook_leads_with_events.count()
         facebook_revenue = facebook_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
         facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0
 
         # Closing % for Google
-        google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
-        google_leads_without_events = google_leads.count() - google_leads_with_events.count()
-        google_closing_percent = (google_leads_with_events.count() / google_leads_without_events) * 100 if google_leads_without_events > 0 else 0
+        google_leads_without_events = google_leads.count() - google_event_count
+        google_closing_percent = (google_event_count / google_leads_without_events) * 100 if google_leads_without_events > 0 else 0
 
         # Closing % for Facebook
-        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
-        facebook_leads_without_events = facebook_leads.count() - facebook_leads_with_events.count()
-        facebook_closing_percent = (facebook_leads_with_events.count() / facebook_leads_without_events) * 100 if facebook_leads_without_events > 0 else 0
+        facebook_leads_without_events = facebook_leads.count() - facebook_event_count
+        facebook_closing_percent = (facebook_event_count / facebook_leads_without_events) * 100 if facebook_leads_without_events > 0 else 0
 
         ctx.update({
             'google_count': google_leads.count(),
