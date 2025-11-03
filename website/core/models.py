@@ -406,6 +406,28 @@ class Service(models.Model):
     class Meta:
         db_table = 'service'
 
+class PriceAdjustment(models.Model):
+    price_adjustment_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'price_adjustment'
+
+class ServicePriceAdustment(models.Model):
+    service_price_adjustment_id = models.AutoField(primary_key=True)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.CASCADE)
+    price_adjustment = models.ForeignKey(PriceAdjustment, db_column='price_adjusment_id', on_delete=models.CASCADE)
+    factor = models.DecimalField()
+
+    def __str__(self):
+        return f"{self.service} - {self.price_adjustment} - {self.factor}"
+
+    class Meta:
+        db_table = 'service_price_adjustment'
+
 class QuoteService(models.Model):
     quote_service_id = models.AutoField(primary_key=True)
     service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
