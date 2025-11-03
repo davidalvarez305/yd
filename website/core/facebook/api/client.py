@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 import json
 import requests
 
@@ -16,6 +16,37 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         self.app_id = app_id
         self.app_secret = app_secret
         self.account_id = account_id
+
+        # Rate Limiting Logic
+        self.last_request_time = time.time()
+        self.request_count = 0
+        self.rate_limit_window = 3600
+        self.rate_limit = None
+        self.remaining_limit = None
+        self.retry_after = 0
+
+    def _throttle_request(self):
+        if self.remaining_limit is not None and self.remaining_limit <= 2:
+            time.sleep(5)
+    
+    def _check_ads_rate_limit(self, response):
+        if response.headers.get('X-Business-Use-Case'):
+            usage_data = json.loads(response.headers.get('X-Business-Use-Case'))
+            estimated_time_to_regain_access = usage_data.get("estimated_time_to_regain_access")
+
+            if estimated_time_to_regain_access:
+                time.sleep(int(estimated_time_to_regain_access))
+                return True
+
+        if 'X-RateLimit-Remaining' in response.headers:
+            remaining = int(response.headers['X-RateLimit-Remaining'])
+            if remaining <= 1:
+                reset_time = int(response.headers.get('X-RateLimit-Reset', time.time()))
+                wait_time = reset_time - time.time() + 5
+                time.sleep(wait_time)
+                return True
+        
+        return False
 
     def get_lead_data(self, lead):
         try:
@@ -237,8 +268,14 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                 else:
                     params["date_preset"] = "last_7d"
 
+                self._throttle_request()
+
                 response = requests.get(url, params=params, timeout=20)
                 response.raise_for_status()
+                
+                if self._check_ads_rate_limit(response):
+                    return self.get_ad_spend(start_date, end_date) 
+
                 data = response.json()
 
                 results = data.get('data', [])[0] if data.get('data') else None
@@ -276,7 +313,13 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
             all_ads = []
             while url:
+                self._throttle_request()
+
                 response = requests.get(url, params=params if "after" not in url else None, timeout=20)
+
+                if self.check_ads_rate_limit(response):
+                    return self.get_ads()
+                
                 response.raise_for_status()
                 data = response.json()
 
