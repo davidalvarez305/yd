@@ -29,6 +29,9 @@ class Command(BaseCommand):
                 id = call.get('id')
                 gclid = call.get('gclid')
                 keyword = call.get('keyword')
+                print(f"id: {id}")
+                print(f"gclid: {gclid}")
+                print(f"keyword: {keyword}")
 
                 if not gclid:
                     continue
