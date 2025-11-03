@@ -8,6 +8,7 @@ import time
 from website import settings
 from core.models import Lead, LeadNote, PhoneCallTranscription, User
 from core.ai import ai_agent
+from core.utils import normalize_phone_number
 
 class AWSTranscriptionService:
     def __init__(self):
@@ -73,7 +74,7 @@ class AWSTranscriptionService:
         transcription.save()
 
         user_phone = transcription.phone_call.call_to if transcription.phone_call.is_inbound else transcription.phone_call.call_from
-        user = User.objects.filter(phone_number=user_phone).first() or User.objects.filter(phone_number=settings.COMPANY_PHONE_NUMBER).first()
+        user = User.objects.filter(phone_number=user_phone).first() or User.objects.filter(phone_number=normalize_phone_number(settings.COMPANY_PHONE_NUMBER)).first()
 
         lead_phone = transcription.phone_call.call_from if transcription.phone_call.is_inbound else transcription.phone_call.call_to
         lead = Lead.objects.filter(phone_number=lead_phone).first()
