@@ -401,6 +401,7 @@ class UserDeleteView(CRMDeleteView):
 class EventListView(CRMTableView):
     model = Event
     table_class = EventTable
+    ordering = '-date_paid'
 
 class EventCreateView(CRMCreateTemplateView):
     model = Event
