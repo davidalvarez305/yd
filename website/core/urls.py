@@ -17,4 +17,5 @@ urlpatterns = [
     # Landing Pages
     path('chair-rentals/', views.ChairRentals.as_view(), name='chair-rentals'),
     path('table-rentals/', views.TableRentals.as_view(), name='table-rentals'),
+    path('tent-rentals/', views.TentRentals.as_view(), name='tent-rentals'),
 ]
