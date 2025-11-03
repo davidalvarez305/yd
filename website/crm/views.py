@@ -138,6 +138,7 @@ class CRMListView(CRMBaseView, ListView):
     create_form_class = None
     context_object_name = 'object_list'
     filter_form = None
+    ordering = None
 
     def get_filter_form_class(self):
         return self.filter_form_class or generate_filter_form(model=self.model)
@@ -152,6 +153,10 @@ class CRMListView(CRMBaseView, ListView):
 
     def get_queryset(self):
         queryset = self.model.objects.all()
+
+        if self.ordering:
+            queryset = queryset.order_by(self.ordering)
+
         filter_form_class = self.get_filter_form_class()
         filtered_data = self.get_filtered_data()
 
