@@ -724,7 +724,7 @@ class TentRentals(BaseWebsiteView):
             {
                 'name': '10x10 Pop-Up Tents & Canopies (Up To 10 Guests)',
                 'price': 80.00,
-                'image': media_storage.url('plastic_folding_tables.webp'),
+                'image': media_storage.url('10x10_pop_up_tent.webp'),
             },
             {
                 'name': '10x20 Pop-Up Tents & Canopies (Up To 20 Guests)',
