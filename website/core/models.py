@@ -420,7 +420,7 @@ class ServicePriceAdustment(models.Model):
     service_price_adjustment_id = models.AutoField(primary_key=True)
     service = models.ForeignKey(Service, db_column='service_id', on_delete=models.CASCADE)
     price_adjustment = models.ForeignKey(PriceAdjustment, db_column='price_adjusment_id', on_delete=models.CASCADE)
-    factor = models.DecimalField()
+    factor = models.DecimalField(max_digits=5, decimal_places=2)
 
     def __str__(self):
         return f"{self.service} - {self.price_adjustment} - {self.factor}"
