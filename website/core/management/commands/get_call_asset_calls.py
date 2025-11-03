@@ -49,7 +49,6 @@ class Command(BaseCommand):
                     )
 
                 keyword_metadata = tracking_call.metadata.filter(key='keyword').first()
-                print(f"Associated keyword to: {lead}")
                 if not keyword_metadata and keyword:
                     TrackingPhoneCallMetadata.objects.create(
                         key='keyword',
@@ -63,7 +62,7 @@ class Command(BaseCommand):
 
                 marketing_click_id = lead.lead_marketing.metadata.filter(key='gclid').first()
                 if not marketing_click_id and gclid:
-                    print(f"Associated gclid to: {lead}")
+                    print(f"Associating gclid to: {lead}")
                     LeadMarketingMetadata.objects.create(
                         key='gclid',
                         lead_marketing=lead.lead_marketing,
@@ -90,6 +89,15 @@ class Command(BaseCommand):
                         except Exception as e:
                             print(f'Error trying to send Google Ads conv: {e}')
                             continue
+                
+                kw_marketing_metadata = lead.lead_marketing.metadata.filter(key='keyword').first()
+                if not kw_marketing_metadata and keyword:
+                    print(f"Associating keyword to: {lead}")
+                    LeadMarketingMetadata.objects.create(
+                        key='keyword',
+                        lead_marketing=lead.lead_marketing,
+                        value=keyword,
+                    )
 
                 if not lead.lead_marketing.ad:
                     ad = Ad.objects.filter(name=keyword).first()
