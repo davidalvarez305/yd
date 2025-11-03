@@ -125,11 +125,12 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                 if isinstance(value, (dict, list)):
                     value = json.dumps(value)
 
-                TrackingPhoneCallMetadata.objects.create(
-                    tracking_phone_call=tracking_phone_call,
-                    key=key,
-                    value=value,
-                )
+                if value:
+                    TrackingPhoneCallMetadata.objects.create(
+                        tracking_phone_call=tracking_phone_call,
+                        key=key,
+                        value=value,
+                    )
 
             return HttpResponse(status=200)
 
@@ -223,11 +224,12 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                 if isinstance(value, (dict, list)):
                     value = json.dumps(value)
 
-                TrackingTextMessageMetadata.objects.create(
-                    tracking_text_message=tracking_text,
-                    key=key,
-                    value=value,
-                )
+                if value:
+                    TrackingTextMessageMetadata.objects.create(
+                        tracking_text_message=tracking_text,
+                        key=key,
+                        value=value,
+                    )
 
             message = Message()
             message.external_id = tracking_text.external_id
