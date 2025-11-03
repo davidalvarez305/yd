@@ -60,7 +60,7 @@ class EventTable(Table):
         label='Amount',
         cell_widget=PriceCellWidget(
             data = {
-                'value': lambda row: row.amount
+                'value': lambda row: f"{row.amount}"
             }
         )
     )
