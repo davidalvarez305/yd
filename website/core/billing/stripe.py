@@ -173,6 +173,8 @@ class StripeBillingService(BillingServiceInterface):
                 ],
                 mode='payment',
                 ui_mode='hosted',
+                customer_creation="always",
+                saved_payment_method_options={"payment_method_save": "enabled"},
                 success_url=settings.ROOT_DOMAIN + reverse('success_payment', kwargs={'external_id': str(invoice.external_id)}),
                 cancel_url=settings.ROOT_DOMAIN + reverse('cancel_payment', kwargs={'external_id': str(invoice.external_id)}),
                 metadata={
