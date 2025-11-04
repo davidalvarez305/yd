@@ -757,7 +757,7 @@ class TentRentals(BaseWebsiteView):
             {
                 'question': 'What types of events do you cater to?',
                 'answers': [
-                    "We specialize in weddings, corporate events, birthday parties, private gatherings, festivals, and more. Whether it's a formal venue or a backyard celebration, we’ve got the right tables for any occasion!"
+                    "We specialize in weddings, corporate events, birthday parties, private gatherings, festivals, and more. Whether it’s a formal venue or an outdoor celebration, we’ve got the perfect tents to make your event unforgettable!"
                 ]
             },
             {
@@ -769,39 +769,39 @@ class TentRentals(BaseWebsiteView):
             {
                 'question': 'What do you charge for your service?',
                 'answers': [
-                    "After gathering some details about your event, we'll send over a detailed and itemized quote. This will include everything you need for your table rentals, including delivery, set-up, and any add-ons like tablecloths or decorative touches."
+                    "After gathering details about your event—like size, location, and tent style—we’ll send a detailed and itemized quote. This will include everything you need for your tent rentals, including delivery, set-up, lighting, flooring, and any accessories."
                 ]
             },
             {
-                'question': 'Do you offer delivery and setup for your tables?',
+                'question': 'Do you offer delivery and setup for your tents?',
                 'answers': [
-                    "Yes! We offer both delivery and setup services for all table rentals. Delivery fees depend on the distance, and setup costs will vary based on the labor needed to get everything perfect for your event."
+                    "Yes! We offer both delivery and professional setup for all tent rentals. Delivery fees depend on the distance, and setup costs vary depending on tent size, site conditions, and additional equipment required."
                 ]
             },
             {
-                'question': 'What types of tables do you offer for different events?',
+                'question': 'What types of tents do you offer for different events?',
                 'answers': [
-                    "From classic round tables to long banquet styles, we offer a wide range of tables in various sizes and finishes to suit your event’s theme and needs."
+                    "We offer a wide selection of tents, including frame tents, pole tents, clear-top tents, high-peak tents, and canopies. Each can be customized with lighting, sidewalls, flooring, and more to fit your event’s style and size."
                 ]
             },
             {
-                'question': 'How far in advance should I book my table rentals?',
+                'question': 'How far in advance should I book my tent rentals?',
                 'answers': [
-                    "We recommend booking at least 2-4 weeks in advance, especially during peak seasons. But if you find yourself in a pinch, don’t worry—we’ll do our best to accommodate last-minute requests!"
+                    "We recommend booking at least 4–6 weeks in advance, especially during peak event seasons. However, if you’re on a tight timeline, we’ll do our best to accommodate last-minute requests!"
                 ]
             }
         ]
 
         features = [
-            "We’ll help you choose the perfect tables that fit your event’s vibe—whether it's elegant, casual, or somewhere in between.",
-            "We’re always early to set up—sometimes even hours before your event starts—so everything’s ready and waiting for your guests to arrive.",
-            "Our tables are not only stylish but also maintained in excellent condition. They’re carefully cleaned and stored after each event, ensuring they’re fresh and sanitized for your big day.",
-            "We’re all about cleanliness—your event space will be spotless when we leave, and we’ll handle the cleanup so you can focus on enjoying your event.",
-            "Need your tables to match a specific theme or style? We can set everything up to fit your vision, from decor to layout, with everything neatly organized.",
-            "Whether it’s a small gathering or a grand event, we’ve got the right tables to make sure everyone is comfortable and your space looks amazing.",
-            "We provide a clear, customized quote so you know exactly what you’re paying for—no surprises, just great service.",
-            "Your guests’ comfort is our top priority—we’ll ensure every table is spotless and perfectly arranged before your event begins.",
-            "With years of experience, we pride ourselves on timely, reliable service that makes your event setup smooth and stress-free."
+            "We’ll help you choose the perfect tent size and style to match your event’s layout, guest count, and overall vibe.",
+            "Our team arrives early to ensure your tent is securely installed and weather-ready long before your event begins.",
+            "All of our tents are in excellent condition—cleaned, maintained, and inspected before every rental for your peace of mind.",
+            "We take care of both setup and takedown, leaving your event space spotless once everything’s wrapped up.",
+            "Want to create a specific atmosphere? We can customize your tent setup with lighting, draping, flooring, and decor that fits your vision.",
+            "Whether it’s a cozy backyard gathering or a large-scale corporate event, we’ve got the right tent to keep your guests comfortable and protected.",
+            "We provide clear, customized quotes so you know exactly what’s included—no hidden fees, just transparent pricing and great service.",
+            "Your comfort and safety are our top priorities—we ensure every tent is installed securely and inspected before your event.",
+            "With years of experience, we pride ourselves on reliable, on-time service that makes your event setup smooth and stress-free."
         ]
 
         comments = [f"comment_{i}.webp" for i in range(1, 14)]
