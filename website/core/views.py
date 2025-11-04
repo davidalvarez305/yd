@@ -729,27 +729,27 @@ class TentRentals(BaseWebsiteView):
             {
                 'name': '10x20 Pop-Up Tents & Canopies (Up To 20 Guests)',
                 'price': 160.00,
-                'image': media_storage.url('serpentine_tables.webp'),
+                'image': media_storage.url('10x20_pop_up_tent.webp'),
             },
             {
                 'name': '10x40 Frame Tents (Up To 40 Guests)',
                 'price': 220.00,
-                'image': media_storage.url('serpentine_tables.webp'),
+                'image': media_storage.url('10x40_pop_up_tent.webp'),
             },
             {
                 'name': '20x20 Frame Tents (Up To 50 Guests)',
                 'price': 240.00,
-                'image': media_storage.url('serpentine_tables.webp'),
+                'image': media_storage.url('20x20_pop_up_tent.webp'),
             },
             {
                 'name': '15x30 Frame Tents (Up To 60 Guests)',
                 'price': 240.00,
-                'image': media_storage.url('serpentine_tables.webp'),
+                'image': media_storage.url('15x30_pop_up_tent.webp'),
             },
             {
                 'name': '20x40 Frame Tents (Up To 100 Guests)',
                 'price': 480.00,
-                'image': media_storage.url('serpentine_tables.webp'),
+                'image': media_storage.url('20x40_pop_up_tent.webp'),
             },
         ]
 
