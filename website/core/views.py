@@ -815,3 +815,104 @@ class TentRentals(BaseWebsiteView):
         context['comments'] = comments
         context['features'] = features
         return context
+    
+class BarRentals(BaseWebsiteView):
+    template_name = "core/landing_pages/bar_rentals.html"
+    page_title = f"Bar Rentals Miami — {settings.COMPANY_NAME}"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['js_files'] += ['js/floatingHeader.js']
+
+        reviews = GoogleReview.objects.all()
+        paired_reviews = get_paired_reviews()
+        reviews_ratings = get_average_ratings()
+        events = Event.objects.count()
+
+        media_storage = storages['media']
+        
+        items = [
+            {
+                'name': 'Budget Bar Rental',
+                'price': 50.00,
+                'image': media_storage.url('budget_bar_rental.webp'),
+            },
+            {
+                'name': 'Folding Bar Rental',
+                'price': 100.00,
+                'image': media_storage.url('folding_bar_rental.webp'),
+            },
+            {
+                'name': 'Professional Bar Rental',
+                'price': 200.00,
+                'image': media_storage.url('professional_bar_rental.webp'),
+            },
+            {
+                'name': 'Modular Bar Rental (Up To 7 Pieces)',
+                'price': 300.00,
+                'image': media_storage.url('modular_bar_rental.webp'),
+            }
+        ]
+
+        faqs = [
+            {
+                'question': 'What types of events do you cater to?',
+                'answers': [
+                    "We specialize in weddings, corporate events, private parties, festivals, and more. Whether it’s an elegant reception or a casual backyard get-together, we’ve got the perfect bars to keep the drinks flowing and guests happy!"
+                ]
+            },
+            {
+                'question': 'Do you provide delivery & set-up or just pick-up?',
+                'answers': [
+                    "You can choose from three options: delivery only, delivery + set-up, or pick-up. Whatever works best for your schedule and venue, we're happy to accommodate."
+                ]
+            },
+            {
+                'question': 'What do you charge for your service?',
+                'answers': [
+                    "Pricing depends on the style of bar, event duration, and any add-ons like back bars, shelving, or LED lighting. Once we know your event details, we’ll send over a detailed quote that includes delivery, setup, and all accessories."
+                ]
+            },
+            {
+                'question': 'Do you offer delivery and setup for your bars?',
+                'answers': [
+                    "Absolutely! We provide both delivery and full setup for all bar rentals. Delivery fees are based on distance, and setup costs vary depending on the bar type and event requirements."
+                ]
+            },
+            {
+                'question': 'What types of bars do you offer for different events?',
+                'answers': [
+                    "We offer a wide range of bar styles including rustic wood bars, modern LED bars, sleek mirrored bars, portable folding bars, and custom-branded options. Each one can be tailored to fit your event’s aesthetic and service needs."
+                ]
+            },
+            {
+                'question': 'How far in advance should I book my bar rentals?',
+                'answers': [
+                    "We recommend booking at least 3–4 weeks in advance, especially for weekends and busy event seasons. However, if you need something last-minute, we’ll do our best to make it happen!"
+                ]
+            }
+        ]
+
+        features = [
+            "We’ll help you choose the perfect bar style to match your event’s theme—whether it’s classic, modern, or completely custom.",
+            "Our setup team arrives early to make sure your bar is perfectly placed, sturdy, and ready for service before guests arrive.",
+            "All of our bars are kept in pristine condition—cleaned, polished, and maintained after every rental so they look amazing at your event.",
+            "We handle both setup and breakdown, leaving your event space spotless once everything’s wrapped up.",
+            "From intimate gatherings to large-scale events, we’ve got the right bar setups to keep your crowd refreshed and your space looking stylish.",
+            "We provide transparent, itemized quotes so you know exactly what’s included—no surprises, just quality service and great presentation.",
+            "Your event experience is our priority—we make sure every bar is perfectly leveled, stocked (if needed), and ready to impress.",
+            "With years of experience, we pride ourselves on reliable, on-time delivery and flawless setup for a stress-free event."
+        ]
+
+        comments = [f"comment_{i}.webp" for i in range(1, 14)]
+
+        context['paired_reviews'] = paired_reviews
+        context['reviews'] = reviews
+        context['reviews_ratings'] = reviews_ratings
+        context['events'] = events
+        context['items'] = items
+        context['faqs'] = faqs
+        context['comments'] = comments
+        context['features'] = features
+        return context
