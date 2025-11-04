@@ -23,7 +23,7 @@ from core.models import (
     TrackingTextMessageMetadata,
     User,
 )
-from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_url, get_content_type_from_url
+from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_url, get_content_type_from_url, normalize_phone_number
 from core.messaging.utils import MIME_EXTENSION_MAP
 from core.transcription import transcription_service
 from core.calling import calling_service
@@ -206,8 +206,8 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             tracking_text = TrackingTextMessage.objects.create(
                 external_id=data.get("resource_id"),
                 message=data.get("content"),
-                text_from=data.get("source_number"),
-                text_to=data.get("destination_number"),
+                text_from=normalize_phone_number(data.get("source_number")),
+                text_to=normalize_phone_number(data.get("destination_number")),
             )
 
             model_fields = {
@@ -234,8 +234,8 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
             message = Message()
             message.external_id = tracking_text.external_id
             message.text = tracking_text.message
-            message.text_from = tracking_text.text_from
-            message.text_to = tracking_text.text_to
+            message.text_from = normalize_phone_number(tracking_text.text_from)
+            message.text_to = normalize_phone_number(tracking_text.text_to)
             message.is_inbound = True
             message.status = 'received'
             message.is_read = False
