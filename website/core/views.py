@@ -839,7 +839,7 @@ class BarRentals(BaseWebsiteView):
                 'image': media_storage.url('budget_bar_rental.webp'),
             },
             {
-                'name': 'Folding Bar Rental',
+                'name': 'Folding Bar Rental (4 Different Colors)',
                 'price': 100.00,
                 'image': media_storage.url('folding_bar_rental.webp'),
             },
