@@ -46,7 +46,7 @@ class Command(BaseCommand):
                 google_api_service.get_ad_spend(query_date=query_date)
             
             else:
-                query_date = date.today()
+                query_date = date.today() - timedelta(days=1)
                 facebook_api_service.get_ad_spend(query_date=query_date.isoformat())
                 google_api_service.get_ad_spend(query_date=query_date)
 
