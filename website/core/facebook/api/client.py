@@ -225,6 +225,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             }
 
             if query_date:
+                query_date_obj = date.fromisoformat(query_date)
                 params["time_range"] = json.dumps({
                     "since": query_date,
                     "until": query_date
@@ -236,7 +237,6 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             response.raise_for_status()
 
             data = response.json()
-
             results = data.get('data', [])[0] if data.get('data') else None
             if not results:
                 return
@@ -244,12 +244,19 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             spend = results.get('spend')
             if not spend:
                 return
-            
-            AdSpend.objects.create(
-                spend=spend,
-                date=query_date,
-                platform_id=ConversionServiceType.FACEBOOK.value,
-            )
+
+            if query_date:
+                AdSpend.objects.create(
+                    spend=spend,
+                    date=query_date_obj,
+                    platform_id=ConversionServiceType.FACEBOOK.value,
+                )
+            else:
+                AdSpend.objects.create(
+                    spend=spend,
+                    date=date.today(),
+                    platform_id=ConversionServiceType.FACEBOOK.value,
+                )
 
         except Exception as e:
             print(f'Failed to get ad spend: {e}')
