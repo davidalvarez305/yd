@@ -23,7 +23,7 @@
                     Revenue
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                    ROAS
+                    CPL
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                     CPA
@@ -32,7 +32,7 @@
                     AOV
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                    CPL
+                    ROAS
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                     Closing %
@@ -58,7 +58,7 @@
                     <p class="font-medium">${{ google_revenue|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ google_roas|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ google_cpl|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">${{ google_cpa|default:0|floatformat:2|intcomma }}</p>
@@ -67,7 +67,7 @@
                     <p class="font-medium">${{ google_aov|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">${{ google_cpl|default:0|floatformat:2|intcomma }}</p>
+                    <p class="font-medium">${{ google_roas|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ google_closing_percent|default:0|floatformat:2 }}%</p>
@@ -92,7 +92,7 @@
                     <p class="font-medium">${{ facebook_revenue|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">{{ facebook_roas|default:0|floatformat:2 }}</p>
+                    <p class="font-medium">${{ facebook_cpl|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">${{ facebook_cpa|default:0|floatformat:2|intcomma }}</p>
@@ -101,7 +101,7 @@
                     <p class="font-medium">${{ facebook_aov|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
-                    <p class="font-medium">${{ facebook_cpl|default:0|floatformat:2|intcomma }}</p>
+                    <p class="font-medium">${{ facebook_roas|default:0|floatformat:2 }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ facebook_closing_percent|default:0|floatformat:2 }}%</p>
