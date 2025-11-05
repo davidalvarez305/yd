@@ -109,8 +109,8 @@ class GoogleAPIService:
 
             query = f"""
                 SELECT
-                    segments.date AS date,
-                    SUM(metrics.cost_micros) AS spend
+                    segments.date,
+                    SUM(metrics.cost_micros)
                 FROM keyword_view
                 WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
                 GROUP BY segments.date
