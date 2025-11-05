@@ -122,7 +122,7 @@ class GoogleAPIService:
 
             for row in stream:
                 date = row.segments.date
-                spend = row.metrics.cost_micros
+                spend = row.metrics.cost_micros / 1_000_000
 
                 print({ 'date': date, 'spend': spend })
 
