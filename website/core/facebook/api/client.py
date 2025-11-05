@@ -245,13 +245,11 @@ class FacebookAPIService(FacebookAPIServiceInterface):
             if not spend:
                 return
             
-            print('spend: ', spend)
-
-            """ AdSpend.objects.create(
+            AdSpend.objects.create(
                 spend=spend,
                 date=query_date,
                 platform_id=ConversionServiceType.FACEBOOK.value,
-            ) """
+            )
 
         except Exception as e:
             print(f'Failed to get ad spend: {e}')
