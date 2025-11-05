@@ -11,6 +11,9 @@
                     Platform
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Spend
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                     Leads
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
@@ -20,7 +23,16 @@
                     Revenue
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    ROAS
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    CPA
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                     AOV
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    CPL
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
                     Closing %
@@ -28,9 +40,13 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Google Row -->
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                 <td class="p-3 text-center">
                     <p class="font-medium">Google</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ google_ad_spend|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ google_count }}</p>
@@ -42,16 +58,29 @@
                     <p class="font-medium">${{ google_revenue|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
+                    <p class="font-medium">{{ google_roas|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ google_cpa|default:0|floatformat:2|intcomma }}</p>
+                </td>
+                <td class="p-3 text-center">
                     <p class="font-medium">${{ google_aov|default:0|floatformat:2|intcomma }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ google_cpl|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ google_closing_percent|default:0|floatformat:2 }}%</p>
                 </td>
             </tr>
 
+            <!-- Facebook Row -->
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                 <td class="p-3 text-center">
                     <p class="font-medium">Facebook</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ facebook_ad_spend|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ facebook_count }}</p>
@@ -63,7 +92,16 @@
                     <p class="font-medium">${{ facebook_revenue|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
+                    <p class="font-medium">{{ facebook_roas|default:0|floatformat:2 }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ facebook_cpa|default:0|floatformat:2|intcomma }}</p>
+                </td>
+                <td class="p-3 text-center">
                     <p class="font-medium">${{ facebook_aov|default:0|floatformat:2|intcomma }}</p>
+                </td>
+                <td class="p-3 text-center">
+                    <p class="font-medium">${{ facebook_cpl|default:0|floatformat:2|intcomma }}</p>
                 </td>
                 <td class="p-3 text-center">
                     <p class="font-medium">{{ facebook_closing_percent|default:0|floatformat:2 }}%</p>

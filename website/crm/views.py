@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm, generate_filter_form
@@ -28,6 +28,7 @@ from core.utils import format_phone_number, format_text_message, get_first_field
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
+from marketing.enums import ConversionServiceType
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -1411,6 +1412,14 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
         initial_tracking_date = datetime(2025, 10, 1)
 
+        # Spend
+        ad_spend = AdSpend.objects.filter(date__gte=initial_tracking_date)
+        google_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.GOOGLE.value)
+        facebook_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.FACEBOOK.value)
+
+        google_ad_spend = google_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
+        facebook_ad_spend = facebook_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
+
         leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
 
         # Google leads filter
@@ -1449,18 +1458,39 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         facebook_leads_without_events = facebook_leads.count() - facebook_event_count
         facebook_closing_percent = (facebook_event_count / facebook_leads_without_events) * 100 if facebook_leads_without_events > 0 else 0
 
+         # ROAS (Return on Ad Spend) for Google and Facebook
+        google_roas = google_revenue / google_ad_spend if google_ad_spend > 0 else 0
+        facebook_roas = facebook_revenue / facebook_ad_spend if facebook_ad_spend > 0 else 0
+
+        # CPL (Cost per Lead) for Google and Facebook
+        google_cpl = google_ad_spend / google_leads.count() if google_leads.count() > 0 else 0
+        facebook_cpl = facebook_ad_spend / facebook_leads.count() if facebook_leads.count() > 0 else 0
+
+        # CPA (Cost per Acquisition) for Google and Facebook
+        google_cpa = google_ad_spend / google_leads_with_events.count() if google_leads_with_events.count() > 0 else 0
+        facebook_cpa = facebook_ad_spend / facebook_leads_with_events.count() if facebook_leads_with_events.count() > 0 else 0
+
         ctx.update({
             'google_count': google_leads.count(),
             'google_event_count': google_event_count,
             'google_revenue': google_revenue,
             'google_aov': google_aov,
             'google_closing_percent': google_closing_percent,
+            'google_roas': google_roas,
+            'google_cpl': google_cpl,
+            'google_cpa': google_cpa,
 
             'facebook_count': facebook_leads.count(),
             'facebook_event_count': facebook_event_count,
             'facebook_revenue': facebook_revenue,
             'facebook_aov': facebook_aov,
             'facebook_closing_percent': facebook_closing_percent,
+            'facebook_roas': facebook_roas,
+            'facebook_cpl': facebook_cpl,
+            'facebook_cpa': facebook_cpa,
+
+            'google_ad_spend': google_ad_spend,
+            'facebook_ad_spend': facebook_ad_spend,
         })
 
         return ctx
