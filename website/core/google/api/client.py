@@ -110,7 +110,7 @@ class GoogleAPIService:
                 SELECT
                     segments.date,
                     metrics.cost_micros
-                FROM keyword_view
+                FROM campaign
                 WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
                 ORDER BY segments.date ASC
             """
