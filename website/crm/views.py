@@ -1438,6 +1438,10 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
         google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
 
+        # Leads Count
+        google_leads_count = google_leads.count()
+        facebook_leads_count = facebook_leads.count()
+
         # Google Events
         google_events = Event.objects.filter(lead__in=google_leads)
         google_event_count = google_leads_with_events.count()
@@ -1450,28 +1454,24 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         facebook_revenue = facebook_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
         facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0
 
-        # Closing % for Google
-        google_leads_without_events = google_leads.count() - google_event_count
-        google_closing_percent = (google_event_count / google_leads_without_events) * 100 if google_leads_without_events > 0 else 0
+        # Closing %
+        google_closing_percent = (google_event_count / google_leads_count) * 100 if google_leads_count > 0 else 0
+        facebook_closing_percent = (facebook_event_count / facebook_leads_count) * 100 if facebook_leads_count > 0 else 0
 
-        # Closing % for Facebook
-        facebook_leads_without_events = facebook_leads.count() - facebook_event_count
-        facebook_closing_percent = (facebook_event_count / facebook_leads_without_events) * 100 if facebook_leads_without_events > 0 else 0
-
-         # ROAS (Return on Ad Spend) for Google and Facebook
+        # ROAS (Return on Ad Spend) for Google and Facebook
         google_roas = google_revenue / google_ad_spend if google_ad_spend > 0 else 0
         facebook_roas = facebook_revenue / facebook_ad_spend if facebook_ad_spend > 0 else 0
 
         # CPL (Cost per Lead) for Google and Facebook
-        google_cpl = google_ad_spend / google_leads.count() if google_leads.count() > 0 else 0
-        facebook_cpl = facebook_ad_spend / facebook_leads.count() if facebook_leads.count() > 0 else 0
+        google_cpl = google_ad_spend / google_leads_count if google_leads_count > 0 else 0
+        facebook_cpl = facebook_ad_spend / facebook_leads_count if facebook_leads_count > 0 else 0
 
         # CPA (Cost per Acquisition) for Google and Facebook
         google_cpa = google_ad_spend / google_leads_with_events.count() if google_leads_with_events.count() > 0 else 0
         facebook_cpa = facebook_ad_spend / facebook_leads_with_events.count() if facebook_leads_with_events.count() > 0 else 0
 
         ctx.update({
-            'google_count': google_leads.count(),
+            'google_count': google_leads_count,
             'google_event_count': google_event_count,
             'google_revenue': google_revenue,
             'google_aov': google_aov,
@@ -1480,7 +1480,7 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             'google_cpl': google_cpl,
             'google_cpa': google_cpa,
 
-            'facebook_count': facebook_leads.count(),
+            'facebook_count': facebook_leads_count,
             'facebook_event_count': facebook_event_count,
             'facebook_revenue': facebook_revenue,
             'facebook_aov': facebook_aov,
