@@ -120,18 +120,18 @@ class GoogleAPIService:
                 query=query,
             )
 
-            for row in stream:
-                print('row: ', row)
-                date = row.segments.date
-                spend = row.metrics.cost_micros / 1_000_000
+            for batch in stream:
+                for row in batch.results:
+                    date = row.segments.date
+                    spend = row.metrics.cost_micros / 1_000_000
 
-                print({ 'date': date, 'spend': spend })
+                    print({ 'date': date, 'spend': spend })
 
-                """ AdSpend.objects.create(
-                    spend=spend,
-                    date=date,
-                    platform_id=ConversionServiceType.GOOGLE.value,
-                ) """
+                    """ AdSpend.objects.create(
+                        spend=spend,
+                        date=date,
+                        platform_id=ConversionServiceType.GOOGLE.value,
+                    ) """
                 
         except Exception as e:
             logger.exception(f"Error fetching Google Ads spend data: {e}", exc_info=True)
