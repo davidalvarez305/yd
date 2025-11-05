@@ -96,13 +96,11 @@ class GoogleAPIService:
             logger.error("Failed to append to Google Sheet", exc_info=True)
             raise
 
-    def get_ad_spend(self, start_date=None, end_date=None):
+    def get_ad_spend(self, query_date=None):
         try:
-            if not start_date:
-                start_date = timezone.now() - timedelta(days=7)
-                start_date = start_date.date()
-            if not end_date:
-                end_date = timezone.now().date()
+            if not query_date:
+                query_date = timezone.now() - timedelta(days=7)
+                query_date = query_date.date()
 
             service = self.google_ads_client.get_service("GoogleAdsService")
 
@@ -111,7 +109,7 @@ class GoogleAPIService:
                     segments.date,
                     metrics.cost_micros
                 FROM campaign
-                WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
+                WHERE segments.date = '{query_date}'
                 ORDER BY segments.date ASC
             """
 

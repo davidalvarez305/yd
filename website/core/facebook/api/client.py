@@ -213,7 +213,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
         return lead
     
-    def get_ad_spend(self, start_date=None, end_date=None):
+    def get_ad_spend(self, query_date=None):
         if self.page_access_token.refresh_needed:
             self._refresh_access_token()
 
@@ -224,10 +224,10 @@ class FacebookAPIService(FacebookAPIServiceInterface):
                 "fields": "spend",
             }
 
-            if start_date and end_date:
+            if query_date:
                 params["time_range"] = json.dumps({
-                    "since": start_date,
-                    "until": end_date
+                    "since": query_date,
+                    "until": query_date
                 })
             else:
                 params["date_preset"] = "last_7d"
@@ -249,7 +249,7 @@ class FacebookAPIService(FacebookAPIServiceInterface):
 
             """ AdSpend.objects.create(
                 spend=spend,
-                date=start_date,
+                date=query_date,
                 platform_id=ConversionServiceType.FACEBOOK.value,
             ) """
 
