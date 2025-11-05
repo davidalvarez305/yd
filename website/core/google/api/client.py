@@ -13,6 +13,7 @@ from core.models import Ad, AdSpend, GoogleAccessToken
 from core.logger import logger
 from core.utils import load_google_credentials
 from marketing.utils import create_ad_from_params
+from marketing.enums import ConversionServiceType
 
 class GoogleAPIService:
     def __init__(self):
@@ -108,72 +109,26 @@ class GoogleAPIService:
 
             query = f"""
                 SELECT
-                    campaign.id,
-                    campaign.name,
-                    ad_group.id,
-                    ad_group.name,
-                    ad_group_criterion.keyword.text,
-                    segments.date,
-                    metrics.cost_micros
+                    segments.date AS date,
+                    SUM(metrics.cost_micros) AS spend
                 FROM keyword_view
                 WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
+                GROUP BY segments.date
                 ORDER BY segments.date ASC
             """
-
-            ad_query = """
-                SELECT
-                    ad_group.id,
-                    ad_group_ad.ad.id,
-                    ad_group_ad.ad.name
-                FROM ad_group_ad
-            """
-
-            ad_stream = service.search_stream(
-                customer_id=self.google_ads_client.login_customer_id,
-                query=ad_query,
-            )
-
-            ad_map = {}
-            for batch in ad_stream:
-                for row in batch.results:
-                    ad_map[row.ad_group.id] = {
-                        "ad_id": row.ad_group_ad.ad.id,
-                        "ad_name": row.ad_group_ad.ad.name,
-                    }
 
             stream = service.search_stream(
                 customer_id=self.google_ads_client.login_customer_id,
                 query=query,
             )
 
-            data = []
-            for batch in stream:
-                for row in batch.results:
-                    ad_info = ad_map.get(row.ad_group.id, {})
-                    data.append({
-                        'ad_campaign_name': row.campaign.name,
-                        'ad_campaign_id': row.campaign.id,
-                        'ad_group_name': row.ad_group.name,
-                        'ad_group_id': row.ad_group.id,
-                        'keyword': row.ad_group_criterion.keyword.text,
-                        'spend': row.metrics.cost_micros / 1_000_000,
-                        'date': row.segments.date,
-                        'ad_id': ad_info.get('ad_id'),
-                        'ad_name': ad_info.get('ad_name'),
-                    })
-            
-            for row in data:
-
-                ad = Ad.objects.filter(name=row.get('keyword')).first()
-                if not ad:
-                    ad = create_ad_from_params(params=row, cookies={ 'gclid': 1 })
-                
-                AdSpend.objects.create(
-                    spend=row.get('spend'),
-                    date=start_date,
-                    ad=ad,
-                )
-
+            for row in stream:
+                print({ 'spend': row.metrics.cost_micros / 1_000_000, 'date': row.segments.date })
+                """ AdSpend.objects.create(
+                    spend=row.metrics.cost_micros / 1_000_000,
+                    date=row.segments.date,
+                    platform_id=ConversionServiceType.GOOGLE.value,
+                ) """
         except Exception as e:
             logger.exception(f"Error fetching Google Ads spend data: {e}", exc_info=True)
-            return []
+            return

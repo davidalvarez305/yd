@@ -820,7 +820,7 @@ class AdSpend(models.Model):
     ad_spend_id = models.AutoField(primary_key=True)
     date = models.DateField(default=date.today)
     spend = models.FloatField()
-    ad = models.ForeignKey(Ad, related_name='spend_entries', db_column='ad_id', on_delete=models.CASCADE)
+    platform_id = models.IntegerField(choices=AD_PLATFORMS)
 
     def __str__(self):
         return self.amount

@@ -8,6 +8,7 @@ from core.logger import logger
 from website import settings
 from core.utils import get_facebook_token_expiry_date, normalize_phone_number
 from marketing.utils import create_ad_from_params, parse_datetime
+from marketing.enums import ConversionServiceType
 
 class FacebookAPIService(FacebookAPIServiceInterface):
     def __init__(self, api_version: str, app_id: str, app_secret: str, account_id: str):
@@ -247,57 +248,49 @@ class FacebookAPIService(FacebookAPIServiceInterface):
         if self.page_access_token.refresh_needed:
             self._refresh_access_token()
 
-        ads = self.get_ads()
+        try:
+            url = f"https://graph.facebook.com/{self.api_version}/act_{self.account_id}/insights"
+            params = {
+                "access_token": self.page_access_token.access_token,
+                "fields": "spend",
+            }
 
-        for ad in ads:
-            try:
-                if not ad.get('id'):
-                    continue
+            if start_date and end_date:
+                params["time_range"] = json.dumps({
+                    "since": start_date,
+                    "until": end_date
+                })
+            else:
+                params["date_preset"] = "last_7d"
 
-                url = f"https://graph.facebook.com/{self.api_version}/{ad.get('id')}/insights"
-                params = {
-                    "access_token": self.page_access_token.access_token,
-                    "fields": "ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend"
-                }
+            self._throttle_request()
 
-                if start_date and end_date:
-                    params["time_range"] = json.dumps({
-                        "since": start_date,
-                        "until": end_date
-                    })
-                else:
-                    params["date_preset"] = "last_7d"
+            response = requests.get(url, params=params, timeout=20)
+            response.raise_for_status()
 
-                self._throttle_request()
+            if self._check_ads_rate_limit(response):
+                return self.get_ad_spend(start_date, end_date) 
 
-                response = requests.get(url, params=params, timeout=20)
-                response.raise_for_status()
-                
-                if self._check_ads_rate_limit(response):
-                    return self.get_ad_spend(start_date, end_date) 
+            data = response.json()
 
-                data = response.json()
+            results = data.get('data', [])[0] if data.get('data') else None
+            if not results:
+                return
 
-                results = data.get('data', [])[0] if data.get('data') else None
-                if not results:
-                    continue
+            spend = results.get('spend')
+            if not spend:
+                return
+            
+            print('spend: ', spend)
 
-                db_ad = Ad.objects.filter(ad_id=ad.get('id')).first()
-                if not db_ad:
-                    db_ad = self.create_ad_from_api(data=results)
+            """ AdSpend.objects.create(
+                spend=spend,
+                date=start_date,
+                platform_id=ConversionServiceType.FACEBOOK.value,
+            ) """
 
-                spend = results.get('spend')
-                if not spend:
-                    continue
-
-                AdSpend.objects.create(
-                    spend=spend,
-                    date=start_date,
-                    ad=db_ad,
-                )
-            except Exception as e:
-                print(f'Failed to get ad spend: {e}')
-                continue
+        except Exception as e:
+            print(f'Failed to get ad spend: {e}')
 
     def get_ads(self):
         try:
