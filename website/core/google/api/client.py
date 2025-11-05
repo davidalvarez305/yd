@@ -12,7 +12,6 @@ from google.ads.googleads.client import GoogleAdsClient
 from core.models import Ad, AdSpend, GoogleAccessToken
 from core.logger import logger
 from core.utils import load_google_credentials
-from marketing.utils import create_ad_from_params
 from marketing.enums import ConversionServiceType
 
 class GoogleAPIService:
@@ -110,10 +109,9 @@ class GoogleAPIService:
             query = f"""
                 SELECT
                     segments.date,
-                    SUM(metrics.cost_micros)
+                    metrics.cost_micros
                 FROM keyword_view
                 WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
-                GROUP BY segments.date
                 ORDER BY segments.date ASC
             """
 
@@ -123,12 +121,17 @@ class GoogleAPIService:
             )
 
             for row in stream:
-                print({ 'spend': row.metrics.cost_micros / 1_000_000, 'date': row.segments.date })
+                date = row.segments.date
+                spend = row.metrics.cost_micros
+
+                print({ 'date': date, 'spend': spend })
+
                 """ AdSpend.objects.create(
-                    spend=row.metrics.cost_micros / 1_000_000,
-                    date=row.segments.date,
+                    spend=spend,
+                    date=date,
                     platform_id=ConversionServiceType.GOOGLE.value,
                 ) """
+                
         except Exception as e:
             logger.exception(f"Error fetching Google Ads spend data: {e}", exc_info=True)
-            return
+            return []
