@@ -34,6 +34,7 @@ from core.logger import logger
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
+from core.models import Lead, LeadMarketing
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -397,3 +398,21 @@ def load_google_credentials():
         new_token.save()
 
     return creds
+
+def handle_create_lead_from_inbound_communication(ctx: dict):
+    full_name = ctx.get('full_name')
+    phone_number = ctx.get('phone_number')
+
+    exists = Lead.objects.filter(phone_number=phone_number).exists()
+
+    if exists:
+        return
+
+    lead = Lead.objects.create(
+        full_name=full_name,
+        phone_number=phone_number,
+    )
+
+    LeadMarketing.objects.create(lead=lead)
+
+    return lead

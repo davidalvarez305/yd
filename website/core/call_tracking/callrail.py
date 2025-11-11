@@ -23,7 +23,7 @@ from core.models import (
     TrackingTextMessageMetadata,
     User,
 )
-from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_url, get_content_type_from_url, normalize_phone_number
+from core.utils import cleanup_dir_files, convert_audio_format, convert_video_to_mp4, create_generic_file_name, download_file_from_url, get_content_type_from_url, handle_create_lead_from_inbound_communication, normalize_phone_number
 from core.messaging.utils import MIME_EXTENSION_MAP
 from core.transcription import transcription_service
 from core.calling import calling_service
@@ -131,6 +131,20 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                         key=key,
                         value=value,
                     )
+            
+            phone_call = PhoneCall(
+                external_id=data.get("resource_id"),
+                call_duration=tracking_phone_call.call_duration,
+                date_created=tracking_phone_call.date_created,
+                call_from=tracking_phone_call.call_from,
+                call_to=tracking_phone_call.call_to,
+                is_inbound=True,
+                status=tracking_phone_call.status,
+            )
+
+            phone_call.save()
+
+            handle_create_lead_from_inbound_communication({ 'phone_number': tracking_phone_call.call_from, 'full_name': data.get("formatted_customer_name") })
 
             return HttpResponse(status=200)
 
@@ -150,18 +164,13 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
 
             recording_url = self.get_public_recording_url(call_id=resource_id)
 
-            phone_call = PhoneCall(
-                external_id=resource_id,
-                call_duration=tracking_phone_call.call_duration,
-                date_created=tracking_phone_call.date_created,
-                call_from=tracking_phone_call.call_from,
-                call_to=tracking_phone_call.call_to,
-                is_inbound=True,
-                recording_url=recording_url,
-                status=tracking_phone_call.status,
-            )
+            phone_call = PhoneCall.objects.filter(external_id=resource_id).first()
 
-            phone_call.save()
+            if phone_call:
+                phone_call.call_duration = tracking_phone_call.call_duration
+                phone_call.recording_url = recording_url
+                phone_call.status = tracking_phone_call.status
+                phone_call.save()
 
             if not data.get('answered'):
                 ctx = {
@@ -283,6 +292,8 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                         media = MessageMedia(message=message, content_type=content_type)
                         media.file.save(source_file_name, ContentFile(f.read()))
 
+            handle_create_lead_from_inbound_communication({ 'phone_number': message.text_from, 'full_name': data.get("formatted_customer_name") })
+    
             return HttpResponse(status=200)
 
         except Exception as e:
