@@ -7,12 +7,6 @@ from core.google.api import google_api_service
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
-            '--date',
-            type=str,
-            help='The date for which to fetch the ad spend (in YYYY-MM-DD format). Defaults to today.',
-        )
-        
-        parser.add_argument(
             '--from_date',
             type=str,
             help='The start date for the range (in YYYY-MM-DD format).',
@@ -39,12 +33,6 @@ class Command(BaseCommand):
                     google_api_service.get_ad_spend(query_date=current_date)
                     
                     current_date += timedelta(days=1)
-            
-            elif options.get('date'):
-                query_date = date.fromisoformat(options['date'])
-                facebook_api_service.get_ad_spend(query_date=query_date.isoformat())
-                google_api_service.get_ad_spend(query_date=query_date)
-            
             else:
                 query_date = date.today() - timedelta(days=1)
                 facebook_api_service.get_ad_spend(query_date=query_date.isoformat())
