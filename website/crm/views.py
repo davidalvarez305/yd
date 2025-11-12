@@ -17,7 +17,7 @@ from website import settings
 from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
-from core.forms import ServiceForm, UserForm, generate_filter_form
+from core.forms import ServiceForm, UserForm
 from crm.forms import EventClientConfirmationForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
@@ -142,14 +142,17 @@ class CRMListView(CRMBaseView, ListView):
     ordering = None
 
     def get_filter_form_class(self):
-        return self.filter_form_class or generate_filter_form(model=self.model)
+        return self.filter_form_class
 
     def get_filter_initial(self):
         return {}
 
     def get_filtered_data(self):
+        filter_form_class = self.get_filter_form_class()
+        if not filter_form_class:
+            return {}
         querystring = self.request.GET.copy()
-        form_fields = self.get_filter_form_class()().fields.keys()
+        form_fields = filter_form_class().fields.keys()
         return {k: v for k, v in querystring.items() if k in form_fields}
 
     def get_queryset(self):
@@ -159,8 +162,11 @@ class CRMListView(CRMBaseView, ListView):
             queryset = queryset.order_by(self.ordering)
 
         filter_form_class = self.get_filter_form_class()
-        filtered_data = self.get_filtered_data()
 
+        if not filter_form_class:
+            return queryset
+
+        filtered_data = self.get_filtered_data()
         self.filter_form = filter_form_class(
             data=filtered_data,
             initial=self.get_filter_initial()
@@ -181,13 +187,22 @@ class CRMListView(CRMBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["filter_form"] = self.filter_form or self.get_filter_form_class()(initial=self.get_filter_initial())
+
+        filter_form_class = self.get_filter_form_class()
+        if filter_form_class:
+            context["filter_form"] = (
+                self.filter_form or
+                filter_form_class(initial=self.get_filter_initial())
+            )
+        else:
+            context["filter_form"] = None
+
         context.setdefault("js_files", [])
         context["js_files"] += ["js/filter.js"]
 
         if self.create_form_class:
             context["create_form"] = self.create_form_class()
-        
+
         return context
 
 class CRMDetailView(CRMBaseView, DetailView):
@@ -537,7 +552,7 @@ class VisitListView(CRMTableView):
     model = Visit
     table_class = VisitTable
     show_add_button = False
-    filter_form = None
+    should_use_filter_form_class = False
 
 class VisitUpdateView(UpdateView):
     form_class = VisitForm
