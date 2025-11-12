@@ -144,7 +144,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
 
             phone_call.save()
 
-            handle_create_lead_from_inbound_communication({ 'phone_number': tracking_phone_call.call_from, 'full_name': data.get("formatted_customer_name") })
+            handle_create_lead_from_inbound_communication({ 'phone_number': tracking_phone_call.call_from, 'full_name': data.get("formatted_customer_name", 'Wireless Caller') })
 
             return HttpResponse(status=200)
 
@@ -292,7 +292,7 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                         media = MessageMedia(message=message, content_type=content_type)
                         media.file.save(source_file_name, ContentFile(f.read()))
 
-            handle_create_lead_from_inbound_communication({ 'phone_number': message.text_from, 'full_name': data.get("formatted_customer_name") })
+            handle_create_lead_from_inbound_communication({ 'phone_number': message.text_from, 'full_name': data.get("formatted_customer_name", 'Wireless Caller') })
     
             return HttpResponse(status=200)
 
