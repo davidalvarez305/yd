@@ -1,7 +1,6 @@
 from datetime import datetime
-from django.views.decorators.csrf import csrf_exempt
 from django.forms import ValidationError
-from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.views.generic import DetailView, ListView, TemplateView
 from django.urls import reverse_lazy, reverse
@@ -17,8 +16,8 @@ from website import settings
 from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
-from core.forms import ServiceForm, UserForm, generate_filter_form
-from crm.forms import EventClientConfirmationForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
+from core.forms import ServiceForm, UserForm
+from crm.forms import EventClientConfirmationForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, MarketingAnalyticsFilterForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, LandingPageTable, LeadMarketingMetadataTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -142,14 +141,17 @@ class CRMListView(CRMBaseView, ListView):
     ordering = None
 
     def get_filter_form_class(self):
-        return self.filter_form_class or generate_filter_form(model=self.model)
+        return self.filter_form_class
 
     def get_filter_initial(self):
         return {}
 
     def get_filtered_data(self):
+        filter_form_class = self.get_filter_form_class()
+        if not filter_form_class:
+            return {}
         querystring = self.request.GET.copy()
-        form_fields = self.get_filter_form_class()().fields.keys()
+        form_fields = filter_form_class().fields.keys()
         return {k: v for k, v in querystring.items() if k in form_fields}
 
     def get_queryset(self):
@@ -159,8 +161,11 @@ class CRMListView(CRMBaseView, ListView):
             queryset = queryset.order_by(self.ordering)
 
         filter_form_class = self.get_filter_form_class()
-        filtered_data = self.get_filtered_data()
 
+        if not filter_form_class:
+            return queryset
+
+        filtered_data = self.get_filtered_data()
         self.filter_form = filter_form_class(
             data=filtered_data,
             initial=self.get_filter_initial()
@@ -181,13 +186,22 @@ class CRMListView(CRMBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["filter_form"] = self.filter_form or self.get_filter_form_class()(initial=self.get_filter_initial())
+
+        filter_form_class = self.get_filter_form_class()
+        if filter_form_class:
+            context["filter_form"] = (
+                self.filter_form or
+                filter_form_class(initial=self.get_filter_initial())
+            )
+        else:
+            context["filter_form"] = None
+
         context.setdefault("js_files", [])
         context["js_files"] += ["js/filter.js"]
 
         if self.create_form_class:
             context["create_form"] = self.create_form_class()
-        
+
         return context
 
 class CRMDetailView(CRMBaseView, DetailView):
@@ -537,7 +551,7 @@ class VisitListView(CRMTableView):
     model = Visit
     table_class = VisitTable
     show_add_button = False
-    filter_form = None
+    should_use_filter_form_class = False
 
 class VisitUpdateView(UpdateView):
     form_class = VisitForm
@@ -1406,69 +1420,67 @@ class MarketingAssignment(CRMBaseView, TemplateView):
 
 class MarketingAnalytics(CRMBaseView, TemplateView):
     template_name = 'crm/marketing_analytics.html'
+    filter_form_class = MarketingAnalyticsFilterForm
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
-        initial_tracking_date = datetime(2025, 10, 1)
+        form = self.filter_form_class(self.request.GET or None)
+        if form.is_valid():
+            date_from = timezone.make_aware(datetime.combine(form.cleaned_data["date_from"], datetime.min.time()))
+            date_to = timezone.make_aware(datetime.combine(form.cleaned_data["date_to"], datetime.max.time()))
+        else:
+            date_from = timezone.make_aware(datetime(2025, 10, 1))
+            date_to = timezone.make_aware(datetime.now())
 
-        # Spend
-        ad_spend = AdSpend.objects.filter(date__gte=initial_tracking_date)
+        ad_spend = AdSpend.objects.filter(date__range=(date_from, date_to))
         google_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.GOOGLE.value)
         facebook_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.FACEBOOK.value)
 
         google_ad_spend = google_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
         facebook_ad_spend = facebook_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
 
-        leads = Lead.objects.filter(created_at__gte=initial_tracking_date)
+        leads = Lead.objects.filter(created_at__range=(date_from, date_to))
 
-        # Google leads filter
         google_leads = leads.filter(
             Q(lead_marketing__metadata__key='gclid') |
-            Q(lead_marketing__metadata__key='gbraid') |
             Q(lead_marketing__metadata__key='_gcl_aw')
         ).distinct()
 
-        # Facebook leads filter
         facebook_leads = leads.filter(
             Q(lead_marketing__metadata__key='_fbc') |
             Q(lead_marketing__metadata__key='fbclid')
         ).distinct()
 
-        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
         google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
+        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
 
-        # Leads Count
         google_leads_count = google_leads.count()
         facebook_leads_count = facebook_leads.count()
 
-        # Google Events
-        google_events = Event.objects.filter(lead__in=google_leads)
-        google_event_count = google_leads_with_events.count()
-        google_revenue = google_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
-        google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
+        google_events = Event.objects.filter(lead__in=google_leads, date_created__range=(date_from, date_to))
+        facebook_events = Event.objects.filter(lead__in=facebook_leads, date_created__range=(date_from, date_to))
 
-        # Facebook Events
-        facebook_events = Event.objects.filter(lead__in=facebook_leads)
+        google_event_count = google_leads_with_events.count()
         facebook_event_count = facebook_leads_with_events.count()
+
+        google_revenue = google_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
         facebook_revenue = facebook_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
+
+        google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
         facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0
 
-        # Closing %
         google_closing_percent = (google_event_count / google_leads_count) * 100 if google_leads_count > 0 else 0
         facebook_closing_percent = (facebook_event_count / facebook_leads_count) * 100 if facebook_leads_count > 0 else 0
 
-        # ROAS (Return on Ad Spend) for Google and Facebook
         google_roas = google_revenue / google_ad_spend if google_ad_spend > 0 else 0
         facebook_roas = facebook_revenue / facebook_ad_spend if facebook_ad_spend > 0 else 0
 
-        # CPL (Cost per Lead) for Google and Facebook
         google_cpl = google_ad_spend / google_leads_count if google_leads_count > 0 else 0
         facebook_cpl = facebook_ad_spend / facebook_leads_count if facebook_leads_count > 0 else 0
 
-        # CPA (Cost per Acquisition) for Google and Facebook
-        google_cpa = google_ad_spend / google_leads_with_events.count() if google_leads_with_events.count() > 0 else 0
-        facebook_cpa = facebook_ad_spend / facebook_leads_with_events.count() if facebook_leads_with_events.count() > 0 else 0
+        google_cpa = google_ad_spend / google_leads_with_events.count() if google_leads_with_events.exists() else 0
+        facebook_cpa = facebook_ad_spend / facebook_leads_with_events.count() if facebook_leads_with_events.exists() else 0
 
         ctx.update({
             'google_count': google_leads_count,
@@ -1491,6 +1503,8 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
             'google_ad_spend': google_ad_spend,
             'facebook_ad_spend': facebook_ad_spend,
+
+            'filter_form': form,
         })
 
         return ctx

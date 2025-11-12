@@ -1,7 +1,8 @@
+from datetime import datetime
 from django import forms
 
 from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
-from core.forms import BaseModelForm, DataAttributeModelSelect
+from core.forms import BaseModelForm, DataAttributeModelSelect, StyledFilterForm
 from core.models import LeadMarketing, Cocktail, Event
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
 from core.widgets import BoxedCheckboxSelectMultiple, ContainedCheckboxSelectMultiple
@@ -553,3 +554,32 @@ class EventClientConfirmationForm(forms.Form):
         queryset=Event.objects.all(),
         widget=forms.HiddenInput()
     )
+
+class MarketingAnalyticsFilterForm(StyledFilterForm):
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label="From"
+    )
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label="To"
+    )
+
+    MIN_DATE = datetime(2025, 10, 1).date()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date_from = cleaned_data.get("date_from") or self.MIN_DATE
+        date_to = cleaned_data.get("date_to") or datetime.today().date()
+
+        if date_from < self.MIN_DATE:
+            date_from = self.MIN_DATE
+
+        if date_to < date_from:
+            raise forms.ValidationError("End date must be after start date.")
+
+        cleaned_data["date_from"] = date_from
+        cleaned_data["date_to"] = date_to
+        return cleaned_data
