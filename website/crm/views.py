@@ -1425,7 +1425,6 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         # Google leads filter
         google_leads = leads.filter(
             Q(lead_marketing__metadata__key='gclid') |
-            Q(lead_marketing__metadata__key='gbraid') |
             Q(lead_marketing__metadata__key='_gcl_aw')
         ).distinct()
 

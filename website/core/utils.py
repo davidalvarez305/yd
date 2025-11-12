@@ -34,7 +34,6 @@ from core.logger import logger
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
-from core.models import Lead, LeadMarketing
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -400,6 +399,9 @@ def load_google_credentials():
     return creds
 
 def handle_create_lead_from_inbound_communication(ctx: dict):
+    from core.models import Lead, LeadMarketing
+    from core.models import LeadStatusEnum
+
     full_name = ctx.get('full_name')
     phone_number = ctx.get('phone_number')
 
@@ -414,5 +416,7 @@ def handle_create_lead_from_inbound_communication(ctx: dict):
     )
 
     LeadMarketing.objects.create(lead=lead)
+
+    lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
     return lead
