@@ -1,8 +1,8 @@
-from datetime import timedelta, timezone
+from datetime import timedelta
+from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
 from core.conversions import conversion_service
 from core.models import Lead
-from website import settings
 
 class Command(BaseCommand):
     help = "Send a conversion event via the Google Ads conversion service using either a JSON string (--event) or file (--event_file)."
@@ -32,21 +32,21 @@ class Command(BaseCommand):
                     'external_id': str(lead.lead_marketing.external_id)
                 }
 
-            for metadata in lead.lead_marketing.metadata.all():
-                if metadata.key == '_fbc':
-                    data['fbc'] = metadata.value
-                elif metadata.key == '_fbp':
-                    data['fbp'] = metadata.value
-                elif metadata.key == '_ga':
-                    data['ga'] = metadata.value
-                elif metadata.key == 'gclid':
-                    data['gclid'] = metadata.value
-                elif metadata.key == 'gbraid':
-                    data['gbraid'] = metadata.value
-                elif metadata.key == 'wbraid':
-                    data['wbraid'] = metadata.value
-                else:
-                    data[metadata.key] = metadata.value
+                for metadata in lead.lead_marketing.metadata.all():
+                    if metadata.key == '_fbc':
+                        data['fbc'] = metadata.value
+                    elif metadata.key == '_fbp':
+                        data['fbp'] = metadata.value
+                    elif metadata.key == '_ga':
+                        data['ga'] = metadata.value
+                    elif metadata.key == 'gclid':
+                        data['gclid'] = metadata.value
+                    elif metadata.key == 'gbraid':
+                        data['gbraid'] = metadata.value
+                    elif metadata.key == 'wbraid':
+                        data['wbraid'] = metadata.value
+                    else:
+                        data[metadata.key] = metadata.value
 
                 if dry_run:
                     print(f"Dry-run: For lead: {lead.full_name}")
@@ -56,4 +56,4 @@ class Command(BaseCommand):
                     except BaseException as e:
                         continue
         except Exception as e:
-            raise CommandError(f"❌ Failed to send Google Ads conversion: {e}")
+            raise CommandError(f"❌ Failed to send conversion: {e}")
