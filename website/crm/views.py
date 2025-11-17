@@ -462,6 +462,7 @@ class MessageListView(CRMTableView):
     model = Message
     table_class = MessageTable
     show_add_button = False
+    ordering = '-date_created'
 
 class MessageDetailView(CRMDetailTemplateView):
     model = Message
