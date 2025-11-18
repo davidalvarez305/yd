@@ -23,3 +23,5 @@ admin.site.register(FacebookAccessToken)
 
 admin.site.register(GoogleReview)
 admin.site.register(GoogleAccessToken)
+
+admin.site.register(TrackingPhoneCall)
