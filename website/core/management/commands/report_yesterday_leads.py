@@ -49,11 +49,29 @@ class Command(BaseCommand):
                         data[metadata.key] = metadata.value
 
                 if dry_run:
-                    print(f"Dry-run: For lead: {lead.full_name}")
+                    print(f"REPORTED: {lead.full_name}")
+                    for event in lead.events.all():
+                        print(f"REPORTED: {lead.full_name} EVENT {event.pk} @ {event.amount}")
                 else:
                     try:
                         conversion_service.send_conversion(data=data)
+
+                        print(f"REPORTED: {lead.full_name}")
+
+                        for event in lead.events.all():
+                            data.update({
+                                'event_id': event.pk,
+                                'value': event.amount,
+                                'event_time': event.date_created.timestamp()
+                            })
+
+                            try:
+                                conversion_service.send_conversion(data=data)
+
+                                print(f"REPORTED: {lead.full_name} EVENT {event.pk} @ {event.amount}")
+                            except BaseException as e:
+                                print(f'Error sending event conv: EVENT ID: {event.pk}')
                     except BaseException as e:
-                        continue
+                        print(f'Error sending lead conv: LEAD ID: {lead.pk}')
         except Exception as e:
             raise CommandError(f"❌ Failed to send conversion: {e}")
