@@ -31,6 +31,19 @@ class ServiceTable(Table):
         delete_url = 'service_delete'
 
 class EventTable(Table):
+    paid_off = TableField(
+        label='Paid Off',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    '' if row.quote and row.quote.is_paid_off()
+                    else '<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-red-900 text-white text-xs font-bold">X</span>'
+                ),
+                'is_html': True,
+            }
+        )
+    )
+
     quote = TableField(
         label='Quote',
         cell_widget=TableCellWidget(

@@ -1783,6 +1783,11 @@ select{
   background-color: rgb(255 255 255 / 0.95);
 }
 
+.bg-red-900{
+  --tw-bg-opacity: 1;
+  background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
+}
+
 .bg-gradient-to-b{
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
@@ -4010,6 +4015,11 @@ select{
 
 .dark\:bg-red-900\/50:is(.dark *){
   background-color: rgb(127 29 29 / 0.5);
+}
+
+.dark\:bg-red-900:is(.dark *){
+  --tw-bg-opacity: 1;
+  background-color: rgb(127 29 29 / var(--tw-bg-opacity, 1));
 }
 
 .dark\:from-gray-800:is(.dark *){
