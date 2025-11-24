@@ -1,7 +1,7 @@
 from datetime import datetime
 from django import forms
 
-from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
+from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, EventStatus, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect, StyledFilterForm
 from core.models import LeadMarketing, Cocktail, Event
 from crm.utils import calculate_quote_service_values, create_extension_invoice, update_quote_invoices
@@ -583,3 +583,22 @@ class MarketingAnalyticsFilterForm(StyledFilterForm):
         cleaned_data["date_from"] = date_from
         cleaned_data["date_to"] = date_to
         return cleaned_data
+
+class EventFilterForm(StyledFilterForm):
+    lead = forms.ModelChoiceField(
+        queryset=Lead.objects.all(),
+        required=False,
+        label="Lead"
+    )
+
+    date_from = forms.DateTimeField(
+        required=False,
+        label="Date From",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    date_to = forms.DateTimeField(
+        required=False,
+        label="Date To",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
