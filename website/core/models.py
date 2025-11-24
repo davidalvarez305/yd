@@ -175,6 +175,14 @@ class Lead(models.Model):
     def __str__(self):
         return self.full_name
     
+    def has_gclid(self):
+        return self.lead_marketing.metadata.filter(
+            Q(key='gclid') | Q(key='_gcl_aw')
+        ).exists()
+    
+    def has_fbc(self):
+        return self.lead_marketing.metadata.filter(key='_fbc').exists()
+    
     def formatted_number(self):
         return format_phone_number(self.phone_number)
     
