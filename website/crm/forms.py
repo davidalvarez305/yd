@@ -388,7 +388,7 @@ class QuoteSendForm(forms.Form):
 
 class QuoteServiceForm(BaseModelForm):
     service = forms.ModelChoiceField(
-        queryset=Service.objects.all(),
+        queryset=Service.objects.all().order_by('service'),
         required=False,
         label="Service",
         widget=DataAttributeModelSelect(attrs={
