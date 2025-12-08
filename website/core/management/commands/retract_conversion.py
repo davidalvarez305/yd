@@ -73,6 +73,6 @@ class Command(BaseCommand):
                 data[metadata.key] = metadata.value
 
         try:
-            conversion_service.send_conversion(data=data)
+            conversion_service.retract_conversion(data=data)
         except Exception as e:
             print(f'Error sending conv: {e}')

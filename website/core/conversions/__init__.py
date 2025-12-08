@@ -34,5 +34,14 @@ class ConversionServiceLoader:
             except Exception as e:
                 print(f'Error while sending conversion. {str(e)}')
                 continue
+    
+    def retract_conversion(self, data: dict):
+        for service in self.all_services():
+            try:
+                if hasattr(service, 'retract_conversion'):
+                    service.retract_conversion(data)
+            except Exception as e:
+                print(f'Error while retracting conversion. {str(e)}')
+                continue
 
 conversion_service = ConversionServiceLoader()
