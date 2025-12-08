@@ -17,7 +17,7 @@ from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCo
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import EventClientConfirmationForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, MarketingAnalyticsFilterForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
+from crm.forms import EventClientConfirmationForm, EventFilterForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, MarketingAnalyticsFilterForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, LandingPageTable, LeadMarketingMetadataTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -28,6 +28,7 @@ from marketing.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
 from marketing.enums import ConversionServiceType
+from crm.filters import EventFilter
 
 class CRMContextMixin:
     def get_context_data(self, **kwargs):
@@ -135,74 +136,45 @@ class CRMDeleteView(CRMBaseView, AlertMixin, DeleteView):
 class CRMListView(CRMBaseView, ListView):
     paginate_by = 10
     filter_form_class = None
+    filterset_class = None
     create_form_class = None
     context_object_name = 'object_list'
-    filter_form = None
     ordering = None
 
-    def get_filter_form_class(self):
-        return self.filter_form_class
-
-    def get_filter_initial(self):
-        return {}
-
-    def get_filtered_data(self):
-        filter_form_class = self.get_filter_form_class()
-        if not filter_form_class:
-            return {}
-        querystring = self.request.GET.copy()
-        form_fields = filter_form_class().fields.keys()
-        return {k: v for k, v in querystring.items() if k in form_fields}
+    def get_filterset_class(self):
+        return self.filterset_class
 
     def get_queryset(self):
-        queryset = self.model.objects.all()
+        qs = self.model.objects.all()
 
         if self.ordering:
-            queryset = queryset.order_by(self.ordering)
+            qs = qs.order_by(self.ordering)
 
-        filter_form_class = self.get_filter_form_class()
+        filterset_class = self.get_filterset_class()
+        if not filterset_class:
+            return qs
 
-        if not filter_form_class:
-            return queryset
+        self.filterset = filterset_class(self.request.GET, queryset=qs)
 
-        filtered_data = self.get_filtered_data()
-        self.filter_form = filter_form_class(
-            data=filtered_data,
-            initial=self.get_filter_initial()
-        )
-
-        if self.filter_form.is_valid():
-            filters = {}
-            for k, v in self.filter_form.cleaned_data.items():
-                if not v:
-                    continue
-                if isinstance(v, QuerySet):
-                    filters[f"{k}__in"] = v
-                else:
-                    filters[k] = v
-            queryset = queryset.filter(**filters)
-
-        return queryset
+        return self.filterset.qs
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
 
-        filter_form_class = self.get_filter_form_class()
-        if filter_form_class:
-            context["filter_form"] = (
-                self.filter_form or
-                filter_form_class(initial=self.get_filter_initial())
-            )
+        if self.filterset_class:
+            ctx["filterset"] = self.filterset
+            ctx["filter_form"] = self.filter_form_class(self.request.GET)
         else:
-            context["filter_form"] = None
+            ctx["filterset"] = None
+            ctx["filter_form"] = None
 
-        context.setdefault("js_files", [])
-        context["js_files"] += ["js/filter.js"]
+        ctx.setdefault("js_files", [])
+        ctx["js_files"] += ["js/filter.js"]
 
         if self.create_form_class:
-            context["create_form"] = self.create_form_class()
+            ctx["create_form"] = self.create_form_class()
 
-        return context
+        return ctx
 
 class CRMDetailView(CRMBaseView, DetailView):
     form_class = None
@@ -421,7 +393,9 @@ class UserDeleteView(CRMDeleteView):
 class EventListView(CRMTableView):
     model = Event
     table_class = EventTable
-    ordering = '-date_created'
+    ordering = 'quote__event_date'
+    filterset_class = EventFilter
+    filter_form_class = EventFilterForm
 
 class EventCreateView(CRMCreateTemplateView):
     model = Event

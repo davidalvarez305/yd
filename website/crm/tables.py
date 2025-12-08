@@ -31,6 +31,42 @@ class ServiceTable(Table):
         delete_url = 'service_delete'
 
 class EventTable(Table):
+    paid_off = TableField(
+        label='Paid Off',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    '' if row.quote and row.quote.is_paid_off()
+                    else '<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-red-900 text-white text-xs font-bold">X</span>'
+                ),
+                'is_html': True,
+            }
+        )
+    )
+
+    quote = TableField(
+        label='Quote',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: (
+                    f'<a href="{reverse("quote_detail", kwargs={ "pk": row.quote.pk })}" target="_blank"'
+                    f'class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm font-semibold leading-5 text-gray-800 hover:border-gray-300 hover:text-gray-900 hover:shadow-sm focus:ring focus:ring-gray-300/25 active:border-gray-200 active:shadow-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-200 dark:focus:ring-gray-600/40 dark:active:border-gray-700"'
+                    f'>Quote</a>'
+                ),
+                'is_html': True,
+            }
+        )
+    )
+
+    event_date = TableField(
+        label='Date',
+        cell_widget=TableCellWidget(
+            data={
+                'value': lambda row: localtime(make_aware(datetime.combine(row.quote.event_date, time.min), get_current_timezone())).strftime("%B %d, %Y")
+            }
+        )
+    )
+
     event_time = TableField(
         name='event_time',
         label='Event Time',
@@ -71,7 +107,7 @@ class EventTable(Table):
         exclude = [
             'event_id',
             'external_id',
-            'special_instrucions',
+            'special_instructions',
             'event_status',
             'quote',
             'date_created',

@@ -253,13 +253,17 @@
         serviceAgreementModal.setOnClose(() => initiateCheckout(invoiceId));
     }
 
-    /* initialPaymentButton.forEach(btn => {
-        btn.addEventListener('click', () => handleInitiatePaymentFlow(btn.dataset.invoiceId));
-    }); */
+    const isDebug = "{{ debug }}" === "True";
 
-    initialPaymentButton.forEach(btn => {
-        btn.addEventListener('click', () => initiateCheckout(btn.dataset.invoiceId));
-    });
+    if (isDebug) {
+        initialPaymentButton.forEach(btn => {
+            btn.addEventListener('click', () => handleInitiatePaymentFlow(btn.dataset.invoiceId));
+        });
+    } else {
+        initialPaymentButton.forEach(btn => {
+            btn.addEventListener('click', () => initiateCheckout(btn.dataset.invoiceId));
+        });
+    }
 
     function initiateCheckout(invoiceId) {
         const button = document.querySelector(`.initialPaymentButton[data-invoice-id="${invoiceId}"]`);
