@@ -21,13 +21,18 @@ class GoogleAdsConversionService(ConversionService):
     def _construct_payload(self, data: dict) -> dict:
         timestamp = data.get("event_time", datetime.now().timestamp())
         event_time = datetime.fromtimestamp(timestamp, tz=timezone.get_current_timezone())
+        now = datetime.now(tz=timezone.get_current_timezone())
+
+        conversion_date_time = event_time.strftime("%Y-%m-%d %H:%M:%S%z")[:-2] + ":" + event_time.strftime("%z")[-2:]
+        adjustment_date_time = now.strftime("%Y-%m-%d %H:%M:%S%z")[:-2] + ":" + now.strftime("%z")[-2:]
 
         payload = {
             "customer_id": self.customer_id,
             "conversion_action_id": self.conversion_actions.get(data.get("event_name")),
             "gclid": data.get("gclid"),
             "conversion_value": data.get("value"),
-            "conversion_date_time": event_time.strftime("%Y-%m-%d %H:%M:%S%z")[:-2] + ":" + event_time.strftime("%z")[-2:],
+            "conversion_date_time": conversion_date_time,
+            "adjustment_date_time": adjustment_date_time,
         }
 
         if data.get("event_id"):
@@ -65,4 +70,45 @@ class GoogleAdsConversionService(ConversionService):
             return response
         except Exception as e:
             logger.exception(f"Error during Google Ads conversion upload: {e}", exc_info=True)
+            return None
+    
+    def retract_conversion(self, data: dict):
+        if not self._is_valid(data):
+            return None
+
+        payload = self._construct_payload(data)
+        try:
+            conversion_adjustment_type_enum = self.google_ads_client.enums.ConversionAdjustmentTypeEnum
+            conversion_adjustment_type = conversion_adjustment_type_enum.RETRACTION.value
+
+            conversion_adjustment = self.google_ads_client.get_type("ConversionAdjustment")
+            conversion_action_service = self.google_ads_client.get_service("ConversionActionService")
+            conversion_adjustment.conversion_action = conversion_action_service.conversion_action_path(
+                payload["customer_id"], payload["conversion_action_id"]
+            )
+            conversion_adjustment.adjustment_type = conversion_adjustment_type
+            conversion_adjustment.adjustment_date_time = payload["adjustment_date_time"]
+            conversion_adjustment.order_id = payload["order_id"]
+            conversion_adjustment.gclid_date_time_pair.gclid = payload["gclid"]
+            conversion_adjustment.gclid_date_time_pair.conversion_date_time = payload["conversion_date_time"]
+
+            service = self.google_ads_client.get_service("ConversionAdjustmentUploadService")
+            request = self.google_ads_client.get_type("UploadConversionAdjustmentsRequest")
+            request.customer_id = payload["customer_id"]
+            request.conversion_adjustments.append(conversion_adjustment)
+            request.partial_failure = True
+
+            response = service.upload_conversion_adjustments(request=request)
+
+            if response.partial_failure_error:
+                for error in response.partial_failure_error.details:
+                    print(f"Partial failure occurred: {error.message}")
+
+            for result in response.results:
+                print(f"Retracted conversion with order ID: {result.order_id} for conversion action: {result.conversion_action}")
+
+            return response
+
+        except Exception as e:
+            print(f"Error retracting conversion: {e}")
             return None
