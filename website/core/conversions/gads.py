@@ -99,12 +99,6 @@ class GoogleAdsConversionService(ConversionService):
             conversion_adjustment.adjustment_date_time = payload["adjustment_date_time"]
             conversion_adjustment.order_id = str(payload["order_id"])
 
-            if "gclid" not in payload or "conversion_date_time" not in payload:
-                return None
-
-            conversion_adjustment.gclid_date_time_pair.gclid = payload["gclid"]
-            conversion_adjustment.gclid_date_time_pair.conversion_date_time = payload["conversion_date_time"]
-
             service = self.client.get_service("ConversionAdjustmentUploadService")
             request = self.client.get_type("UploadConversionAdjustmentsRequest")
             request.customer_id = payload["customer_id"]
