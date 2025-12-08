@@ -115,7 +115,7 @@ class GoogleAdsConversionService(ConversionService):
 
             if response.partial_failure_error:
                 for error in response.partial_failure_error.details:
-                    logger.error(f"Partial failure occurred: {error.message}")
+                    logger.error(f"Partial failure occurred: {error}")
             
             for result in response.results:
                 logger.debug(f"Retracted conversion with order ID: {result.order_id} for conversion action: {result.conversion_action}")
