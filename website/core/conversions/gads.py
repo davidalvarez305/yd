@@ -78,11 +78,11 @@ class GoogleAdsConversionService(ConversionService):
 
         payload = self._construct_payload(data)
         try:
-            conversion_adjustment_type_enum = self.google_ads_client.enums.ConversionAdjustmentTypeEnum
+            conversion_adjustment_type_enum = self.client.enums.ConversionAdjustmentTypeEnum
             conversion_adjustment_type = conversion_adjustment_type_enum.RETRACTION.value
 
-            conversion_adjustment = self.google_ads_client.get_type("ConversionAdjustment")
-            conversion_action_service = self.google_ads_client.get_service("ConversionActionService")
+            conversion_adjustment = self.client.get_type("ConversionAdjustment")
+            conversion_action_service = self.client.get_service("ConversionActionService")
             conversion_adjustment.conversion_action = conversion_action_service.conversion_action_path(
                 payload["customer_id"], payload["conversion_action_id"]
             )
@@ -92,8 +92,8 @@ class GoogleAdsConversionService(ConversionService):
             conversion_adjustment.gclid_date_time_pair.gclid = payload["gclid"]
             conversion_adjustment.gclid_date_time_pair.conversion_date_time = payload["conversion_date_time"]
 
-            service = self.google_ads_client.get_service("ConversionAdjustmentUploadService")
-            request = self.google_ads_client.get_type("UploadConversionAdjustmentsRequest")
+            service = self.client.get_service("ConversionAdjustmentUploadService")
+            request = self.client.get_type("UploadConversionAdjustmentsRequest")
             request.customer_id = payload["customer_id"]
             request.conversion_adjustments.append(conversion_adjustment)
             request.partial_failure = True
