@@ -1419,7 +1419,8 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
         google_leads = leads.filter(
             Q(lead_marketing__metadata__key='gclid') |
-            Q(lead_marketing__metadata__key='_gcl_aw')
+            Q(lead_marketing__metadata__key='_gcl_aw') |
+            Q(lead_marketing__metadata__key='gbraid')
         ).distinct()
 
         facebook_leads = leads.filter(
