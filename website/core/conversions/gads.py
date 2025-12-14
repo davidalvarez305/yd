@@ -30,6 +30,8 @@ class GoogleAdsConversionService(ConversionService):
             "customer_id": self.customer_id,
             "conversion_action_id": self.conversion_actions.get(data.get("event_name")),
             "gclid": data.get("gclid"),
+            "gbraid": data.get("gbraid"),
+            "wbraid": data.get("wbraid"),
             "conversion_value": data.get("value"),
             "conversion_date_time": conversion_date_time,
             "adjustment_date_time": adjustment_date_time,
@@ -53,7 +55,12 @@ class GoogleAdsConversionService(ConversionService):
             click_conversion.conversion_action = action_service.conversion_action_path(
                 payload["customer_id"], payload["conversion_action_id"]
             )
-            click_conversion.gclid = payload["gclid"]
+            if payload.get("gclid"):
+                click_conversion.gclid = payload["gclid"]
+            elif payload.get("gbraid"):
+                click_conversion.gbraid = payload["gbraid"]
+            elif payload.get("wbraid"):
+                click_conversion.wbraid = payload["wbraid"]
             click_conversion.conversion_value = float(payload["conversion_value"])
             click_conversion.conversion_date_time = payload["conversion_date_time"]
             click_conversion.currency_code = settings.DEFAULT_CURRENCY
