@@ -16,7 +16,12 @@ class GoogleAdsConversionService(ConversionService):
         return "google_ads"
 
     def _is_valid(self, data: dict) -> bool:
-        return bool(data.get("gclid")) and bool(self.conversion_actions.get(data.get("event_name")))
+        has_click_id = (
+            bool(data.get("gclid"))
+            or bool(data.get("gbraid"))
+            or bool(data.get("wbraid"))
+        )
+        return  has_click_id and bool(self.conversion_actions.get(data.get("event_name")))
 
     def _construct_payload(self, data: dict) -> dict:
         timestamp = data.get("event_time", datetime.now().timestamp())
