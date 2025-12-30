@@ -4,6 +4,8 @@ import mimetypes
 import os
 import random
 import re
+import secrets
+import string
 import subprocess
 from urllib.parse import parse_qs, urlparse
 import uuid
@@ -34,6 +36,9 @@ from core.logger import logger
 
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
+
+ALPHANUMERIC_CHARS = string.ascii_uppercase + string.digits
+ORDER_CODE_LENGTH = 11
 
 def format_phone_number(phone_number):
     if phone_number is None:
@@ -420,3 +425,13 @@ def handle_create_lead_from_inbound_communication(ctx: dict):
     lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 
     return lead
+
+def generate_order_code():
+    """
+    Generates an 8-character alphanumeric order code.
+    Example: A9F3K2Q8
+    """
+    return ''.join(
+        secrets.choice(ALPHANUMERIC_CHARS)
+        for _ in range(ORDER_CODE_LENGTH)
+    )

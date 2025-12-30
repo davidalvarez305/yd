@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from enum import Enum
 from typing import Union
 import uuid
-from django.db import models
+from django.db import IntegrityError, models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
@@ -12,7 +12,7 @@ from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.enums import LeadActivityEnum, LeadTaskEnum
-from .utils import format_phone_number, media_upload_path, save_image_path
+from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -478,7 +478,7 @@ class QuoteService(models.Model):
     class Meta:
         db_table = 'quote_service'
 
-class QuoteServiceActionChoices(models.TextChoices):
+class AddedOrRemoveActionChoices(models.TextChoices):
     ADDED = 'Added', 'Added'
     REMOVED = 'Removed', 'Removed'
 
@@ -488,7 +488,7 @@ class QuoteServiceChangeHistory(models.Model):
     user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
     quote = models.ForeignKey(Quote, db_column='quote_id', related_name='changes', on_delete=models.RESTRICT)
     service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
-    action = models.CharField(max_length=10, choices=QuoteServiceActionChoices.choices)
+    action = models.CharField(max_length=10, choices=AddedOrRemoveActionChoices.choices)
     units = models.FloatField()
     price_per_unit = models.FloatField()
 
@@ -1479,3 +1479,118 @@ class SessionMapping(models.Model):
 
     class Meta:
         db_table = 'session_mapping'
+
+class ItemCategory(models.Model):
+    item_category_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'item_category'
+
+class Item(models.Model):
+    item_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    item_category = models.ForeignKey(ItemCategory, db_column='item_category_id', related_name='items', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'item'
+
+class Order(models.Model):
+    order_id = models.BigAutoField(primary_key=True)
+    lead = models.ForeignKey(Lead, db_column='lead_id', related_name='orders', on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True)
+    code = models.CharField(max_length=8, unique=True, db_index=True)
+    user = models.ForeignKey(User, db_column='user_id', related_name='orders', on_delete=models.RESTRICT, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            for _ in range(5):
+                self.code = generate_order_code()
+                try:
+                    super().save(*args, **kwargs)
+                    return
+                except IntegrityError:
+                    self.code = None
+            raise RuntimeError("Could not generate a unique order code")
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        db_table = 'order'
+
+class OrderItem(models.Model):
+    order_item_id = models.BigAutoField(primary_key=True)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='items', on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, db_column='item_id', on_delete=models.CASCADE)
+    units = models.PositiveIntegerField()
+    price_per_unit = models.FloatField()
+
+    def __str__(self):
+        return self.item
+
+    class Meta:
+        db_table = 'order_item'
+
+class OrderService(models.Model):
+    order_service_id = models.AutoField(primary_key=True)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
+    order = models.ForeignKey(Order, related_name='services', db_column='order_id', on_delete=models.CASCADE)
+    units = models.FloatField()
+    price_per_unit = models.FloatField()
+
+    def __str__(self):
+        return self.service.service
+    
+    @property
+    def total(self):
+        return self.units * self.price_per_unit
+    
+    class Meta:
+        db_table = 'order_service'
+
+class OrderServiceChangeHistory(models.Model):
+    order_service_change_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='changes', on_delete=models.RESTRICT)
+    service = models.ForeignKey(Service, db_column='service_id', on_delete=models.RESTRICT)
+    action = models.CharField(max_length=10, choices=AddedOrRemoveActionChoices.choices)
+    units = models.FloatField()
+    price_per_unit = models.FloatField()
+
+    def __str__(self):
+        local_dt = timezone.localtime(self.date_created)
+        formatted_date = local_dt.strftime("%b %d, %#I:%M %p")
+        return f"{self.user.first_name} {self.action} {self.units} units @ ${self.price_per_unit} of {self.service.service} on {formatted_date}"
+
+    class Meta:
+        db_table = 'order_service_change_history'
+
+class OrderItemChangeHistory(models.Model):
+    order_item_change_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='changes', on_delete=models.RESTRICT)
+    item = models.ForeignKey(Item, db_column='item_id', on_delete=models.RESTRICT)
+    action = models.CharField(max_length=10, choices=AddedOrRemoveActionChoices.choices)
+    units = models.PositiveIntegerField()
+    price_per_unit = models.FloatField()
+
+    def __str__(self):
+        local_dt = timezone.localtime(self.date_created)
+        formatted_date = local_dt.strftime("%b %d, %#I:%M %p")
+        return f"{self.user.first_name} {self.action} {self.units} units @ ${self.price_per_unit} of {self.item} on {formatted_date}"
+
+    class Meta:
+        db_table = 'order_item_change_history'
+
+class OrderStatus
+class OrderStatusChangeHistory
