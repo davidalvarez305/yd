@@ -1689,3 +1689,53 @@ class OrderLogistics(models.Model):
     class Meta:
         db_table = 'order_logistics'
         unique_together = ('order', 'logistics_type')
+
+class OrderLogisticsImage(models.Model):
+    order_logistics_image_id = models.AutoField(primary_key=True)
+    order_logistics = models.ForeignKey(OrderLogistics, related_name="images", on_delete=models.CASCADE)
+    content_type = models.CharField(max_length=100)
+    file = models.FileField(upload_to=media_upload_path)
+
+    class Meta:
+        db_table = "order_logistics_image"
+
+    def __str__(self):
+        return f"{self.content_type} - {self.file.name}"
+
+    def is_image(self):
+        return self.content_type.startswith("image/")
+
+    def is_video(self):
+        return self.content_type.startswith("video/")
+
+    @property
+    def media_type(self):
+        if self.content_type.startswith("image/"):
+            return "image"
+        elif self.content_type.startswith("video/"):
+            return "video"
+        return "other"
+
+class InventoryStateChoices(models.TextChoices):
+    WAREHOUSE = 'Warehouse', 'Warehouse'
+    IN_TRUCK = 'In Truck', 'In Truck'
+    ON_SITE = 'On Site', 'On Site'
+
+class InventoryEvent(models.Model):
+    inventory_event_id = models.BigAutoField(primary_key=True)
+    item = models.ForeignKey(Item, db_column='item_id', related_name='states', on_delete=models.RESTRICT)
+    order = models.ForeignKey(Order, db_column='order_id', on_delete=models.CASCADE)
+    state = models.CharField(max_length=20, choices=InventoryStateChoices)
+    quantity = models.PositiveIntegerField()
+    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'inventory_event'
+        indexes = [
+            models.Index(fields=['item', 'date_effective']),
+            models.Index(fields=['to_state']),
+        ]
+
+    def __str__(self):
+        return f"{self.item} {self.quantity}  {self.state}"
