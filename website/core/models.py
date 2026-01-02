@@ -1592,5 +1592,100 @@ class OrderItemChangeHistory(models.Model):
     class Meta:
         db_table = 'order_item_change_history'
 
-class OrderStatus
-class OrderStatusChangeHistory
+class OrderStatusChoices(models.TextChoices):
+    AWAITING_PREPARATION = 'Awaiting Preparation', 'Awaiting Preparation'
+    READY_FOR_DISPATCH = 'Ready for Dispatch', 'Ready for Dispatch'
+    DISPATCHED = 'Dispatched', 'Dispatched'
+    DELIVERED = 'Delivered', 'Delivered'
+    PENDING_PICK_UP = 'Pending Pick Up', 'Pending Pick Up'
+    PICKED_UP = 'Picked Up', 'Picked Up'
+    READY_FOR_STORAGE = 'Ready for Storage', 'Ready for Storage'
+    FINALIZED = 'Finalized', 'Finalized'
+
+class OrderStatus(models.Model):
+    order_status_id = models.AutoField(primary_key=True)
+    status = models.CharField(
+        max_length=60,
+        choices=OrderStatusChoices,
+        unique=True,
+    )
+
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        db_table = 'order_status'
+
+class OrderStatusChangeHistory(models.Model):
+    order_status_change_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='changes', on_delete=models.RESTRICT)
+    status = models.ForeignKey(OrderStatus, db_column='order_status_id', on_delete=models.RESTRICT)
+    user = models.ForeignKey(User, db_column='user_id', null=True, on_delete=models.RESTRICT)
+    lead = models.ForeignKey(Lead, db_column='lead_id', null=True, on_delete=models.SET_NULL)
+
+    @property
+    def previous_status(self):
+        previous_change = (
+            OrderStatusChangeHistory.objects
+            .filter(
+                order=self.order,
+                date_created__lt=self.date_created,
+            )
+            .order_by('-date_created')
+            .select_related('status')
+            .first()
+        )
+
+        return previous_change.status if previous_change else None
+
+    def __str__(self):
+        local_dt = timezone.localtime(self.date_created)
+        formatted_date = local_dt.strftime("%b %d, %#I:%M %p")
+
+        prev = self.previous_status
+        prev_label = prev.name if prev else "None"
+
+        user_name = self.user.first_name if self.user else "System"
+
+        return (
+            f"{user_name} changed status from "
+            f"{prev_label} to {self.status.name} on {formatted_date}"
+        )
+
+    class Meta:
+        db_table = 'order_status_change_history'
+        ordering = ['date_created']
+
+class OrderLogisticsTypeChoices(models.TextChoices):
+    DELIVERY = 'Delivery', 'Delivery'
+    PICKUP = 'Pickup', 'Pickup'
+
+class LogisticsTimeWindowTypeChoices(models.TextChoices):
+    EXACT = 'Exact', 'Exact Time'
+    FLEX = 'Flex', 'Flexible (4-hour window)'
+
+class OrderLogistics(models.Model):
+    order_logistics_id = models.BigAutoField(primary_key=True)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='logistics', on_delete=models.CASCADE)
+    driver = models.ForeignKey(User, db_column='user_id', related_name='assignments', on_delete=models.RESTRICT)
+    logistics_type = models.CharField(max_length=10, choices=OrderLogisticsTypeChoices)
+    contact_name = models.CharField(max_length=255)
+    contact_phone = models.CharField(max_length=30)
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=100)
+    state_code = models.CharField(max_length=2, default='FL')
+    postal_code = models.CharField(max_length=20)
+    time_window_type = models.CharField(max_length=10, choices=LogisticsTimeWindowTypeChoices)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.logistics_type} for Order {self.order.code}"
+
+    class Meta:
+        db_table = 'order_logistics'
+        unique_together = ('order', 'logistics_type')
