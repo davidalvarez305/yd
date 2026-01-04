@@ -2,13 +2,13 @@ from datetime import datetime, timedelta, date
 from enum import Enum
 from typing import Union
 import uuid
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import Q, Sum
-
+from django.db.models import Q, Sum, Case, When, IntegerField, F, Window, Min
+from django.db.models.functions import Coalesce
 from marketing.enums import ConversionServiceType
 from website import settings
 from core.enums import LeadActivityEnum, LeadTaskEnum
@@ -1490,6 +1490,27 @@ class ItemCategory(models.Model):
     class Meta:
         db_table = 'item_category'
 
+class ItemStateChoices(models.TextChoices):
+    RESERVED = 'Reserved', 'Reserved'
+    RETURNED = 'Returned', 'Returned'
+    PURCHASED = 'Purchased', 'Purchased'
+    SOLD = 'Sold', 'Sold'
+    DECOMMISSIONED = 'Decommissioned', 'Decommissioned'
+
+AVAILABILITY_DELTA = Case(
+    When(state__state__in=[
+        ItemStateChoices.PURCHASED,
+        ItemStateChoices.RETURNED,
+    ], then=F('quantity')),
+    When(state__state__in=[
+        ItemStateChoices.RESERVED,
+        ItemStateChoices.SOLD,
+        ItemStateChoices.DECOMMISSIONED,
+    ], then=-F('quantity')),
+    default=0,
+    output_field=IntegerField(),
+)
+
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True, db_index=True)
@@ -1498,8 +1519,91 @@ class Item(models.Model):
     def __str__(self):
         return self.name
 
+    def available_units_on_date(self, on_date):
+        result = self.state_changes.filter(
+            target_date__lte=on_date,
+        ).aggregate(
+            total=Sum(AVAILABILITY_DELTA)
+        )
+
+        return result['total'] or 0
+
+    def available_units_for_range(self, start_date, end_date):
+        qs = (
+            self.state_changes
+            .filter(target_date__lt=end_date)
+            .annotate(delta=AVAILABILITY_DELTA)
+            .values('target_date')
+            .annotate(day_delta=Sum('delta'))
+            .order_by('target_date')
+            .annotate(
+                running_total=Window(
+                    expression=Sum('day_delta'),
+                    order_by=F('target_date').asc(),
+                )
+            )
+            .filter(target_date__gte=start_date)
+            .aggregate(
+                min_available=Coalesce(Min('running_total'), 0)
+            )
+        )
+
+        return qs['min_available']
+    
+    @transaction.atomic
+    def reserve_item(self, quantity, start_date, end_date, order):
+        (
+            ItemStateChangeHistory.objects
+            .select_for_update()
+            .filter(
+                item=self,
+                target_date__lt=end_date,
+            )
+        )
+
+        available = self.available_units_for_range(start_date, end_date)
+
+        if available < quantity:
+            raise ValidationError(
+                f"Only {available} units available for selected dates"
+            )
+
+        state = ItemState.objects.get(state=ItemStateChoices.RESERVED)
+
+        ItemStateChangeHistory.objects.create(
+            item=self,
+            order=order,
+            state=state,
+            quantity=quantity,
+            target_date=start_date,
+        )
+
     class Meta:
         db_table = 'item'
+
+class ItemState(models.Model):
+    item_state_id = models.AutoField(primary_key=True)
+    state = models.CharField(max_length=25, choices=ItemStateChoices, unique=True)
+
+    def __str__(self):
+        return self.state
+
+    class Meta:
+        db_table = 'item_state'
+
+class ItemStateChangeHistory(models.Model):
+    item_state_change_history_id = models.BigAutoField(primary_key=True)
+    item = models.ForeignKey(Item, related_name='state_changes', on_delete=models.CASCADE)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    state = models.ForeignKey(ItemState, on_delete=models.RESTRICT)
+    quantity = models.PositiveIntegerField()
+    target_date = models.DateField()
+
+    class Meta:
+        db_table = 'item_state_change_history'
+        indexes = [
+            models.Index(fields=['item', 'target_date']),
+        ]
 
 class Order(models.Model):
     order_id = models.BigAutoField(primary_key=True)
@@ -1715,27 +1819,3 @@ class OrderLogisticsImage(models.Model):
         elif self.content_type.startswith("video/"):
             return "video"
         return "other"
-
-class InventoryStateChoices(models.TextChoices):
-    WAREHOUSE = 'Warehouse', 'Warehouse'
-    IN_TRUCK = 'In Truck', 'In Truck'
-    ON_SITE = 'On Site', 'On Site'
-
-class InventoryEvent(models.Model):
-    inventory_event_id = models.BigAutoField(primary_key=True)
-    item = models.ForeignKey(Item, db_column='item_id', related_name='states', on_delete=models.RESTRICT)
-    order = models.ForeignKey(Order, db_column='order_id', on_delete=models.CASCADE)
-    state = models.CharField(max_length=20, choices=InventoryStateChoices)
-    quantity = models.PositiveIntegerField()
-    user = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
-    date_created = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'inventory_event'
-        indexes = [
-            models.Index(fields=['item', 'date_effective']),
-            models.Index(fields=['to_state']),
-        ]
-
-    def __str__(self):
-        return f"{self.item} {self.quantity}  {self.state}"
