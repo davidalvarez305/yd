@@ -96,6 +96,150 @@
             </div>
             <!-- END Responsive Table Container -->
 
+            <!-- Terms & Conditions -->
+            {% if debug %}
+            <div class="leading-relaxed max-w-3xl mx-auto pb-4 space-y-4 text-sm font-medium">
+                <h2 class="text-center text-xl pt-4">Terms & Conditions</h3>
+                <h3 class="text-lg">Credit Card Authorization</h3>
+                <p>By submitting your credit card information, you expressly authorize {{ company_name }} to charge your credit card, for all services rendered, rental items provided, deposits, applicable taxes, and any other amounts due under these Terms & Conditions.
+                This authorization includes permission to store your payment method securely for future use and to process additional charges after the event date if necessary, including but not limited to charges for late delivery or pickup, extended rental periods, cleaning fees, broken, lost, or damaged items, replacement costs, and any other fees resulting from delays or violations of these Terms & Conditions.
+                You represent and warrant that you are the authorized cardholder or have authorization to use the card provided and that sufficient funds are available.
+                You agree not to dispute charges that are consistent with this authorization, and you acknowledge that this authorization shall remain in effect until all obligations to {{ company_name }} have been satisfied in full.</p>
+                
+                {% if has_bartending %}
+                <h3 class="text-lg">Scope of Work</h3>
+                <p>
+                Customer acknowledges and agrees that bartender(s) are retained exclusively for beverage preparation and service.
+                Bartender(s) shall not be required, expected, or permitted to perform any duties outside this scope, including but
+                not limited to cleaning, setup, teardown, lifting, moving equipment, or handling items not directly related to the
+                bar or designated bar service area. Any request for services outside this scope is expressly unauthorized and, if
+                made, is done at the Customer’s sole risk and responsibility, and shall not create any duty, liability, or obligation
+                on the part of the bartender(s) or {{ company_name|default:"[Company Name]" }}.
+                </p>
+                <h3 class="text-lg">Extension of Service</h3>
+                <p>
+                Any payment, gratuity, or compensation provided directly to the bartender(s), including but not limited to
+                <strong>Zelle</strong>, <strong>CashApp</strong>, <strong>cash</strong>, or any other informal or third-party payment method,
+                <strong>does not constitute payment for an extension of service, additional time, or additional services</strong>
+                and shall not be credited toward this invoice. <strong>All extensions of service, additional hours, or added services
+                must be approved by and paid directly to {{ company_name|default:"[Company Name]" }} through this invoice.</strong>
+                </p>
+                <h3 class="text-lg">Safety, Conduct & Right to Terminate Service</h3>
+                <p>
+                Customer acknowledges and agrees that the safety, dignity, and well-being of the bartender(s) is paramount.
+                Bartender(s) reserve the absolute right, at their sole discretion, to immediately refuse service to any guest and/or
+                terminate services and leave the event premises without notice if they experience or observe harassment, intimidation,
+                threatening behavior, excessive intoxication, inappropriate conduct, unsafe conditions, or any behavior that, in the
+                bartender’s reasonable judgment, creates an unsafe or hostile environment.
+                </p>
+                <p>
+                In such circumstances, termination of service shall not constitute a breach of contract, and no refunds, credits, or
+                reductions shall be issued. Customer assumes full responsibility for the conduct of all guests and agrees to promptly
+                address and remedy any behavior upon request. {{ company_name|default:"[Company Name]" }} and its bartender(s) shall
+                have no liability arising from the suspension or termination of services due to safety or conduct concerns.
+                </p>
+                {% endif %}
+                <h3 class="text-lg">Refund Policy</h3>
+                <p>
+                In the event of cancellation by the Customer for any reason, a full refund of all payments received will be available
+                only if written notice of cancellation is received on or before <strong>{{ payment_due_date }}</strong>.
+                Cancellations received after this date shall result in <strong>all payments being non-refundable</strong>, including but
+                not limited to deposits, rental fees, service fees, and any other amounts paid, regardless of whether the event takes
+                place.
+                </p>
+                <p>
+                Refunds will not be issued for partial use of services, early termination, no-shows, weather conditions,
+                guest behavior, venue-related issues, or any circumstances within the Customer’s control. Once services, delivery,
+                setup, or staffing have commenced, all charges are deemed fully earned.
+                </p>
+                <p>
+                In the event that {{ company_name|default:"[Company Name]" }} must cancel the event due to unforeseen circumstances,
+                including but not limited to equipment failure, illness, staffing issues, safety concerns, or force majeure events
+                (such as acts of God, severe weather, government orders, or events beyond reasonable control), the Customer’s sole
+                remedy shall be a refund of all payments received. No additional compensation, damages, or liability shall be owed.
+                Reasonable notice will be provided when practicable, and a minimum of two (2) weeks’ notice will be given when
+                possible.
+                </p>
+                <p>
+                If services are suspended or terminated due to safety concerns, harassment, excessive intoxication, unsafe conditions,
+                or violations of these Terms & Conditions by the Customer or guests, such termination shall not constitute a
+                cancellation by {{ company_name|default:"[Company Name]" }} and <strong>no refunds, credits, or chargebacks shall be
+                issued</strong>.
+                </p>
+                <p>
+                All approved refunds will be processed to the original form of payment only and may take 5–10 business days to appear,
+                depending on the payment processor.
+                </p>
+                {% if has_rental %}
+                <h3 class="text-lg">Rental Items, Damage, Delays & Accessibility</h3>
+                <p>
+                Customer assumes full responsibility for all rental items from the time of delivery until pickup is completed.
+                Any rental item that is damaged, broken, lost, stolen, excessively soiled, or rendered unusable for any reason
+                while in the Customer’s possession shall be charged at <strong>full retail replacement value</strong> per item,
+                without depreciation, regardless of whether the damage was caused by the Customer, guests, vendors, or any
+                third parties.
+                </p>
+                <p>
+                Customer agrees to ensure that a responsible adult is present at the delivery and pickup times provided to allow
+                for immediate access to the rental items. Failure to have a representative present, provide timely access, or
+                otherwise facilitate delivery or pickup may result in delay fees and additional charges as outlined below.
+                </p>
+                <p>
+                Delays during delivery or pickup resulting in driver wait time shall incur a <strong>$50 fee for the first
+                thirty (30) minutes</strong> of delay and an additional <strong>$25 fee for every fifteen (15) minutes thereafter</strong>.
+                Delays include, but are not limited to: inability to access the location or rental items; locked gates, doors, or
+                elevators; incorrect or incomplete delivery address or instructions; lack of parking or loading access; Customer
+                or representative not being present; venue restrictions not disclosed in advance; or any other circumstance
+                outside the control of {{ company_name|default:"[Company Name]" }} or its drivers.
+                </p>
+                <p>
+                Customer agrees that all rental items must be returned in the <strong>same general organization and condition</strong>
+                as delivered, consolidated in a single, easily accessible location approved at delivery. Items that are scattered,
+                disassembled, relocated, obstructed, or otherwise not readily accessible for pickup may result in additional labor
+                charges. Failure to properly organize and make items easily accessible shall constitute an additional charge equal
+                to the original delivery fee, in addition to any applicable delay or labor fees.
+                </p>
+                <p>
+                Customer authorizes {{ company_name|default:"[Company Name]" }} to charge the payment method on file for any damage,
+                replacement, delay, labor, or additional fees incurred as a result of the above, in accordance with these Terms &
+                Conditions.
+                </p>
+                <h3 class="text-lg">Customer Pick-Ups & Returns</h3>
+                <p>
+                Unless otherwise agreed in writing, Customers who elect to pick up rental items are responsible for returning all
+                rented items to {{ company_name|default:"[Company Name]" }} within <strong>seventy-two (72) business hours (Monday
+                through Friday, excluding holidays)</strong> following the conclusion of the rental period. Failure to return all
+                items within this timeframe shall result in the items being deemed <strong>lost or stolen</strong>, and Customer
+                authorizes {{ company_name|default:"[Company Name]" }} to charge the payment method on file the <strong>full retail
+                replacement value</strong> of any unreturned items, without further notice.
+                </p>
+                <p>
+                If Customer has scheduled a company pickup and {{ company_name|default:"[Company Name]" }} is unable to complete the
+                pickup due to circumstances outside of its control, including but not limited to lack of access, incorrect address,
+                Customer or representative not being present, items not being consolidated or accessible, venue restrictions, or
+                any other delay or obstruction caused by the Customer or third parties, the Customer shall remain fully responsible
+                for the rental items.
+                </p>
+                <p>
+                In such cases, Customer agrees either to return the rental items at their own expense within the required return
+                period or to incur an additional charge equal to the original <strong>delivery and labor fees</strong> for each
+                subsequent pickup attempt. Repeated failed pickup attempts shall not extend the return deadline or waive any
+                applicable damage, loss, or replacement charges.
+                </p>
+                <p>
+                Customer acknowledges that responsibility for the rental items continues until items are physically returned to
+                and accepted by {{ company_name|default:"[Company Name]" }}. Customer authorizes all applicable charges related to
+                failed pickups, additional labor, transportation, loss, or replacement to be processed to the payment method on
+                file in accordance with these Terms & Conditions.
+                </p>
+                {% endif %}
+                <p class="py-4 text-lg">
+                    By paying the deposit, you agree to the terms & conditions laid out in this service agreement.
+                </p>
+            </div>
+            {% endif %}
+            <!-- END Terms & Conditions -->
+
             <!-- Buttons -->
             <div class="w-full flex flex-col sm:flex-row justify-center align-center py-4 gap-4">
                 {% for invoice in quote.invoices.all %}
@@ -173,76 +317,6 @@
     </table>
     {% endif %}
 </div>
-
-<!-- Service Agreement Modal -->
-{% if debug %}
-<div data-modal-id="serviceAgreementModal" data-modal="serviceAgreement" style="display: none;">
-    <div>
-        <div tabindex="-1" role="dialog"
-            class="fixed inset-0 z-90 overflow-y-auto overflow-x-hidden bg-gray-900/75 p-4 backdrop-blur-sm lg:p-8">
-            <div role="document"
-                class="mx-auto flex w-full sm:w-1/2 flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
-                <div class="flex items-center justify-between bg-gray-50 px-5 py-4 dark:bg-gray-700/50">
-                    <h3 class="flex items-center gap-2 font-medium">
-                        <span>{{ company_name }} Service Agreement</span>
-                    </h3>
-                </div>
-                <div class="grow px-5">
-                    <div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
-                        <div class="grow p-5 md:px-16 md:py-6">
-                            <div class="leading-relaxed max-w-3xl mx-auto pb-10 space-y-4 text-sm font-medium">
-                                <p class="mb-3">(1) Service will begin from {{ quote.event_date }} to {{ quote.event_date }}.</p>
-                                
-                                <p class="mb-3">(2) The bartender will arrive at {{ quote.event_date }} - 1.</p>
-                                
-                                <p class="mb-3">(3) The bartender will not start serving drinks until {{ quote.event_date }}.</p>
-                                
-                                <p class="mb-3">(4) The bartender will stop serving drinks at {{ quote.end_time }} unless an extension to the established time window is agreed upon.</p>
-                                
-                                <p class="mb-3">(5) In order to extend the service time by an hour, a full payment for the amount of {{ quote.amount }} * 1 / {{ quote.hours }} via this quote must be made.</p>
-
-                                <p class="mb-3">(6) Any informal form of payment for extension made to the bartender such as <strong>Zelle</strong>, <strong>CashApp</strong>, or <strong>Cash</strong> does not constitute payment for this invoice. <strong>The only acceptable form of payment for extension is via this invoice.</strong></p>
-
-                                <p class="mb-3">
-                                    (7) The bartender(s) will not perform any duties that are not directly related to the serving of drinks, 
-                                    such as cleaning, setting up, or breaking down items unrelated to the bar or bar area.
-                                </p>
-
-                                <p class="mb-3">
-                                    (8) In order to reserve the date, a payment of <strong>{{ quote.amount }} * 0.25</strong> is required.
-                                </p>
-
-                                <p class="mb-3">
-                                    (6) The remaining balance of <strong>{{ quote.amount }} * 0.75</strong> must be paid in full before bartenders are dispatched. 
-                                    Failure to complete payment will result in cancellation of the event without refund.
-                                </p>
-
-                                <p class="mb-3">
-                                    (7) In the event of cancellation by the client, a full refund will be available until <strong>{{ quote.due_date }}</strong>. 
-                                    After this date, no refunds will be issued.
-                                </p>
-
-                                <p class="mb-3">
-                                    (8) In the event that we must cancel the event, a full 100% refund will be issued for the deposit received. 
-                                    We will provide a minimum of two weeks’ notice prior to the cancellation of any event, if necessary.
-                                </p>
-
-                                <p class="py-6 text-lg">
-                                    By paying the deposit, you agree to the terms & conditions laid out in this service agreement.
-                                </p>
-                            </div>
-                            <button type="button" data-modal-id="serviceAgreementModal" class="closeModal w-full rounded-lg bg-primary-700 px-8 py-4 font-semibold text-white hover:bg-primary-600 focus:ring focus:ring-primary-400/50">
-                                I Understand
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- END Service Agreement Modal -->
-{% endif %}
 
 <script>
     const initialPaymentButton = document.querySelectorAll('.initialPaymentButton');

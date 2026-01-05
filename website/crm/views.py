@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.forms import ValidationError
 from django.http import FileResponse, Http404, HttpResponse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, QuoteServiceActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, AddedOrRemoveActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
@@ -937,7 +937,7 @@ class QuoteServiceCreateView(CRMCreateTemplateView):
                 user=self.request.user,
                 service=self.object.service,
                 quote=self.object.quote,
-                action=QuoteServiceActionChoices.ADDED,
+                action=AddedOrRemoveActionChoices.ADDED,
                 units=self.object.units,
                 price_per_unit=self.object.price_per_unit,
             )
@@ -970,7 +970,7 @@ class QuoteServiceDeleteView(CRMDeleteView):
                 user=request.user,
                 quote=quote,
                 service=service,
-                action=QuoteServiceActionChoices.REMOVED,
+                action=AddedOrRemoveActionChoices.REMOVED,
                 units=units,
                 price_per_unit=price_per_unit,
             )
@@ -1146,6 +1146,21 @@ class ExternalQuoteView(CRMContextMixin, DetailView):
     def get_object(self, queryset=None):
         external_id = self.kwargs.get('external_id')
         return get_object_or_404(Quote, external_id=external_id)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        quote = context.get('quote')
+
+        has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
+        has_rental = quote.quote_services.filter(service__service_type__type__icontains='Rental').exists()
+
+        context.update({
+            'has_bartending': has_bartending,
+            'has_rental': has_rental,
+            'payment_due_date': quote.event_date - timedelta(days=2)
+        })
+
+        return context
 
 class QuoteSendView(CRMBaseView, AlertMixin, FormView):
     model = Quote
