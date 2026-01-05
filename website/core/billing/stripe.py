@@ -77,6 +77,21 @@ class StripeBillingService(BillingServiceInterface):
 
                 event_manager = EventManager(event=event)
                 event_manager.book()
+            
+            customer_id = session.get('customer')
+            if not customer_id:
+                email = session.get('customer_email')
+                name = session.get('customer_name', invoice.quote.lead.full_name)
+                if email:
+                    customer = stripe.Customer.create(email=email, name=name)
+                    if session.get('payment_intent'):
+                        payment_intent = stripe.PaymentIntent.retrieve(session.get('payment_intent'))
+                        payment_method_id = payment_intent.payment_method
+
+                        stripe.PaymentMethod.attach(
+                            payment_method_id,
+                            customer=customer.id
+                        )
         except Exception as e:
             logger.exception(str(e), exc_info=True)
             return HttpResponse(status=500)
