@@ -174,6 +174,8 @@ CALL_RAIL_ACCOUNT_ID = env.get("CALL_RAIL_ACCOUNT_ID")
 
 OPEN_AI_API_KEY = env.get("OPEN_AI_API_KEY")
 
+SPOKE_API_KEY = env.get("SPOKE_API_KEY")
+
 LEAD_EVENT_NAME = env.get("LEAD_EVENT_NAME")
 LEAD_GENERATED_EVENT_NAME = env.get("LEAD_GENERATED_EVENT_NAME")
 DEFAULT_CURRENCY = env.get("DEFAULT_CURRENCY")
@@ -266,6 +268,7 @@ BILLING_SERVICE = 'core.billing.stripe.StripeBillingService'
 REVIEWS_SERVICE = 'core.reviews.google.GoogleReviewsService'
 GOOGLE_API_SERVICE = 'core.google.api.client.GoogleAPIService'
 CALL_TRACKING_SERVICE = 'core.call_tracking.callrail.CallRailTrackingService'
+DELIVERY_SERVICE = 'core.delivery.spoke.SpokeService'
 
 TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'

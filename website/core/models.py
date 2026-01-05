@@ -1515,6 +1515,7 @@ class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True, db_index=True)
     item_category = models.ForeignKey(ItemCategory, db_column='item_category_id', related_name='items', on_delete=models.CASCADE)
+    price = models.FloatField()
 
     def __str__(self):
         return self.name
@@ -1611,6 +1612,29 @@ class Order(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     code = models.CharField(max_length=8, unique=True, db_index=True)
     user = models.ForeignKey(User, db_column='user_id', related_name='orders', on_delete=models.RESTRICT, null=True)
+
+    def initiate_order_placed_workflow(self, data):
+        status = OrderStatus.objects.get(status=OrderStatusChoices.AWAITING_PREPARATION)
+
+        OrderStatusChangeHistory.objects.create(
+            order=self,
+            status=status,
+            user=data.get('user'),
+            lead=data.get('lead'),
+        )
+
+        for item in self.items.all():
+            item.reserve_item(
+                quantity=item.units,
+                start_date=data.get('start_date'),
+                end_date=data.get('end_date'),
+                order=self,
+            )
+
+        if self.services.filter(service='Delivery').exists():
+            # Create delivery
+            return
+
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -1761,47 +1785,54 @@ class OrderStatusChangeHistory(models.Model):
         db_table = 'order_status_change_history'
         ordering = ['date_created']
 
-class OrderLogisticsTypeChoices(models.TextChoices):
-    DELIVERY = 'Delivery', 'Delivery'
-    PICKUP = 'Pickup', 'Pickup'
-
-class LogisticsTimeWindowTypeChoices(models.TextChoices):
-    EXACT = 'Exact', 'Exact Time'
-    FLEX = 'Flex', 'Flexible (4-hour window)'
-
-class OrderLogistics(models.Model):
-    order_logistics_id = models.BigAutoField(primary_key=True)
-    order = models.ForeignKey(Order, db_column='order_id', related_name='logistics', on_delete=models.CASCADE)
-    driver = models.ForeignKey(User, db_column='user_id', related_name='assignments', on_delete=models.RESTRICT)
-    logistics_type = models.CharField(max_length=10, choices=OrderLogisticsTypeChoices)
-    contact_name = models.CharField(max_length=255)
-    contact_phone = models.CharField(max_length=30)
+class Address(models.Model):
+    address_id = models.AutoField(primary_key=True)
     address_line_1 = models.CharField(max_length=255)
     address_line_2 = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100)
     state_code = models.CharField(max_length=2, default='FL')
     postal_code = models.CharField(max_length=20)
-    time_window_type = models.CharField(max_length=10, choices=LogisticsTimeWindowTypeChoices)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.logistics_type} for Order {self.order.code}"
 
     class Meta:
-        db_table = 'order_logistics'
-        unique_together = ('order', 'logistics_type')
+        db_table = 'address'
 
-class OrderLogisticsImage(models.Model):
-    order_logistics_image_id = models.AutoField(primary_key=True)
-    order_logistics = models.ForeignKey(OrderLogistics, related_name="images", on_delete=models.CASCADE)
+class DriverStopTypeChoices(models.TextChoices):
+    DELIVERY = 'Delivery', 'Delivery'
+    PICKUP = 'Pickup', 'Pickup'
+
+class DriverStopTimeWindowTypeChoices(models.TextChoices):
+    EXACT = 'Exact', 'Exact Time'
+    FLEX = 'Flex', 'Flexible (4-hour window)'
+
+class DriverStop(models.Model):
+    driver_stop_id = models.AutoField(primary_key=True)
+    external_id = models.CharField(max_length=255, unique=True, null=True, db_index=True)
+    order = models.ForeignKey(Order, db_column='order_id', related_name='driver_stops', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='driver_stops', on_delete=models.RESTRICT)
+    address = models.ForeignKey(Address, on_delete=models.RESTRICT)
+    stop_type = models.CharField(max_length=10, choices=DriverStopTypeChoices)
+    contact_name = models.CharField(max_length=255)
+    contact_phone = models.CharField(max_length=30)
+    time_window_type = models.CharField(max_length=10, choices=DriverStopTimeWindowTypeChoices)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    web_tracking_link = models.TextField()
+
+    def __str__(self):
+        return f"{self.stop_type} for Order {self.order.code}"
+
+    class Meta:
+        db_table = 'driver_stop'
+        unique_together = ('order', 'stop_type')
+
+class DriverStopImage(models.Model):
+    driver_stop_image_id = models.AutoField(primary_key=True)
+    driver_stop = models.ForeignKey(DriverStop, related_name="images", on_delete=models.CASCADE)
     content_type = models.CharField(max_length=100)
     file = models.FileField(upload_to=media_upload_path)
 
     class Meta:
-        db_table = "order_logistics_image"
+        db_table = "driver_stop_image"
 
     def __str__(self):
         return f"{self.content_type} - {self.file.name}"
@@ -1819,3 +1850,34 @@ class OrderLogisticsImage(models.Model):
         elif self.content_type.startswith("video/"):
             return "video"
         return "other"
+    
+class DriverStopStatusChoices(models.TextChoices):
+    ALLOCATED = 'Allocated', 'Allocated'
+    OUT_FOR_DELIVERY = 'Out For Delivery', 'Out For Delivery'
+    COMPLETED = 'Completed', 'Completed'
+    ATTEMPTED_DELIVERY = 'Attempted Delivery', 'Attempted Delivery'
+
+class DriverStopStatus(models.Model):
+    driver_stop_status_id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=60, choices=DriverStopStatusChoices)
+
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        db_table = 'driver_stop_status'
+
+class DriverStopStatusChangeHistory(models.Model):
+    driver_stop_status_change_history_id = models.AutoField(primary_key=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    driver_stop = models.ForeignKey(DriverStop, db_column='driver_stop_id', related_name='changes', on_delete=models.CASCADE)
+    status = models.ForeignKey(DriverStopStatus, db_column='driver_stop_status_id', on_delete=models.RESTRICT)
+
+    def __str__(self):
+        local_dt = timezone.localtime(self.date_created)
+        formatted_date = local_dt.strftime("%b %d, %#I:%M %p")
+        return f"{self.status} - {formatted_date}"
+
+    class Meta:
+        db_table = 'driver_stop_status_change_history'
+        ordering = ['-date_created']
