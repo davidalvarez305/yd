@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum, Case, When, IntegerField, F, Window, Min
 from django.db.models.functions import Coalesce
 
-from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices, Order
+from core.models import ItemStateChangeHistory, ItemStateChoices, Order
 
 
 AVAILABILITY_DELTA = Case(
@@ -63,7 +63,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def reserve_item(self, order: Order):
-        from core.models import Item
+        from core.models import Item, ItemState
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -87,7 +87,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def return_items(self, order: Order, target_date):
-        from core.models import Item
+        from core.models import Item, ItemState
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -104,6 +104,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def cancel_reservation(self, order: Order):
+        from core.models import ItemState
         reservation = (
             ItemStateChangeHistory.objects
             .select_for_update()
@@ -126,6 +127,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def purchase(self, quantity: int, target_date):
+        from core.models import ItemState
         state = ItemState.objects.get(state=ItemStateChoices.PURCHASED)
 
         ItemStateChangeHistory.objects.create(
@@ -137,6 +139,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def decommission(self, quantity: int, target_date):
+        from core.models import ItemState
         state = ItemState.objects.get(state=ItemStateChoices.DECOMMISSIONED)
 
         ItemStateChangeHistory.objects.create(
@@ -148,6 +151,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def reserve_additional_units(self, order: Order, quantity: int):
+        from core.models import ItemState
         available = self.available_units_for_range(
             order.start_date.date(),
             order.end_date.date(),
@@ -170,6 +174,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def release_units(self, order: Order, quantity: int):
+        from core.models import ItemState
         state = ItemState.objects.get(state=ItemStateChoices.RETURNED)
 
         ItemStateChangeHistory.objects.create(
