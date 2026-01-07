@@ -16,7 +16,7 @@ class InvalidOrderTransitionError(ValidationError):
 
 class OrderManager:
 
-    TRANSITIONS = {
+    BASE_TRANSITIONS = {
         OrderStatusChoices.ORDER_PLACED: [
             OrderStatusChoices.AWAITING_PREPARATION,
         ],
@@ -25,23 +25,7 @@ class OrderManager:
         ],
         OrderStatusChoices.READY_FOR_DISPATCH: [
             OrderStatusChoices.DISPATCHED,
-        ],
-        OrderStatusChoices.DISPATCHED: [
-            OrderStatusChoices.DELIVERED,
-        ],
-        OrderStatusChoices.DELIVERED: [
-            OrderStatusChoices.PENDING_PICK_UP,
-        ],
-        OrderStatusChoices.PENDING_PICK_UP: [
-            OrderStatusChoices.PICKED_UP,
-        ],
-        OrderStatusChoices.PICKED_UP: [
-            OrderStatusChoices.READY_FOR_STORAGE,
-        ],
-        OrderStatusChoices.READY_FOR_STORAGE: [
-            OrderStatusChoices.FINALIZED,
-        ],
-        OrderStatusChoices.FINALIZED: [],
+        ]
     }
 
     CANCELLABLE_STATUSES = {
@@ -56,18 +40,56 @@ class OrderManager:
         OrderStatusChoices.AWAITING_PREPARATION,
     }
 
-    def __init__(self, order, user=None):
+    def __init__(self, order):
         self.order = order
-        self.user = user
 
     @property
     def current_status(self):
         return self.order.status.status if self.order.status else None
+    
+    def allowed_transitions(self):
+        status = self.current_status
+        if not status:
+            return []
+
+        transitions = list(self.BASE_TRANSITIONS.get(status, []))
+
+        if self.order.has_delivery:
+            delivery_flow = {
+                OrderStatusChoices.DISPATCHED: [
+                    OrderStatusChoices.DELIVERED
+                ],
+                OrderStatusChoices.DELIVERED: [
+                    OrderStatusChoices.PENDING_PICK_UP
+                ],
+                OrderStatusChoices.PENDING_PICK_UP: [
+                    OrderStatusChoices.PICKED_UP
+                ],
+                OrderStatusChoices.PICKED_UP: [
+                    OrderStatusChoices.FINALIZED
+                ],
+            }
+            transitions.extend(delivery_flow.get(status, []))
+        else:
+            pickup_flow = {
+                OrderStatusChoices.DISPATCHED: [
+                    OrderStatusChoices.CUSTOMER_PICKED_UP
+                ],
+                OrderStatusChoices.CUSTOMER_PICKED_UP: [
+                    OrderStatusChoices.CUSTOMER_RETURNED
+                ],
+                OrderStatusChoices.CUSTOMER_RETURNED: [
+                    OrderStatusChoices.FINALIZED
+                ],
+            }
+            transitions.extend(pickup_flow.get(status, []))
+
+        return transitions
 
     def can_transition_to(self, new_status: str) -> bool:
         if not self.current_status:
             return True
-        return new_status in self.TRANSITIONS.get(self.current_status, [])
+        return new_status in self.allowed_transitions()
 
     @transaction.atomic
     def transition_to(self, new_status: str, user: User | None, lead: Lead | None):
@@ -157,33 +179,6 @@ class OrderManager:
             lead=lead,
         )
     
-    def _sync_order_items(self, updated_items: list[dict]):
-        """
-        updated_items = [{"item_id": int, "units": int}]
-        """
-
-        existing = {
-            oi.item_id: oi
-            for oi in self.order.items.select_related("item")
-        }
-
-        desired = {
-            row["item_id"]: row["units"]
-            for row in updated_items
-        }
-
-        # Removed items
-        for item_id, order_item in existing.items():
-            if item_id not in desired:
-                self._remove_item(order_item)
-
-        # Added or changed items
-        for item_id, units in desired.items():
-            if item_id not in existing:
-                self._add_item(item_id, units)
-            else:
-                self._update_item_quantity(existing[item_id], units)
-    
     def mark_ready_for_dispatch(self):
         return self.transition_to(OrderStatusChoices.READY_FOR_DISPATCH)
 
@@ -198,9 +193,6 @@ class OrderManager:
 
     def pickup_completed(self):
         return self.transition_to(OrderStatusChoices.PICKED_UP)
-
-    def store_items(self):
-        return self.transition_to(OrderStatusChoices.READY_FOR_STORAGE)
 
     def finalize(self):
         return self.transition_to(OrderStatusChoices.FINALIZED)
@@ -280,6 +272,7 @@ class OrderManager:
         )
     
     def _on_awaiting_preparation(self):
+        # place in task queue to be cleared by warehouse staff
         return
 
     def _on_ready_for_dispatch(self):
@@ -287,42 +280,46 @@ class OrderManager:
         pass
 
     def _on_dispatched(self):
-        # e.g. mark inventory IN_TRUCK
+        # send customer tracking link
+        # record action in driver log
+        #
         pass
 
     def _on_delivered(self):
-        # e.g. mark inventory ON_SITE
+        # send customer picture
+        # record action in driver log
         pass
 
     def _on_picked_up(self):
-        # e.g. create ItemStateChangeHistory(Returned)
-        pass
+        for item in self.order.items.all():
+            item.inventory.return_items(
+                order=self.order,
+                target_date=timezone.now().date()
+            )
+        
+        self.finalize()
 
-    def _on_finalized(self):
-        # e.g. close order, release holds
+    def _on_customer_picked_up(self):
+        # Items are now physically offsite, but still reserved
         pass
+    
+    def _on_customer_returned(self):
+        for item in self.order.items.all():
+            item.inventory.return_items(
+                order=self.order,
+                target_date=timezone.now().date()
+            )
+        
+        self.finalize()
+    
+    def _on_finalized(self):
+        self._send_review_request()
 
     def _send_review_request(self):
         review_link = "https://g.page/r/CQaxh0zJ4KNwEAE/review"
 
-        if not self.event.event_status or self.event.event_status.status != EventStatusChoices.SERVICE_COMPLETED:
-            return
-
-        if EventTaskLog.objects.filter(event=self.event, action="send_review_request", status="success").exists():
-            return
-
-        completed_at = self.event.statuses.filter(event_status__status=EventStatusChoices.SERVICE_COMPLETED).order_by("-date_created").values_list("date_created", flat=True).first()
-
-        if not completed_at:
-            return
-
-        next_day_noon = timezone.make_aware(datetime.combine((completed_at + timedelta(days=1)).date(), time(12, 0)))
-
-        if timezone.now() < next_day_noon:
-            return
-
-        lead = self.event.lead
-        event_date = self.event.quote.event_date.strftime('%b %d, %Y')
+        lead = self.order.lead
+        event_date = self.order.start_date.date().strftime('%b %d, %Y')
 
         first_transcription = (
             PhoneCallTranscription.objects
@@ -428,6 +425,33 @@ class OrderManager:
         )
 
         return order_item
+    
+    def _sync_order_items(self, updated_items: list[dict]):
+        """
+        updated_items = [{"item_id": int, "units": int}]
+        """
+
+        existing = {
+            oi.item_id: oi
+            for oi in self.order.items.select_related("item")
+        }
+
+        desired = {
+            row["item_id"]: row["units"]
+            for row in updated_items
+        }
+
+        # Removed items
+        for item_id, order_item in existing.items():
+            if item_id not in desired:
+                self._remove_item(order_item)
+
+        # Added or changed items
+        for item_id, units in desired.items():
+            if item_id not in existing:
+                self._add_item(item_id, units)
+            else:
+                self._update_item_quantity(existing[item_id], units)
     
     def _add_service(self, id: int, units: int):
         service = Service.objects.get(pk=id)

@@ -1545,6 +1545,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, db_column='user_id', related_name='orders', on_delete=models.RESTRICT, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+    has_delivery = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -1631,16 +1632,21 @@ class OrderItemChangeHistory(models.Model):
         db_table = 'order_item_change_history'
 
 class OrderStatusChoices(models.TextChoices):
-    ORDER_PLACED = 'Order Placed', 'Order Placed'
-    ORDER_CANCELLED = 'Order Cancelled', 'Order Cancelled'
-    AWAITING_PREPARATION = 'Awaiting Preparation', 'Awaiting Preparation'
-    READY_FOR_DISPATCH = 'Ready for Dispatch', 'Ready for Dispatch'
-    DISPATCHED = 'Dispatched', 'Dispatched'
-    DELIVERED = 'Delivered', 'Delivered'
-    PENDING_PICK_UP = 'Pending Pick Up', 'Pending Pick Up'
-    PICKED_UP = 'Picked Up', 'Picked Up'
-    READY_FOR_STORAGE = 'Ready for Storage', 'Ready for Storage'
-    FINALIZED = 'Finalized', 'Finalized'
+    ORDER_PLACED = 'Order Placed'
+    ORDER_CANCELLED = 'Order Cancelled'
+    AWAITING_PREPARATION = 'Awaiting Preparation'
+    READY_FOR_DISPATCH = 'Ready for Dispatch'
+    DISPATCHED = 'Dispatched'
+    FINALIZED = 'Finalized'
+
+    # Delivery flow
+    DELIVERED = 'Delivered'
+    PENDING_PICK_UP = 'Pending Pick Up'
+    PICKED_UP = 'Picked Up'
+
+    # Pickup-only flow
+    CUSTOMER_PICKED_UP = 'Customer Picked Up'
+    CUSTOMER_RETURNED = 'Customer Returned'
 
 class OrderStatus(models.Model):
     order_status_id = models.AutoField(primary_key=True)
