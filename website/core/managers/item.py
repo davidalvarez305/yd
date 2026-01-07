@@ -4,21 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum, Case, When, IntegerField, F, Window, Min
 from django.db.models.functions import Coalesce
 
-from core.models import ItemStateChoices, Order
+from core.models import Order
 
-AVAILABILITY_DELTA = Case(
-    When(state__state__in=[
-        ItemStateChoices.PURCHASED,
-        ItemStateChoices.RETURNED,
-    ], then=F('quantity')),
-    When(state__state__in=[
-        ItemStateChoices.RESERVED,
-        ItemStateChoices.SOLD,
-        ItemStateChoices.DECOMMISSIONED,
-    ], then=-F('quantity')),
-    default=0,
-    output_field=IntegerField(),
-)
 
 class ItemInventoryManager:
     """
@@ -27,13 +14,28 @@ class ItemInventoryManager:
     """
 
     def __init__(self, item):
+        from core.models import ItemStateChoices
         self.item = item
+
+        self.AVAILABILITY_DELTA = Case(
+            When(state__state__in=[
+                ItemStateChoices.PURCHASED,
+                ItemStateChoices.RETURNED,
+            ], then=F('quantity')),
+            When(state__state__in=[
+                ItemStateChoices.RESERVED,
+                ItemStateChoices.SOLD,
+                ItemStateChoices.DECOMMISSIONED,
+            ], then=-F('quantity')),
+            default=0,
+            output_field=IntegerField(),
+        )
 
     def available_units_on_date(self, on_date):
         result = self.item.state_changes.filter(
             target_date__lte=on_date,
         ).aggregate(
-            total=Sum(AVAILABILITY_DELTA)
+            total=Sum(self.AVAILABILITY_DELTA)
         )
 
         return result['total'] or 0
@@ -42,7 +44,7 @@ class ItemInventoryManager:
         qs = (
             self.item.state_changes
             .filter(target_date__lt=end_date)
-            .annotate(delta=AVAILABILITY_DELTA)
+            .annotate(delta=self.AVAILABILITY_DELTA)
             .values('target_date')
             .annotate(day_delta=Sum('delta'))
             .order_by('target_date')
@@ -62,7 +64,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def reserve_item(self, order: Order):
-        from core.models import Item, ItemState, ItemStateChangeHistory
+        from core.models import Item, ItemState, ItemStateChangeHistory, ItemStateChoices
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -86,7 +88,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def return_items(self, order: Order, target_date):
-        from core.models import Item, ItemState, ItemStateChangeHistory
+        from core.models import Item, ItemState, ItemStateChangeHistory, ItemStateChoices
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -103,7 +105,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def cancel_reservation(self, order: Order):
-        from core.models import ItemState, ItemStateChangeHistory
+        from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices
         reservation = (
             ItemStateChangeHistory.objects
             .select_for_update()
@@ -126,7 +128,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def purchase(self, quantity: int, target_date):
-        from core.models import ItemState, ItemStateChangeHistory
+        from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices
         state = ItemState.objects.get(state=ItemStateChoices.PURCHASED)
 
         ItemStateChangeHistory.objects.create(
@@ -138,7 +140,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def decommission(self, quantity: int, target_date):
-        from core.models import ItemState, ItemStateChangeHistory
+        from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices
         state = ItemState.objects.get(state=ItemStateChoices.DECOMMISSIONED)
 
         ItemStateChangeHistory.objects.create(
@@ -150,7 +152,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def reserve_additional_units(self, order: Order, quantity: int):
-        from core.models import ItemState, ItemStateChangeHistory
+        from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices
         available = self.available_units_for_range(
             order.start_date.date(),
             order.end_date.date(),
@@ -173,7 +175,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def release_units(self, order: Order, quantity: int):
-        from core.models import ItemState, ItemStateChangeHistory
+        from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices
         state = ItemState.objects.get(state=ItemStateChoices.RETURNED)
 
         ItemStateChangeHistory.objects.create(
