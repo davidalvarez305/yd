@@ -5,7 +5,7 @@ from django.utils.timezone import now
 from django.conf import settings
 
 from core.conversions import conversion_service
-from core.models import LandingPage, LandingPageConversion, Lead, LeadMarketingMetadata, LeadStatusHistory, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
+from core.models import LandingPage, LandingPageConversion, Lead, LeadMarketingMetadata, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url, is_google_ads_call_asset, parse_google_ads_cookie
 from core.utils import get_session_data
 
@@ -135,12 +135,4 @@ def handle_lead_status_change(sender, instance: Lead, **kwargs):
     lead = Lead.objects.get(pk=instance.pk)
     data = create_data_dict(lead, event_name, event)
 
-    # Always send conversion for LEAD_CREATED and EVENT BOOKED
-    if lead_status.status == LeadStatusEnum.LEAD_CREATED or lead_status.status == LeadStatusEnum.EVENT_BOOKED:
-        conversion_service.send_conversion(data=data)
-    
-    # Only need to report invoice sent once
-    if lead_status.status == LeadStatusEnum.INVOICE_SENT:
-        count = LeadStatusHistory.objects.filter(lead_status=lead_status, lead=instance).count()
-        if count == 1:
-            conversion_service.send_conversion(data=data)
+    conversion_service.send_conversion(data=data)

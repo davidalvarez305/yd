@@ -147,6 +147,7 @@ GOOGLE_ADS_ID = env.get('GOOGLE_ADS_ID')
 GOOGLE_ADS_CUSTOMER_ID = env.get('GOOGLE_ADS_CUSTOMER_ID')
 
 EVENT_BOOKED_GOOGLE_ADS_CONVERSION_ACTION_ID = 7355438593
+LEAD_CREATED_GOOGLE_ADS_CONVERSION_ACTION_ID = 7446313673
 
 FACEBOOK_API_VERSION = env.get("FACEBOOK_API_VERSION")
 FACEBOOK_PAGE_ACCESS_TOKEN = env.get("FACEBOOK_PAGE_ACCESS_TOKEN")
@@ -275,13 +276,6 @@ TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
 
 # Marketing Services
 CONVERSION_SERVICES = {
-    "google": {
-        "BACKEND": "core.conversions.google.GoogleAnalyticsConversionService",
-        "OPTIONS": {
-            "google_analytics_id": GOOGLE_ANALYTICS_ID,
-            "google_analytics_api_key": GOOGLE_ANALYTICS_API_KEY,
-        },
-    },
     "facebook": {
         "BACKEND": "core.conversions.facebook.FacebookConversionService",
         "OPTIONS": {
@@ -290,13 +284,14 @@ CONVERSION_SERVICES = {
             "version": FACEBOOK_API_VERSION,
         },
     },
-    "gads": {
-        "BACKEND": "core.conversions.gads.GoogleAdsConversionService",
+    "google": {
+        "BACKEND": "core.conversions.google.GoogleAdsConversionService",
         "OPTIONS": {
             'developer_token': GOOGLE_ADS_DEVELOPER_TOKEN,
             'customer_id': GOOGLE_ADS_CUSTOMER_ID,
             'conversion_actions': {
                 'event_booked': EVENT_BOOKED_GOOGLE_ADS_CONVERSION_ACTION_ID,
+                'generate_lead': LEAD_CREATED_GOOGLE_ADS_CONVERSION_ACTION_ID,
             }
         },
     },
