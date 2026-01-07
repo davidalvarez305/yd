@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
 from core.enums import LeadActivityEnum, LeadTaskEnum
-from core.managers.item import ItemInventoryManager
 from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -1511,6 +1510,7 @@ class Item(models.Model):
     
     @property
     def inventory(self):
+        from core.managers.item import ItemInventoryManager
         return ItemInventoryManager(self)
 
     class Meta:
