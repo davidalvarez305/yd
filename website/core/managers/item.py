@@ -1,10 +1,10 @@
 from django.utils import timezone
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from django.db.models import Sum, Case, When, IntegerField, F, Window, Min, Value
+from django.db.models import Sum, Case, When, IntegerField, F, Window, Min
 from django.db.models.functions import Coalesce
 
-from core.models import Item, ItemState, ItemStateChangeHistory, ItemStateChoices, Order
+from core.models import ItemState, ItemStateChangeHistory, ItemStateChoices, Order
 
 
 AVAILABILITY_DELTA = Case(
@@ -27,7 +27,7 @@ class ItemInventoryManager:
     All inventory mutations MUST go through this class.
     """
 
-    def __init__(self, item: Item):
+    def __init__(self, item):
         self.item = item
 
     def available_units_on_date(self, on_date):
@@ -63,6 +63,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def reserve_item(self, order: Order):
+        from core.models import Item
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -86,6 +87,7 @@ class ItemInventoryManager:
     
     @transaction.atomic
     def return_items(self, order: Order, target_date):
+        from core.models import Item
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
