@@ -1,4 +1,5 @@
 from datetime import _Date
+from django.utils import timezone
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.db.models import Sum, Case, When, IntegerField, F, Window, Min, Value
@@ -142,4 +143,38 @@ class ItemInventoryManager:
             state=state,
             quantity=quantity,
             target_date=target_date,
+        )
+    
+    @transaction.atomic
+    def reserve_additional_units(self, order: Order, quantity: int):
+        available = self.available_units_for_range(
+            order.start_date.date(),
+            order.end_date.date(),
+        )
+
+        if available < quantity:
+            raise ValidationError(
+                f"Only {available} additional units available"
+            )
+
+        state = ItemState.objects.get(state=ItemStateChoices.RESERVED)
+
+        ItemStateChangeHistory.objects.create(
+            item=self.item,
+            order=order,
+            state=state,
+            quantity=quantity,
+            target_date=order.start_date.date(),
+        )
+    
+    @transaction.atomic
+    def release_units(self, order: Order, quantity: int):
+        state = ItemState.objects.get(state=ItemStateChoices.RETURNED)
+
+        ItemStateChangeHistory.objects.create(
+            item=self.item,
+            order=order,
+            state=state,
+            quantity=quantity,
+            target_date=timezone.now().date(),
         )

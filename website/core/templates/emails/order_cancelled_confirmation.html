@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Order Cancelled</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; color: #333; line-height: 1.5;">
+
+    <p>Hi {{ full_name }},</p>
+
+    <p>
+        This email is to confirm that your order
+        <strong>{{ order_code }}</strong> has been successfully cancelled.
+    </p>
+
+    <p>
+        <strong>Original rental period:</strong><br>
+        {{ start_date }} – {{ end_date }}
+    </p>
+
+    <p>
+        Any reserved items associated with this order have been released back into our inventory.
+        If a payment was made, any applicable refunds will be processed according to our cancellation policy.
+    </p>
+
+    <p>
+        If this cancellation was made in error or you would like help placing a new order,
+        please don’t hesitate to reach out.
+    </p>
+
+    <p>
+        Thank you,<br>
+        <strong>{{ company_name }}</strong>
+    </p>
+
+</body>
+</html>

@@ -1632,6 +1632,7 @@ class OrderItemChangeHistory(models.Model):
 
 class OrderStatusChoices(models.TextChoices):
     ORDER_PLACED = 'Order Placed', 'Order Placed'
+    ORDER_CANCELLED = 'Order Cancelled', 'Order Cancelled'
     AWAITING_PREPARATION = 'Awaiting Preparation', 'Awaiting Preparation'
     READY_FOR_DISPATCH = 'Ready for Dispatch', 'Ready for Dispatch'
     DISPATCHED = 'Dispatched', 'Dispatched'

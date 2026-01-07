@@ -1,0 +1,36 @@
+<html>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <p>Hi {{ full_name }},</p>
+
+<p>
+    Thank you for your order! We've successfully received and confirmed your rental request.
+</p>
+
+<p><strong>Order Details:</strong></p>
+<ul>
+    <li><strong>Order Code:</strong> {{ order_code }}</li>
+    <li><strong>Start Date:</strong> {{ start_date }}</li>
+    <li><strong>End Date:</strong> {{ end_date }}</li>
+</ul>
+
+<p>
+    Your items are reserved for the selected dates and will be ready as scheduled.
+    If your order includes pickup, our team will coordinate the timing with you.
+    If this is a customer pickup, you'll receive pickup instructions prior to your start date.
+</p>
+
+<p>
+    If you need to make any changes or have questions, please reply to this email and we'll be happy to help.
+</p>
+
+<p>
+    Thank you again for choosing {{ company_name }}.
+</p>
+
+<p>
+    Best regards,<br>
+    {{ company_name }}
+</p>
+
+</body>
+</html>
