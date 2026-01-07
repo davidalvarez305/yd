@@ -1,3 +1,4 @@
+import calendar
 from datetime import timedelta
 import json
 import mimetypes
@@ -435,3 +436,16 @@ def generate_order_code():
         secrets.choice(ALPHANUMERIC_CHARS)
         for _ in range(ORDER_CODE_LENGTH)
     )
+
+def project_end_of_month(actual, as_of=None):
+    if actual is None:
+        return 0
+
+    today = as_of or timezone.localdate()
+    days_elapsed = today.day
+    days_in_month = calendar.monthrange(today.year, today.month)[1]
+
+    if days_elapsed >= days_in_month:
+        return actual
+
+    return (actual / days_elapsed) * days_in_month
