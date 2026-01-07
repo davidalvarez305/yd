@@ -123,7 +123,12 @@ class OrderManager:
 
         # Reserve items on order & log inventory event
         for item in self.order.items.all():
-            item.reserve_item()
+            item.reserve_item(
+                quantity=item.units,
+                start_date=data.get('start_date'),
+                end_date=data.get('end_date'),
+                order=self,
+            )
 
         # Report conversion event
         self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.order)

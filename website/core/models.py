@@ -7,11 +7,10 @@ from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import Q, Sum, Case, When, IntegerField, F, Window, Min
-from django.db.models.functions import Coalesce
+from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
-from website import settings
 from core.enums import LeadActivityEnum, LeadTaskEnum
+from core.managers.item import ItemInventoryManager
 from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -1497,20 +1496,6 @@ class ItemStateChoices(models.TextChoices):
     SOLD = 'Sold', 'Sold'
     DECOMMISSIONED = 'Decommissioned', 'Decommissioned'
 
-AVAILABILITY_DELTA = Case(
-    When(state__state__in=[
-        ItemStateChoices.PURCHASED,
-        ItemStateChoices.RETURNED,
-    ], then=F('quantity')),
-    When(state__state__in=[
-        ItemStateChoices.RESERVED,
-        ItemStateChoices.SOLD,
-        ItemStateChoices.DECOMMISSIONED,
-    ], then=-F('quantity')),
-    default=0,
-    output_field=IntegerField(),
-)
-
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True, db_index=True)
@@ -1519,65 +1504,10 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
-
-    def available_units_on_date(self, on_date):
-        result = self.state_changes.filter(
-            target_date__lte=on_date,
-        ).aggregate(
-            total=Sum(AVAILABILITY_DELTA)
-        )
-
-        return result['total'] or 0
-
-    def available_units_for_range(self, start_date, end_date):
-        qs = (
-            self.state_changes
-            .filter(target_date__lt=end_date)
-            .annotate(delta=AVAILABILITY_DELTA)
-            .values('target_date')
-            .annotate(day_delta=Sum('delta'))
-            .order_by('target_date')
-            .annotate(
-                running_total=Window(
-                    expression=Sum('day_delta'),
-                    order_by=F('target_date').asc(),
-                )
-            )
-            .filter(target_date__gte=start_date)
-            .aggregate(
-                min_available=Coalesce(Min('running_total'), 0)
-            )
-        )
-
-        return qs['min_available']
     
-    @transaction.atomic
-    def reserve_item(self, quantity, start_date, end_date, order):
-        (
-            ItemStateChangeHistory.objects
-            .select_for_update()
-            .filter(
-                item=self,
-                target_date__lt=end_date,
-            )
-        )
-
-        available = self.available_units_for_range(start_date, end_date)
-
-        if available < quantity:
-            raise ValidationError(
-                f"Only {available} units available for selected dates"
-            )
-
-        state = ItemState.objects.get(state=ItemStateChoices.RESERVED)
-
-        ItemStateChangeHistory.objects.create(
-            item=self,
-            order=order,
-            state=state,
-            quantity=quantity,
-            target_date=start_date,
-        )
+    @property
+    def inventory(self):
+        return ItemInventoryManager(self)
 
     class Meta:
         db_table = 'item'
@@ -1595,13 +1525,14 @@ class ItemState(models.Model):
 class ItemStateChangeHistory(models.Model):
     item_state_change_history_id = models.BigAutoField(primary_key=True)
     item = models.ForeignKey(Item, related_name='state_changes', on_delete=models.CASCADE)
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    order = models.ForeignKey('Order', null=True, on_delete=models.CASCADE)
     state = models.ForeignKey(ItemState, on_delete=models.RESTRICT)
     quantity = models.PositiveIntegerField()
     target_date = models.DateField()
 
     class Meta:
         db_table = 'item_state_change_history'
+        ordering = ['target_date', 'item_state_change_history_id']
         indexes = [
             models.Index(fields=['item', 'target_date']),
         ]
@@ -1612,29 +1543,8 @@ class Order(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     code = models.CharField(max_length=8, unique=True, db_index=True)
     user = models.ForeignKey(User, db_column='user_id', related_name='orders', on_delete=models.RESTRICT, null=True)
-
-    def initiate_order_placed_workflow(self, data):
-        status = OrderStatus.objects.get(status=OrderStatusChoices.AWAITING_PREPARATION)
-
-        OrderStatusChangeHistory.objects.create(
-            order=self,
-            status=status,
-            user=data.get('user'),
-            lead=data.get('lead'),
-        )
-
-        for item in self.items.all():
-            item.reserve_item(
-                quantity=item.units,
-                start_date=data.get('start_date'),
-                end_date=data.get('end_date'),
-                order=self,
-            )
-
-        if self.services.filter(service='Delivery').exists():
-            # Create delivery
-            return
-
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -1871,8 +1781,8 @@ class DriverStopStatus(models.Model):
 class DriverStopStatusChangeHistory(models.Model):
     driver_stop_status_change_history_id = models.AutoField(primary_key=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    driver_stop = models.ForeignKey(DriverStop, db_column='driver_stop_id', related_name='changes', on_delete=models.CASCADE)
-    status = models.ForeignKey(DriverStopStatus, db_column='driver_stop_status_id', on_delete=models.RESTRICT)
+    driver_stop = models.ForeignKey(DriverStop, db_column='driver_stop_id', related_name='status_changes', on_delete=models.CASCADE)
+    driver_stop_status = models.ForeignKey(DriverStopStatus, db_column='driver_stop_status_id', on_delete=models.RESTRICT)
 
     def __str__(self):
         local_dt = timezone.localtime(self.date_created)
