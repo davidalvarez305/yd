@@ -978,6 +978,10 @@ class Event(models.Model):
         return f"{self.lead.full_name} - ${self.amount:.2f}"
     
     @property
+    def has_bartending(self):
+        return self.quote.quote_services.filter(service__service='Bartender').exists()
+    
+    @property
     def full_address(self):
         parts = [self.street_address, self.street_address_two, self.city, self.zip_code, "FL"]
         return ", ".join(filter(None, parts))

@@ -7,7 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import OuterRef, Subquery, Q, F, QuerySet, Count, Sum
+from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, Value, Exists, OuterRef
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.db import transaction
@@ -1499,6 +1499,61 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
             'filter_form': form,
         })
+
+        # Revenue metrics by business segment
+        events = Event.objects.filter(
+            quote__event_date__range=(date_from, date_to)
+        )
+        
+        bartending_service_exists = QuoteService.objects.filter(
+            quote=OuterRef('quote_id'),
+            service__service='Bartender',
+        )
+
+        events = events.annotate(
+            is_bartending=Exists(bartending_service_exists)
+        )
+
+        event_metrics = events.aggregate(
+            
+            # totals
+            bartending_revenue=Sum(
+                Case(
+                    When(is_bartending=True, then='amount'),
+                    default=Value(0),
+                )
+            ),
+            rental_revenue=Sum(
+                Case(
+                    When(is_bartending=False, then='amount'),
+                    default=Value(0),
+                )
+            ),
+
+            # counts
+            bartending_event_count=Count(
+                Case(
+                    When(is_bartending=True, then=1),
+                )
+            ),
+            rental_event_count=Count(
+                Case(
+                    When(is_bartending=False, then=1),
+                )
+            ),
+
+            # averages
+            bartending_aov=Avg(
+                Case(
+                    When(is_bartending=True, then='amount'),
+                )
+            ),
+            rental_aov=Avg(
+                Case(
+                    When(is_bartending=False, then='amount'),
+                )
+            ),
+        )
 
         return ctx
 
