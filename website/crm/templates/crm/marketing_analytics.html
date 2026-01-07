@@ -126,40 +126,42 @@
         <thead>
             <tr>
                 <th class="bg-gray-100/75 px-3 py-4 text-left font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                    Metric
+                    Segment
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                    Bartending
+                    Events
                 </th>
                 <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
-                    Rentals
+                    Total Revenue
+                </th>
+                <th class="bg-gray-100/75 px-3 py-4 text-center font-semibold text-gray-900 dark:bg-gray-700/25 dark:text-gray-50">
+                    Avg Event Value
                 </th>
             </tr>
         </thead>
         <tbody>
-            <!-- Event Count -->
+            <!-- Bartending -->
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                <td class="p-3 font-medium">Events</td>
-                <td class="p-3 text-center">{{ bartending_event_count|default:0 }}</td>
-                <td class="p-3 text-center">{{ rental_event_count|default:0 }}</td>
-            </tr>
-
-            <!-- Revenue -->
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                <td class="p-3 font-medium">Total Revenue</td>
+                <td class="p-3 font-medium">Bartending</td>
+                <td class="p-3 text-center">
+                    {{ bartending_event_count|default:0 }}
+                </td>
                 <td class="p-3 text-center">
                     ${{ bartending_revenue|default:0|floatformat:2|intcomma }}
                 </td>
                 <td class="p-3 text-center">
-                    ${{ rental_revenue|default:0|floatformat:2|intcomma }}
+                    ${{ bartending_aov|default:0|floatformat:2|intcomma }}
                 </td>
             </tr>
 
-            <!-- AOV -->
+            <!-- Rentals -->
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                <td class="p-3 font-medium">Average Event Value</td>
+                <td class="p-3 font-medium">Rentals</td>
                 <td class="p-3 text-center">
-                    ${{ bartending_aov|default:0|floatformat:2|intcomma }}
+                    {{ rental_event_count|default:0 }}
+                </td>
+                <td class="p-3 text-center">
+                    ${{ rental_revenue|default:0|floatformat:2|intcomma }}
                 </td>
                 <td class="p-3 text-center">
                     ${{ rental_aov|default:0|floatformat:2|intcomma }}
