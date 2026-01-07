@@ -7,7 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, Value, Exists, OuterRef
+from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.db import transaction
@@ -1520,13 +1520,13 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             bartending_revenue=Sum(
                 Case(
                     When(is_bartending=True, then='amount'),
-                    default=Value(0),
+                    output_field=FloatField(),
                 )
             ),
             rental_revenue=Sum(
                 Case(
                     When(is_bartending=False, then='amount'),
-                    default=Value(0),
+                    output_field=FloatField(),
                 )
             ),
 
@@ -1546,11 +1546,13 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             bartending_aov=Avg(
                 Case(
                     When(is_bartending=True, then='amount'),
+                    output_field=FloatField(),
                 )
             ),
             rental_aov=Avg(
                 Case(
                     When(is_bartending=False, then='amount'),
+                    output_field=FloatField(),
                 )
             ),
         )
