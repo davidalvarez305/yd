@@ -1557,6 +1557,17 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             ),
         )
 
+        ctx.update({
+            'bartending_revenue': event_metrics['bartending_revenue'] or 0,
+            'rental_revenue': event_metrics['rental_revenue'] or 0,
+
+            'bartending_event_count': event_metrics['bartending_event_count'] or 0,
+            'rental_event_count': event_metrics['rental_event_count'] or 0,
+
+            'bartending_aov': event_metrics['bartending_aov'] or 0,
+            'rental_aov': event_metrics['rental_aov'] or 0,
+        })
+
         return ctx
 
 class EventSendClientConfirmation(CRMBaseView, AlertMixin, FormView):
