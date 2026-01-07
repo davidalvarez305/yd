@@ -1,4 +1,3 @@
-from datetime import _Date
 from django.utils import timezone
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -86,7 +85,7 @@ class ItemInventoryManager:
         )
     
     @transaction.atomic
-    def return_items(self, order: Order, target_date: _Date):
+    def return_items(self, order: Order, target_date):
         Item.objects.select_for_update().get(pk=self.item.pk)
         booked_item = order.items.filter(item=self.item).first()
         if not booked_item:
@@ -124,7 +123,7 @@ class ItemInventoryManager:
         )
     
     @transaction.atomic
-    def purchase(self, quantity: int, target_date: _Date):
+    def purchase(self, quantity: int, target_date):
         state = ItemState.objects.get(state=ItemStateChoices.PURCHASED)
 
         ItemStateChangeHistory.objects.create(
@@ -135,7 +134,7 @@ class ItemInventoryManager:
         )
     
     @transaction.atomic
-    def decommission(self, quantity: int, target_date: _Date):
+    def decommission(self, quantity: int, target_date):
         state = ItemState.objects.get(state=ItemStateChoices.DECOMMISSIONED)
 
         ItemStateChangeHistory.objects.create(
