@@ -50,6 +50,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
+class UserRoleChoices(models.TextChoices):
+    DRIVER = 'Driver'
+    WAREHOUSE_STAFF = 'Warehouse Staff'
+
+class UserRole(models.Model):
+    user_role_id = models.AutoField(primary_key=True)
+    role = models.CharField(max_length=60, choices=UserRoleChoices)
+    user = models.ForeignKey(User, related_name='roles', db_column='user_id', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.role
+
+    class Meta:
+        db_table = 'user_role'
+
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'LEAD_CREATED'
     INVOICE_SENT = 'INVOICE_SENT'
@@ -1672,7 +1687,6 @@ class OrderStatusChangeHistory(models.Model):
     order = models.ForeignKey(Order, db_column='order_id', related_name='changes', on_delete=models.RESTRICT)
     status = models.ForeignKey(OrderStatus, db_column='order_status_id', on_delete=models.RESTRICT)
     user = models.ForeignKey(User, db_column='user_id', null=True, on_delete=models.RESTRICT)
-    lead = models.ForeignKey(Lead, db_column='lead_id', null=True, on_delete=models.SET_NULL)
 
     @property
     def previous_status(self):
@@ -1707,6 +1721,50 @@ class OrderStatusChangeHistory(models.Model):
         db_table = 'order_status_change_history'
         ordering = ['date_created']
 
+class OrderTaskChoices(models.TextChoices):
+    LOAD_ORDER_ITEMS = 'Load Order Items'
+    UNLOAD_ORDER_ITEMS = 'Unload Order Items'
+
+class OrderTask(models.Model):
+    order_task_id = models.AutoField(primary_key=True)
+    task = models.CharField(max_length=10, choices=OrderTaskChoices)
+
+    def __str__(self):
+        return self.task
+
+    class Meta:
+        db_table = 'order_task'
+
+class OrderTaskStatusChoices(models.TextChoices):
+    ASSIGNED = 'Assigned'
+    UNABLE_TO_COMPLETE = 'Unable To Complete'
+    COMPLETED = 'Completed'
+
+class OrderTaskStatus(models.Model):
+    order_task_status_id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=10, choices=OrderTaskStatusChoices)
+
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        db_table = 'order_task_status'
+
+class OrderTaskLog(models.Model):
+    order_task_log_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, related_name='tasks', db_column='order_id', on_delete=models.CASCADE)
+    order_task = models.ForeignKey(OrderTask, db_column='order_task_id', on_delete=models.RESTRICT)
+    assigned_to = models.ForeignKey(User, db_column='completed_by', related_name='order_tasks', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+    order_task_status = models.ForeignKey(OrderTaskStatus, db_column='order_task_status_id', on_delete=models.RESTRICT)
+    notes = models.TextField(null=True)
+
+    def __str__(self):
+        return self.task
+
+    class Meta:
+        db_table = 'order_task_log'
+
 class Address(models.Model):
     address_id = models.AutoField(primary_key=True)
     address_line_1 = models.CharField(max_length=255)
@@ -1718,27 +1776,34 @@ class Address(models.Model):
     class Meta:
         db_table = 'address'
 
-class DriverStopTypeChoices(models.TextChoices):
+class OrderAddressTypeChoices(models.TextChoices):
     DELIVERY = 'Delivery', 'Delivery'
     PICKUP = 'Pickup', 'Pickup'
 
-class DriverStopTimeWindowTypeChoices(models.TextChoices):
+class OrderAddressTimeWindowTypeChoices(models.TextChoices):
     EXACT = 'Exact', 'Exact Time'
     FLEX = 'Flex', 'Flexible (4-hour window)'
+
+class OrderAddress(models.Model):
+    order_address_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, related_name='addresses', db_column='order_id', on_delete=models.CASCADE)
+    address = models.ForeignKey(Address, db_column='address_id', on_delete=models.RESTRICT)
+    stop_type = models.CharField(max_length=60, choices=OrderAddressTypeChoices)
+    time_window = models.CharField(max_length=60, choices=OrderAddressTimeWindowTypeChoices)
+    contact_name = models.CharField(max_length=255)
+    contact_phone = models.CharField(max_length=30)
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'order_address'
 
 class DriverStop(models.Model):
     driver_stop_id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=255, unique=True, null=True, db_index=True)
-    order = models.ForeignKey(Order, db_column='order_id', related_name='driver_stops', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='driver_stops', on_delete=models.RESTRICT)
-    address = models.ForeignKey(Address, on_delete=models.RESTRICT)
-    stop_type = models.CharField(max_length=10, choices=DriverStopTypeChoices)
-    contact_name = models.CharField(max_length=255)
-    contact_phone = models.CharField(max_length=30)
-    time_window_type = models.CharField(max_length=10, choices=DriverStopTimeWindowTypeChoices)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    web_tracking_link = models.TextField()
+    order_address = models.OneToOneField(OrderAddress, on_delete=models.CASCADE, db_column='order_address_is')
+    web_tracking_link = models.TextField(null=True)
 
     def __str__(self):
         return f"{self.stop_type} for Order {self.order.code}"
