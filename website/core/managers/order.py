@@ -5,9 +5,10 @@ from django.template.loader import render_to_string
 from website import settings
 
 from core.email import email_service
-from core.models import AddedOrRemoveActionChoices, Item, Lead, LeadStatusEnum, Message, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, PhoneCallTranscription, Service, User
+from core.models import AddedOrRemoveActionChoices, DriverStop, DriverStopTypeChoices, Item, Lead, LeadStatusEnum, Message, OrderAddress, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, Service, User, UserRoleChoices
 from core.messaging import messaging_service
 from core.ai import ai_agent
+from core.delivery import delivery_service
 
 class InvalidOrderTransitionError(ValidationError):
     """Raised when an invalid order state transition is attempted."""
@@ -271,17 +272,51 @@ class OrderManager:
         )
     
     def _on_awaiting_preparation(self):
-        # place in task queue to be cleared by warehouse staff
-        return
+        order_task = OrderTask.objects.get(task=OrderTaskChoices.LOAD_ORDER_ITEMS)
+        order_task_status = OrderTaskStatus.objects.get(status=OrderTaskStatusChoices.ASSIGNED)
+        user = User.objects.filter(roles__role=UserRoleChoices.WAREHOUSE_STAFF).first()
+
+        OrderTaskLog.objects.create(
+            order_task=order_task,
+            order=self.order,
+            order_task_status=order_task_status,
+            assigned_to=user,
+        )
 
     def _on_ready_for_dispatch(self):
-        # e.g. assign driver, notify warehouse
-        pass
+
+        # query available driver
+        user = find_available_driver()
+        user = User.objects.filter(roles__role='Driver').first()
+
+        # get delivery address
+        order_address = self.order.addresses.filter(stop_type=DriverStopTypeChoices.DELIVERY).first()
+
+        # assign driver
+        stop = DriverStop(
+            order=self.order,
+            user=user,
+            order_address=order_address,
+        )
+
+        stop.save()
+
+        # create plan
+        plan = delivery_service.create_plan(data=data)
+        
+        # add stop
+        route_stop = plan.add_stop()
+        stop.external_id = route_stop.external_id
+        stop.web_tracking_link = route_stop.web_tracking_link
+
+        stop.save()
+
+        # notify user that truck will be arriving at X - Y time window
+        self._send_order_ready_for_dispatch_email()
 
     def _on_dispatched(self):
         # send customer tracking link
         # record action in driver log
-        #
         pass
 
     def _on_delivered(self):
