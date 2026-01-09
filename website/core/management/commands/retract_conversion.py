@@ -33,6 +33,7 @@ class Command(BaseCommand):
             'phone_number': lead.phone_number,
             'ip_address': lead.lead_marketing.ip,
             'user_agent': lead.lead_marketing.user_agent,
+            'event_time': lead.created_at.timestamp()
         }
 
         for metadata in lead.lead_marketing.metadata.all():
