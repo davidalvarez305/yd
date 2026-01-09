@@ -1727,7 +1727,7 @@ class OrderTaskChoices(models.TextChoices):
 
 class OrderTask(models.Model):
     order_task_id = models.AutoField(primary_key=True)
-    task = models.CharField(max_length=10, choices=OrderTaskChoices)
+    task = models.CharField(max_length=30, choices=OrderTaskChoices)
 
     def __str__(self):
         return self.task
@@ -1742,7 +1742,7 @@ class OrderTaskStatusChoices(models.TextChoices):
 
 class OrderTaskStatus(models.Model):
     order_task_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(max_length=10, choices=OrderTaskStatusChoices)
+    status = models.CharField(max_length=30, choices=OrderTaskStatusChoices)
 
     def __str__(self):
         return self.status
@@ -1810,7 +1810,6 @@ class DriverStop(models.Model):
 
     class Meta:
         db_table = 'driver_stop'
-        unique_together = ('order', 'stop_type')
 
 class DriverStopImage(models.Model):
     driver_stop_image_id = models.AutoField(primary_key=True)
