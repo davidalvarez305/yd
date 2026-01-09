@@ -112,7 +112,6 @@ class GoogleAdsConversionService(ConversionService):
 
             conversion_adjustment.adjustment_type = conversion_adjustment_type
             conversion_adjustment.adjustment_date_time = payload["adjustment_date_time"]
-            conversion_adjustment.order_id = str(payload["order_id"])
 
             service = self.client.get_service("ConversionAdjustmentUploadService")
             request = self.client.get_type("UploadConversionAdjustmentsRequest")
