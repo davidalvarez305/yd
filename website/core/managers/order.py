@@ -1,11 +1,12 @@
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Count, Max
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.template.loader import render_to_string
 from website import settings
 
 from core.email import email_service
-from core.models import AddedOrRemoveActionChoices, DriverStop, DriverStopTypeChoices, Item, Lead, LeadStatusEnum, Message, OrderAddress, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, Service, User, UserRoleChoices
+from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, DriverStopStatus, DriverStopStatusChangeHistory, DriverStopStatusChoices, Item, Lead, LeadStatusEnum, Message, OrderAddressTypeChoices, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, RouteZone, Service, User, UserRoleChoices
 from core.messaging import messaging_service
 from core.ai import ai_agent
 from core.delivery import delivery_service
@@ -285,17 +286,17 @@ class OrderManager:
 
     def _on_ready_for_dispatch(self):
 
+        stop_type = OrderAddressTypeChoices.DELIVERY
+
         # query available driver
-        user = find_available_driver()
-        user = User.objects.filter(roles__role='Driver').first()
+        driver_route = self._assign_driver_route_for_order(stop_type=stop_type)
 
         # get delivery address
-        order_address = self.order.addresses.filter(stop_type=DriverStopTypeChoices.DELIVERY).first()
+        order_address = self.order.addresses.filter(stop_type=stop_type).first()
 
         # assign driver
         stop = DriverStop(
-            order=self.order,
-            user=user,
+            driver_route=driver_route,
             order_address=order_address,
         )
 
@@ -305,7 +306,7 @@ class OrderManager:
         plan = delivery_service.create_plan(data=data)
         
         # add stop
-        route_stop = plan.add_stop()
+        route_stop = plan.add_stop(stop=stop)
         stop.external_id = route_stop.external_id
         stop.web_tracking_link = route_stop.web_tracking_link
 
@@ -314,36 +315,72 @@ class OrderManager:
         # notify user that truck will be arriving at X - Y time window
         self._send_order_ready_for_dispatch_email()
 
-    def _on_dispatched(self):
+    def _on_dispatched(self, driver_stop: DriverStop):
+        
         # send customer tracking link
-        # record action in driver log
-        pass
+        self._send_user_dispatch_with_live_tracking_link()
 
-    def _on_delivered(self):
+        # record action in driver log
+        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.OUT_FOR_DELIVERY)
+
+        DriverStopStatusChangeHistory.objects.create(
+            driver_stop=driver_stop,
+            driver_stop_status=driver_stop_status,
+        )
+
+    def _on_delivered(self, driver_stop: DriverStop):
+
         # send customer picture
+        self._send_user_delivery_confirmation()
+
         # record action in driver log
+        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.COMPLETED)
+
+        DriverStopStatusChangeHistory.objects.create(
+            driver_stop=driver_stop,
+            driver_stop_status=driver_stop_status,
+        )
         pass
 
-    def _on_picked_up(self):
+    def _on_picked_up(self, driver_stop: DriverStop):
+
+        # send customer picture
+        self._send_user_pick_up_confirmation()
+
+        # record action in driver log
+        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.COMPLETED)
+
+        DriverStopStatusChangeHistory.objects.create(
+            driver_stop=driver_stop,
+            driver_stop_status=driver_stop_status,
+        )
+
+        # record action in inventory ledger
         for item in self.order.items.all():
             item.inventory.return_items(
                 order=self.order,
                 target_date=timezone.now().date()
             )
         
+        # finalize order status
         self.finalize()
 
     def _on_customer_picked_up(self):
-        # Items are now physically offsite, but still reserved
-        pass
+       self._send_customer_pickup_confirmation_email()
     
     def _on_customer_returned(self):
+        
+        # send customer notification e-mail
+        self._send_customer_return_confirmation_email()
+
+        # record action in inventory ledger
         for item in self.order.items.all():
             item.inventory.return_items(
                 order=self.order,
                 target_date=timezone.now().date()
             )
         
+        # finalize order status
         self.finalize()
     
     def _on_finalized(self):
@@ -542,3 +579,71 @@ class OrderManager:
 
         order_item.units = new_units
         order_item.save(update_fields=["units"])
+    
+    @transaction.atomic
+    def _assign_driver_route_for_order(self, stop_type):
+        
+        # Resolve delivery address
+        order_address = (
+            self.order.addresses
+            .select_related("address__zip_code")
+            .filter(stop_type=stop_type)
+            .first()
+        )
+
+        if not order_address:
+            raise ValidationError("Order has no address")
+
+        zip_code = order_address.address.zip_code
+
+        # Resolve route zone
+        try:
+            route_zone = RouteZone.objects.select_for_update().get(zip_code=zip_code)
+        except RouteZone.DoesNotExist:
+            raise ValidationError(f"No route zone configured for ZIP {zip_code}")
+
+        target_date = self.order.start_date.date()
+
+        # 3️⃣ Try to reuse ANY existing route with capacity
+        existing_route = (
+            DriverRoute.objects
+            .select_for_update()
+            .annotate(stop_count=Count("stops"))
+            .filter(
+                route_zone=route_zone,
+                target_date=target_date,
+            )
+            .order_by("date_created")
+            .first()
+        )
+
+        if existing_route and existing_route.stop_count < existing_route.user.max_daily_stops:
+            return existing_route
+
+        # Find next available driver (round-robin)
+        available_driver = (
+            User.objects
+            .filter(roles__role=UserRoleChoices.DRIVER)
+            .annotate(
+                has_route_today=Exists(
+                    DriverRoute.objects.filter(
+                        user=OuterRef("pk"),
+                        target_date=target_date,
+                    )
+                ),
+                last_assigned=Max("driver_routes__date_created"),
+            )
+            .filter(has_route_today=False)
+            .order_by("last_assigned", "id")
+            .first()
+        )
+
+        if not available_driver:
+            raise ValidationError("No available drivers for this date")
+
+        # Create new route (spillover)
+        return DriverRoute.objects.create(
+            user=available_driver,
+            route_zone=route_zone,
+            target_date=target_date,
+        )

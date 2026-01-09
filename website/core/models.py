@@ -1765,16 +1765,45 @@ class OrderTaskLog(models.Model):
     class Meta:
         db_table = 'order_task_log'
 
+class State(models.Model):
+    state_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    state_code = models.CharField(max_length=2)
+
+    class Meta:
+        db_table = 'state'
+
+class City(models.Model):
+    city_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    state = models.ForeignKey(State, related_name='cities', db_column='state_id', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'city'
+
+class ZipCode(models.Model):
+    zip_code = models.CharField(max_length=10, primary_key=True, unique=True, db_index=True)
+    city = models.ForeignKey(City, related_name='zip_codes', db_column='city_id', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'zip_code'
+
 class Address(models.Model):
     address_id = models.AutoField(primary_key=True)
     address_line_1 = models.CharField(max_length=255)
     address_line_2 = models.CharField(max_length=255, null=True, blank=True)
-    city = models.CharField(max_length=100)
-    state_code = models.CharField(max_length=2, default='FL')
-    postal_code = models.CharField(max_length=20)
+    zip_code = models.ForeignKey(ZipCode, related_name='addresses', db_column='zip_code', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'address'
+
+class RouteZone(models.Model):
+    route_zone_id = models.AutoField(primary_key=True)
+    zip_code = models.ForeignKey(ZipCode, related_name='zip_codes', db_column='zip_code', on_delete=models.CASCADE)
+    delivery_fee = models.FloatField()
+
+    class Meta:
+        db_table = 'route_zone'
 
 class OrderAddressTypeChoices(models.TextChoices):
     DELIVERY = 'Delivery', 'Delivery'
@@ -1798,11 +1827,28 @@ class OrderAddress(models.Model):
     class Meta:
         db_table = 'order_address'
 
+class DriverRoute(models.Model):
+    driver_route_id = models.AutoField(primary_key=True)
+    external_id = models.CharField(max_length=255, unique=True, db_index=True)
+    user = models.ForeignKey(User, related_name='driver_routes', on_delete=models.RESTRICT)
+    target_date = models.DateField()
+    route_zone = models.ForeignKey(RouteZone, related_name='driver_routes', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'driver_route'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'target_date'],
+                name='unique_driver_per_date'
+            ),
+        ]
+
 class DriverStop(models.Model):
     driver_stop_id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=255, unique=True, null=True, db_index=True)
-    user = models.ForeignKey(User, related_name='driver_stops', on_delete=models.RESTRICT)
-    order_address = models.OneToOneField(OrderAddress, on_delete=models.CASCADE, db_column='order_address_is')
+    driver_route = models.ForeignKey(DriverRoute, related_name='stops', on_delete=models.CASCADE)
+    order_address = models.OneToOneField(OrderAddress, on_delete=models.CASCADE, db_column='order_address_id')
     web_tracking_link = models.TextField(null=True)
 
     def __str__(self):

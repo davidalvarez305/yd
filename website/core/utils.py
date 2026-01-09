@@ -449,3 +449,9 @@ def project_end_of_month(actual, as_of=None):
         return actual
 
     return (actual / days_elapsed) * days_in_month
+    
+def driver_route_is_full(driver_route):
+    return (
+        driver_route.stops.count()
+        >= settings.MAX_DRIVER_STOPS_PER_DAY
+    )
