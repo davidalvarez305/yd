@@ -1580,6 +1580,11 @@ class Order(models.Model):
     
     def __str__(self):
         return self.code
+    
+    @property
+    def manager(self):
+        from core.managers.order import OrderManager
+        return OrderManager(self)
 
     class Meta:
         db_table = 'order'

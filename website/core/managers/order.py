@@ -1,3 +1,6 @@
+from dataclasses import dataclass, field
+from typing import Optional, Dict, Any
+
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Count, Max
 from django.core.exceptions import ValidationError
@@ -10,6 +13,13 @@ from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, Dri
 from core.messaging import messaging_service
 from core.ai import ai_agent
 from core.delivery import delivery_service
+
+@dataclass
+class TransitionContext:
+    user: Optional[User] = None
+    driver_stop: Optional[DriverStop] = None
+    source: str = "system"
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 class InvalidOrderTransitionError(ValidationError):
     """Raised when an invalid order state transition is attempted."""
@@ -93,7 +103,9 @@ class OrderManager:
         return new_status in self.allowed_transitions()
 
     @transaction.atomic
-    def transition_to(self, new_status: str, user: User | None, lead: Lead | None):
+    def transition_to(self, new_status: str, *, context: TransitionContext | None = None):
+        context = context or TransitionContext()
+
         if self.current_status and not self.can_transition_to(new_status):
             raise InvalidOrderTransitionError(
                 f"Cannot transition order {self.order.code} "
@@ -103,32 +115,33 @@ class OrderManager:
         status = OrderStatus.objects.get(status=new_status)
 
         self.order.status = status
-        self.order.save(update_fields=['status'])
+        self.order.save(update_fields=["status"])
 
         OrderStatusChangeHistory.objects.create(
             order=self.order,
             status=status,
-            user=user,
-            lead=lead,
+            user=context.user,
         )
 
-        self._run_hooks(new_status)
+        self._run_hooks(new_status, context)
     
     @transaction.atomic
-    def _force_transition(self, new_status: str, user: User | None, lead: Lead | None):
+    def _force_transition(self, new_status: str, *, context: TransitionContext | None = None):
+        context = context or TransitionContext()
+
         status = OrderStatus.objects.get(status=new_status)
 
         self.order.status = status
-        self.order.save(update_fields=['status'])
+        self.order.save(update_fields=["status"])
 
         OrderStatusChangeHistory.objects.create(
             order=self.order,
             status=status,
-            user=user,
-            lead=lead,
+            user=context.user,
+            lead=context.lead,
         )
 
-        self._run_hooks(new_status)
+        self._run_hooks(new_status, context)
     
     @transaction.atomic
     def update_order_items(self, updated_items: list[dict]):
@@ -165,7 +178,7 @@ class OrderManager:
 
         self.transition_to(OrderStatusChoices.ORDER_PLACED)
     
-    def cancel_order(self, user: User | None = None, lead: Lead | None = None):
+    def cancel_order(self, user: User | None = None):
         if not self.current_status:
             raise InvalidOrderTransitionError("Order has no status yet")
 
@@ -176,21 +189,37 @@ class OrderManager:
 
         return self._force_transition(
             OrderStatusChoices.ORDER_CANCELLED,
-            user=user,
-            lead=lead,
+            context=TransitionContext(
+                user=user,
+                source="user",
+                user=user,
+            )
         )
     
     def mark_ready_for_dispatch(self):
         return self.transition_to(OrderStatusChoices.READY_FOR_DISPATCH)
 
-    def dispatch(self):
-        return self.transition_to(OrderStatusChoices.DISPATCHED)
+    def dispatch(self, *, driver_stop: DriverStop, user: User | None = None):
+        return self.transition_to(
+            OrderStatusChoices.DISPATCHED,
+            context=TransitionContext(
+                user=user,
+                driver_stop=driver_stop,
+                source="driver"
+            )
+        )
 
     def mark_delivered(self):
         return self.transition_to(OrderStatusChoices.DELIVERED)
 
     def mark_pending_pickup(self):
         return self.transition_to(OrderStatusChoices.PENDING_PICK_UP)
+    
+    def customer_picked_up(self):
+        return self.transition_to(OrderStatusChoices.CUSTOMER_PICKED_UP)
+    
+    def customer_returned(self):
+        return self.transition_to(OrderStatusChoices.CUSTOMER_RETURNED)
 
     def pickup_completed(self):
         return self.transition_to(OrderStatusChoices.PICKED_UP)
@@ -198,26 +227,30 @@ class OrderManager:
     def finalize(self):
         return self.transition_to(OrderStatusChoices.FINALIZED)
 
-    def _run_hooks(self, new_status):
+    def _run_hooks(self, new_status, context: TransitionContext):
         match new_status:
             case OrderStatusChoices.ORDER_PLACED:
-                self._on_place_order()
+                self._on_place_order(context)
             case OrderStatusChoices.ORDER_CANCELLED:
-                self._on_cancel_order()
+                self._on_cancel_order(context)
             case OrderStatusChoices.AWAITING_PREPARATION:
-                self._on_awaiting_preparation()
+                self._on_awaiting_preparation(context)
             case OrderStatusChoices.READY_FOR_DISPATCH:
-                self._on_ready_for_dispatch()
+                self._on_ready_for_dispatch(context)
             case OrderStatusChoices.DISPATCHED:
-                self._on_dispatched()
+                self._on_dispatched(context)
             case OrderStatusChoices.DELIVERED:
-                self._on_delivered()
+                self._on_delivered(context)
             case OrderStatusChoices.PICKED_UP:
-                self._on_picked_up()
+                self._on_picked_up(context)
+            case OrderStatusChoices.CUSTOMER_PICKED_UP:
+                self._on_customer_picked_up(context)
+            case OrderStatusChoices.CUSTOMER_RETURNED:
+                self._on_customer_returned(context)
             case OrderStatusChoices.FINALIZED:
-                self._on_finalized()
+                self._on_finalized(context)
 
-    def _on_place_order(self):
+    def _on_place_order(self, context: TransitionContext):
         # Report conversion event
         self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.order)
         
@@ -225,7 +258,7 @@ class OrderManager:
         self._send_order_placed_confirmation_email()
         
         # Transition to next step in workflow
-        self.transition_to(OrderStatusChoices.AWAITING_PREPARATION)
+        self.transition_to(OrderStatusChoices.AWAITING_PREPARATION, context=TransitionContext(source="system"))
 
     def _send_order_placed_confirmation_email(self):
         html = render_to_string(
@@ -315,55 +348,60 @@ class OrderManager:
         # notify user that truck will be arriving at X - Y time window
         self._send_order_ready_for_dispatch_email()
 
-    def _on_dispatched(self, driver_stop: DriverStop):
-        
-        # send customer tracking link
+    def _on_dispatched(self, context: TransitionContext):
+        driver_stop = context.driver_stop
+        if not driver_stop:
+            raise RuntimeError("DISPATCHED requires driver_stop in context")
+
         self._send_user_dispatch_with_live_tracking_link()
 
-        # record action in driver log
-        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.OUT_FOR_DELIVERY)
+        status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.OUT_FOR_DELIVERY)
 
         DriverStopStatusChangeHistory.objects.create(
             driver_stop=driver_stop,
-            driver_stop_status=driver_stop_status,
+            driver_stop_status=status,
         )
 
-    def _on_delivered(self, driver_stop: DriverStop):
+    def _on_delivered(self, context: TransitionContext):
+        driver_stop = context.driver_stop
+        if not driver_stop:
+            raise RuntimeError("DELIVERED requires driver_stop")
 
-        # send customer picture
         self._send_user_delivery_confirmation()
 
-        # record action in driver log
-        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.COMPLETED)
+        status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.COMPLETED)
 
         DriverStopStatusChangeHistory.objects.create(
             driver_stop=driver_stop,
-            driver_stop_status=driver_stop_status,
+            driver_stop_status=status,
         )
-        pass
 
-    def _on_picked_up(self, driver_stop: DriverStop):
+    def _on_picked_up(self, context: TransitionContext):
+        driver_stop = context.driver_stop
+        if not driver_stop:
+            raise RuntimeError("PICKED_UP requires driver_stop")
 
-        # send customer picture
         self._send_user_pick_up_confirmation()
 
-        # record action in driver log
-        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.COMPLETED)
+        status = DriverStopStatus.objects.get(
+            status=DriverStopStatusChoices.COMPLETED
+        )
 
         DriverStopStatusChangeHistory.objects.create(
             driver_stop=driver_stop,
-            driver_stop_status=driver_stop_status,
+            driver_stop_status=status,
         )
 
-        # record action in inventory ledger
         for item in self.order.items.all():
             item.inventory.return_items(
                 order=self.order,
                 target_date=timezone.now().date()
             )
-        
-        # finalize order status
-        self.finalize()
+
+        self.transition_to(
+            OrderStatusChoices.FINALIZED,
+            context=TransitionContext(source="system")
+        )
 
     def _on_customer_picked_up(self):
        self._send_customer_pickup_confirmation_email()
@@ -382,6 +420,9 @@ class OrderManager:
         
         # finalize order status
         self.finalize()
+    
+    def _on_pending_pick_up():
+        return
     
     def _on_finalized(self):
         self._send_review_request()
@@ -640,9 +681,17 @@ class OrderManager:
 
         if not available_driver:
             raise ValidationError("No available drivers for this date")
+        
+        title = f"Order #{self.order.order_code} - {target_date.strftime('%m/%d/%Y')}"
 
-        # Create new route (spillover)
+        data = delivery_service.create_route(
+            route_date=target_date,
+            title=title,
+            drivers=drivers,
+        )
+        
         return DriverRoute.objects.create(
+            external_id=data.get('id'),
             user=available_driver,
             route_zone=route_zone,
             target_date=target_date,
