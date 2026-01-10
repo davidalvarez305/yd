@@ -461,10 +461,8 @@ class MessageReadView(CRMUpdateView):
             if is_read == "false" and message_pk:
                 message = Message.objects.filter(pk=message_pk).first()
                 if message:
-                    receiver = User.objects.filter(phone_number=message.text_to).first()
-                    if receiver and receiver.pk == request.user.pk:
-                        message.is_read = True
-                        message.save(update_fields=["is_read"])
+                    message.is_read = True
+                    message.save(update_fields=["is_read"])
 
             lead = Lead.objects.get(pk=lead_pk)
             return render(request, 'crm/lead_chat_messages.html', { 'lead': lead })
