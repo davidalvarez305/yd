@@ -112,8 +112,14 @@ class GoogleAdsConversionService(ConversionService):
 
             conversion_adjustment.adjustment_type = conversion_adjustment_type
             conversion_adjustment.adjustment_date_time = payload["adjustment_date_time"]
-            conversion_adjustment.gclid_date_time_pair.gclid = payload["gclid"]
-            conversion_adjustment.gclid_date_time_pair.conversion_date_time = payload["conversion_date_time"]
+            
+            if data.get('event_name') == "event_booked" and payload.get("event_id"):
+                conversion_adjustment.order_id = str(payload["event_id"])
+            elif payload.get("gclid") and payload.get("conversion_date_time"):
+                conversion_adjustment.gclid_date_time_pair.gclid = payload["gclid"]
+                conversion_adjustment.gclid_date_time_pair.conversion_date_time = (
+                    payload["conversion_date_time"]
+                )
 
             service = self.client.get_service("ConversionAdjustmentUploadService")
             request = self.client.get_type("UploadConversionAdjustmentsRequest")
