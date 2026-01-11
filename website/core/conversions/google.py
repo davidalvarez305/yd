@@ -4,6 +4,9 @@ from website import settings
 from core.logger import logger
 from .base import ConversionService
 from core.google.api import google_api_service
+from google.protobuf.json_format import MessageToDict
+from google.rpc import status_pb2
+
 
 class GoogleAdsConversionService(ConversionService):
     def __init__(self, **options: dict):
@@ -63,10 +66,13 @@ class GoogleAdsConversionService(ConversionService):
             )
             if payload.get("gclid"):
                 click_conversion.gclid = payload["gclid"]
-            elif payload.get("gbraid"):
+            
+            if payload.get("gbraid"):
                 click_conversion.gbraid = payload["gbraid"]
-            elif payload.get("wbraid"):
+            
+            if payload.get("wbraid"):
                 click_conversion.wbraid = payload["wbraid"]
+
             click_conversion.conversion_date_time = payload["conversion_date_time"]
             click_conversion.currency_code = settings.DEFAULT_CURRENCY
 
@@ -82,6 +88,35 @@ class GoogleAdsConversionService(ConversionService):
             request.partial_failure = True
 
             response = upload_service.upload_click_conversions(request=request)
+
+            print("\n=== GOOGLE ADS CONVERSION UPLOAD RESPONSE ===")
+
+            if response.results:
+                print("\nResults:")
+                for i, result in enumerate(response.results):
+                    print(response.result)
+            else:
+                print("\nNo successful conversion results returned.")
+
+            if response.partial_failure_error:
+                print("\nPartial Failure Errors:")
+
+                status = response.partial_failure_error
+                for detail in status.details:
+                    error = self.client.get_type("GoogleAdsFailure")
+                    detail.Unpack(error)
+
+                    for err in error.errors:
+                        print(
+                            f"- Error Code: {err.error_code}\n"
+                            f"  Message: {err.message}\n"
+                            f"  Location: {err.location.field_path_elements if err.location else 'N/A'}\n"
+                        )
+            else:
+                print("\nNo partial failures.")
+
+            print("=== END RESPONSE ===\n")
+
             return response
         except Exception as e:
             logger.exception(f"Error during Google Ads conversion upload: {e}", exc_info=True)

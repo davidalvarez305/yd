@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from core.models import Event, Lead
 from core.conversions import conversion_service
+from marketing.utils import parse_google_ads_cookie
 
 class Command(BaseCommand):
     help = 'Report offline conversions.'
@@ -69,6 +70,11 @@ class Command(BaseCommand):
                 data['gbraid'] = metadata.value
             elif metadata.key == 'wbraid':
                 data['wbraid'] = metadata.value
+            elif metadata.key == '_gcl_aw':
+                if 'gclid' not in data:
+                    cookie_click_id = parse_google_ads_cookie(metadata.value)
+                    if cookie_click_id:
+                        data['gclid'] = cookie_click_id
             else:
                 data[metadata.key] = metadata.value
 

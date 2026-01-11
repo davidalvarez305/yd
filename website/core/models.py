@@ -190,7 +190,7 @@ class Lead(models.Model):
     
     def has_gclid(self):
         return self.lead_marketing.metadata.filter(
-            Q(key='gclid') | Q(key='_gcl_aw')
+            Q(key='gclid') | Q(key='_gcl_aw') | Q(key='gbraid') | Q(key='wbraid')
         ).exists()
     
     def has_fbc(self):

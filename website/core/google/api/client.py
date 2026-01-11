@@ -132,3 +132,28 @@ class GoogleAPIService:
         except Exception as e:
             logger.exception(f"Error fetching Google Ads spend data: {e}", exc_info=True)
             return []
+    
+    def query(self, gaql: str):
+        try:
+            service = self.google_ads_client.get_service("GoogleAdsService")
+
+            stream = service.search_stream(
+                customer_id=self.google_ads_client.login_customer_id,
+                query=gaql,
+            )
+
+            results = []
+
+            for batch in stream:
+                for row in batch.results:
+                    results.append(row)
+
+            return results
+
+        except Exception as e:
+            logger.exception(
+                "Error executing Google Ads GAQL query",
+                extra={"gaql": gaql},
+                exc_info=True,
+            )
+            return []
