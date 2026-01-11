@@ -10,7 +10,6 @@
 		gtag("js", new Date());
 
 		gtag("config", "{{ google_ads_id }}");
-		gtag("set", "user_id", "{{ external_id }}");
 	</script>
 	<!-- End Google tag -->
 
@@ -339,10 +338,6 @@
 		if (user) return; // Do not report conversion if logged in user created lead
 
 		// Report Google Conversion
-		gtag("event", "{{ event_name }}", {
-			currency: "{{ default_currency }}",
-			value: parseFloat("{{ default_lead_value }}"),
-		});
 
 		// Report FB Conversion
 		fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
