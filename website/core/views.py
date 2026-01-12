@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
 from django.utils import timezone
-from django.http import HttpResponseServerError, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponseServerError, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
@@ -387,6 +387,9 @@ class LeadCreateView(BaseView, CreateView):
     form_class = LeadForm
 
     def form_valid(self, form):
+        if self.request.headers.get("HX-Request") != "true":
+            return HttpResponseForbidden()
+
         try:
             with transaction.atomic():
                 lead = form.save()
