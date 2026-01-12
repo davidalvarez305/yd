@@ -355,6 +355,7 @@
 
 	function handleFormSubmitEnd(event) {
 		let quoteModal = modalHelper.get('quoteModal');
+		let params = new URLSearchParams(window.location.search);
 
 		if (quoteModal) quoteModal.close();
 
@@ -363,6 +364,7 @@
 		if (user) return; // Do not report conversion if logged in user created lead
 
 		// Report Google Conversion
+		if (params.has('gbraid') && !params.has('gclid')) gtag('event', 'conversion', {'send_to': '{{ google_ads_id }}/YqJQCOrhy-EbEMm4u-gq'});
 
 		// Report FB Conversion
 		fbq("track", "{{ event_name }}", { external_id: "{{ external_id }}" });
