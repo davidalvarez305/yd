@@ -154,6 +154,10 @@ class ContactForm(BaseForm):
             body=self.cleaned_data.get('message')
         )
 
+from django import forms
+from django.utils import timezone
+from datetime import timedelta
+
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
         max_length=100,
@@ -164,6 +168,7 @@ class LeadForm(BaseModelForm):
         }),
         required=True
     )
+
     phone_number = forms.CharField(
         max_length=15,
         label="Phone Number*",
@@ -173,6 +178,7 @@ class LeadForm(BaseModelForm):
         }),
         required=True
     )
+
     message = forms.CharField(
         label="(OPTIONAL) Give us a few details about your event",
         widget=forms.Textarea(attrs={
@@ -181,6 +187,7 @@ class LeadForm(BaseModelForm):
         }),
         required=False
     )
+
     opt_in_text_messaging = forms.BooleanField(
         required=False,
         initial=True,
@@ -192,6 +199,38 @@ class LeadForm(BaseModelForm):
         }),
         label='',
     )
+
+    # Bot-prevention fields (hidden)
+    hp_field = forms.CharField(required=False, widget=forms.HiddenInput)
+    modal_opened = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
+    opened_at = forms.DateTimeField(required=False, widget=forms.HiddenInput)
+    js_enabled = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
+
+    def clean_hp_field(self):
+        if self.cleaned_data.get("hp_field"):
+            raise forms.ValidationError("Invalid submission.")
+        return ""
+
+    def clean(self):
+        cleaned = super().clean()
+
+        # Modal must be opened
+        if not cleaned.get("modal_opened"):
+            raise forms.ValidationError("Invalid submission flow.")
+
+        # JS must be enabled
+        if not cleaned.get("js_enabled"):
+            raise forms.ValidationError("JavaScript required.")
+
+        # Timing check (e.g. must take ≥ 3 seconds)
+        opened_at = cleaned.get("opened_at")
+        if opened_at:
+            if timezone.now() - opened_at < timedelta(seconds=3):
+                raise forms.ValidationError("Submission too fast.")
+        else:
+            raise forms.ValidationError("Invalid timing data.")
+
+        return cleaned
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get('phone_number')
@@ -205,13 +244,24 @@ class LeadForm(BaseModelForm):
             raise forms.ValidationError('Phone number field cannot be empty.')
 
         if Lead.objects.filter(phone_number=cleaned_phone_number).exists():
-            raise forms.ValidationError('Someone has already submitted a request from this phone number.')
+            raise forms.ValidationError(
+                'Someone has already submitted a request from this phone number.'
+            )
 
         return cleaned_phone_number
 
     class Meta:
         model = Lead
-        fields = ['full_name', 'phone_number', 'message', 'opt_in_text_messaging']
+        fields = [
+            'full_name',
+            'phone_number',
+            'message',
+            'opt_in_text_messaging',
+            'hp_field',
+            'modal_opened',
+            'opened_at',
+            'js_enabled',
+        ]
 
 class ServiceForm(BaseModelForm):
     service_type = forms.ModelChoiceField(

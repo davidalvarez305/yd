@@ -167,6 +167,7 @@
 							<div class="flex flex-col overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-800 dark:text-gray-100">
 								<div class="grow p-5 md:px-16 md:py-6">
 									<form method="post" class="space-y-6 p-2 md:p-2"
+										id="getQuoteForm"
 										hx-post="{% url 'lead_create' %}"
 										hx-target="#alertModal"
 										hx-swap="outerHTML"
@@ -305,6 +306,30 @@
 
 <script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script defer src="https://unpkg.com/htmx-ext-response-targets@2.0.2" crossorigin="anonymous"></script>
+<script>
+	function handleFormValidation() {
+		const form = document.getElementById('getQuoteForm');
+		if (!form) return;
+
+		const jsEnabled = form.querySelector('[name="js_enabled"]');
+		if (jsEnabled) jsEnabled.value = 'true';
+
+		const modalOpened = form.querySelector('[name="modal_opened"]');
+		const openedAt = form.querySelector('[name="opened_at"]');
+
+		const quoteModal = modalHelper.get('quoteModal');
+
+		quoteModal.setOnOpen(() => {
+			if (modalOpened) modalOpened.value = 'true';
+			if (openedAt) openedAt.value = new Date().toISOString();
+		});
+
+		quoteModal.setOnClose(() => {
+			if (modalOpened) modalOpened.value = 'false';
+		});
+	}
+    document.addEventListener('DOMContentLoaded', () => handleFormValidation());
+</script>
 <script>
 	const user = "{{ request.user.username|escapejs }}";
 
