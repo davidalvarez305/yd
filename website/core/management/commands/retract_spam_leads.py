@@ -33,6 +33,12 @@ class Command(BaseCommand):
                     'event_time': lead.created_at.timestamp()
                 }
 
+                phone_call = lead.phone_calls.filter(call_to='+17867887667').first()
+                if phone_call:
+                    data.update({
+                        'event_name': 'click_to_call'
+                    })
+
                 for metadata in lead.lead_marketing.metadata.all():
                     data[metadata.key] = metadata.value
 
