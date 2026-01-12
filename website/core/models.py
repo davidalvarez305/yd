@@ -188,6 +188,12 @@ class Lead(models.Model):
     def __str__(self):
         return self.full_name
     
+    def has_gbraid(self):
+        return (
+            self.lead_marketing.metadata.filter(key="gbraid").exists()
+            and not self.lead_marketing.metadata.filter(key="gclid").exists()
+        )
+    
     def has_gclid(self):
         return self.lead_marketing.metadata.filter(
             Q(key='gclid') | Q(key='_gcl_aw') | Q(key='gbraid') | Q(key='wbraid')

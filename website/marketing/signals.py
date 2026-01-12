@@ -22,6 +22,7 @@ def create_data_dict(lead: Lead, event_name=None, event=None):
         'instant_form_lead_id': lead.lead_marketing.instant_form_lead_id,
         'event_time': int(now().timestamp()),
         'phone_number': lead.phone_number,
+        'lead_id': lead.pk,
         'external_id': str(lead.lead_marketing.external_id)
     }
 

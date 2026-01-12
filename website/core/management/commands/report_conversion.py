@@ -46,7 +46,8 @@ class Command(BaseCommand):
             'instant_form_lead_id': lead.lead_marketing.instant_form_lead_id,
             'event_time': event_time,
             'phone_number': lead.phone_number,
-            'external_id': str(lead.lead_marketing.external_id)
+            'external_id': str(lead.lead_marketing.external_id),
+            'lead_id': lead.pk,
         }
 
         if event_name == 'event_booked':

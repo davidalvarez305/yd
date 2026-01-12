@@ -37,6 +37,7 @@ class GoogleAdsConversionService(ConversionService):
         payload = {
             "customer_id": self.customer_id,
             "conversion_action_id": self.conversion_actions.get(data.get("event_name")),
+            "lead_id": data.get("lead_id"),
             "gclid": data.get("gclid"),
             "gbraid": data.get("gbraid"),
             "wbraid": data.get("wbraid"),
@@ -73,11 +74,15 @@ class GoogleAdsConversionService(ConversionService):
             if payload.get("wbraid"):
                 click_conversion.wbraid = payload["wbraid"]
 
+            click_conversion.consent.ad_user_data = self.client.enums.ConsentStatusEnum.GRANTED
+            click_conversion.consent.ad_personalization = self.client.enums.ConsentStatusEnum.GRANTED
             click_conversion.conversion_date_time = payload["conversion_date_time"]
             click_conversion.currency_code = settings.DEFAULT_CURRENCY
 
             if payload.get("order_id"):
                 click_conversion.order_id = str(payload["order_id"])
+            elif payload.get("lead_id"):
+                click_conversion.order_id = str(payload["lead_id"])
             
             if payload.get("conversion_value"):
                 click_conversion.conversion_value = float(payload["conversion_value"])
@@ -94,7 +99,7 @@ class GoogleAdsConversionService(ConversionService):
             if response.results:
                 print("\nResults:")
                 for i, result in enumerate(response.results):
-                    print(response.result)
+                    print(result)
             else:
                 print("\nNo successful conversion results returned.")
 
