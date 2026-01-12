@@ -63,7 +63,8 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
         price = suggested_price
 
         if service_type in {"Add On", "Alcohol"}:
-            price *= (hours / BASELINE_HOURS)
+            extra_hours = max(0, hours - BASELINE_HOURS)
+            price *= (1 + 0.075 * extra_hours)
 
         price = apply_holiday_markup(price)
         return {'units': units, 'price': price}
