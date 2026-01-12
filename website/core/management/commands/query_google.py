@@ -10,11 +10,13 @@ class Command(BaseCommand):
 
         gaql = f"""
         SELECT
-          conversion_action.id,
-          conversion_action.name,
-          conversion_action.tag_snippets
-        FROM conversion_action
-        WHERE conversion_action.id = {conversion_action_id}
+            offline_conversion_upload_client_summary.client,
+            offline_conversion_upload_client_summary.status,
+            offline_conversion_upload_client_summary.total_event_count,
+            offline_conversion_upload_client_summary.successful_event_count,
+            offline_conversion_upload_client_summary.pending_event_count,
+            offline_conversion_upload_client_summary.last_upload_date_time
+        FROM offline_conversion_upload_client_summary
         """
 
         rows = google_api_service.query(gaql)
@@ -24,13 +26,9 @@ class Command(BaseCommand):
             return
 
         for row in rows:
-            action = row.conversion_action
-
-            self.stdout.write(
-                "\n".join([
-                    f"ID: {action.id}",
-                    f"Name: {action.name}",
-                    "Tag Snippets:",
-                    *(action.tag_snippets or ["(none)"]),
-                ])
-            )
+            summary = row.offline_conversion_upload_client_summary
+            print(f"Status: {summary.status}")
+            print(f"Total: {summary.total_event_count}")
+            print(f"Successful: {summary.successful_event_count}")
+            print(f"Pending: {summary.pending_event_count}") # Watch this number
+            print(f"Last Upload: {summary.last_upload_date_time}")
