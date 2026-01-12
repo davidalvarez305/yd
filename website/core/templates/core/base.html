@@ -328,7 +328,7 @@
 			if (modalOpened) modalOpened.value = 'false';
 		});
 	}
-    document.addEventListener('DOMContentLoaded', () => handleFormValidation());
+    window.addEventListener('load', () => handleFormValidation());
 </script>
 <script>
 	const user = "{{ request.user.username|escapejs }}";

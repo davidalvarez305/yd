@@ -222,10 +222,10 @@ class LeadForm(BaseModelForm):
         if not cleaned.get("js_enabled"):
             raise forms.ValidationError("JavaScript required.")
 
-        # Timing check (e.g. must take ≥ 3 seconds)
+        # Timing check (e.g. must take ≥ 1 seconds)
         opened_at = cleaned.get("opened_at")
         if opened_at:
-            if timezone.now() - opened_at < timedelta(seconds=3):
+            if timezone.now() - opened_at < timedelta(seconds=1):
                 raise forms.ValidationError("Submission too fast.")
         else:
             raise forms.ValidationError("Invalid timing data.")
