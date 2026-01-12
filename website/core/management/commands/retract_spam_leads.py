@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
 
-            leads = [ 4472, 4465, 4459, 4454, 4412 ]
+            leads = [ 4472, 4465, 4459, 4454, 4412, 4440 ]
 
             for pk in leads:
                 lead = Lead.objects.get(pk=pk)
