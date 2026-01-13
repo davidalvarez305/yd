@@ -39,6 +39,7 @@ class Command(BaseCommand):
         data = {
             'event_name': event_name,
             'event_id': event_id,
+            'lead_id': lead.pk,
             'external_id': str(lead.lead_marketing.external_id),
             'phone_number': lead.phone_number,
             'ip_address': lead.lead_marketing.ip,

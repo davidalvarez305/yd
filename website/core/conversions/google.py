@@ -146,9 +146,7 @@ class GoogleAdsConversionService(ConversionService):
             if "customer_id" not in payload or "conversion_action_id" not in payload:
                 return None
 
-            conversion_adjustment.conversion_action = conversion_action_service.conversion_action_path(
-                payload["customer_id"], payload["conversion_action_id"]
-            )
+            conversion_adjustment.conversion_action = conversion_action_service.conversion_action_path(payload["customer_id"], payload["conversion_action_id"])
 
             conversion_adjustment.adjustment_type = conversion_adjustment_type
             conversion_adjustment.adjustment_date_time = payload["adjustment_date_time"]
