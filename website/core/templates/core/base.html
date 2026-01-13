@@ -312,6 +312,7 @@
 		if (!form) return;
 
 		const email = form.querySelector('#email');
+		const emailLabel = form.querySelector('label[for="email"]');
 
 		const jsEnabled = form.querySelector('[name="js_enabled"]');
 		if (jsEnabled) jsEnabled.value = 'true';
@@ -325,22 +326,31 @@
 			if (modalOpened) modalOpened.value = 'true';
 			if (openedAt) openedAt.value = new Date().toISOString();
 
-			// Hide honeypot ONLY while modal is open
 			if (email) {
-				email.classList.add('hidden'); // Tailwind
+				email.classList.add('hidden');
 				email.setAttribute('tabindex', '-1');
 				email.setAttribute('aria-hidden', 'true');
+			}
+
+			if (emailLabel) {
+				emailLabel.classList.add('hidden');
+				emailLabel.setAttribute('aria-hidden', 'true');
 			}
 		});
 
 		quoteModal.setOnClose(() => {
 			if (modalOpened) modalOpened.value = 'false';
 
-			// Restore honeypot visibility
+			// Restore visibility
 			if (email) {
 				email.classList.remove('hidden');
 				email.removeAttribute('tabindex');
 				email.removeAttribute('aria-hidden');
+			}
+
+			if (emailLabel) {
+				emailLabel.classList.remove('hidden');
+				emailLabel.removeAttribute('aria-hidden');
 			}
 		});
 	}
