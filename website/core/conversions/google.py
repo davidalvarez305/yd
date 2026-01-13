@@ -104,19 +104,8 @@ class GoogleAdsConversionService(ConversionService):
                 print("\nNo successful conversion results returned.")
 
             if response.partial_failure_error:
-                print("\nPartial Failure Errors:")
+                print("\nPartial Failure Errors: ", response.partial_failure_error)
 
-                status = response.partial_failure_error
-                for detail in status.details:
-                    error = self.client.get_type("GoogleAdsFailure")
-                    detail.Unpack(error)
-
-                    for err in error.errors:
-                        print(
-                            f"- Error Code: {err.error_code}\n"
-                            f"  Message: {err.message}\n"
-                            f"  Location: {err.location.field_path_elements if err.location else 'N/A'}\n"
-                        )
             else:
                 print("\nNo partial failures.")
 
