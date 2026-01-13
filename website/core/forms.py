@@ -205,7 +205,7 @@ class LeadForm(BaseModelForm):
     email = forms.CharField(
         max_length=100,
         label="Email",
-        widget=forms.EmailField(attrs={
+        widget=forms.EmailInput(attrs={
             'id': 'email',
         }),
         required=True
