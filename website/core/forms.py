@@ -208,7 +208,7 @@ class LeadForm(BaseModelForm):
         widget=forms.EmailInput(attrs={
             'id': 'email',
         }),
-        required=True
+        required=False
     )
     modal_opened = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
     opened_at = forms.DateTimeField(required=False, widget=forms.HiddenInput)
