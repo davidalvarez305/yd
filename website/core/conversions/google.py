@@ -67,6 +67,12 @@ class GoogleAdsConversionService(ConversionService):
             )
             if payload.get("gclid"):
                 click_conversion.gclid = payload["gclid"]
+            
+            if payload.get("gbraid"):
+                click_conversion.gbraid = payload["gbraid"]
+            
+            if payload.get("wbraid"):
+                click_conversion.wbraid = payload["wbraid"]
 
             click_conversion.consent.ad_user_data = self.client.enums.ConsentStatusEnum.GRANTED
             click_conversion.consent.ad_personalization = self.client.enums.ConsentStatusEnum.GRANTED
