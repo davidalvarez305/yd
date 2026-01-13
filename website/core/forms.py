@@ -10,10 +10,13 @@ from .models import Lead, Service, UnitType, User, ServiceType
 from core.email import email_service
 
 from django import forms
+from django.core.validators import validate_email
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 class MultiFileInput(forms.FileInput):
     allow_multiple_selected = True
@@ -154,9 +157,7 @@ class ContactForm(BaseForm):
             body=self.cleaned_data.get('message')
         )
 
-from django import forms
-from django.utils import timezone
-from datetime import timedelta
+HONEYPOT_EMAIL_VALUE ='admin@ydcocktails.com'
 
 class LeadForm(BaseModelForm):
     full_name = forms.CharField(
@@ -201,14 +202,31 @@ class LeadForm(BaseModelForm):
     )
 
     # Bot-prevention fields (hidden)
-    hp_field = forms.CharField(required=False, widget=forms.HiddenInput)
+    email = forms.CharField(
+        max_length=100,
+        label="Email",
+        widget=forms.EmailField(attrs={
+            'id': 'email',
+        }),
+        required=True
+    )
     modal_opened = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
     opened_at = forms.DateTimeField(required=False, widget=forms.HiddenInput)
     js_enabled = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
 
-    def clean_hp_field(self):
-        if self.cleaned_data.get("hp_field"):
-            raise forms.ValidationError("Invalid submission.")
+    def clean_email(self):
+        value = self.cleaned_data.get("email", "").strip()
+
+        if value and value != HONEYPOT_EMAIL_VALUE:
+            raise ValidationError("Invalid submission.")
+
+        try:
+            validate_email(value)
+            if value != HONEYPOT_EMAIL_VALUE:
+                raise ValidationError("Invalid submission.")
+        except ValidationError:
+            pass
+
         return ""
 
     def clean(self):
@@ -257,7 +275,7 @@ class LeadForm(BaseModelForm):
             'phone_number',
             'message',
             'opt_in_text_messaging',
-            'hp_field',
+            'email',
             'modal_opened',
             'opened_at',
             'js_enabled',

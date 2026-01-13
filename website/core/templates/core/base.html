@@ -311,6 +311,8 @@
 		const form = document.getElementById('getQuoteForm');
 		if (!form) return;
 
+		const email = form.querySelector('#email');
+
 		const jsEnabled = form.querySelector('[name="js_enabled"]');
 		if (jsEnabled) jsEnabled.value = 'true';
 
@@ -322,13 +324,28 @@
 		quoteModal.setOnOpen(() => {
 			if (modalOpened) modalOpened.value = 'true';
 			if (openedAt) openedAt.value = new Date().toISOString();
+
+			// Hide honeypot ONLY while modal is open
+			if (email) {
+				email.classList.add('hidden'); // Tailwind
+				email.setAttribute('tabindex', '-1');
+				email.setAttribute('aria-hidden', 'true');
+			}
 		});
 
 		quoteModal.setOnClose(() => {
 			if (modalOpened) modalOpened.value = 'false';
+
+			// Restore honeypot visibility
+			if (email) {
+				email.classList.remove('hidden');
+				email.removeAttribute('tabindex');
+				email.removeAttribute('aria-hidden');
+			}
 		});
 	}
-    window.addEventListener('load', () => handleFormValidation());
+
+	window.addEventListener('load', handleFormValidation);
 </script>
 <script>
 	const user = "{{ request.user.username|escapejs }}";
