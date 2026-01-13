@@ -216,17 +216,10 @@ class LeadForm(BaseModelForm):
     js_enabled = forms.BooleanField(required=False, initial=False, widget=forms.HiddenInput)
 
     def clean_email(self):
-        value = self.cleaned_data.get("email", "").strip()
+        value = (self.cleaned_data.get("email") or "").strip()
 
-        if value and value != HONEYPOT_EMAIL_VALUE:
+        if value != HONEYPOT_EMAIL_VALUE:
             raise ValidationError("Invalid submission.")
-
-        try:
-            validate_email(value)
-            if value != HONEYPOT_EMAIL_VALUE:
-                raise ValidationError("Invalid submission.")
-        except ValidationError:
-            pass
 
         return ""
 
