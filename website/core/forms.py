@@ -202,7 +202,7 @@ class LeadForm(BaseModelForm):
     )
 
     # Bot-prevention fields (hidden)
-    email = forms.CharField(
+    email = forms.EmailField(
         max_length=100,
         label="Email",
         initial=HONEYPOT_EMAIL_VALUE,
