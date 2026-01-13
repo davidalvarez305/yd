@@ -205,6 +205,7 @@ class LeadForm(BaseModelForm):
     email = forms.CharField(
         max_length=100,
         label="Email",
+        initial=HONEYPOT_EMAIL_VALUE,
         widget=forms.EmailInput(attrs={
             'id': 'email',
         }),
