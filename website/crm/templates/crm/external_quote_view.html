@@ -105,6 +105,30 @@
                 You represent and warrant that you are the authorized cardholder or have authorization to use the card provided and that sufficient funds are available.
                 You agree not to dispute charges that are consistent with this authorization, and you acknowledge that this authorization shall remain in effect until all obligations to {{ company_name }} have been satisfied in full.</p>
                 
+                {% if has_rental and not has_setup and not has_bartending %}
+                <h3 class="text-lg">Delivery & Setup Disclaimer</h3>
+                <p>
+                Customer acknowledges and agrees that this order includes <strong>delivery and drop-off only</strong>.
+                <strong>Setup, assembly, arrangement, or placement of rental items is NOT included</strong> unless
+                explicitly listed as a paid service on this invoice.
+                </p>
+                <p>
+                Rental items will be delivered in a consolidated drop-off condition at the designated delivery
+                location. Customer is solely responsible for all setup, assembly, positioning, and arrangement
+                of items after delivery.
+                </p>
+                <p>
+                Any request for setup, assembly, or assistance at the time of delivery that is not included in
+                this agreement may be accommodated solely at {{ company_name|default:"[Company Name]" }}’s discretion
+                and will result in <strong>additional charges of $50 per hour, billed in 15-minute increments</strong>,
+                with a one-hour minimum.
+                </p>
+                <p>
+                Customer authorizes {{ company_name|default:"[Company Name]" }} to charge the payment method on file
+                for any additional setup labor performed at the Customer’s request at the time of delivery.
+                </p>
+                {% endif %}
+
                 {% if has_bartending %}
                 <h3 class="text-lg">Scope of Work</h3>
                 <p>
