@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, AddedOrRemoveActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceTypeEnum, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, AddedOrRemoveActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
@@ -1665,51 +1665,60 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
-        quote_total_subquery = (
-            QuoteService.objects
-            .filter(quote=OuterRef('pk'))
-            .annotate(
-                line_total=F('units') * F('price_per_unit')
-            )
-            .values('quote')
-            .annotate(total=Sum('line_total'))
-            .values('total')
+        quotes = Quote.objects.filter(
+            event_date__range=(date_from, date_to)
         )
 
-        quotes = (
-            Quote.objects
-            .filter(event_date__range=(date_from, date_to))
-            .annotate(
-                is_bartending=Exists(
-                    QuoteService.objects.filter(
-                        quote=OuterRef('pk'),
-                        service__service='Bartender',
-                    )
+        # Segment filter
+        quotes = quotes.annotate(
+            is_bartending=Exists(
+                QuoteService.objects.filter(
+                    quote=OuterRef('pk'),
+                    service__service='Bartender',
                 )
             )
-            .filter(is_bartending=(segment == 'bartending'))
-            .annotate(
-                quote_total=Subquery(
-                    quote_total_subquery,
-                    output_field=FloatField()
-                )
-            )
-            .annotate(month=TruncMonth('event_date'))
+        ).filter(
+            is_bartending=(segment == 'bartending')
         )
 
-        monthly_metrics = (
+        quotes = quotes.annotate(
+            is_booked=Exists(
+                Invoice.objects.filter(
+                    quote=OuterRef('pk'),
+                    invoice_type__type=InvoiceTypeEnum.DEPOSIT.value,
+                    date_paid__isnull=False,
+                )
+            ),
+            month=TruncMonth('event_date')
+        )
+
+        lead_month = (
             quotes
+            .values('month', 'lead_id')
+            .annotate(
+                has_booking=Count(
+                    'id',
+                    filter=Q(is_booked=True)
+                )
+            )
+        )
+
+        metrics = (
+            lead_month
             .values('month')
             .annotate(
-                count=Count('lead_id', distinct=True),
-                avg_value=Avg('quote_total'),
+                leads=Count('lead_id'),
+                booked=Count(
+                    'lead_id',
+                    filter=Q(has_booking__gt=0)
+                ),
             )
             .order_by('month')
         )
 
         ctx.update({
             'filter_form': form,
-            'metrics': monthly_metrics,
+            'metrics': metrics,
             'selected_year': year,
             'selected_segment': segment,
         })
