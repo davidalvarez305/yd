@@ -5,7 +5,6 @@ from . import views
 urlpatterns = [
     # Settings
     path('settings', views.SettingsView.as_view(), name='settings'),
-    path('marketing-analytics', views.MarketingAnalytics.as_view(), name='marketing_analytics'),
 
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),
@@ -177,6 +176,9 @@ urlpatterns = [
     path('landing-page/<int:pk>/edit/', views.LandingPageUpdateView.as_view(), name='landingpage_update'),
     path('landing-page/<int:pk>/delete/', views.LandingPageDeleteView.as_view(), name='landingpage_delete'),
 
-    # Marketing Assignment
+    # Reports & Uils
     path('marketing-assignment/', views.MarketingAssignment.as_view(), name='marketing_assignment'),
+    path('marketing-analytics', views.MarketingAnalytics.as_view(), name='marketing_analytics'),
+    path('prospecting-analytics', views.ProspectingAnalytics.as_view(), name='prospecting_analytics'),
+
 ]

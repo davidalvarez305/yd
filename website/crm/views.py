@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 from django.db import transaction
 
@@ -17,7 +17,7 @@ from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCo
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
-from crm.forms import EventClientConfirmationForm, EventFilterForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, MarketingAnalyticsFilterForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
+from crm.forms import EventClientConfirmationForm, EventFilterForm, FacebookAccessTokenForm, InternalLogForm, InvoiceForm, LandingPageForm, LeadMarketingMetadataForm, MarketingAnalyticsFilterForm, ProspectingMetricsFilterForm, QuickQuoteForm, QuoteForm, CocktailIngredientForm, EventCocktailForm, EventShoppingListForm, EventStaffForm, CallTrackingNumberForm, IngredientForm, LeadForm, CocktailForm, EventForm, LeadMarketingForm, LeadNoteForm, QuotePresetEditFormForm, QuotePresetForm, QuotePresetServiceForm, QuoteSendForm, QuoteServiceForm, StoreItemForm, VisitForm
 from core.enums import AlertStatus
 from core.mixins import AlertMixin
 from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTable, EventStaffTable, EventStaffTableExternal, FacebookAccessTokenTable, HTTPLogTable, IngredientTable, InternalLogTable, InvoiceTable, LandingPageTable, LeadMarketingMetadataTable, MessageTable, PhoneCallTable, QuotePresetServiceTable, QuotePresetTable, QuoteServiceTable, QuoteTable, ServiceTable, EventTable, StoreItemTable, UserTable, VisitTable
@@ -1645,3 +1645,73 @@ class ExternalEventPDFView(CRMContextMixin, DetailView):
             content_type='application/pdf',
             filename=document.document.name.split('/')[-1]
         )
+
+class ProspectingAnalytics(CRMBaseView, TemplateView):
+    template_name = 'crm/prospecting_analytics.html'
+    filter_form_class = ProspectingMetricsFilterForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        form = self.filter_form_class(self.request.GET or None)
+
+        if not form.is_valid():
+            ctx['filter_form'] = form
+            ctx['metrics'] = []
+            return ctx
+
+        year = int(form.cleaned_data['year'])
+        segment = form.cleaned_data['business_segment']
+
+        date_from = timezone.make_aware(datetime(year, 1, 1))
+        date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
+
+        quotes = Quote.objects.filter(
+            event_date__range=(date_from, date_to)
+        )
+
+        bartending_service_exists = QuoteService.objects.filter(
+            quote=OuterRef('pk'),
+            service__service='Bartender',
+        )
+
+        quotes = quotes.annotate(
+            is_bartending=Exists(bartending_service_exists)
+        )
+
+        if segment == 'bartending':
+            quotes = quotes.filter(is_bartending=True)
+        else:
+            quotes = quotes.filter(is_bartending=False)
+
+        monthly_metrics = (
+            quotes
+            .annotate(month=TruncMonth('event_date'))
+            .annotate(
+                quote_value=Sum(
+                    'quote_services__units',
+                    output_field=FloatField()
+                ) * Avg(
+                    'quote_services__price_per_unit',
+                    output_field=FloatField()
+                )
+            )
+            .values('month')
+            .annotate(
+                count=Count('id', distinct=True),
+                avg_value=Avg(
+                    'quote_services__units' * 
+                    'quote_services__price_per_unit',
+                    output_field=FloatField()
+                ),
+            )
+            .order_by('month')
+        )
+
+        ctx.update({
+            'filter_form': form,
+            'metrics': monthly_metrics,
+            'selected_year': year,
+            'selected_segment': segment,
+        })
+
+        return ctx

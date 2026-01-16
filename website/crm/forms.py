@@ -1,5 +1,6 @@
 from datetime import datetime
 from django import forms
+from django.utils import timezone
 
 from core.models import Ad, CallTrackingNumber, CocktailIngredient, EventCocktail, EventShoppingList, EventStaff, EventStatus, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceType, LandingPage, LandingPageTrackingNumber, Lead, LeadMarketingMetadata, LeadStatus, LeadStatusEnum, LeadStatusHistory, Message, Quote, QuotePreset, QuotePresetService, QuoteService, Service, StoreItem, Visit
 from core.forms import BaseModelForm, DataAttributeModelSelect, StyledFilterForm
@@ -601,4 +602,18 @@ class EventFilterForm(StyledFilterForm):
         required=False,
         label="Date To",
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+class ProspectingMetricsFilterForm(forms.Form):
+    YEAR_CHOICES = [(y, y) for y in range(2025, timezone.now().year + 1)]
+
+    BUSINESS_SEGMENT_CHOICES = (
+        ('bartending', 'Bartending'),
+        ('rental', 'Rental'),
+    )
+
+    year = forms.ChoiceField(choices=YEAR_CHOICES, required=True)
+    business_segment = forms.ChoiceField(
+        choices=BUSINESS_SEGMENT_CHOICES,
+        required=True
     )
