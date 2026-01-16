@@ -1689,7 +1689,9 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             lead_month_map[lead.created_at.month] += 1
 
             for quote in lead.quotes.all():
-                if not (date_from <= quote.event_date <= date_to):
+                date_from_date = date_from.date()
+                date_to_date = date_to.date()
+                if not (date_from_date <= quote.event_date <= date_to_date):
                     continue
 
                 has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
