@@ -1667,6 +1667,11 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
+        # Earliest data available is August 1, 2025
+        min_date = timezone.make_aware(datetime(2025, 8, 1))
+        if date_from < min_date:
+            date_from = min_date
+
         quotes = Quote.objects.filter(event_date__range=(date_from, date_to)).select_related('lead')
 
         if segment == 'bartending':
