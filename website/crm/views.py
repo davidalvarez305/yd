@@ -1666,52 +1666,57 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
 
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
-
-        # Earliest data available is August 1, 2025
         min_date = timezone.make_aware(datetime(2025, 8, 1))
         if date_from < min_date:
             date_from = min_date
 
         leads = Lead.objects.filter(created_at__range=(date_from, date_to)).prefetch_related('quotes__quote_services')
 
+        if segment == 'bartending':
+            leads = leads.filter(
+                quotes__quote_services__service='Bartender'
+            ).distinct()
+        elif segment == 'rental':
+            leads = leads.filter(
+                quotes__quote_services__service='Delivery'
+            ).distinct()
+
         lead_month_map = defaultdict(int)
-        booked_month_map = defaultdict(dict)
+        quote_month_map = defaultdict(set)
+        booked_month_map = defaultdict(set)
 
         for lead in leads:
-            lead_counted_in_month = set()
-            for quote in lead.quotes.all():
-                has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
-                has_rental = quote.quote_services.filter(service__service_type__type__icontains='Rental').exists()
+            lead_month_map[lead.created_at.month] += 1
 
+            for quote in lead.quotes.all():
+                if not (date_from <= quote.event_date <= date_to):
+                    continue
+
+                has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
+                has_rental = quote.quote_services.filter(service__service='Delivery').exists()
                 if segment == 'bartending' and not has_bartending:
                     continue
-                elif segment == 'rental' and not has_rental:
+                if segment == 'rental' and not has_rental:
                     continue
 
                 month = quote.event_date.month
+                quote_month_map[month].add(lead.pk)
 
-                if lead.pk not in lead_counted_in_month:
-                    lead_month_map[month] += 1
-                    lead_counted_in_month.add(lead.pk)
-
-                booked = quote.is_deposit_paid()
-                if lead.pk in booked_month_map[month]:
-                    booked_month_map[month][lead.pk] = booked_month_map[month][lead.pk] or booked
-                else:
-                    booked_month_map[month][lead.pk] = booked
+                if quote.is_deposit_paid():
+                    booked_month_map[month].add(lead.pk)
 
         metrics = []
         for month in range(1, 13):
             total_leads = lead_month_map.get(month, 0)
-            leads_with_quotes = booked_month_map.get(month, {})
-            booked_leads = sum(1 for booked in leads_with_quotes.values() if booked)
-            conv_percent = (booked_leads / len(leads_with_quotes) * 100) if leads_with_quotes else 0
+            leads_with_quotes = quote_month_map.get(month, set())
+            booked_leads = booked_month_map.get(month, set())
+            conv_percent = (len(booked_leads) / len(leads_with_quotes) * 100) if leads_with_quotes else 0
 
             metrics.append({
                 'month': datetime(year, month, 1),
                 'leads': total_leads,
                 'quotes': len(leads_with_quotes),
-                'booked': booked_leads,
+                'booked': len(booked_leads),
                 'conversion': conv_percent
             })
 
