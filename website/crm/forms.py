@@ -604,7 +604,7 @@ class EventFilterForm(StyledFilterForm):
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
 
-class ProspectingMetricsFilterForm(forms.Form):
+class ProspectingMetricsFilterForm(StyledFilterForm):
     YEAR_CHOICES = [(y, y) for y in range(2025, timezone.now().year + 1)]
 
     BUSINESS_SEGMENT_CHOICES = (
