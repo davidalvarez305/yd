@@ -1694,7 +1694,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             )
             .values('month')
             .annotate(
-                count=Count('id', distinct=True),
+                count=Count('quote_id', distinct=True),
                 avg_value=Avg('line_total'),
             )
             .order_by('month')
