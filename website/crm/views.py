@@ -7,7 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
+from django.db.models import ExpressionWrapper, Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 from django.db import transaction
@@ -1687,22 +1687,15 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             quotes
             .annotate(month=TruncMonth('event_date'))
             .annotate(
-                quote_value=Sum(
-                    'quote_services__units',
-                    output_field=FloatField()
-                ) * Avg(
-                    'quote_services__price_per_unit',
+                line_total=ExpressionWrapper(
+                    F('quote_services__units') * F('quote_services__price_per_unit'),
                     output_field=FloatField()
                 )
             )
             .values('month')
             .annotate(
                 count=Count('id', distinct=True),
-                avg_value=Avg(
-                    'quote_services__units' * 
-                    'quote_services__price_per_unit',
-                    output_field=FloatField()
-                ),
+                avg_value=Avg('line_total'),
             )
             .order_by('month')
         )
