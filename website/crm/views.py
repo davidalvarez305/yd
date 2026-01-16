@@ -1674,11 +1674,11 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
 
         if segment == 'bartending':
             leads = leads.filter(
-                quotes__quote_services__service='Bartender'
+                quotes__quote_services__service_service='Bartender'
             ).distinct()
         elif segment == 'rental':
             leads = leads.filter(
-                quotes__quote_services__service='Delivery'
+                quotes__quote_services__service_service='Delivery'
             ).distinct()
 
         lead_month_map = defaultdict(int)
