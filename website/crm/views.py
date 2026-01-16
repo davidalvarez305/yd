@@ -1,3 +1,5 @@
+from collections import defaultdict
+import calendar
 from datetime import datetime, timedelta
 from django.forms import ValidationError
 from django.http import FileResponse, Http404, HttpResponse
@@ -7,8 +9,8 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Max, IntegerField, BooleanField, Value, Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
-from django.db.models.functions import Coalesce, TruncMonth, Cast
+from django.db.models import Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.db import transaction
 
@@ -1653,9 +1655,9 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         form = self.filter_form_class(self.request.GET or None)
+        ctx['filter_form'] = form
 
         if not form.is_valid():
-            ctx['filter_form'] = form
             ctx['metrics'] = []
             return ctx
 
@@ -1665,65 +1667,38 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
-        quotes = Quote.objects.filter(
-            event_date__range=(date_from, date_to)
-        )
+        quotes = Quote.objects.filter(event_date__range=(date_from, date_to)).select_related('lead')
 
-        quotes = quotes.annotate(
-            is_bartending=Exists(
-                QuoteService.objects.filter(
-                    quote=OuterRef('pk'),
-                    service__service='Bartender',
-                )
-            )
-        ).filter(
-            is_bartending=(segment == 'bartending')
-        )
+        if segment == 'bartending':
+            quotes = quotes.filter(services__service='Bartender')
+        elif segment == 'rental':
+            quotes = quotes.filter(services__service_type__type='Rental')
 
-        quotes = quotes.annotate(
-            is_booked=Exists(
-                Invoice.objects.filter(
-                    quote=OuterRef('pk'),
-                    invoice_type__type=InvoiceTypeEnum.DEPOSIT.value,
-                    date_paid__isnull=False,
-                )
-            ),
-            month=TruncMonth('event_date')
-        )
+        lead_month_map = defaultdict(dict)
 
-        lead_month = (
-            quotes
-            .values('month', 'lead_id')
-            .annotate(
-                booked_int=Max(
-                    Cast(
-                        Case(
-                            When(is_booked=True, then=Value(1)),
-                            default=Value(0),
-                            output_field=IntegerField()
-                        ),
-                        output_field=IntegerField()
-                    )
-                )
-            )
-        )
+        for quote in quotes.distinct('quote_id'):
+            month = quote.event_date.month
+            lead_id = quote.lead_id
+            booked = quote.is_deposit_paid()
+            if lead_id in lead_month_map[month]:
+                lead_month_map[month][lead_id] = lead_month_map[month][lead_id] or booked
+            else:
+                lead_month_map[month][lead_id] = booked
 
-        monthly_metrics = (
-            lead_month
-            .values('month')
-            .annotate(
-                leads=Count('lead_id'),
-                booked=Count('lead_id', filter=Q(booked_int=1)),
-            )
-            .order_by('month')
-        )
-
-        metrics = list(monthly_metrics)
-        for row in metrics:
-            row['conversion'] = (row['booked'] / row['leads'] * 100) if row['leads'] else 0
+        metrics = []
+        for month in range(1, 13):
+            leads_in_month = lead_month_map.get(month, {})
+            total_leads = len(leads_in_month)
+            booked_leads = sum(1 for booked in leads_in_month.values() if booked)
+            conv_percent = (booked_leads / total_leads * 100) if total_leads else 0
+            metrics.append({
+                'month': calendar.month_name[month],
+                'leads': total_leads,
+                'booked': booked_leads,
+                'conversion': conv_percent
+            })
 
         ctx.update({
-            'filter_form': form,
             'metrics': metrics,
             'selected_year': year,
             'selected_segment': segment,
