@@ -1678,24 +1678,24 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             is_bartending=Exists(bartending_service_exists)
         )
 
-        if segment == 'bartending':
-            quotes = quotes.filter(is_bartending=True)
-        else:
-            quotes = quotes.filter(is_bartending=False)
+        quotes = quotes.filter(
+            is_bartending=(segment == 'bartending')
+        )
+
+        quotes = quotes.annotate(
+            quote_total=Sum(
+                F('quote_services__units') * F('quote_services__price_per_unit'),
+                output_field=FloatField()
+            )
+        )
 
         monthly_metrics = (
             quotes
             .annotate(month=TruncMonth('event_date'))
-            .annotate(
-                line_total=ExpressionWrapper(
-                    F('quote_services__units') * F('quote_services__price_per_unit'),
-                    output_field=FloatField()
-                )
-            )
             .values('month')
             .annotate(
-                count=Count('quote_id', distinct=True),
-                avg_value=Avg('line_total'),
+                count=Count('lead_id', distinct=True),
+                avg_value=Avg('quote_total'),
             )
             .order_by('month')
         )
