@@ -1667,10 +1667,15 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
-        # Earliest data available is August 1, 2025
         min_date = timezone.make_aware(datetime(2025, 8, 1))
         if date_from < min_date:
             date_from = min_date
+
+        lead_month_map = defaultdict(int)
+        leads = Lead.objects.filter(created_at__range=(date_from, date_to))
+        for lead in leads:
+            month = lead.created_at.month
+            lead_month_map[month] += 1
 
         quotes = Quote.objects.filter(event_date__range=(date_from, date_to)).select_related('lead')
 
@@ -1679,26 +1684,27 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         elif segment == 'rental':
             quotes = quotes.filter(services__service__service_type__type='Rental')
 
-        lead_month_map = defaultdict(dict)
-
+        booked_month_map = defaultdict(dict)
         for quote in quotes.distinct('quote_id'):
             month = quote.event_date.month
             lead_id = quote.lead_id
             booked = quote.is_deposit_paid()
-            if lead_id in lead_month_map[month]:
-                lead_month_map[month][lead_id] = lead_month_map[month][lead_id] or booked
+            if lead_id in booked_month_map[month]:
+                booked_month_map[month][lead_id] = booked_month_map[month][lead_id] or booked
             else:
-                lead_month_map[month][lead_id] = booked
+                booked_month_map[month][lead_id] = booked
 
         metrics = []
         for month in range(1, 13):
-            leads_in_month = lead_month_map.get(month, {})
-            total_leads = len(leads_in_month)
-            booked_leads = sum(1 for booked in leads_in_month.values() if booked)
-            conv_percent = (booked_leads / total_leads * 100) if total_leads else 0
+            total_leads = lead_month_map.get(month, 0)
+            leads_with_quotes = booked_month_map.get(month, {})
+            booked_leads = sum(1 for booked in leads_with_quotes.values() if booked)
+            conv_percent = (booked_leads / len(leads_with_quotes) * 100) if leads_with_quotes else 0
+
             metrics.append({
                 'month': calendar.month_name[month],
                 'leads': total_leads,
+                'quotes': len(leads_with_quotes),
                 'booked': booked_leads,
                 'conversion': conv_percent
             })
