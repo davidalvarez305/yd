@@ -1678,7 +1678,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         for lead in leads:
             for quote in lead.quotes.all():
                 has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
-                has_rental = quote.quote_services.filter(service__service_type__type__icontains='Rental').exists()
+                has_rental = quote.quote_services.filter(service__service='Delivery').exists()
 
                 if segment == 'bartending' and not has_bartending:
                     continue
