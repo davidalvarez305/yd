@@ -48,11 +48,7 @@
 						{{ row.booked }}
 					</td>
 					<td class="p-3 text-center">
-						{% if row.leads %}
-						{{ row.booked|floatformat:2|divisibleby:row.leads }}%
-						{% else %}
-						0%
-						{% endif %}
+						{{ row.conversion|floatformat:2 }}%
 					</td>
 				</tr>
 				{% empty %}
