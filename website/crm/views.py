@@ -7,8 +7,8 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Max, BooleanField, Value, Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models import Max, IntegerField, BooleanField, Value, Subquery, Q, F, Count, Sum, Avg, Count, Case, When, FloatField, Exists, OuterRef
+from django.db.models.functions import Coalesce, TruncMonth, Cast
 from django.utils import timezone
 from django.db import transaction
 
@@ -1669,7 +1669,6 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             event_date__range=(date_from, date_to)
         )
 
-        # Segment filter
         quotes = quotes.annotate(
             is_bartending=Exists(
                 QuoteService.objects.filter(
@@ -1681,7 +1680,6 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             is_bartending=(segment == 'bartending')
         )
 
-        # Deposit-paid flag per quote
         quotes = quotes.annotate(
             is_booked=Exists(
                 Invoice.objects.filter(
@@ -1693,39 +1691,36 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             month=TruncMonth('event_date')
         )
 
-        # 🔑 One row per lead per month (boolean booked flag)
         lead_month = (
             quotes
             .values('month', 'lead_id')
             .annotate(
-                booked=Max(
-                    Case(
-                        When(is_booked=True, then=Value(True)),
-                        default=Value(False),
-                        output_field=BooleanField(),
+                booked_int=Max(
+                    Cast(
+                        Case(
+                            When(is_booked=True, then=Value(1)),
+                            default=Value(0),
+                            output_field=IntegerField()
+                        ),
+                        output_field=IntegerField()
                     )
                 )
             )
         )
 
-        # Final metrics
-        metrics = (
+        monthly_metrics = (
             lead_month
             .values('month')
             .annotate(
                 leads=Count('lead_id'),
-                booked=Count('lead_id', filter=Q(booked=True)),
+                booked=Count('lead_id', filter=Q(booked_int=1)),
             )
             .order_by('month')
         )
 
-        # Compute conversion %
-        metrics = list(metrics)
+        metrics = list(monthly_metrics)
         for row in metrics:
-            row['conversion'] = (
-                (row['booked'] / row['leads']) * 100
-                if row['leads'] else 0
-            )
+            row['conversion'] = (row['booked'] / row['leads'] * 100) if row['leads'] else 0
 
         ctx.update({
             'filter_form': form,
