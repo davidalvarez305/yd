@@ -1697,7 +1697,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             .values('month', 'lead_id')
             .annotate(
                 has_booking=Count(
-                    'id',
+                    'pk',
                     filter=Q(is_booked=True)
                 )
             )
