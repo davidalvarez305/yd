@@ -1677,7 +1677,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         if segment == 'bartending':
             quotes = quotes.filter(services__service='Bartender')
         elif segment == 'rental':
-            quotes = quotes.filter(services__service_type__type='Rental')
+            quotes = quotes.filter(services__service__service_type__type='Rental')
 
         lead_month_map = defaultdict(dict)
 
