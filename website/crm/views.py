@@ -1665,33 +1665,29 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
-        quotes = Quote.objects.filter(
-            event_date__range=(date_from, date_to)
-        )
-
-        bartending_service_exists = QuoteService.objects.filter(
-            quote=OuterRef('pk'),
-            service__service='Bartender',
-        )
-
-        quotes = quotes.annotate(
-            is_bartending=Exists(bartending_service_exists)
-        )
-
-        quotes = quotes.filter(
-            is_bartending=(segment == 'bartending')
-        )
-
-        quotes = quotes.annotate(
-            quote_total=Sum(
-                F('quote_services__units') * F('quote_services__price_per_unit'),
-                output_field=FloatField()
+        quote_totals = (
+            Quote.objects
+            .filter(event_date__range=(date_from, date_to))
+            .annotate(
+                is_bartending=Exists(
+                    QuoteService.objects.filter(
+                        quote=OuterRef('pk'),
+                        service__service='Bartender',
+                    )
+                )
             )
+            .filter(is_bartending=(segment == 'bartending'))
+            .annotate(
+                quote_total=Sum(
+                    F('quote_services__units') * F('quote_services__price_per_unit'),
+                    output_field=FloatField()
+                )
+            )
+            .annotate(month=TruncMonth('event_date'))
         )
 
         monthly_metrics = (
-            quotes
-            .annotate(month=TruncMonth('event_date'))
+            quote_totals
             .values('month')
             .annotate(
                 count=Count('lead_id', distinct=True),
