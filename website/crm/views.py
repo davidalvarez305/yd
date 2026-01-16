@@ -1686,7 +1686,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
                     continue
 
                 month = quote.event_date.month
-                lead_id = lead.id
+                lead_id = lead.pk
                 booked = quote.is_deposit_paid()
 
                 if lead_id in lead_month_map[month]:
