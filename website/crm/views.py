@@ -1665,7 +1665,18 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
 
-        quote_totals = (
+        quote_total_subquery = (
+            QuoteService.objects
+            .filter(quote=OuterRef('pk'))
+            .annotate(
+                line_total=F('units') * F('price_per_unit')
+            )
+            .values('quote')
+            .annotate(total=Sum('line_total'))
+            .values('total')
+        )
+
+        quotes = (
             Quote.objects
             .filter(event_date__range=(date_from, date_to))
             .annotate(
@@ -1678,8 +1689,8 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             )
             .filter(is_bartending=(segment == 'bartending'))
             .annotate(
-                quote_total=Sum(
-                    F('quote_services__units') * F('quote_services__price_per_unit'),
+                quote_total=Subquery(
+                    quote_total_subquery,
                     output_field=FloatField()
                 )
             )
@@ -1687,7 +1698,7 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         )
 
         monthly_metrics = (
-            quote_totals
+            quotes
             .values('month')
             .annotate(
                 count=Count('lead_id', distinct=True),
