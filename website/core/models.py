@@ -65,6 +65,13 @@ class UserRole(models.Model):
     class Meta:
         db_table = 'user_role'
 
+class BusinessSegment(models.Model):
+    business_segment_id = models.AutoField(primary_key=True)
+    segment = models.CharField(max_length=60)
+
+    def __str__(self):
+        return self.segment
+
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'LEAD_CREATED'
     INVOICE_SENT = 'INVOICE_SENT'
@@ -361,6 +368,18 @@ class Quote(models.Model):
                 invoices_due -= invoice.amount
 
         return invoices_due
+    
+    @property
+    def is_booked(self) -> bool:
+        invoices = self.invoices.select_related('invoice_type')
+
+        full_invoice = invoices.filter(invoice_type__type=InvoiceTypeEnum.FULL.value, date_paid__isnull=False).exists()
+        if full_invoice:
+            return True
+
+        deposit_paid = invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value, date_paid__isnull=False).exists()
+
+        return deposit_paid
     
     def is_within_week(self) -> bool:
         deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT).first()
