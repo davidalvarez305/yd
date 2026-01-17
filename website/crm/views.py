@@ -1264,6 +1264,28 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
             {
                 'view': 'facebookaccesstoken_list',
                 'name': 'FB Access Tokens',
+            },
+            {
+                'view': 'reports',
+                'name': 'Reports',
+            }
+        ]
+        context['settings'] = settings
+        return context
+
+class ReportsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
+    template_name = 'crm/reports.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        settings = [
+            {
+                'view': 'marketing_analytics',
+                'name': 'Marketing Analytics',
+            },
+            {
+                'view': 'prospecting_analytics',
+                'name': 'Prospecting Analytics',
             }
         ]
         context['settings'] = settings
