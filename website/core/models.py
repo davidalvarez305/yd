@@ -65,9 +65,13 @@ class UserRole(models.Model):
     class Meta:
         db_table = 'user_role'
 
+class BusinessSegmentChoices(models.TextChoices):
+    BARTENDING = 'Bartending'
+    RENTALS = 'Rentals'
+
 class BusinessSegment(models.Model):
     business_segment_id = models.AutoField(primary_key=True)
-    segment = models.CharField(max_length=60)
+    segment = models.CharField(max_length=15, choices=BusinessSegmentChoices)
 
     def __str__(self):
         return self.segment
@@ -309,6 +313,17 @@ class Lead(models.Model):
     
     class Meta:
         db_table = 'lead'
+
+class ServiceBusinessSegment(models.Model):
+    service_business_segment_id = models.AutoField(primary_key=True)
+    service = models.ForeignKey('Service', on_delete=models.RESTRICT, db_column='service_id')
+    business_segment = models.ForeignKey(BusinessSegment, related_name='services', on_delete=models.RESTRICT, db_column='business_segment')
+
+    def __str__(self):
+        return self.type
+
+    class Meta:
+        db_table = 'service_type'
 
 class ServiceType(models.Model):
     service_type_id = models.AutoField(primary_key=True)
@@ -1443,6 +1458,8 @@ class LandingPage(models.Model):
     landing_page_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
+    business_segment = models.ForeignKey(BusinessSegment, related_name='landing_pages', on_delete=models.RESTRICT, db_column='business_segment_id')
+    url = models.SlugField(unique=True)
     is_active = models.BooleanField(default=False)
     is_control = models.BooleanField(default=False)
 
