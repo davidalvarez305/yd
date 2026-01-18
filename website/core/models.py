@@ -36,6 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    external_id = models.CharField(max_length=255, null=True, unique=True, db_index=True)
 
     events = models.ManyToManyField('Event', related_name='staff', through='EventStaff')
 
@@ -286,7 +287,7 @@ class Lead(models.Model):
 
         return total
 
-    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None):
+    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None, order = None):
         from marketing.signals import lead_status_changed
         if isinstance(status, LeadStatusEnum):
             status = status.name
@@ -1706,12 +1707,15 @@ class OrderStatusChoices(models.TextChoices):
     FINALIZED = 'Finalized'
 
     # Delivery flow
+    DELIVERY_FAILED = 'Delivery Failed'
+    PENDING_REVIEW_OF_DELIVERY = 'Pending Review of Delivery'
     DELIVERED = 'Delivered'
     PENDING_PICK_UP = 'Pending Pick Up'
     PICKED_UP = 'Picked Up'
 
     # Pickup-only flow
     CUSTOMER_PICKED_UP = 'Customer Picked Up'
+    PENDING_CUSTOMER_RETURN = 'Pending Customer Return'
     CUSTOMER_RETURNED = 'Customer Returned'
 
 class OrderStatus(models.Model):
@@ -1784,6 +1788,7 @@ class OrderTask(models.Model):
 
 class OrderTaskStatusChoices(models.TextChoices):
     ASSIGNED = 'Assigned'
+    IN_PROGRESS = 'In Progress'
     UNABLE_TO_COMPLETE = 'Unable To Complete'
     COMPLETED = 'Completed'
 
@@ -1934,7 +1939,7 @@ class DriverStopStatusChoices(models.TextChoices):
     ALLOCATED = 'Allocated', 'Allocated'
     OUT_FOR_DELIVERY = 'Out For Delivery', 'Out For Delivery'
     COMPLETED = 'Completed', 'Completed'
-    ATTEMPTED_DELIVERY = 'Attempted Delivery', 'Attempted Delivery'
+    DELIVERY_FAILED = 'Delivery Failed', 'Delivery Failed'
 
 class DriverStopStatus(models.Model):
     driver_stop_status_id = models.AutoField(primary_key=True)
