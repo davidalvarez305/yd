@@ -181,12 +181,23 @@ class OrderManager:
         self._remove_service(order_service, user)
 
     @transaction.atomic
-    def place_order(self, data):
-        for item in data.get("items", []):
-            self.add_item(item.pk, item.units, data.get('user'))
+    def place_order(self, items=None, services=None, user=None):
+        items = items or []
+        services = services or []
 
-        for service in data.get("services", []):
-            self.add_service(service.pk, service.units, data.get('user'))
+        for item in items:
+            self.add_item(
+                item_id=item.get('item_id'),
+                units=item.get('units'),
+                user=user,
+            )
+
+        for service in services:
+            self.add_service(
+                service_id=service.get('service_id'),
+                units=service.get('units'),
+                user=user,
+            )
 
         self.transition_to(OrderStatusChoices.ORDER_PLACED)
     

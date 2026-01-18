@@ -76,6 +76,9 @@ class BusinessSegment(models.Model):
 
     def __str__(self):
         return self.segment
+    
+    class Meta:
+        db_table = 'business_segment'
 
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'LEAD_CREATED'
@@ -321,10 +324,10 @@ class ServiceBusinessSegment(models.Model):
     business_segment = models.ForeignKey(BusinessSegment, related_name='services', on_delete=models.RESTRICT, db_column='business_segment')
 
     def __str__(self):
-        return self.type
+        return self.service.service + " - " + self.business_segment.segment
 
     class Meta:
-        db_table = 'service_type'
+        db_table = 'service_business_segment'
 
 class ServiceType(models.Model):
     service_type_id = models.AutoField(primary_key=True)
@@ -1459,8 +1462,8 @@ class LandingPage(models.Model):
     landing_page_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
-    business_segment = models.ForeignKey(BusinessSegment, related_name='landing_pages', on_delete=models.RESTRICT, db_column='business_segment_id')
-    url = models.SlugField(unique=True)
+    business_segment = models.ForeignKey(BusinessSegment, related_name='landing_pages', on_delete=models.RESTRICT, db_column='business_segment_id', null=True)
+    url = models.SlugField(null=True)
     is_active = models.BooleanField(default=False)
     is_control = models.BooleanField(default=False)
 
@@ -1822,6 +1825,9 @@ class State(models.Model):
     name = models.CharField(max_length=255)
     state_code = models.CharField(max_length=2)
 
+    def __str__(self):
+        return self.state_code
+
     class Meta:
         db_table = 'state'
 
@@ -1829,6 +1835,9 @@ class City(models.Model):
     city_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     state = models.ForeignKey(State, related_name='cities', db_column='state_id', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         db_table = 'city'
