@@ -88,7 +88,7 @@
                         {% endfor %}
                         <tr>
                             <td colspan="3" class="bg-gray-50 p-3 text-right font-bold uppercase dark:bg-gray-900/50">Total Due</td>
-                            <td class="bg-gray-50 p-3 text-right font-semibold dark:bg-gray-900/50">${{ quote.total_due }}</td>
+                            <td class="bg-gray-50 p-3 text-right font-semibold dark:bg-gray-900/50">${{ quote.total_due|floatformat:2 }}</td>
                         </tr>
                     </tbody>
                     <!-- END Table Body -->
