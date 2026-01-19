@@ -61,7 +61,7 @@ def calculate_quote_service_values(
         return price
 
     def apply_large_group_discount(total):
-        return total * 0.80 if adults > 100 else total
+        return total * 0.80 if adults >= 60 else total
 
     if unit_type == 'Per Person':
         units = guests if service_type != 'Alcohol' else adults
