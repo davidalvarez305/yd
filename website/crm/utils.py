@@ -78,7 +78,11 @@ def calculate_quote_service_values(
             price *= (1 + 0.075 * extra_hours)
 
         price = apply_holiday_markup(price)
-        total = apply_large_group_discount(price)
+
+        total = price
+
+        if service_type != 'Extra':
+            total = apply_large_group_discount(price)
 
         return {'units': units, 'price': total}
 
