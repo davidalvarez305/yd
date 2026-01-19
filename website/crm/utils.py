@@ -67,6 +67,10 @@ def calculate_quote_service_values(
             return price * 0.85
         elif adults >= 80:
             return price * 0.70
+        elif adults >= 100:
+            return price * 0.60
+        elif adults >= 200:
+            return price * 0.50
         return price
 
     if unit_type == 'Per Person':
