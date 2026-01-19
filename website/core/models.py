@@ -36,6 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    external_id = models.CharField(max_length=255, null=True, unique=True, db_index=True)
 
     events = models.ManyToManyField('Event', related_name='staff', through='EventStaff')
 
@@ -64,6 +65,20 @@ class UserRole(models.Model):
 
     class Meta:
         db_table = 'user_role'
+
+class BusinessSegmentChoices(models.TextChoices):
+    BARTENDING = 'Bartending'
+    RENTALS = 'Rentals'
+
+class BusinessSegment(models.Model):
+    business_segment_id = models.AutoField(primary_key=True)
+    segment = models.CharField(max_length=15, choices=BusinessSegmentChoices)
+
+    def __str__(self):
+        return self.segment
+    
+    class Meta:
+        db_table = 'business_segment'
 
 class LeadStatusEnum(Enum):
     LEAD_CREATED = 'LEAD_CREATED'
@@ -275,7 +290,7 @@ class Lead(models.Model):
 
         return total
 
-    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None):
+    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None, order = None):
         from marketing.signals import lead_status_changed
         if isinstance(status, LeadStatusEnum):
             status = status.name
@@ -302,6 +317,17 @@ class Lead(models.Model):
     
     class Meta:
         db_table = 'lead'
+
+class ServiceBusinessSegment(models.Model):
+    service_business_segment_id = models.AutoField(primary_key=True)
+    service = models.ForeignKey('Service', on_delete=models.RESTRICT, db_column='service_id')
+    business_segment = models.ForeignKey(BusinessSegment, related_name='services', on_delete=models.RESTRICT, db_column='business_segment')
+
+    def __str__(self):
+        return self.service.service + " - " + self.business_segment.segment
+
+    class Meta:
+        db_table = 'service_business_segment'
 
 class ServiceType(models.Model):
     service_type_id = models.AutoField(primary_key=True)
@@ -361,6 +387,18 @@ class Quote(models.Model):
                 invoices_due -= invoice.amount
 
         return invoices_due
+    
+    @property
+    def is_booked(self) -> bool:
+        invoices = self.invoices.select_related('invoice_type')
+
+        full_invoice = invoices.filter(invoice_type__type=InvoiceTypeEnum.FULL.value, date_paid__isnull=False).exists()
+        if full_invoice:
+            return True
+
+        deposit_paid = invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT.value, date_paid__isnull=False).exists()
+
+        return deposit_paid
     
     def is_within_week(self) -> bool:
         deposit_invoice = self.invoices.filter(invoice_type__type=InvoiceTypeEnum.DEPOSIT).first()
@@ -1424,6 +1462,8 @@ class LandingPage(models.Model):
     landing_page_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)
     template_name = models.CharField(max_length=255, unique=True)
+    business_segment = models.ForeignKey(BusinessSegment, related_name='landing_pages', on_delete=models.RESTRICT, db_column='business_segment_id', null=True)
+    url = models.SlugField(null=True)
     is_active = models.BooleanField(default=False)
     is_control = models.BooleanField(default=False)
 
@@ -1670,12 +1710,15 @@ class OrderStatusChoices(models.TextChoices):
     FINALIZED = 'Finalized'
 
     # Delivery flow
+    DELIVERY_FAILED = 'Delivery Failed'
+    PENDING_REVIEW_OF_DELIVERY = 'Pending Review of Delivery'
     DELIVERED = 'Delivered'
     PENDING_PICK_UP = 'Pending Pick Up'
     PICKED_UP = 'Picked Up'
 
     # Pickup-only flow
     CUSTOMER_PICKED_UP = 'Customer Picked Up'
+    PENDING_CUSTOMER_RETURN = 'Pending Customer Return'
     CUSTOMER_RETURNED = 'Customer Returned'
 
 class OrderStatus(models.Model):
@@ -1748,6 +1791,7 @@ class OrderTask(models.Model):
 
 class OrderTaskStatusChoices(models.TextChoices):
     ASSIGNED = 'Assigned'
+    IN_PROGRESS = 'In Progress'
     UNABLE_TO_COMPLETE = 'Unable To Complete'
     COMPLETED = 'Completed'
 
@@ -1781,6 +1825,9 @@ class State(models.Model):
     name = models.CharField(max_length=255)
     state_code = models.CharField(max_length=2)
 
+    def __str__(self):
+        return self.state_code
+
     class Meta:
         db_table = 'state'
 
@@ -1788,6 +1835,9 @@ class City(models.Model):
     city_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     state = models.ForeignKey(State, related_name='cities', db_column='state_id', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         db_table = 'city'
@@ -1898,7 +1948,7 @@ class DriverStopStatusChoices(models.TextChoices):
     ALLOCATED = 'Allocated', 'Allocated'
     OUT_FOR_DELIVERY = 'Out For Delivery', 'Out For Delivery'
     COMPLETED = 'Completed', 'Completed'
-    ATTEMPTED_DELIVERY = 'Attempted Delivery', 'Attempted Delivery'
+    DELIVERY_FAILED = 'Delivery Failed', 'Delivery Failed'
 
 class DriverStopStatus(models.Model):
     driver_stop_status_id = models.AutoField(primary_key=True)

@@ -10,6 +10,7 @@ urlpatterns = [
     path('communication/', include('communication.urls')),
     path('marketing/', include('marketing.urls')),
     path('billing/', include('billing.urls')),
+    path("api/", include("api.urls")),
 ] 
 
 if settings.DEBUG:

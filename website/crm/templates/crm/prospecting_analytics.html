@@ -28,6 +28,12 @@
 						Leads
 					</th>
 					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
+						Converted Leads
+					</th>
+					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
+						Conv %
+					</th>
+					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
 						Quotes
 					</th>
 					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
@@ -36,16 +42,25 @@
 					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
 						Conv %
 					</th>
+					<th class="bg-gray-100/75 px-3 py-4 text-center font-semibold dark:bg-gray-700/25">
+						Value
+					</th>
 				</tr>
 			</thead>
 			<tbody>
 				{% for row in metrics %}
 				<tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
 					<td class="p-3 font-medium">
-						{{ row.month }}
+						{{ row.month|date:"F" }}
 					</td>
 					<td class="p-3 text-center">
 						{{ row.leads }}
+					</td>
+					<td class="p-3 text-center">
+						{{ row.converted_leads }}
+					</td>
+					<td class="p-3 text-center">
+						{{ row.converted_leads_percentage|floatformat:2 }}%
 					</td>
 					<td class="p-3 text-center">
 						{{ row.quotes }}
@@ -55,6 +70,9 @@
 					</td>
 					<td class="p-3 text-center">
 						{{ row.conversion|floatformat:2 }}%
+					</td>
+					<td class="p-3 text-center">
+						${{ row.value|floatformat:2 }}
 					</td>
 				</tr>
 				{% empty %}

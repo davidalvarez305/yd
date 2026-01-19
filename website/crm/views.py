@@ -1264,6 +1264,28 @@ class SettingsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
             {
                 'view': 'facebookaccesstoken_list',
                 'name': 'FB Access Tokens',
+            },
+            {
+                'view': 'reports',
+                'name': 'Reports',
+            }
+        ]
+        context['settings'] = settings
+        return context
+
+class ReportsView(LoginRequiredMixin, CRMContextMixin, TemplateView):
+    template_name = 'crm/reports.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        settings = [
+            {
+                'view': 'marketing_analytics',
+                'name': 'Marketing Analytics',
+            },
+            {
+                'view': 'prospecting_analytics',
+                'name': 'Prospecting Analytics',
             }
         ]
         context['settings'] = settings
@@ -1661,8 +1683,8 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
             ctx['metrics'] = []
             return ctx
 
-        year = int(form.cleaned_data['year'])
-        segment = form.cleaned_data['business_segment']
+        year = int(form.cleaned_data.get('year'))
+        segment = form.cleaned_data.get('business_segment')
 
         date_from = timezone.make_aware(datetime(year, 1, 1))
         date_to = timezone.make_aware(datetime(year, 12, 31, 23, 59, 59))
@@ -1670,55 +1692,72 @@ class ProspectingAnalytics(CRMBaseView, TemplateView):
         if date_from < min_date:
             date_from = min_date
 
-        leads = Lead.objects.filter(created_at__range=(date_from, date_to)).prefetch_related('quotes__quote_services')
+        leads = Lead.objects.filter().prefetch_related('quotes__quote_services')
 
-        if segment == 'bartending':
+        if segment == 'rental':
+            cutoff = timezone.make_aware(datetime(2025, 10, 1))
             leads = leads.filter(
-                quotes__quote_services__service__service='Bartender'
+                created_at__gte=cutoff
+            ).filter(
+                Q(lead_marketing__metadata__key='gclid') |
+                Q(lead_marketing__metadata__key='_gcl_aw') |
+                Q(lead_marketing__metadata__key='gbraid')
             ).distinct()
-        elif segment == 'rental':
+        elif segment == 'bartending':
             leads = leads.filter(
-                quotes__quote_services__service__service='Delivery'
+                Q(lead_marketing__metadata__key='_fbc') |
+                Q(lead_marketing__metadata__key='fbclid') |
+                Q(lead_marketing__instant_form_lead_id__isnull=False)
             ).distinct()
-
+                
         lead_month_map = defaultdict(int)
+        value_month_map = defaultdict(float)
         quote_month_map = defaultdict(set)
         booked_month_map = defaultdict(set)
+        converted_leads_map = defaultdict(int)
+
+        year = int(form.cleaned_data['year'])
 
         for lead in leads:
-            lead_month_map[lead.created_at.month] += 1
+
+            # Count leads created within current selected year
+            if year == lead.created_at.year:
+                month = lead.created_at.month
+                lead_month_map[month] += 1
+                is_booked = any(quote.is_booked for quote in lead.quotes.all())
+                if is_booked:
+                    converted_leads_map[month] += 1
 
             for quote in lead.quotes.all():
-                date_from_date = date_from.date()
-                date_to_date = date_to.date()
-                if not (date_from_date <= quote.event_date <= date_to_date):
-                    continue
 
-                has_bartending = quote.quote_services.filter(service__service='Bartender').exists()
-                has_rental = quote.quote_services.filter(service__service='Delivery').exists()
-                if segment == 'bartending' and not has_bartending:
-                    continue
-                if segment == 'rental' and not has_rental:
+                # Only count quotes for current year
+                if quote.event_date.year != year:
                     continue
 
                 month = quote.event_date.month
                 quote_month_map[month].add(lead.pk)
 
-                if quote.is_deposit_paid():
+                if quote.is_booked:
                     booked_month_map[month].add(lead.pk)
+                    value_month_map[month] += quote.amount()
 
         metrics = []
         for month in range(1, 13):
             total_leads = lead_month_map.get(month, 0)
+            converted_leads = converted_leads_map.get(month, 0)
             leads_with_quotes = quote_month_map.get(month, set())
             booked_leads = booked_month_map.get(month, set())
+            value = value_month_map.get(month, 0)
             conv_percent = (len(booked_leads) / len(leads_with_quotes) * 100) if leads_with_quotes else 0
 
             metrics.append({
                 'month': datetime(year, month, 1),
                 'leads': total_leads,
+                'converted_leads': converted_leads,
+                'converted_leads_percentage': (converted_leads / total_leads) * 100 if total_leads > 0 else 0,
                 'quotes': len(leads_with_quotes),
                 'booked': len(booked_leads),
+                'value': value,
                 'conversion': conv_percent
             })
 

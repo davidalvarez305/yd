@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     # Settings
     path('settings', views.SettingsView.as_view(), name='settings'),
+    path('reports', views.ReportsView.as_view(), name='reports'),
 
     # Chat
     path('chat', views.LeadChatView.as_view(), name='chat'),

@@ -13,10 +13,12 @@ from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, Dri
 from core.messaging import messaging_service
 from core.ai import ai_agent
 from core.delivery import delivery_service
+from core.managers.order_task import OrderTaskManager
 
 @dataclass
 class TransitionContext:
     user: Optional[User] = None
+    lead: Optional[Lead] = None
     driver_stop: Optional[DriverStop] = None
     source: str = "system"
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -34,9 +36,6 @@ class OrderManager:
         OrderStatusChoices.AWAITING_PREPARATION: [
             OrderStatusChoices.READY_FOR_DISPATCH,
         ],
-        OrderStatusChoices.READY_FOR_DISPATCH: [
-            OrderStatusChoices.DISPATCHED,
-        ]
     }
 
     CANCELLABLE_STATUSES = {
@@ -44,11 +43,13 @@ class OrderManager:
         OrderStatusChoices.AWAITING_PREPARATION,
         OrderStatusChoices.READY_FOR_DISPATCH,
         OrderStatusChoices.DISPATCHED,
+        OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY,
     }
 
     UPDATABLE_STATUSES = {
         OrderStatusChoices.ORDER_PLACED,
         OrderStatusChoices.AWAITING_PREPARATION,
+        OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY,
     }
 
     def __init__(self, order):
@@ -68,7 +69,15 @@ class OrderManager:
         if self.order.has_delivery:
             delivery_flow = {
                 OrderStatusChoices.DISPATCHED: [
-                    OrderStatusChoices.DELIVERED
+                    OrderStatusChoices.DELIVERED,
+                    OrderStatusChoices.DELIVERY_FAILED
+                ],
+                OrderStatusChoices.DELIVERY_FAILED: [
+                    OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY,
+                ],
+                OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY: [
+                    OrderStatusChoices.READY_FOR_DISPATCH,
+                    OrderStatusChoices.ORDER_CANCELLED,
                 ],
                 OrderStatusChoices.DELIVERED: [
                     OrderStatusChoices.PENDING_PICK_UP
@@ -87,6 +96,9 @@ class OrderManager:
                     OrderStatusChoices.CUSTOMER_PICKED_UP
                 ],
                 OrderStatusChoices.CUSTOMER_PICKED_UP: [
+                    OrderStatusChoices.PENDING_CUSTOMER_RETURN
+                ],
+                OrderStatusChoices.PENDING_CUSTOMER_RETURN: [
                     OrderStatusChoices.CUSTOMER_RETURNED
                 ],
                 OrderStatusChoices.CUSTOMER_RETURNED: [
@@ -103,7 +115,7 @@ class OrderManager:
         return new_status in self.allowed_transitions()
 
     @transaction.atomic
-    def transition_to(self, new_status: str, *, context: TransitionContext | None = None):
+    def transition_to(self, new_status: str, context: TransitionContext | None = None):
         context = context or TransitionContext()
 
         if self.current_status and not self.can_transition_to(new_status):
@@ -126,7 +138,7 @@ class OrderManager:
         self._run_hooks(new_status, context)
     
     @transaction.atomic
-    def _force_transition(self, new_status: str, *, context: TransitionContext | None = None):
+    def _force_transition(self, new_status: str, context: TransitionContext | None = None):
         context = context or TransitionContext()
 
         status = OrderStatus.objects.get(status=new_status)
@@ -144,37 +156,48 @@ class OrderManager:
         self._run_hooks(new_status, context)
     
     @transaction.atomic
-    def update_order_items(self, updated_items: list[dict]):
+    def update_order_items(self, updated_items: list[dict], user: User):
         if self.current_status not in self.UPDATABLE_STATUSES:
             raise InvalidOrderTransitionError(
                 "Order items cannot be updated at this stage"
             )
 
-        self._sync_order_items(updated_items)
+        self._sync_order_items(updated_items, user)
     
     @transaction.atomic
-    def add_item(self, item_id: int, units: int):
-        self._add_item(item_id, units)
+    def add_item(self, item_id: int, units: int, user: User):
+        self._add_item(item_id, units, user)
 
     @transaction.atomic
-    def remove_item(self, order_item: OrderItem):
-        self._remove_item(order_item)
+    def remove_item(self, order_item: OrderItem, user: User):
+        self._remove_item(order_item, user)
 
     @transaction.atomic
-    def add_service(self, service_id: int, units: int):
-        self._add_service(service_id, units)
+    def add_service(self, service_id: int, units: int, user: User):
+        self._add_service(service_id, units, user)
 
     @transaction.atomic
-    def remove_service(self, order_service: OrderService):
-        self._remove_service(order_service)
+    def remove_service(self, order_service: OrderService, user: User):
+        self._remove_service(order_service, user)
 
     @transaction.atomic
-    def place_order(self, data):
-        for item in data.get("items", []):
-            self.add_item(item.pk, item.units)
+    def place_order(self, items=None, services=None, user=None):
+        items = items or []
+        services = services or []
 
-        for service in data.get("services", []):
-            self.add_service(service.pk, service.units)
+        for item in items:
+            self.add_item(
+                item_id=item.get('item_id'),
+                units=item.get('units'),
+                user=user,
+            )
+
+        for service in services:
+            self.add_service(
+                service_id=service.get('service_id'),
+                units=service.get('units'),
+                user=user,
+            )
 
         self.transition_to(OrderStatusChoices.ORDER_PLACED)
     
@@ -192,14 +215,16 @@ class OrderManager:
             context=TransitionContext(
                 user=user,
                 source="user",
-                user=user,
             )
         )
     
-    def mark_ready_for_dispatch(self):
+    def mark_ready_for_dispatch(self, user: User):
+        return self.transition_to(OrderStatusChoices.READY_FOR_DISPATCH, context=TransitionContext(source='user', user=user))
+    
+    def retry_dispatch(self):
         return self.transition_to(OrderStatusChoices.READY_FOR_DISPATCH)
 
-    def dispatch(self, *, driver_stop: DriverStop, user: User | None = None):
+    def dispatch(self, driver_stop: DriverStop, user: User | None = None):
         return self.transition_to(
             OrderStatusChoices.DISPATCHED,
             context=TransitionContext(
@@ -208,21 +233,66 @@ class OrderManager:
                 source="driver"
             )
         )
-
-    def mark_delivered(self):
-        return self.transition_to(OrderStatusChoices.DELIVERED)
+    
+    def mark_delivery_failed(self, driver_stop, user: User | None = None):
+        return self.transition_to(
+            OrderStatusChoices.DELIVERY_FAILED,
+            context=TransitionContext(
+                user=user,
+                driver_stop=driver_stop,
+                source="driver"
+            )
+        )
 
     def mark_pending_pickup(self):
-        return self.transition_to(OrderStatusChoices.PENDING_PICK_UP)
+        return self.transition_to(OrderStatusChoices.PENDING_PICK_UP, context=TransitionContext(source='system'))
     
     def customer_picked_up(self):
-        return self.transition_to(OrderStatusChoices.CUSTOMER_PICKED_UP)
+        return self.transition_to(OrderStatusChoices.CUSTOMER_PICKED_UP, context=TransitionContext(source='customer'))
+    
+    def mark_pending_customer_return(self):
+        return self.transition_to(OrderStatusChoices.PENDING_CUSTOMER_RETURN, context=TransitionContext(source='system'))
+    
+    def mark_awaiting_preparation(self):
+        return self.transition_to(OrderStatusChoices.AWAITING_PREPARATION, context=TransitionContext(source='system'))
+    
+    def mark_pending_review_of_delivery(self):
+        return self.transition_to(OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY, context=TransitionContext(source='system'))
+
+    def mark_delivered(self, driver_stop, user=None):
+        return self.transition_to(
+            OrderStatusChoices.DELIVERED,
+            context=TransitionContext(
+                user=user,
+                driver_stop=driver_stop,
+                source="driver",
+            ),
+        )
+
+    def mark_picked_up(self, driver_stop, user=None):
+        return self.transition_to(
+            OrderStatusChoices.PICKED_UP,
+            context=TransitionContext(
+                user=user,
+                driver_stop=driver_stop,
+                source="driver",
+            ),
+        )
     
     def customer_returned(self):
         return self.transition_to(OrderStatusChoices.CUSTOMER_RETURNED)
 
-    def pickup_completed(self):
-        return self.transition_to(OrderStatusChoices.PICKED_UP)
+    @transaction.atomic
+    def complete_task(self, order_task: OrderTask, user: User):
+        manager = OrderTaskManager(self.order, order_task)
+        manager.complete_task(user=user)
+
+        match order_task.task:
+            case OrderTaskChoices.LOAD_ORDER_ITEMS:
+                self.mark_ready_for_dispatch(user=user)
+
+            case OrderTaskChoices.UNLOAD_ORDER_ITEMS:
+                self.finalize()
 
     def finalize(self):
         return self.transition_to(OrderStatusChoices.FINALIZED)
@@ -237,34 +307,43 @@ class OrderManager:
                 self._on_awaiting_preparation(context)
             case OrderStatusChoices.READY_FOR_DISPATCH:
                 self._on_ready_for_dispatch(context)
+            case OrderStatusChoices.DELIVERY_FAILED:
+                self._on_delivery_failed(context)
+            case OrderStatusChoices.PENDING_REVIEW_OF_DELIVERY:
+                self._on_pending_review_of_delivery(context)
             case OrderStatusChoices.DISPATCHED:
                 self._on_dispatched(context)
             case OrderStatusChoices.DELIVERED:
                 self._on_delivered(context)
+            case OrderStatusChoices.PENDING_PICK_UP:
+                self._on_pending_pick_up(context)
             case OrderStatusChoices.PICKED_UP:
                 self._on_picked_up(context)
             case OrderStatusChoices.CUSTOMER_PICKED_UP:
                 self._on_customer_picked_up(context)
+            case OrderStatusChoices.PENDING_CUSTOMER_RETURN:
+                self._on_pending_customer_returned(context)
             case OrderStatusChoices.CUSTOMER_RETURNED:
                 self._on_customer_returned(context)
             case OrderStatusChoices.FINALIZED:
                 self._on_finalized(context)
 
     def _on_place_order(self, context: TransitionContext):
+        
         # Report conversion event
-        self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.order)
+        self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, order=self.order)
         
         # Alert client
         self._send_order_placed_confirmation_email()
         
-        # Transition to next step in workflow
-        self.transition_to(OrderStatusChoices.AWAITING_PREPARATION, context=TransitionContext(source="system"))
+        # Transition to next step
+        self.mark_awaiting_preparation()
 
     def _send_order_placed_confirmation_email(self):
         html = render_to_string(
             "emails/order_placed_confirmation.html",
             {
-                "full_name": self.lead.full_name,
+                "full_name": self.order.lead.full_name,
                 "order_code": self.order.code,
                 "start_date": self.order.start_date.strftime("%B %d, %Y"),
                 "end_date": self.order.end_date.strftime("%B %d, %Y"),
@@ -278,7 +357,7 @@ class OrderManager:
             html=html,
         )
 
-    def _on_cancel_order(self):
+    def _on_cancel_order(self, context: TransitionContext):
 
         # Returen items & add entry to inventory ledger
         for item in self.order.items.all():
@@ -291,7 +370,7 @@ class OrderManager:
         html = render_to_string(
             "emails/order_cancelled_confirmation.html",
             {
-                "full_name": self.lead.full_name,
+                "full_name": self.order.lead.full_name,
                 "order_code": self.order.code,
                 "start_date": self.order.start_date.strftime("%B %d, %Y"),
                 "end_date": self.order.end_date.strftime("%B %d, %Y"),
@@ -305,10 +384,11 @@ class OrderManager:
             html=html,
         )
     
-    def _on_awaiting_preparation(self):
+    def _on_awaiting_preparation(self, context: TransitionContext):
+        user = self._find_warehouse_user_for_task()
+
         order_task = OrderTask.objects.get(task=OrderTaskChoices.LOAD_ORDER_ITEMS)
         order_task_status = OrderTaskStatus.objects.get(status=OrderTaskStatusChoices.ASSIGNED)
-        user = User.objects.filter(roles__role=UserRoleChoices.WAREHOUSE_STAFF).first()
 
         OrderTaskLog.objects.create(
             order_task=order_task,
@@ -316,37 +396,16 @@ class OrderManager:
             order_task_status=order_task_status,
             assigned_to=user,
         )
+    
+    def _on_ready_for_dispatch(self, context: TransitionContext):
 
-    def _on_ready_for_dispatch(self):
+        if self.order.has_delivery:
+            self._add_driver_stop_to_route(OrderAddressTypeChoices.DELIVERY)
 
-        stop_type = OrderAddressTypeChoices.DELIVERY
-
-        # query available driver
-        driver_route = self._assign_driver_route_for_order(stop_type=stop_type)
-
-        # get delivery address
-        order_address = self.order.addresses.filter(stop_type=stop_type).first()
-
-        # assign driver
-        stop = DriverStop(
-            driver_route=driver_route,
-            order_address=order_address,
-        )
-
-        stop.save()
-
-        # create plan
-        plan = delivery_service.create_plan(data=data)
-        
-        # add stop
-        route_stop = plan.add_stop(stop=stop)
-        stop.external_id = route_stop.external_id
-        stop.web_tracking_link = route_stop.web_tracking_link
-
-        stop.save()
-
-        # notify user that truck will be arriving at X - Y time window
-        self._send_order_ready_for_dispatch_email()
+            # notify user that truck will be arriving at X - Y time window
+            self._send_order_ready_for_dispatch_email()
+        else:
+            self._send_order_ready_for_pickup_email()
 
     def _on_dispatched(self, context: TransitionContext):
         driver_stop = context.driver_stop
@@ -355,12 +414,33 @@ class OrderManager:
 
         self._send_user_dispatch_with_live_tracking_link()
 
-        status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.OUT_FOR_DELIVERY)
+        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.OUT_FOR_DELIVERY)
 
         DriverStopStatusChangeHistory.objects.create(
             driver_stop=driver_stop,
-            driver_stop_status=status,
+            driver_stop_status=driver_stop_status,
         )
+    
+    def _on_delivery_failed(self, context: TransitionContext):
+        driver_stop = context.driver_stop
+        if not driver_stop:
+            raise RuntimeError("DISPATCHED requires driver_stop in context")
+
+        self._send_delivery_failed_notification_email()
+
+        driver_stop_status = DriverStopStatus.objects.get(status=DriverStopStatusChoices.DELIVERY_FAILED)
+
+        DriverStopStatusChangeHistory.objects.create(
+            driver_stop=driver_stop,
+            driver_stop_status=driver_stop_status,
+        )
+
+        self.mark_pending_review_of_delivery()
+
+    def _on_pending_review_of_delivery(self, context: TransitionContext):
+        self._send_user_pending_review_of_delivery_notification()
+    
+        self._send_managers_review_order_notification()
 
     def _on_delivered(self, context: TransitionContext):
         driver_stop = context.driver_stop
@@ -392,21 +472,13 @@ class OrderManager:
             driver_stop_status=status,
         )
 
-        for item in self.order.items.all():
-            item.inventory.return_items(
-                order=self.order,
-                target_date=timezone.now().date()
-            )
-
-        self.transition_to(
-            OrderStatusChoices.FINALIZED,
-            context=TransitionContext(source="system")
-        )
-
-    def _on_customer_picked_up(self):
+    def _on_customer_picked_up(self, context: TransitionContext):
        self._send_customer_pickup_confirmation_email()
     
-    def _on_customer_returned(self):
+    def _on_pending_customer_returned(self, context: TransitionContext):
+        self._send_customer_return_instructions_email()
+    
+    def _on_customer_returned(self, context: TransitionContext):
         
         # send customer notification e-mail
         self._send_customer_return_confirmation_email()
@@ -421,10 +493,18 @@ class OrderManager:
         # finalize order status
         self.finalize()
     
-    def _on_pending_pick_up():
-        return
+    def _on_pending_pick_up(self, context: TransitionContext):
+        self._add_driver_stop_to_route(OrderAddressTypeChoices.PICKUP)
+
+        self._send_customer_pickup_notification()
     
-    def _on_finalized(self):
+    def _on_finalized(self, context: TransitionContext):
+        for item in self.order.items.all():
+            item.inventory.return_items(
+                order=self.order,
+                target_date=timezone.now().date(),
+            )
+
         self._send_review_request()
 
     def _send_review_request(self):
@@ -498,11 +578,11 @@ class OrderManager:
 
         return message
     
-    def _remove_item(self, order_item: OrderItem):
+    def _remove_item(self, order_item: OrderItem, user: User):
         order_item.item.inventory.cancel_reservation(order=self.order)
 
         OrderItemChangeHistory.objects.create(
-            user=self.user,
+            user=user,
             order=self.order,
             item=order_item.item,
             action=AddedOrRemoveActionChoices.REMOVED,
@@ -512,7 +592,7 @@ class OrderManager:
 
         order_item.delete()
     
-    def _add_item(self, id: int, units: int):
+    def _add_item(self, id: int, units: int, user: User):
         item = Item.objects.select_for_update().get(pk=id)
 
         item.inventory.reserve_item(
@@ -528,7 +608,7 @@ class OrderManager:
         )
 
         OrderItemChangeHistory.objects.create(
-            user=self.user,
+            user=user,
             order=self.order,
             item=item,
             action=AddedOrRemoveActionChoices.ADDED,
@@ -538,7 +618,7 @@ class OrderManager:
 
         return order_item
     
-    def _sync_order_items(self, updated_items: list[dict]):
+    def _sync_order_items(self, updated_items: list[dict], user: User):
         """
         updated_items = [{"item_id": int, "units": int}]
         """
@@ -556,16 +636,16 @@ class OrderManager:
         # Removed items
         for item_id, order_item in existing.items():
             if item_id not in desired:
-                self._remove_item(order_item)
+                self._remove_item(order_item, user)
 
         # Added or changed items
         for item_id, units in desired.items():
             if item_id not in existing:
-                self._add_item(item_id, units)
+                self._add_item(item_id, units, user)
             else:
                 self._update_item_quantity(existing[item_id], units)
     
-    def _add_service(self, id: int, units: int):
+    def _add_service(self, id: int, units: int, user: User):
         service = Service.objects.get(pk=id)
 
         order_service = OrderService.objects.create(
@@ -576,7 +656,7 @@ class OrderManager:
         )
 
         OrderServiceChangeHistory.objects.create(
-            user=self.user,
+            user=user,
             order=self.order,
             service=service,
             action=AddedOrRemoveActionChoices.ADDED,
@@ -586,11 +666,11 @@ class OrderManager:
 
         return order_service
     
-    def _remove_service(self, order_service: OrderService):
+    def _remove_service(self, order_service: OrderService, user: User):
         service = order_service.service
 
         OrderServiceChangeHistory.objects.create(
-            user=self.user,
+            user=user,
             order=self.order,
             service=service,
             action=AddedOrRemoveActionChoices.REMOVED,
@@ -662,7 +742,7 @@ class OrderManager:
             return existing_route
 
         # Find next available driver (round-robin)
-        available_driver = (
+        driver = (
             User.objects
             .filter(roles__role=UserRoleChoices.DRIVER)
             .annotate(
@@ -679,20 +759,78 @@ class OrderManager:
             .first()
         )
 
-        if not available_driver:
+        if not driver:
             raise ValidationError("No available drivers for this date")
         
-        title = f"Order #{self.order.order_code} - {target_date.strftime('%m/%d/%Y')}"
+        title = f"Order #{self.order.code} - {target_date.strftime('%m/%d/%Y')}"
 
         data = delivery_service.create_route(
             route_date=target_date,
             title=title,
-            drivers=drivers,
+            drivers=driver.external_id,
         )
         
         return DriverRoute.objects.create(
             external_id=data.get('id'),
-            user=available_driver,
+            user=driver,
             route_zone=route_zone,
             target_date=target_date,
         )
+    
+    @transaction.atomic
+    def _find_warehouse_user_for_task(self):
+        """
+        Finds an available warehouse staff member using round-robin logic.
+        """
+
+        user = (
+            User.objects
+            .select_for_update()
+            .filter(roles__role=UserRoleChoices.WAREHOUSE_STAFF)
+            .annotate(
+                has_active_task=Exists(
+                    OrderTaskLog.objects.filter(
+                        assigned_to=OuterRef("pk"),
+                        order_task_status__status__in=[
+                            OrderTaskStatusChoices.ASSIGNED,
+                            OrderTaskStatusChoices.IN_PROGRESS,
+                        ],
+                    )
+                ),
+                last_assigned_at=Max("order_tasks__date_created"),
+            )
+            .filter(has_active_task=False)
+            .order_by("last_assigned_at", "user_id")
+            .first()
+        )
+
+        if not user:
+            raise ValidationError("No available warehouse staff")
+        
+        return user
+    
+    def _add_driver_stop_to_route(self, stop_type: OrderAddressTypeChoices):
+
+        # query available driver
+        driver_route = self._assign_driver_route_for_order(stop_type=stop_type)
+
+        # get delivery address
+        order_address = self.order.addresses.filter(stop_type=stop_type).first()
+
+        # assign driver
+        stop = DriverStop(
+            driver_route=driver_route,
+            order_address=order_address,
+        )
+
+        stop.save()
+
+        # create plan
+        plan = delivery_service.create_plan(data=data)
+        
+        # add stop
+        route_stop = plan.add_stop(stop=stop)
+        stop.external_id = route_stop.external_id
+        stop.web_tracking_link = route_stop.web_tracking_link
+
+        stop.save()
