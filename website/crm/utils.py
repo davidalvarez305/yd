@@ -47,7 +47,10 @@ HOLIDAY_MARKUPS = {
     (12, 31),
 }
 
-def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_type, service_type, guest_ratio, date):
+def calculate_quote_service_values(
+    adults, minors, hours, suggested_price,
+    unit_type, service_type, guest_ratio, date
+):
     minors = minors or 0
     adults = adults or 0
 
@@ -58,6 +61,9 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
             return price * 1.50
         return price
 
+    def apply_large_group_discount(total):
+        return total * 0.80 if adults > 100 else total
+
     if unit_type == 'Per Person':
         units = guests if service_type != 'Alcohol' else adults
         price = suggested_price
@@ -67,27 +73,28 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
             price *= (1 + 0.075 * extra_hours)
 
         price = apply_holiday_markup(price)
-        return {'units': units, 'price': price}
-    
+        total = apply_large_group_discount(units * price)
+
+        return {'units': units, 'price': total}
+
     elif unit_type == 'Ratio' and service_type == 'Hourly Service':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
         price = apply_holiday_markup(suggested_price)
+
         return {'units': units, 'price': price}
 
     elif unit_type == 'Hourly':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
         price = apply_holiday_markup(suggested_price)
+
         return {'units': units, 'price': price}
-    
+
     elif guest_ratio and service_type in {'Bar Rental', 'Cooler Rental'}:
         units = math.ceil(adults / guest_ratio)
         price = apply_holiday_markup(suggested_price)
-        return {'units': units, 'price': price}
-    
-    elif guest_ratio and service_type in {'Table Rental', 'Chair Rental'}:
-        units = math.ceil(guests / guest_ratio)
-        price = apply_holiday_markup(suggested_price)
-        return {'units': units, 'price': price}
+        total = apply_large_group_discount(units * price)
+
+        return {'units': units, 'price': total}
 
     else:
         return {}
