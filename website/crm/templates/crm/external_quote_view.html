@@ -72,8 +72,8 @@
                                 <p class="mb-1 font-semibold">{{ quote_service.service }}</p>
                             </td>
                             <td class="p-3 text-right">{{ quote_service.units }}</td>
-                            <td class="p-3 text-right">${{ quote_service.price_per_unit }}</td>
-                            <td class="p-3 text-right">${{ quote_service.total }}</td>
+                            <td class="p-3 text-right">${{ quote_service.price_per_unit|floatformat:2 }}</td>
+                            <td class="p-3 text-right">${{ quote_service.total|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                         {% for invoice in quote.invoices.all %}
