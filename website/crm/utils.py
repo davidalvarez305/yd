@@ -61,12 +61,12 @@ def calculate_quote_service_values(
         return price
 
     def apply_large_group_discount(price):
-        if adults >= 80:
-            return price * 0.80
+        if adults >= 40:
+            return price * 0.90
         elif adults >= 60:
             return price * 0.85
-        elif adults >= 40:
-            return price * 0.90
+        elif adults >= 80:
+            return price * 0.70
         return price
 
     if unit_type == 'Per Person':
@@ -97,9 +97,8 @@ def calculate_quote_service_values(
     elif guest_ratio and service_type in {'Bar Rental', 'Cooler Rental'}:
         units = math.ceil(adults / guest_ratio)
         price = apply_holiday_markup(suggested_price)
-        total = apply_large_group_discount(units * price)
 
-        return {'units': units, 'price': total}
+        return {'units': units, 'price': price}
 
     else:
         return {}
