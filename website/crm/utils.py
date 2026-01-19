@@ -61,16 +61,16 @@ def calculate_quote_service_values(
         return price
 
     def apply_large_group_discount(price):
-        if adults >= 40:
-            return price * 0.90
+        if adults >= 200:
+            return price * 0.65
+        elif adults >= 100:
+            return price * 0.70
+        elif adults >= 80:
+            return price * 0.75
         elif adults >= 60:
             return price * 0.85
-        elif adults >= 80:
-            return price * 0.70
-        elif adults >= 100:
-            return price * 0.60
-        elif adults >= 200:
-            return price * 0.50
+        elif adults >= 40:
+            return price * 0.90
         return price
 
     if unit_type == 'Per Person':
@@ -79,7 +79,7 @@ def calculate_quote_service_values(
 
         if service_type in {"Add On", "Alcohol"}:
             extra_hours = max(0, hours - BASELINE_HOURS)
-            price *= (1 + 0.050 * extra_hours)
+            price *= (1 + 0.075 * extra_hours)
 
         price = apply_holiday_markup(price)
 
