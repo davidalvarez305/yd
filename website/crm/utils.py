@@ -62,7 +62,7 @@ def calculate_quote_service_values(
 
     def apply_large_group_discount(price):
         if adults >= 200:
-            return price * 0.65
+            return price * 0.60
         elif adults >= 100:
             return price * 0.70
         elif adults >= 80:
