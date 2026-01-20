@@ -11,7 +11,7 @@ urlpatterns = [
     path('lead', views.LeadCreateView.as_view(), name='lead_create'),
     path('logout', views.LogoutView.as_view(), name='logout'),
     path('thank-you/<str:external_id>/', views.SuccessPaymentView.as_view(), name='success_payment'),
-    path('cancel/<str:external_id>/', views.SuccessPaymentView.as_view(), name='cancel_payment'),
+    path('cancel/<str:external_id>/', views.CancelPaymentView.as_view(), name='cancel_payment'),
     path('external/<str:external_id>/', views.redirect_external, name='redirect_external'),
 
     # Landing Pages
