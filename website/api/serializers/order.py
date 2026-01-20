@@ -19,30 +19,14 @@ class OrderServiceInputSerializer(serializers.Serializer):
 
 class OrderAddressInputSerializer(serializers.Serializer):
     street_address = serializers.CharField()
-    zip_code = serializers.PrimaryKeyRelatedField(
-        queryset=ZipCode.objects.select_related("city__state")
-    )
-    delivery_type = serializers.ChoiceField(
-        choices=OrderAddress._meta.get_field("stop_type").choices
-    )
-    delivery_start_time = serializers.CharField(required=False, allow_null=True)
-    delivery_end_time = serializers.CharField(required=False, allow_null=True)
-
-    def parse_times(self, data):
-        start = parse_datetime(data.get("delivery_start_time"))
-        end = parse_datetime(data.get("delivery_end_time"))
-
-        if data.get("delivery_start_time") and not start:
-            raise serializers.ValidationError("Invalid delivery_start_time")
-
-        if data.get("delivery_end_time") and not end:
-            raise serializers.ValidationError("Invalid delivery_end_time")
-
-        return start, end
+    zip_code = serializers.PrimaryKeyRelatedField(queryset=ZipCode.objects.select_related("city__state"))
+    delivery_type = serializers.ChoiceField(choices=OrderAddress._meta.get_field("stop_type").choices)
+    delivery_start_time = serializers.DateTimeField(required=False, allow_null=True)
+    delivery_end_time = serializers.DateTimeField(required=False, allow_null=True)
 
 class OrderCreateSerializer(serializers.ModelSerializer):
-    pickup = serializers.DictField(required=False)
-    delivery = serializers.DictField(required=False)
+    pickup = OrderAddressInputSerializer(required=False)
+    delivery = OrderAddressInputSerializer(required=False)
 
     items = OrderItemInputSerializer(many=True, required=True)
     services = OrderServiceInputSerializer(many=True, required=True)
@@ -80,32 +64,18 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def _build_address(self, data, order, stop_type):
-        zip_code = ZipCode.objects.select_related("city__state").get(
-            code=data["zip_code"]
-        )
-
-        start = parse_datetime(data.get("delivery_start_time"))
-        end = parse_datetime(data.get("delivery_end_time"))
-
-        if data.get("delivery_start_time") and not start:
-            raise serializers.ValidationError("Invalid delivery_start_time")
-
-        if data.get("delivery_end_time") and not end:
-            raise serializers.ValidationError("Invalid delivery_end_time")
-
-        address = Address.objects.create(
-            street_address=data["street_address"],
-            zip_code=zip_code,
-            city=zip_code.city,
-            state=zip_code.city.state,
+        address, _ = Address.objects.get_or_create(
+            address_line_1=data.get('street_address'),
+            address_line_2=data.get('address_line_2'),
+            zip_code=data.get('zip_code'),
         )
 
         OrderAddress.objects.create(
             order=order,
             address=address,
             stop_type=stop_type,
-            delivery_start_time=start,
-            delivery_end_time=end,
+            delivery_start_time=data.get('delivery_start_time'),
+            delivery_end_time=data.get('delivery_end_time'),
         )
 
     @transaction.atomic

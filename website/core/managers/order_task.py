@@ -106,8 +106,37 @@ class OrderTaskManager:
     def _on_completed(self, context): pass
     def _on_unable_to_complete(self, context): pass
     
-    def complete_task(
-        self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
+    @transaction.atomic
+    def create_task(self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None):
+        context = context or TaskTransitionContext(
+            user=user,
+            order=self.order,
+            source="system",
+        )
+
+        if self.current_status:
+            raise InvalidTaskTransitionError(
+                f"Task already created with status '{self.current_status}'"
+            )
+
+        status = OrderTaskStatus.objects.get(status=OrderTaskStatusChoices.ASSIGNED)
+
+        OrderTaskLog.objects.create(
+            order=self.order,
+            order_task=self.order_task,
+            order_task_status=status,
+            assigned_to=user,
+            notes=notes,
+        )
+
+        return self.transition_to(
+            OrderTaskStatusChoices.ASSIGNED,
+            user=user,
+            context=context,
+            notes=notes,
+        )
+    
+    def complete_task(self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
         return self.transition_to(
             OrderTaskStatusChoices.COMPLETED,
             user=user,

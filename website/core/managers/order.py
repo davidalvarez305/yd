@@ -388,14 +388,10 @@ class OrderManager:
         user = self._find_warehouse_user_for_task()
 
         order_task = OrderTask.objects.get(task=OrderTaskChoices.LOAD_ORDER_ITEMS)
-        order_task_status = OrderTaskStatus.objects.get(status=OrderTaskStatusChoices.ASSIGNED)
 
-        OrderTaskLog.objects.create(
-            order_task=order_task,
-            order=self.order,
-            order_task_status=order_task_status,
-            assigned_to=user,
-        )
+        manager = OrderTaskManager(order=self.order, order_task=order_task)
+
+        manager.create_task(user=user, context=context, notes="Task created during awaiting preparation")
     
     def _on_ready_for_dispatch(self, context: TransitionContext):
 
