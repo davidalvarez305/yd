@@ -1476,8 +1476,34 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         facebook_leads_count = facebook_leads.count()
 
         event_date_from, event_date_to = date_from.date(), date_to.date()
-        google_events = Event.objects.filter(lead__in=google_leads, quote__event_date__range=(form.cleaned_data.get("date_from"), form.cleaned_data.get("date_to")))
-        facebook_events = Event.objects.filter(lead__in=facebook_leads, quote__event_date__range=(form.cleaned_data.get("date_from"), form.cleaned_data.get("date_to")))
+
+        booked_filter = Q(
+            invoices__invoice_type__type=InvoiceTypeEnum.FULL.value,
+            invoices__date_paid__isnull=False,
+        ) | Q(
+            invoices__invoice_type__type=InvoiceTypeEnum.DEPOSIT.value,
+            invoices__date_paid__isnull=False,
+        )
+
+        google_events = (
+            Quote.objects
+            .filter(
+                lead__in=google_leads,
+                event_date__range=(event_date_from, event_date_to),
+            )
+            .filter(booked_filter)
+            .distinct()
+        )
+
+        facebook_events = (
+            Quote.objects
+            .filter(
+                lead__in=facebook_leads,
+                event_date__range=(event_date_from, event_date_to),
+            )
+            .filter(booked_filter)
+            .distinct()
+        )
 
         google_event_count = google_leads_with_events.count()
         facebook_event_count = facebook_leads_with_events.count()
