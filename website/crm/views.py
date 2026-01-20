@@ -1474,12 +1474,12 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         )
 
         google_exists = LeadMarketingMetadata.objects.filter(
-            lead=OuterRef('lead_id'),
+            lead_marketing__lead_id=OuterRef('lead_id'),
             key__in=['gclid', '_gcl_aw', 'gbraid'],
         )
 
         facebook_exists = LeadMarketingMetadata.objects.filter(
-            lead=OuterRef('lead_id'),
+            lead_marketing__lead_id=OuterRef('lead_id'),
             key__in=['_fbc', 'fbclid'],
         )
 
