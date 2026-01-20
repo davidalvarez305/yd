@@ -27,7 +27,7 @@ from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, get_session_data, is_mobile, normalize_phone_number
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url
-from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
+from crm.utils import calculate_quote_service_values, convert_to_item_quantity, quote_revenue, update_quote_invoices
 from core.messaging import messaging_service
 from marketing.enums import ConversionServiceType
 from crm.filters import EventFilter
@@ -1508,8 +1508,8 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         google_event_count = google_leads_with_events.count()
         facebook_event_count = facebook_leads_with_events.count()
 
-        google_revenue = google_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
-        facebook_revenue = facebook_events.aggregate(total_revenue=Sum('amount'))['total_revenue'] or 0
+        google_revenue = quote_revenue(google_events)
+        facebook_revenue = quote_revenue(facebook_events)
 
         google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
         facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0

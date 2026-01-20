@@ -5,6 +5,7 @@ import uuid
 
 # from weasyprint import HTML
 
+from django.db.models import F, Sum, FloatField, ExpressionWrapper
 from django.template.loader import render_to_string
 from django.forms import ValidationError
 from django.utils import timezone
@@ -186,3 +187,14 @@ def generate_event_pdf(event: Event) -> EventDocument:
     )
 
     return document
+
+def quote_revenue(qs):
+    return (
+        qs.annotate(
+            line_total=ExpressionWrapper(
+                F('quote_services__units') * F('quote_services__price_per_unit'),
+                output_field=FloatField(),
+            )
+        )
+        .aggregate(total=Sum('line_total'))['total'] or 0
+    )
