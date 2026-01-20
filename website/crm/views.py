@@ -27,7 +27,7 @@ from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, get_session_data, is_mobile, normalize_phone_number
 from marketing.utils import create_ad_from_params, generate_params_dict_from_url
-from crm.utils import calculate_quote_service_values, convert_to_item_quantity, quote_revenue, update_quote_invoices
+from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
 from marketing.enums import ConversionServiceType
 from crm.filters import EventFilter
@@ -1442,89 +1442,122 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         ctx = super().get_context_data(**kwargs)
 
         form = self.filter_form_class(self.request.GET or None)
+
         if form.is_valid():
-            date_from = timezone.make_aware(datetime.combine(form.cleaned_data["date_from"], datetime.min.time()))
-            date_to = timezone.make_aware(datetime.combine(form.cleaned_data["date_to"], datetime.max.time()))
+            date_from = timezone.make_aware(
+                datetime.combine(form.cleaned_data["date_from"], datetime.min.time())
+            )
+            date_to = timezone.make_aware(
+                datetime.combine(form.cleaned_data["date_to"], datetime.max.time())
+            )
         else:
             date_from = timezone.make_aware(datetime(2025, 10, 1))
-            date_to = timezone.make_aware(datetime.now())
+            date_to = timezone.now()
+
+        event_date_from = date_from.date()
+        event_date_to = date_to.date()
 
         ad_spend = AdSpend.objects.filter(date__range=(date_from, date_to))
-        google_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.GOOGLE.value)
-        facebook_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.FACEBOOK.value)
 
-        google_ad_spend = google_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
-        facebook_ad_spend = facebook_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
+        google_ad_spend = (
+            ad_spend.filter(platform_id=ConversionServiceType.GOOGLE.value)
+            .aggregate(total=Sum('spend'))['total'] or 0
+        )
+
+        facebook_ad_spend = (
+            ad_spend.filter(platform_id=ConversionServiceType.FACEBOOK.value)
+            .aggregate(total=Sum('spend'))['total'] or 0
+        )
+
+        events = Event.objects.filter(
+            quote__event_date__range=(event_date_from, event_date_to)
+        )
+
+        google_exists = LeadMarketingMetadata.objects.filter(
+            lead=OuterRef('lead_id'),
+            key__in=['gclid', '_gcl_aw', 'gbraid'],
+        )
+
+        facebook_exists = LeadMarketingMetadata.objects.filter(
+            lead=OuterRef('lead_id'),
+            key__in=['_fbc', 'fbclid'],
+        )
+
+        events = events.annotate(
+            is_google=Exists(google_exists),
+            is_facebook=Exists(facebook_exists),
+        )
+
+        marketing_metrics = events.aggregate(
+            google_revenue=Sum(
+                Case(
+                    When(is_google=True, then='amount'),
+                    output_field=FloatField(),
+                )
+            ),
+            facebook_revenue=Sum(
+                Case(
+                    When(is_facebook=True, then='amount'),
+                    output_field=FloatField(),
+                )
+            ),
+            google_event_count=Count(
+                Case(When(is_google=True, then=1))
+            ),
+            facebook_event_count=Count(
+                Case(When(is_facebook=True, then=1))
+            ),
+            google_aov=Avg(
+                Case(
+                    When(is_google=True, then='amount'),
+                    output_field=FloatField(),
+                )
+            ),
+            facebook_aov=Avg(
+                Case(
+                    When(is_facebook=True, then='amount'),
+                    output_field=FloatField(),
+                )
+            ),
+        )
 
         leads = Lead.objects.filter(created_at__range=(date_from, date_to))
 
-        google_leads = leads.filter(
-            Q(lead_marketing__metadata__key='gclid') |
-            Q(lead_marketing__metadata__key='_gcl_aw') |
-            Q(lead_marketing__metadata__key='gbraid')
-        ).distinct()
+        google_leads_count = leads.filter(
+            lead_marketing__metadata__key__in=['gclid', '_gcl_aw', 'gbraid']
+        ).distinct().count()
 
-        facebook_leads = leads.filter(
-            Q(lead_marketing__metadata__key='_fbc') |
-            Q(lead_marketing__metadata__key='fbclid')
-        ).distinct()
+        facebook_leads_count = leads.filter(
+            lead_marketing__metadata__key__in=['_fbc', 'fbclid']
+        ).distinct().count()
 
-        google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
-        facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()
+        google_revenue = marketing_metrics['google_revenue'] or 0
+        facebook_revenue = marketing_metrics['facebook_revenue'] or 0
 
-        google_leads_count = google_leads.count()
-        facebook_leads_count = facebook_leads.count()
+        google_event_count = marketing_metrics['google_event_count'] or 0
+        facebook_event_count = marketing_metrics['facebook_event_count'] or 0
 
-        event_date_from, event_date_to = date_from.date(), date_to.date()
+        google_aov = marketing_metrics['google_aov'] or 0
+        facebook_aov = marketing_metrics['facebook_aov'] or 0
 
-        booked_filter = Q(
-            invoices__invoice_type__type=InvoiceTypeEnum.FULL.value,
-            invoices__date_paid__isnull=False,
-        ) | Q(
-            invoices__invoice_type__type=InvoiceTypeEnum.DEPOSIT.value,
-            invoices__date_paid__isnull=False,
+        google_closing_percent = (
+            (google_event_count / google_leads_count) * 100
+            if google_leads_count else 0
         )
 
-        google_events = (
-            Quote.objects
-            .filter(
-                lead__in=google_leads,
-                event_date__range=(event_date_from, event_date_to),
-            )
-            .filter(booked_filter)
-            .distinct()
+        facebook_closing_percent = (
+            (facebook_event_count / facebook_leads_count) * 100
+            if facebook_leads_count else 0
         )
 
-        facebook_events = (
-            Quote.objects
-            .filter(
-                lead__in=facebook_leads,
-                event_date__range=(event_date_from, event_date_to),
-            )
-            .filter(booked_filter)
-            .distinct()
-        )
+        google_roas = google_revenue / google_ad_spend if google_ad_spend else 0
+        facebook_roas = facebook_revenue / facebook_ad_spend if facebook_ad_spend else 0
 
-        google_event_count = google_leads_with_events.count()
-        facebook_event_count = facebook_leads_with_events.count()
+        google_cpl = google_ad_spend / google_leads_count if google_leads_count else 0
+        facebook_cpl = facebook_ad_spend / facebook_leads_count if facebook_leads_count else 0
 
-        google_revenue = quote_revenue(google_events)
-        facebook_revenue = quote_revenue(facebook_events)
-
-        google_aov = google_revenue / google_event_count if google_event_count > 0 else 0
-        facebook_aov = facebook_revenue / facebook_event_count if facebook_event_count > 0 else 0
-
-        google_closing_percent = (google_event_count / google_leads_count) * 100 if google_leads_count > 0 else 0
-        facebook_closing_percent = (facebook_event_count / facebook_leads_count) * 100 if facebook_leads_count > 0 else 0
-
-        google_roas = google_revenue / google_ad_spend if google_ad_spend > 0 else 0
-        facebook_roas = facebook_revenue / facebook_ad_spend if facebook_ad_spend > 0 else 0
-
-        google_cpl = google_ad_spend / google_leads_count if google_leads_count > 0 else 0
-        facebook_cpl = facebook_ad_spend / facebook_leads_count if facebook_leads_count > 0 else 0
-
-        google_cpa = google_ad_spend / google_leads_with_events.count() if google_leads_with_events.exists() else 0
-        facebook_cpa = facebook_ad_spend / facebook_leads_with_events.count() if facebook_leads_with_events.exists() else 0
+        google_cpa = google_ad_spend / google_event_count if google_event_count else 0
+        facebook_cpa = facebook_ad_spend / facebook_event_count if facebook_event_count else 0
 
         ctx.update({
             'google_count': google_leads_count,
@@ -1547,27 +1580,19 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
 
             'google_ad_spend': google_ad_spend,
             'facebook_ad_spend': facebook_ad_spend,
-
             'filter_form': form,
         })
 
-        # Revenue metrics by business segment
-        events = Event.objects.filter(
-            quote__event_date__range=(date_from, date_to)
-        )
-        
-        bartending_service_exists = QuoteService.objects.filter(
+        bartending_exists = QuoteService.objects.filter(
             quote=OuterRef('quote_id'),
             service__service='Bartender',
         )
 
         events = events.annotate(
-            is_bartending=Exists(bartending_service_exists)
+            is_bartending=Exists(bartending_exists)
         )
 
         event_metrics = events.aggregate(
-            
-            # totals
             bartending_revenue=Sum(
                 Case(
                     When(is_bartending=True, then='amount'),
@@ -1580,20 +1605,12 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
                     output_field=FloatField(),
                 )
             ),
-
-            # counts
             bartending_event_count=Count(
-                Case(
-                    When(is_bartending=True, then=1),
-                )
+                Case(When(is_bartending=True, then=1))
             ),
             rental_event_count=Count(
-                Case(
-                    When(is_bartending=False, then=1),
-                )
+                Case(When(is_bartending=False, then=1))
             ),
-
-            # averages
             bartending_aov=Avg(
                 Case(
                     When(is_bartending=True, then='amount'),
@@ -1611,10 +1628,8 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
         ctx.update({
             'bartending_revenue': event_metrics['bartending_revenue'] or 0,
             'rental_revenue': event_metrics['rental_revenue'] or 0,
-
             'bartending_event_count': event_metrics['bartending_event_count'] or 0,
             'rental_event_count': event_metrics['rental_event_count'] or 0,
-
             'bartending_aov': event_metrics['bartending_aov'] or 0,
             'rental_aov': event_metrics['rental_aov'] or 0,
         })
