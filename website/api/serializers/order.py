@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Item, Lead, LeadStatusEnum, OrderAddressTypeChoices, Service, ZipCode, Order, Address, OrderAddress
+from core.models import Item, Lead, LeadStatusEnum, OrderAddressTypeChoices, OrderContact, OrderBillingContact, Service, ZipCode, Order, Address, OrderAddress
 from django.db import transaction
 
 from api.utils import PhoneNumberField
@@ -134,6 +134,16 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             user=user,
             lead=lead,
             has_delivery=has_delivery,
+        )
+
+        OrderContact.objects.create(
+            order=order,
+            **order_contact_data,
+        )
+
+        OrderBillingContact.objects.create(
+            order=order,
+            **billing_contact_data,
         )
 
         if pickup and delivery:

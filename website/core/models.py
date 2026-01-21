@@ -1661,6 +1661,17 @@ class OrderContact(models.Model):
     class Meta:
         db_table = "order_contact"
 
+class OrderBillingContact(models.Model):
+    order_contact_id = models.AutoField(primary_key=True)
+    order = models.OneToOneField("Order", related_name="billing_contact", on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=32)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "order_billing_contact"
+
 class OrderItem(models.Model):
     order_item_id = models.BigAutoField(primary_key=True)
     order = models.ForeignKey(Order, db_column='order_id', related_name='items', on_delete=models.CASCADE)
