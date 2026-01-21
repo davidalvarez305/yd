@@ -6,6 +6,7 @@ from django.db import IntegrityError, models, transaction
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
+from django.http import HttpRequest
 from django.utils import timezone
 from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
@@ -202,6 +203,21 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+    def attach_marketing_data(self, request: HttpRequest):
+        from marketing.utils import MarketingHelper
+        if request.user.is_authenticated:
+            lead_marketing = LeadMarketing.objects.create(lead=self)
+        else:
+            marketing_helper = MarketingHelper(request)
+            lead_marketing = LeadMarketing.objects.create(
+                lead=self,
+                ip=marketing_helper.ip,
+                external_id=marketing_helper.external_id,
+                user_agent=marketing_helper.user_agent,
+                ad=marketing_helper.ad,
+            )
+            marketing_helper.save_metadata(lead_marketing=lead_marketing)
     
     def has_gbraid(self):
         return (
@@ -1634,6 +1650,16 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'order'
+
+class OrderContact(models.Model):
+    order_contact_id = models.AutoField(primary_key=True)
+    order = models.OneToOneField("Order", related_name="order_contact", on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=32)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "order_contact"
 
 class OrderItem(models.Model):
     order_item_id = models.BigAutoField(primary_key=True)

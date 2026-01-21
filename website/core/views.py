@@ -394,28 +394,17 @@ class LeadCreateView(BaseView, CreateView):
             with transaction.atomic():
                 lead = form.save()
 
-                if self.request.user.is_authenticated:
-                    lead_marketing = LeadMarketing.objects.create(lead=lead)
-                else:
-                    marketing_helper = MarketingHelper(self.request)
-                    lead_marketing = LeadMarketing.objects.create(
-                        lead=lead,
-                        ip=marketing_helper.ip,
-                        external_id=marketing_helper.external_id,
-                        user_agent=marketing_helper.user_agent,
-                        ad=marketing_helper.ad,
-                    )
-                    marketing_helper.save_metadata(lead_marketing=lead_marketing)
+                lead.attach_marketing_data(request=self.request)
 
-                    lp = self.request.session.get("landing_page_id")
-                    if lp:
-                        landing_page = LandingPage.objects.filter(pk=lp).first()
-                        if landing_page:
-                            conversion = LandingPageConversion(
-                                lead=lead,
-                                landing_page=landing_page,
-                            )
-                            conversion.save()
+                lp = self.request.session.get("landing_page_id")
+                if lp:
+                    landing_page = LandingPage.objects.filter(pk=lp).first()
+                    if landing_page:
+                        conversion = LandingPageConversion(
+                            lead=lead,
+                            landing_page=landing_page,
+                        )
+                        conversion.save()
 
                 lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
 

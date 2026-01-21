@@ -266,26 +266,18 @@ def generate_random_long_int(num_digits=18):
     return random.randint(lower, upper)
 
 def normalize_phone_number(value: str, default_region: str = "US") -> str | None:
-    """
-    Normalizes a phone number to E.164 format (e.g., +17865122546).
-
-    Args:
-        value (str): Raw phone number string.
-        default_region (str): Default region to assume (if no country code). Default is 'US'.
-
-    Returns:
-        str: Normalized E.164 phone number (e.g., +17865122546), or an empty string if invalid.
-    """
     if not value or not isinstance(value, str):
-        return ""
+        return None
 
     try:
         number = phonenumbers.parse(value, default_region)
         if phonenumbers.is_valid_number(number):
-            return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+            return phonenumbers.format_number(
+                number,
+                phonenumbers.PhoneNumberFormat.E164,
+            )
     except NumberParseException as e:
         logger.exception(str(e), exc_info=True)
-        pass
 
     return None
 
