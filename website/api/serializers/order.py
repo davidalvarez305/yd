@@ -10,11 +10,11 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ("order_id", "code", "date_created")
 
 class OrderItemInputSerializer(serializers.Serializer):
-    item_id = serializers.IntegerField()
+    item = serializers.PrimaryKeyRelatedField(queryset=Item.objects.all())
     units = serializers.IntegerField(min_value=1)
 
 class OrderServiceInputSerializer(serializers.Serializer):
-    service_id = serializers.IntegerField()
+    service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all())
     units = serializers.IntegerField(min_value=1)
 
 class OrderAddressInputSerializer(serializers.Serializer):
@@ -27,7 +27,6 @@ class OrderAddressInputSerializer(serializers.Serializer):
 class OrderCreateSerializer(serializers.ModelSerializer):
     pickup = OrderAddressInputSerializer(required=False)
     delivery = OrderAddressInputSerializer(required=False)
-
     items = OrderItemInputSerializer(many=True, required=True)
     services = OrderServiceInputSerializer(many=True, required=True)
 
