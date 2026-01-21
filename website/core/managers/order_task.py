@@ -105,9 +105,16 @@ class OrderTaskManager:
     def _on_in_progress(self, context): pass
     def _on_completed(self, context): pass
     def _on_unable_to_complete(self, context): pass
+
+    def assign_task(self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
+        return self.transition_to(
+            OrderTaskStatusChoices.ASSIGNED,
+            user=user,
+            context=context,
+            notes=notes,
+        )
     
-    def complete_task(
-        self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
+    def complete_task(self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
         return self.transition_to(
             OrderTaskStatusChoices.COMPLETED,
             user=user,
