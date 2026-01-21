@@ -1857,6 +1857,12 @@ class Address(models.Model):
 
     class Meta:
         db_table = 'address'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["address_line_1", "address_line_2", "zip_code"],
+                name="unique_address_per_zip"
+            )
+        ]
 
 class RouteZone(models.Model):
     route_zone_id = models.AutoField(primary_key=True)

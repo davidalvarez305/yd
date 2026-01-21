@@ -5,6 +5,7 @@ import uuid
 
 # from weasyprint import HTML
 
+from django.db.models import F, Sum, FloatField, ExpressionWrapper
 from django.template.loader import render_to_string
 from django.forms import ValidationError
 from django.utils import timezone
@@ -43,11 +44,13 @@ BASELINE_HOURS = 4.00
 HOLIDAY_MARKUPS = {
     (11, 27),
     (12, 24),
-    (12, 25),
     (12, 31),
 }
 
-def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_type, service_type, guest_ratio, date):
+def calculate_quote_service_values(
+    adults, minors, hours, suggested_price,
+    unit_type, service_type, guest_ratio, date
+):
     minors = minors or 0
     adults = adults or 0
 
@@ -56,6 +59,19 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
     def apply_holiday_markup(price):
         if (date.month, date.day) in HOLIDAY_MARKUPS:
             return price * 1.50
+        return price
+
+    def apply_large_group_discount(price):
+        if adults >= 200:
+            return price * 0.50
+        elif adults >= 100:
+            return price * 0.60
+        elif adults >= 80:
+            return price * 0.70
+        elif adults >= 60:
+            return price * 0.85
+        elif adults >= 40:
+            return price * 0.90
         return price
 
     if unit_type == 'Per Person':
@@ -67,26 +83,30 @@ def calculate_quote_service_values(adults, minors, hours, suggested_price, unit_
             price *= (1 + 0.075 * extra_hours)
 
         price = apply_holiday_markup(price)
-        return {'units': units, 'price': price}
-    
+
+        total = price
+
+        if service_type != 'Extra':
+            total = apply_large_group_discount(price)
+
+        return {'units': units, 'price': total}
+
     elif unit_type == 'Ratio' and service_type == 'Hourly Service':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
         price = apply_holiday_markup(suggested_price)
+
         return {'units': units, 'price': price}
 
     elif unit_type == 'Hourly':
         units = (math.ceil(adults / guest_ratio) * hours) if guest_ratio else hours
         price = apply_holiday_markup(suggested_price)
+
         return {'units': units, 'price': price}
-    
+
     elif guest_ratio and service_type in {'Bar Rental', 'Cooler Rental'}:
         units = math.ceil(adults / guest_ratio)
         price = apply_holiday_markup(suggested_price)
-        return {'units': units, 'price': price}
-    
-    elif guest_ratio and service_type in {'Table Rental', 'Chair Rental'}:
-        units = math.ceil(guests / guest_ratio)
-        price = apply_holiday_markup(suggested_price)
+
         return {'units': units, 'price': price}
 
     else:

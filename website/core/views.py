@@ -472,6 +472,16 @@ class SuccessPaymentView(BaseWebsiteView):
     def get_object(self, queryset=None):
         external_id = self.kwargs.get('external_id')
         return get_object_or_404(Invoice, external_id=external_id)
+    
+class CancelPaymentView(BaseWebsiteView):
+    template_name = "core/cancel.html"
+    page_title = "Cancel — " + settings.COMPANY_NAME
+    model = Invoice
+    context_object_name = 'invoice'
+
+    def get_object(self, queryset=None):
+        external_id = self.kwargs.get('external_id')
+        return get_object_or_404(Invoice, external_id=external_id)
 
 def redirect_external(request, external_id):
     return redirect(reverse('external_quote_view', kwargs={'external_id': external_id}))
