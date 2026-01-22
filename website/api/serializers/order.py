@@ -80,17 +80,17 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
     def _build_address(self, data, order, stop_type):
         address, _ = Address.objects.get_or_create(
-            address_line_1=data.get('street_address'),
-            address_line_2=data.get('address_line_2'),
-            zip_code=data.get('zip_code'),
+            address_line_1=data["street_address_one"],
+            address_line_2=data.get("street_address_two", ""),
+            zip_code=data["zip_code"],
         )
 
         OrderAddress.objects.create(
             order=order,
             address=address,
             stop_type=stop_type,
-            delivery_start_time=data.get('delivery_start_time'),
-            delivery_end_time=data.get('delivery_end_time'),
+            delivery_start_time=data.get("delivery_start_time"),
+            delivery_end_time=data.get("delivery_end_time"),
         )
 
     def _build_lead(self, data):
@@ -120,13 +120,13 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         if request and request.user and request.user.is_authenticated:
             user = request.user
 
-        lead = self._build_lead(billing_contact)
+        billing_contact_data = validated_data.pop("billing_contact")
+        order_contact_data = validated_data.pop("order_contact")
+        lead = self._build_lead(billing_contact_data)
         delivery = validated_data.pop("delivery")
         pickup = validated_data.pop("pickup")
         items = validated_data.pop("items", [])
         services = validated_data.pop("services", [])
-        billing_contact = validated_data.pop("billing_contact")
-        order_contact = validated_data.pop("order_contact")
         has_delivery = bool(delivery and pickup)
 
         order = Order.objects.create(
