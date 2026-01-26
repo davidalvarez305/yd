@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from django.db import transaction
 from django.template.loader import render_to_string
 
-from core.models import OrderTask, OrderTaskStatus, OrderTaskStatusChoices, User, Order, OrderTaskStatusChangeHistory
+from core.models import OrderTask, OrderTaskChoices, OrderTaskStatus, OrderTaskStatusChoices, User, Order, OrderTaskStatusChangeHistory
 from core.email import email_service
 from website import settings
 
@@ -101,12 +101,20 @@ class OrderTaskManager:
             case OrderTaskStatusChoices.UNABLE_TO_COMPLETE:
                 self._on_unable_to_complete(context)
 
-    def _on_assigned(self, context):
+    def _on_assigned(self, context: TaskTransitionContext):
         self._notify_user_task_assigned()
 
-    def _on_in_progress(self, context): pass
-    def _on_completed(self, context): pass
-    def _on_unable_to_complete(self, context): pass
+    def _on_in_progress(self, context: TaskTransitionContext): pass
+
+    def _on_completed(self, context: TaskTransitionContext):
+        match self.order_task.task:
+            case OrderTaskChoices.LOAD_ORDER_ITEMS:
+                self.order_task.order.manager.mark_ready_for_dispatch(context.user)
+
+            case OrderTaskChoices.UNLOAD_ORDER_ITEMS:
+                self.order_task.order.manager.finalize()
+
+    def _on_unable_to_complete(self, context: TaskTransitionContext): pass
 
     def assign_task(self, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskStatusChangeHistory:
         return self.transition_to(

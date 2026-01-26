@@ -289,18 +289,6 @@ class OrderManager:
     def customer_returned(self):
         return self.transition_to(OrderStatusChoices.CUSTOMER_RETURNED)
 
-    @transaction.atomic
-    def complete_task(self, order_task: OrderTask, user: User):
-        manager = OrderTaskManager(self.order, order_task)
-        manager.complete_task(user=user)
-
-        match order_task.task:
-            case OrderTaskChoices.LOAD_ORDER_ITEMS:
-                self.mark_ready_for_dispatch(user=user)
-
-            case OrderTaskChoices.UNLOAD_ORDER_ITEMS:
-                self.finalize()
-
     def finalize(self):
         return self.transition_to(OrderStatusChoices.FINALIZED)
 
@@ -407,7 +395,7 @@ class OrderManager:
     def _on_ready_for_dispatch(self, context: TransitionContext):
 
         if self.order.has_delivery:
-            self._add_driver_stop_to_route(OrderAddressTypeChoices.DELIVERY)
+            # self._add_driver_stop_to_route(OrderAddressTypeChoices.DELIVERY)
 
             # notify user that truck will be arriving at X - Y time window
             self._send_order_ready_for_dispatch_email()
@@ -857,3 +845,23 @@ class OrderManager:
             )
 
         return qs.values_list("pk", flat=True).first()
+    
+    def _send_order_ready_for_dispatch_email(self):
+        html = render_to_string(
+            "emails/order_placed_confirmation.html",
+            {
+                "full_name": self.order.lead.full_name,
+                "order_code": self.order.code,
+                "delivery_date": self.order.start_date.strftime("%B %d, %Y"),
+                "eta": "TBD",
+                "support_phone": settings.COMPANY_PHONE_NUMBER,
+                "support_email": settings.COMPANY_EMAIL,
+                "company_name": settings.COMPANY_NAME,
+            }
+        )
+
+        email_service.send_html_email(
+            to=self.order.contact.email,
+            subject=f"{settings.COMPANY_NAME} – Your Order Is Scheduled for Delivery ({self.order.code})",
+            html=html,
+        )

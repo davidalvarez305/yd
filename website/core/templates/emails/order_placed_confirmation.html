@@ -1,36 +1,78 @@
+<!DOCTYPE html>
+
 <html>
-<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-    <p>Hi {{ full_name }},</p>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Ready for Dispatch</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 24px; border-radius: 6px;">
+                    <tr>
+                        <td>
+                            <p>Hi {{ full_name }},</p>
 
-<p>
-    Thank you for your order! We've successfully received and confirmed your rental request.
-</p>
+                        <p>
+                            Your order is now fully prepared and ready for dispatch.
+                            Our delivery team is scheduled and your items will be heading your way shortly.
+                        </p>
 
-<p><strong>Order Details:</strong></p>
-<ul>
-    <li><strong>Order Code:</strong> {{ order_code }}</li>
-    <li><strong>Start Date:</strong> {{ start_date }}</li>
-    <li><strong>End Date:</strong> {{ end_date }}</li>
-</ul>
+                        <p><strong>Order Details:</strong></p>
+                        <ul>
+                            <li><strong>Order Code:</strong> {{ order_code }}</li>
+                            <li><strong>Delivery Date:</strong> {{ delivery_date }}</li>
+                            <li><strong>Estimated Time of Arrival:</strong> {{ eta }}</li>
+                        </ul>
 
-<p>
-    Your items are reserved for the selected dates and will be ready as scheduled.
-    If your order includes pickup, our team will coordinate the timing with you.
-    If this is a customer pickup, you'll receive pickup instructions prior to your start date.
-</p>
+                        <p><strong>Before delivery, please keep the following in mind:</strong></p>
+                        <ul>
+                            <li>
+                                Ensure there is clear access for our delivery truck, including
+                                parking space and any required gate or building access.
+                            </li>
+                            <li>
+                                If someone must be present to receive or authorize the delivery,
+                                please make sure they are available during the delivery window.
+                            </li>
+                            <li>
+                                If the location has special requirements (stairs, elevators,
+                                loading docks, limited access hours, etc.), notify us as soon as possible.
+                            </li>
+                        </ul>
 
-<p>
-    If you need to make any changes or have questions, please reply to this email and we'll be happy to help.
-</p>
+                        <p>
+                            <strong>Need to make a change?</strong><br>
+                            If you need to adjust your delivery schedule or provide last-minute instructions,
+                            please contact our dispatch team immediately so we can assist before the truck is dispatched.
+                        </p>
 
-<p>
-    Thank you again for choosing {{ company_name }}.
-</p>
+                        <p>
+                            <strong>Customer Support & Dispatch Contact:</strong><br>
+                            Phone: {{ support_phone }}<br>
+                            Email: {{ support_email }}
+                        </p>
 
-<p>
-    Best regards,<br>
-    {{ company_name }}
-</p>
+                        <p>
+                            Taking a few moments to review these details helps ensure a smooth,
+                            on-time delivery and prevents unnecessary delays.
+                        </p>
+
+                        <p>
+                            Thank you for choosing {{ company_name }}. We look forward to completing your delivery.
+                        </p>
+
+                        <p>
+                            Best regards,<br>
+                            {{ company_name }}
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>
