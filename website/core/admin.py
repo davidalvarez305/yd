@@ -37,11 +37,7 @@ admin.site.register(ItemStateChangeHistory)
 # Orders
 admin.site.register(Order)
 admin.site.register(OrderItem)
-admin.site.register(OrderItemChangeHistory)
 admin.site.register(OrderService)
-admin.site.register(OrderServiceChangeHistory)
-admin.site.register(OrderStatusChangeHistory)
-admin.site.register(OrderTaskLog)
 
 # Addressing / Geography
 admin.site.register(State)
@@ -55,7 +51,6 @@ admin.site.register(OrderAddress)
 admin.site.register(DriverRoute)
 admin.site.register(DriverStop)
 admin.site.register(DriverStopImage)
-admin.site.register(DriverStopStatusChangeHistory)
 
 # Service relationships
 admin.site.register(ServiceBusinessSegment)

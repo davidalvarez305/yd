@@ -1820,7 +1820,7 @@ class OrderTaskChoice(models.Model):
         return self.task
     
     class Meta:
-        db_table = 'order_task_type'
+        db_table = 'order_task_choice'
 
 class OrderTask(models.Model):
     order_task_id = models.AutoField(primary_key=True)
@@ -1857,7 +1857,7 @@ class OrderTaskStatus(models.Model):
         db_table = 'order_task_status'
 
 class OrderTaskStatusChangeHistory(models.Model):
-    order_task_log_id = models.AutoField(primary_key=True)
+    order_task_status_change_history_id = models.AutoField(primary_key=True)
     order_task = models.ForeignKey(OrderTask, db_column='order_task_id', on_delete=models.RESTRICT)
     date_created = models.DateTimeField(auto_now_add=True)
     order_task_status = models.ForeignKey(OrderTaskStatus, db_column='order_task_status_id', on_delete=models.RESTRICT)
@@ -1867,7 +1867,7 @@ class OrderTaskStatusChangeHistory(models.Model):
         return self.task
 
     class Meta:
-        db_table = 'order_task_log'
+        db_table = 'order_task_status_change_history'
 
 class State(models.Model):
     state_id = models.AutoField(primary_key=True)

@@ -6,7 +6,7 @@ def populate_choice_tables(apps, schema_editor):
     DriverStopStatus = apps.get_model('core', 'DriverStopStatus')
     ItemState = apps.get_model('core', 'ItemState')
     OrderStatus = apps.get_model('core', 'OrderStatus')
-    OrderTask = apps.get_model('core', 'OrderTask')
+    OrderTaskChoice = apps.get_model('core', 'OrderTaskChoice')
     OrderTaskStatus = apps.get_model('core', 'OrderTaskStatus')
 
     # -------------------------
@@ -66,7 +66,7 @@ def populate_choice_tables(apps, schema_editor):
     # OrderTask
     # -------------------------
     for task in ['Load Order Items', 'Unload Order Items']:
-        OrderTask.objects.get_or_create(task=task)
+        OrderTaskChoice.objects.get_or_create(task=task)
 
     # -------------------------
     # OrderTaskStatus
