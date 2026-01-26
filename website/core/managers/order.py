@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from website import settings
 
 from core.email import email_service
-from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, DriverStopStatus, DriverStopStatusChangeHistory, DriverStopStatusChoices, Item, Lead, LeadStatusEnum, Message, OrderAddressTypeChoices, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, RouteZone, Service, User, UserRoleChoices
+from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, DriverStopStatus, DriverStopStatusChangeHistory, DriverStopStatusChoices, Item, Lead, LeadStatusEnum, Message, OrderAddressTypeChoices, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoice, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, RouteZone, Service, User, UserRoleChoices
 from core.messaging import messaging_service
 from core.ai import ai_agent
 from core.delivery import delivery_service
@@ -387,11 +387,15 @@ class OrderManager:
     def _on_awaiting_preparation(self, context: TransitionContext):
         user = self._find_warehouse_user_for_task()
 
-        order_task = OrderTask.objects.get(task=OrderTaskChoices.LOAD_ORDER_ITEMS)
-        
-        manager = OrderTaskManager(order=self.order, order_task=order_task)
+        task = OrderTaskChoice.objects.get(task=OrderTaskChoices.LOAD_ORDER_ITEMS)
 
-        manager.assign_task(user=user)
+        order_task = OrderTask.objects.create(
+            task=task,
+            order=self.order,
+            user=user,
+        )
+
+        order_task.manager.assign_task(user=user)
     
     def _on_ready_for_dispatch(self, context: TransitionContext):
 

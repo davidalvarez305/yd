@@ -39,12 +39,12 @@ class OrderAddressInputSerializer(serializers.Serializer):
     delivery_end_time = serializers.DateTimeField(required=False, allow_null=True)
 
 class OrderCreateSerializer(serializers.ModelSerializer):
-    pickup = OrderAddressInputSerializer(required=False)
-    delivery = OrderAddressInputSerializer(required=False)
-    items = OrderItemInputSerializer(many=True, required=True)
-    services = OrderServiceInputSerializer(many=True, required=True)
-    order_contact = OrderContactInputSerializer()
-    billing_contact = OrderBillingContactInputSerialier()
+    pickup = OrderAddressInputSerializer(required=False, write_only=True)
+    delivery = OrderAddressInputSerializer(required=False, write_only=True)
+    items = OrderItemInputSerializer(many=True, write_only=True)
+    services = OrderServiceInputSerializer(many=True, write_only=True)
+    order_contact = OrderContactInputSerializer(required=True)
+    billing_contact = OrderBillingContactInputSerialier(required=True)
 
     class Meta:
         model = Order

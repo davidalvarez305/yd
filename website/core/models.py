@@ -1760,11 +1760,7 @@ class OrderStatusChoices(models.TextChoices):
 
 class OrderStatus(models.Model):
     order_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(
-        max_length=60,
-        choices=OrderStatusChoices,
-        unique=True,
-    )
+    status = models.CharField(max_length=60, choices=OrderStatusChoices, unique=True)
 
     def __str__(self):
         return self.status
@@ -1816,12 +1812,30 @@ class OrderTaskChoices(models.TextChoices):
     LOAD_ORDER_ITEMS = 'Load Order Items'
     UNLOAD_ORDER_ITEMS = 'Unload Order Items'
 
-class OrderTask(models.Model):
+class OrderTaskChoice(models.Model):
     order_task_id = models.AutoField(primary_key=True)
     task = models.CharField(max_length=30, choices=OrderTaskChoices)
 
     def __str__(self):
         return self.task
+    
+    class Meta:
+        db_table = 'order_task_type'
+
+class OrderTask(models.Model):
+    order_task_id = models.AutoField(primary_key=True)
+    task = models.ForeignKey(OrderTaskChoice, related_name='orders', db_column='order_task_choice_id', on_delete=models.RESTRICT)
+    order = models.ForeignKey(Order, related_name='tasks', db_column='order_id', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_column='user_id', related_name='tasks', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.task
+    
+    @property
+    def manager(self):
+        from core.managers.order_task import OrderTaskManager
+        return OrderTaskManager(self)
 
     class Meta:
         db_table = 'order_task'
@@ -1842,11 +1856,9 @@ class OrderTaskStatus(models.Model):
     class Meta:
         db_table = 'order_task_status'
 
-class OrderTaskLog(models.Model):
+class OrderTaskStatusChangeHistory(models.Model):
     order_task_log_id = models.AutoField(primary_key=True)
-    order = models.ForeignKey(Order, related_name='tasks', db_column='order_id', on_delete=models.CASCADE)
     order_task = models.ForeignKey(OrderTask, db_column='order_task_id', on_delete=models.RESTRICT)
-    assigned_to = models.ForeignKey(User, db_column='completed_by', related_name='order_tasks', on_delete=models.RESTRICT)
     date_created = models.DateTimeField(auto_now_add=True)
     order_task_status = models.ForeignKey(OrderTaskStatus, db_column='order_task_status_id', on_delete=models.RESTRICT)
     notes = models.TextField(null=True)

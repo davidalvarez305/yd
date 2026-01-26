@@ -1,9 +1,12 @@
 from django.core.exceptions import ValidationError
-from typing import Optional, Dict, Any
-from dataclasses import dataclass, field
+from typing import Optional
+from dataclasses import dataclass
 from django.db import transaction
+from django.template.loader import render_to_string
 
 from core.models import OrderTask, OrderTaskStatus, OrderTaskStatusChoices, User, Order, OrderTaskLog
+from core.email import email_service
+from website import settings
 
 class InvalidTaskTransitionError(ValidationError):
     """Raised when an invalid task state transition is attempted."""
@@ -12,7 +15,7 @@ class InvalidTaskTransitionError(ValidationError):
 @dataclass
 class TaskTransitionContext:
     user: Optional[User] = None
-    order: Optional[Order] = None
+    task: Optional[OrderTask] = None
     source: str = "system"
 
 class OrderTaskManager:
@@ -34,15 +37,14 @@ class OrderTaskManager:
         OrderTaskStatusChoices.UNABLE_TO_COMPLETE,
     }
 
-    def __init__(self, order: Order, order_task: OrderTask):
-        self.order = order
+    def __init__(self, order_task: OrderTask):
         self.order_task = order_task
 
     @property
     def current_log(self) -> OrderTaskLog | None:
         return (
             OrderTaskLog.objects
-            .filter(order=self.order, order_task=self.order_task)
+            .filter(order_task=self.order_task)
             .select_related("order_task_status")
             .order_by("-date_created")
             .first()
@@ -59,12 +61,12 @@ class OrderTaskManager:
 
     def can_transition_to(self, new_status: str) -> bool:
         if not self.current_status:
-            return True  # initial assignment
+            return True
         return new_status in self.allowed_transitions()
 
     @transaction.atomic
     def transition_to(self, new_status: str, user: User, context: TaskTransitionContext | None = None, notes: str | None = None) -> OrderTaskLog:
-        context = context or TaskTransitionContext(user=user, order=self.order, source="user")
+        context = context or TaskTransitionContext(user=user, order_task=self.order_task, source="user")
 
         if self.current_status in self.TERMINAL_STATUSES:
             raise InvalidTaskTransitionError(
@@ -79,7 +81,6 @@ class OrderTaskManager:
         status = OrderTaskStatus.objects.get(status=new_status)
 
         log = OrderTaskLog.objects.create(
-            order=self.order,
             order_task=self.order_task,
             order_task_status=status,
             assigned_to=user,
@@ -101,7 +102,9 @@ class OrderTaskManager:
             case OrderTaskStatusChoices.UNABLE_TO_COMPLETE:
                 self._on_unable_to_complete(context)
 
-    def _on_assigned(self, context): pass
+    def _on_assigned(self, context):
+        self._notify_user_task_assigned()
+
     def _on_in_progress(self, context): pass
     def _on_completed(self, context): pass
     def _on_unable_to_complete(self, context): pass
@@ -120,4 +123,21 @@ class OrderTaskManager:
             user=user,
             context=context,
             notes=notes,
+        )
+    
+    def _notify_user_task_assigned(self):
+        html = render_to_string(
+            "emails/notify_user_task_assigned.html",
+            {
+                "items": self.order_task.order.items,
+                "order_code": self.order_task.order.code,
+                "start_date": self.order_task.order.start_date.strftime("%B %d, %Y"),
+                "end_date": self.order_task.order.end_date.strftime("%B %d, %Y"),
+            }
+        )
+
+        email_service.send_html_email(
+            to=self.order_task.order.lead.email,
+            subject=f"Tasked Assigned for Order Code: {self.order_task.order.code}",
+            html=html,
         )
