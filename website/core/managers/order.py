@@ -847,13 +847,14 @@ class OrderManager:
         return qs.values_list("pk", flat=True).first()
     
     def _send_order_ready_for_dispatch_email(self):
+        eta = self._get_delivery_eta()
         html = render_to_string(
             "emails/order_placed_confirmation.html",
             {
                 "full_name": self.order.lead.full_name,
                 "order_code": self.order.code,
                 "delivery_date": self.order.start_date.strftime("%B %d, %Y"),
-                "eta": "TBD",
+                "eta": eta,
                 "support_phone": settings.COMPANY_PHONE_NUMBER,
                 "support_email": settings.COMPANY_EMAIL,
                 "company_name": settings.COMPANY_NAME,
@@ -865,3 +866,35 @@ class OrderManager:
             subject=f"{settings.COMPANY_NAME} – Your Order Is Scheduled for Delivery ({self.order.code})",
             html=html,
         )
+    
+    def _get_delivery_eta(self):
+        delivery_address = (
+            self.order.addresses
+            .filter(stop_type=OrderAddressTypeChoices.DELIVERY)
+            .first()
+        )
+
+        if not delivery_address:
+            return "To be scheduled"
+
+        driver_stop = getattr(delivery_address, "driverstop", None)
+
+        delivery_date = (
+            driver_stop.driver_route.target_date
+            if driver_stop and driver_stop.driver_route
+            else delivery_address.start_time.date()
+            if delivery_address.start_time
+            else None
+        )
+
+        if delivery_address.start_time and delivery_address.end_time:
+            return (
+                f"{delivery_date.strftime('%B %d, %Y')} "
+                f"between {delivery_address.start_time.strftime('%I:%M %p')} "
+                f"– {delivery_address.end_time.strftime('%I:%M %p')}"
+            )
+
+        if delivery_date:
+            return delivery_date.strftime("%B %d, %Y")
+
+        return "To be scheduled"

@@ -107,7 +107,7 @@ class OrderTaskManager:
     def _on_in_progress(self, context: TaskTransitionContext): pass
 
     def _on_completed(self, context: TaskTransitionContext):
-        match self.order_task.task:
+        match self.order_task.task.task:
             case OrderTaskChoices.LOAD_ORDER_ITEMS:
                 self.order_task.order.manager.mark_ready_for_dispatch(context.user)
 
