@@ -3,12 +3,51 @@ from core.models import Item, Lead, LeadStatusEnum, OrderAddressTypeChoices, Ord
 from django.db import transaction
 
 from api.utils import PhoneNumberField
+from api.serializers.serializers import OrderAddressSerializer, OrderBillingContactSerializer, OrderContactSerializer, OrderItemSerializer, OrderServiceSerializer, OrderStatusChangeSerializer, OrderTaskSerializer
 
 class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    services = OrderServiceSerializer(many=True, read_only=True)
+
+    contact = OrderContactSerializer(read_only=True)
+    billing_contact = OrderBillingContactSerializer(read_only=True)
+
+    addresses = OrderAddressSerializer(many=True, read_only=True)
+
+    status_history = OrderStatusChangeSerializer(
+        many=True,
+        source="changes",
+        read_only=True,
+    )
+
+    tasks = OrderTaskSerializer(many=True, read_only=True)
+
+    current_status = serializers.CharField(read_only=True)
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+
     class Meta:
         model = Order
-        fields = "__all__"
-        read_only_fields = ("order_id", "code", "date_created")
+        fields = (
+            "order_id",
+            "code",
+            "date_created",
+            "start_date",
+            "end_date",
+            "has_delivery",
+
+            "current_status",
+            "amount",
+
+            "contact",
+            "billing_contact",
+
+            "items",
+            "services",
+            "addresses",
+
+            "status_history",
+            "tasks",
+        )
 
 class OrderBillingContactInputSerialier(serializers.Serializer):
     name = serializers.CharField(max_length=255)
@@ -44,7 +83,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     delivery = OrderAddressInputSerializer(required=False, write_only=True)
     items = OrderItemInputSerializer(many=True, write_only=True)
     services = OrderServiceInputSerializer(many=True, write_only=True)
-    order_contact = OrderContactInputSerializer(required=True)
+    contact = OrderContactInputSerializer(required=True)
     billing_contact = OrderBillingContactInputSerialier(required=True)
 
     class Meta:
@@ -124,7 +163,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             user = request.user
 
         billing_contact_data = data.pop("billing_contact")
-        order_contact_data = data.pop("order_contact")
+        contact_data = data.pop("contact")
         lead = self._build_lead(billing_contact_data)
         delivery = data.pop("delivery")
         pickup = data.pop("pickup")
@@ -141,7 +180,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
         OrderContact.objects.create(
             order=order,
-            **order_contact_data,
+            **contact_data,
         )
 
         OrderBillingContact.objects.create(
