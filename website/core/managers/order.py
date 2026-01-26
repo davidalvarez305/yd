@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from website import settings
 
 from core.email import email_service
-from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, DriverStopStatus, DriverStopStatusChangeHistory, DriverStopStatusChoices, Item, Lead, LeadStatusEnum, Message, OrderAddressTypeChoices, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoice, OrderTaskChoices, OrderTaskLog, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, RouteZone, Service, User, UserRoleChoices
+from core.models import AddedOrRemoveActionChoices, DriverRoute, DriverStop, DriverStopStatus, DriverStopStatusChangeHistory, DriverStopStatusChoices, Item, Lead, LeadStatusEnum, Message, OrderAddressTypeChoices, OrderItem, OrderItemChangeHistory, OrderService, OrderServiceChangeHistory, OrderStatus, OrderStatusChangeHistory, OrderStatusChoices, OrderTask, OrderTaskChoice, OrderTaskChoices, OrderTaskStatusChangeHistory, OrderTaskStatus, OrderTaskStatusChoices, PhoneCallTranscription, RouteZone, Service, User, UserRoleChoices
 from core.messaging import messaging_service
 from core.ai import ai_agent
 from core.delivery import delivery_service
@@ -26,6 +26,11 @@ class TransitionContext:
 class InvalidOrderTransitionError(ValidationError):
     """Raised when an invalid order state transition is attempted."""
     pass
+
+ACTIVE_STATUSES = [
+    OrderTaskStatusChoices.ASSIGNED,
+    OrderTaskStatusChoices.IN_PROGRESS,
+]
 
 class OrderManager:
 
@@ -55,12 +60,8 @@ class OrderManager:
     def __init__(self, order):
         self.order = order
 
-    @property
-    def current_status(self):
-        return self.order.status.status if self.order.status else None
-    
     def allowed_transitions(self):
-        status = self.current_status
+        status = self.order.current_status
         if not status:
             return []
 
@@ -110,24 +111,29 @@ class OrderManager:
         return transitions
 
     def can_transition_to(self, new_status: str) -> bool:
-        if not self.current_status:
+        current = self.order.current_status
+
+        if current is None:
             return True
+
+        if current not in OrderStatusChoices.values:
+            raise RuntimeError(
+                f"Invalid order status value: {current}"
+            )
+
         return new_status in self.allowed_transitions()
 
     @transaction.atomic
     def transition_to(self, new_status: str, context: TransitionContext | None = None):
         context = context or TransitionContext()
 
-        if self.current_status and not self.can_transition_to(new_status):
+        if self.order.current_status and not self.can_transition_to(new_status):
             raise InvalidOrderTransitionError(
                 f"Cannot transition order {self.order.code} "
-                f"from '{self.current_status}' to '{new_status}'"
+                f"from '{self.order.current_status}' to '{new_status}'"
             )
 
         status = OrderStatus.objects.get(status=new_status)
-
-        self.order.status = status
-        self.order.save(update_fields=["status"])
 
         OrderStatusChangeHistory.objects.create(
             order=self.order,
@@ -143,9 +149,6 @@ class OrderManager:
 
         status = OrderStatus.objects.get(status=new_status)
 
-        self.order.status = status
-        self.order.save(update_fields=["status"])
-
         OrderStatusChangeHistory.objects.create(
             order=self.order,
             status=status,
@@ -157,7 +160,7 @@ class OrderManager:
     
     @transaction.atomic
     def update_order_items(self, updated_items: list[dict], user: User):
-        if self.current_status not in self.UPDATABLE_STATUSES:
+        if self.order.current_status not in self.UPDATABLE_STATUSES:
             raise InvalidOrderTransitionError(
                 "Order items cannot be updated at this stage"
             )
@@ -185,27 +188,31 @@ class OrderManager:
         items = items or []
         services = services or []
 
-        for item in items:
+        for each in items:
+            item = each.get('item')
+            units = each.get('units')
             self.add_item(
-                item_id=item.get('item_id'),
-                units=item.get('units'),
+                item_id=item.pk,
+                units=units,
                 user=user,
             )
 
-        for service in services:
+        for each in services:
+            service = each.get('service')
+            units = each.get('units')
             self.add_service(
-                service_id=service.get('service_id'),
-                units=service.get('units'),
+                service_id=service.pk,
+                units=units,
                 user=user,
             )
 
         self.transition_to(OrderStatusChoices.ORDER_PLACED)
     
     def cancel_order(self, user: User | None = None):
-        if not self.current_status:
+        if not self.order.current_status:
             raise InvalidOrderTransitionError("Order has no status yet")
 
-        if self.current_status not in self.CANCELLABLE_STATUSES:
+        if self.order.current_status not in self.CANCELLABLE_STATUSES:
             raise InvalidOrderTransitionError(
                 f"Order {self.order.code} cannot be cancelled after delivery"
             )
@@ -331,7 +338,7 @@ class OrderManager:
     def _on_place_order(self, context: TransitionContext):
         
         # Report conversion event
-        self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, order=self.order)
+        self.order.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.order)
         
         # Alert client
         self._send_order_placed_confirmation_email()
@@ -352,7 +359,7 @@ class OrderManager:
         )
 
         email_service.send_html_email(
-            to=self.order.lead.email,
+            to=self.order.contact.email,
             subject=f"{settings.COMPANY_NAME} -  Order Confirmation Code: {self.order.code}",
             html=html,
         )
@@ -379,7 +386,7 @@ class OrderManager:
         )
 
         email_service.send_html_email(
-            to=self.order.lead.email,
+            to=self.order.contact.email,
             subject=f"{settings.COMPANY_NAME} -  Order Confirmation Code: {self.order.code}",
             html=html,
         )
@@ -595,17 +602,14 @@ class OrderManager:
     def _add_item(self, id: int, units: int, user: User):
         item = Item.objects.select_for_update().get(pk=id)
 
-        item.inventory.reserve_item(
-            order=self.order,
-            quantity=units,
-        )
-
         order_item = OrderItem.objects.create(
             order=self.order,
             item=item,
             units=units,
             price_per_unit=item.price,
         )
+
+        item.inventory.reserve_item(order=self.order)
 
         OrderItemChangeHistory.objects.create(
             user=user,
@@ -652,7 +656,7 @@ class OrderManager:
             order=self.order,
             service=service,
             units=units,
-            price_per_unit=service.price,
+            price_per_unit=service.suggested_price,
         )
 
         OrderServiceChangeHistory.objects.create(
@@ -661,7 +665,7 @@ class OrderManager:
             service=service,
             action=AddedOrRemoveActionChoices.ADDED,
             units=units,
-            price_per_unit=service.price,
+            price_per_unit=service.suggested_price,
         )
 
         return order_service
@@ -779,35 +783,30 @@ class OrderManager:
     
     @transaction.atomic
     def _find_warehouse_user_for_task(self):
-        """
-        Finds an available warehouse staff member using round-robin logic.
-        """
-
-        user = (
-            User.objects
-            .select_for_update()
-            .filter(roles__role=UserRoleChoices.WAREHOUSE_STAFF)
-            .annotate(
-                has_active_task=Exists(
-                    OrderTaskLog.objects.filter(
-                        assigned_to=OuterRef("pk"),
-                        order_task_status__status__in=[
-                            OrderTaskStatusChoices.ASSIGNED,
-                            OrderTaskStatusChoices.IN_PROGRESS,
-                        ],
-                    )
-                ),
-                last_assigned_at=Max("order_tasks__date_created"),
-            )
-            .filter(has_active_task=False)
-            .order_by("last_assigned_at", "user_id")
-            .first()
+        candidate = self._find_available_user(
+            role=UserRoleChoices.WAREHOUSE_STAFF,
+            require_available=True,
         )
 
-        if not user:
-            raise ValidationError("No available warehouse staff")
-        
-        return user
+        if not candidate:
+            candidate = (
+                User.objects
+                .filter(is_superuser=True)
+                .order_by("user_id")
+                .values_list("pk", flat=True)
+                .first()
+            )
+
+        if not candidate:
+            raise ValidationError(
+                "No available warehouse staff or admin users"
+            )
+
+        return (
+            User.objects
+            .select_for_update()
+            .get(pk=candidate)
+        )
     
     def _add_driver_stop_to_route(self, stop_type: OrderAddressTypeChoices):
 
@@ -834,3 +833,27 @@ class OrderManager:
         stop.web_tracking_link = route_stop.web_tracking_link
 
         stop.save()
+    
+    def _find_available_user(self, *, role=None, require_available=False):
+        qs = User.objects.all()
+
+        if role:
+            qs = qs.filter(roles__role=role)
+
+        if require_available:
+            qs = qs.annotate(
+                has_active_task=Exists(
+                    OrderTaskStatusChangeHistory.objects.filter(
+                        order_task__user=OuterRef("pk"),
+                        order_task_status__status__in=ACTIVE_STATUSES,
+                    )
+                ),
+                last_assigned_at=Max("tasks__date_created"),
+            ).filter(
+                has_active_task=False
+            ).order_by(
+                "last_assigned_at",
+                "user_id",
+            )
+
+        return qs.values_list("pk", flat=True).first()

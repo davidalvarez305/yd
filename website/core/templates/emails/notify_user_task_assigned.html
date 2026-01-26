@@ -1,0 +1,42 @@
+<html>
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+
+    <p><strong>New Task Assigned</strong></p>
+
+    <p>
+        You have been assigned a new warehouse task related to the order below.
+        Please review the details and proceed accordingly.
+    </p>
+
+    <p><strong>Order Information</strong></p>
+    <ul>
+        <li><strong>Order Code:</strong> {{ order_code }}</li>
+        <li><strong>Start Date:</strong> {{ start_date }}</li>
+        <li><strong>End Date:</strong> {{ end_date }}</li>
+    </ul>
+
+    <p><strong>Items Involved</strong></p>
+    <ul>
+        {% for item in items %}
+            <li>{{ item.name }}</li>
+        {% empty %}
+            <li>No items listed</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        This task may involve loading, unloading, staging, or inspecting items.
+        Please ensure all items are handled according to warehouse procedures.
+    </p>
+
+    <p>
+        If there are any issues, missing items, or conflicts, update the task status
+        and notify a supervisor immediately.
+    </p>
+
+    <p>
+        — Operations System
+    </p>
+
+</body>
+</html>

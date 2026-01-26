@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from decimal import Decimal
 from enum import Enum
 from typing import Union
 import uuid
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
 from core.enums import LeadActivityEnum, LeadTaskEnum
+from website import settings
 from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
@@ -31,6 +33,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(default=settings.COMPANY_EMAIL)
     phone_number = models.CharField(max_length=20, unique=True)
     forward_phone_number = models.CharField(max_length=20, unique=True)
     first_name = models.CharField(max_length=50)
@@ -42,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     events = models.ManyToManyField('Event', related_name='staff', through='EventStaff')
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number', 'forward_phone_number']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'email', 'phone_number', 'forward_phone_number']
 
     objects = UserManager()
 
@@ -1647,14 +1650,39 @@ class Order(models.Model):
     def manager(self):
         from core.managers.order import OrderManager
         return OrderManager(self)
+    
+    @property
+    def current_status(self):
+        latest_change = (
+            self.changes
+            .select_related("status")
+            .order_by("-date_created")
+            .first()
+        )
+        return latest_change.status.status if latest_change else None
+    
+    @property
+    def amount(self):
+        items_total = sum(
+            (Decimal(item.units) * Decimal(item.price_per_unit))
+            for item in self.items.all()
+        )
+
+        services_total = sum(
+            (Decimal(service.units) * Decimal(service.price_per_unit))
+            for service in self.services.all()
+        )
+
+        return items_total + services_total
 
     class Meta:
         db_table = 'order'
 
 class OrderContact(models.Model):
     order_contact_id = models.AutoField(primary_key=True)
-    order = models.OneToOneField("Order", related_name="order_contact", on_delete=models.CASCADE)
+    order = models.OneToOneField("Order", related_name="contact", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    email = models.EmailField()
     phone_number = models.CharField(max_length=32)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -1662,7 +1690,7 @@ class OrderContact(models.Model):
         db_table = "order_contact"
 
 class OrderBillingContact(models.Model):
-    order_contact_id = models.AutoField(primary_key=True)
+    order_billing_contact_id = models.AutoField(primary_key=True)
     order = models.OneToOneField("Order", related_name="billing_contact", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -1681,6 +1709,10 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return self.item
+    
+    @property
+    def total(self):
+        return self.units * self.price_per_unit
 
     class Meta:
         db_table = 'order_item'
@@ -1813,7 +1845,7 @@ class OrderTaskChoices(models.TextChoices):
     UNLOAD_ORDER_ITEMS = 'Unload Order Items'
 
 class OrderTaskChoice(models.Model):
-    order_task_id = models.AutoField(primary_key=True)
+    order_task_choice_id = models.AutoField(primary_key=True)
     task = models.CharField(max_length=30, choices=OrderTaskChoices)
 
     def __str__(self):
@@ -1933,8 +1965,8 @@ class OrderAddress(models.Model):
     order_address_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(Order, related_name='addresses', db_column='order_id', on_delete=models.CASCADE)
     address = models.ForeignKey(Address, db_column='address_id', on_delete=models.RESTRICT)
-    stop_type = models.CharField(max_length=60, choices=OrderAddressTypeChoices)
-    time_window = models.CharField(max_length=60, choices=OrderAddressTimeWindowTypeChoices)
+    stop_type = models.CharField(max_length=60, choices=OrderAddressTypeChoices.choices)
+    time_window = models.CharField(max_length=60, choices=OrderAddressTimeWindowTypeChoices.choices)
     contact_name = models.CharField(max_length=255)
     contact_phone = models.CharField(max_length=30)
     start_time = models.DateTimeField(null=True)

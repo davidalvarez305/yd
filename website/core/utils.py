@@ -39,7 +39,7 @@ import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
 
 ALPHANUMERIC_CHARS = string.ascii_uppercase + string.digits
-ORDER_CODE_LENGTH = 11
+ORDER_CODE_LENGTH = 8
 
 def format_phone_number(phone_number):
     if phone_number is None:

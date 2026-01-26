@@ -14,13 +14,11 @@ class OrderBillingContactInputSerialier(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     phone_number = PhoneNumberField()
-    street_address_one = serializers.CharField(max_length=255)
-    street_address_two = serializers.CharField(max_length=255)
-    zip_code = serializers.PrimaryKeyRelatedField(queryset=ZipCode.objects.select_related("city__state"))
 
 class OrderContactInputSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     phone_number = PhoneNumberField()
+    email = serializers.EmailField()
 
 class OrderItemInputSerializer(serializers.Serializer):
     item = serializers.PrimaryKeyRelatedField(queryset=Item.objects.all())
@@ -32,11 +30,14 @@ class OrderServiceInputSerializer(serializers.Serializer):
 
 class OrderAddressInputSerializer(serializers.Serializer):
     street_address_one = serializers.CharField(max_length=255)
-    street_address_two = serializers.CharField(max_length=255)
+    street_address_two = serializers.CharField(max_length=255, required=False, allow_blank=True)
     zip_code = serializers.PrimaryKeyRelatedField(queryset=ZipCode.objects.select_related("city__state"))
+    time_window = serializers.ChoiceField(choices=OrderAddress._meta.get_field("time_window").choices)
     delivery_type = serializers.ChoiceField(choices=OrderAddress._meta.get_field("stop_type").choices)
-    delivery_start_time = serializers.DateTimeField(required=False, allow_null=True)
-    delivery_end_time = serializers.DateTimeField(required=False, allow_null=True)
+    start_time = serializers.DateTimeField(required=False, allow_null=True)
+    end_time = serializers.DateTimeField(required=False, allow_null=True)
+    contact_name = serializers.CharField(max_length=255)
+    contact_phone = serializers.CharField(max_length=30)
 
 class OrderCreateSerializer(serializers.ModelSerializer):
     pickup = OrderAddressInputSerializer(required=False, write_only=True)
@@ -89,8 +90,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             order=order,
             address=address,
             stop_type=stop_type,
-            delivery_start_time=data.get("delivery_start_time"),
-            delivery_end_time=data.get("delivery_end_time"),
+            contact_name=data.get("contact_name"),
+            contact_phone=data.get("contact_phone"),
+            start_time=data.get("start_time"),
+            end_time=data.get("end_time"),
         )
 
     def _build_lead(self, data):
@@ -112,7 +115,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         return lead
 
     @transaction.atomic
-    def create(self, validated_data):
+    def create(self, data):
         request = self.context.get("request")
 
         user = None
@@ -120,17 +123,17 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         if request and request.user and request.user.is_authenticated:
             user = request.user
 
-        billing_contact_data = validated_data.pop("billing_contact")
-        order_contact_data = validated_data.pop("order_contact")
+        billing_contact_data = data.pop("billing_contact")
+        order_contact_data = data.pop("order_contact")
         lead = self._build_lead(billing_contact_data)
-        delivery = validated_data.pop("delivery")
-        pickup = validated_data.pop("pickup")
-        items = validated_data.pop("items", [])
-        services = validated_data.pop("services", [])
+        delivery = data.pop("delivery")
+        pickup = data.pop("pickup")
+        items = data.pop("items", [])
+        services = data.pop("services", [])
         has_delivery = bool(delivery and pickup)
 
         order = Order.objects.create(
-            **validated_data,
+            **data,
             user=user,
             lead=lead,
             has_delivery=has_delivery,

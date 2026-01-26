@@ -1159,7 +1159,7 @@ class ExternalQuoteView(CRMContextMixin, DetailView):
             'has_bartending': has_bartending,
             'has_rental': has_rental,
             'has_setup': has_setup,
-            'payment_due_date': quote.event_date - timedelta(days=2)
+            'payment_due_date': quote.event_date - timedelta(days=7)
         })
 
         return context
