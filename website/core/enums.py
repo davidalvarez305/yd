@@ -13,27 +13,3 @@ class AlertHTTPCodes(Enum):
     @classmethod
     def get_http_code(cls, alert_status):
         return cls[alert_status.name].value
-
-class LeadActivityEnum(Enum):
-    WEBSITE_VISIT = 'website_visit'
-    TEXT_SENT = 'text_sent'
-
-    def __str__(self):
-        return self.value
-    
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other
-        return super().__eq__(other)
-
-class LeadTaskEnum(Enum):
-    GOOGLE = 1
-    FACEBOOK = 2
-
-    def __str__(self):
-        return self.value
-    
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other
-        return super().__eq__(other)

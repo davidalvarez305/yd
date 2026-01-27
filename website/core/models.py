@@ -3,7 +3,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Union
 import uuid
-from django.db import IntegrityError, models, transaction
+from django.db import IntegrityError, models
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
@@ -11,7 +11,6 @@ from django.http import HttpRequest
 from django.utils import timezone
 from django.db.models import Q, Sum
 from marketing.enums import ConversionServiceType
-from core.enums import LeadActivityEnum, LeadTaskEnum
 from website import settings
 from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
@@ -99,6 +98,12 @@ class LeadStatusEnum(Enum):
             return self.value == other
         return super().__eq__(other)
 
+class LeadStatusChoices(models.TextChoices):
+    LEAD_CREATED = 'Lead Created'
+    INVOICE_SENT = 'Invoice Sent'
+    EVENT_BOOKED = 'Event Booked'
+    ARCHIVED = 'ARCHIVED'
+
 class LeadStatus(models.Model):
     lead_status_id = models.AutoField(primary_key=True)
     status = models.CharField(
@@ -132,9 +137,13 @@ class LeadStatusHistory(models.Model):
     class Meta:
         db_table = 'lead_status_history'
 
+class LeadActivityChoices(models.TextChoices):
+    WEBSITE_VISIT = 'website_visit'
+    TEXT_SENT = 'text_sent'
+
 class LeadActivity(models.Model):
     lead_activity_id = models.AutoField(primary_key=True)
-    activity = models.CharField(max_length=255)
+    activity = models.CharField(max_length=255, choices=LeadActivityChoices.choices)
 
     def __str__(self):
         return self.activity
@@ -161,9 +170,13 @@ class LeadActivityHistory(models.Model):
     class Meta:
         db_table = 'lead_activity_history'
 
+class LeadTaskChoices(models.TextChoices):
+    FISRT_FOLLOW_UP = 'First Follow Up'
+    SECOND_FOLLOW_UP = 'Second Follow Up'
+
 class LeadTask(models.Model):
     lead_task_id = models.AutoField(primary_key=True)
-    task = models.CharField(max_length=255)
+    task = models.CharField(max_length=60, choices=LeadTaskChoices.choices, unique=True)
     is_automated = models.BooleanField()
     during_work_hours = models.BooleanField(default=False)
 
@@ -176,7 +189,7 @@ class LeadTask(models.Model):
 class LeadTaskHistory(models.Model):
     lead_task_history_id = models.AutoField(primary_key=True)
     lead_task = models.ForeignKey(LeadTask, db_column='lead_task_id', on_delete=models.RESTRICT)
-    lead = models.ForeignKey('Lead', db_column='lead_id', on_delete=models.CASCADE)
+    lead = models.ForeignKey('Lead', related_name='tasks', db_column='lead_id', on_delete=models.CASCADE)
     date_scheduled = models.DateTimeField(auto_now_add=True)
     date_completed = models.DateTimeField(null=True)
 
@@ -282,16 +295,6 @@ class Lead(models.Model):
     
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
-    
-    def record_activity(self, activity: LeadActivityEnum | str):
-        value = activity.value if isinstance(activity, Enum) else activity
-        lead_activity = LeadActivity.objects.get(activity=value)
-        LeadActivityHistory.objects.create(lead=self, lead_activity=lead_activity)
-
-    def create_lead_task(self, action: LeadTaskEnum | str, date_scheduled: datetime):
-        value = action.value if isinstance(action, Enum) else action
-        lead_task = LeadTask.objects.get(action=value)
-        LeadTaskHistory.objects.create(lead=self, lead_task=lead_task, date_scheduled=date_scheduled)
 
     def value(self, visited=None) -> float:
         if visited is None:
