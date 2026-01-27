@@ -54,3 +54,6 @@ admin.site.register(DriverStopImage)
 
 # Service relationships
 admin.site.register(ServiceBusinessSegment)
+
+# Trucks
+admin.site.register(DeliveryVehicle)

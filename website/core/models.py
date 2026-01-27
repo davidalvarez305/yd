@@ -1842,6 +1842,7 @@ class OrderStatusChangeHistory(models.Model):
 
 class OrderTaskChoices(models.TextChoices):
     LOAD_ORDER_ITEMS = 'Load Order Items'
+    PREPARE_PICKUP_ORDER_ITEMS = 'Prepare Pickup Order Items'
     UNLOAD_ORDER_ITEMS = 'Unload Order Items'
 
 class OrderTaskChoice(models.Model):
@@ -1900,6 +1901,52 @@ class OrderTaskStatusChangeHistory(models.Model):
 
     class Meta:
         db_table = 'order_task_status_change_history'
+
+class DeliveryVehicle(models.Model):
+    delivery_vehicle_id = models.AutoField(primary_key=True)
+    truck_code = models.CharField(max_length=4, unique=True, db_index=True)
+    description = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        db_table = 'delivery_vehicle'
+
+class DeliveryVehicleStatusChoices(models.TextChoices):
+    ACTIVE = 'Active'
+    ASSIGNED = 'Assigned'
+    READY_FOR_DISPATCH = 'Ready For Dispatch'
+    ON_THE_ROAD = 'On The Road'
+    INACTIVE = 'Inactive'
+
+class DeliveryVehicleStatus(models.Model):
+    delivery_vehicle_status_id = models.AutoField(primary_key=True)
+    status = models.CharField(max_length=30, choices=DeliveryVehicleStatusChoices.choices)
+
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        db_table = 'delivery_vehicle_status'
+
+class DeliveryVehicleStatusChangeHistory(models.Model):
+    delivery_vehicle_status_change_history_id = models.AutoField(primary_key=True)
+    vehicle = models.ForeignKey(DeliveryVehicle, db_column='delivery_vehicle_id', related_name='statuses', on_delete=models.CASCADE)
+    status = models.ForeignKey(DeliveryVehicleStatus, db_column='delivery_vehicle_status_id', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'delivery_vehicle_status_change_history'
+
+class DeliveryTruckDriverAssignment(models.Model):
+    delivery_truck_driver_assignment_id = models.AutoField(primary_key=True)
+    vehicle = models.ForeignKey(DeliveryVehicle, db_column='delivery_vehicle_id', related_name='assignments', on_delete=models.RESTRICT)
+    driver = models.ForeignKey(User, db_column='user_id', on_delete=models.RESTRICT)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'delivery_truck_driver_assignment'
 
 class State(models.Model):
     state_id = models.AutoField(primary_key=True)
@@ -1978,17 +2025,23 @@ class OrderAddress(models.Model):
 class DriverRoute(models.Model):
     driver_route_id = models.AutoField(primary_key=True)
     external_id = models.CharField(max_length=255, unique=True, db_index=True)
-    user = models.ForeignKey(User, related_name='driver_routes', on_delete=models.RESTRICT)
+    driver = models.ForeignKey(User, related_name='driver_routes', on_delete=models.RESTRICT)
+    vehicle = models.ForeignKey(DeliveryVehicle, related_name='routes', on_delete=models.RESTRICT)
     target_date = models.DateField()
     route_zone = models.ForeignKey(RouteZone, related_name='driver_routes', on_delete=models.RESTRICT)
+
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'driver_route'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'target_date'],
+                fields=['driver', 'target_date'],
                 name='unique_driver_per_date'
+            ),
+            models.UniqueConstraint(
+                fields=['vehicle', 'target_date'],
+                name='unique_vehicle_per_date'
             ),
         ]
 
