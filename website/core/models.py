@@ -99,9 +99,13 @@ class LeadStatusEnum(Enum):
 
 class LeadStatusChoices(models.TextChoices):
     LEAD_CREATED = 'Lead Created'
+    FIRST_TOUCH = 'First Touch'
+    FIRST_RESPONSE = 'First Response'
     INVOICE_SENT = 'Invoice Sent'
-    EVENT_BOOKED = 'Event Booked'
-    ARCHIVED = 'ARCHIVED'
+    FIRST_FOLLOW_UP = 'FIRST_FOLLOW_UP', 'First Follow Up'
+    SECOND_FOLLOW_UP = 'SECOND_FOLLOW_UP', 'Second Follow Up'
+    EVENT_BOOKED = 'EVENT_BOOKED', 'Event Booked'
+    ARCHIVED = 'ARCHIVED', 'Archived'
 
 class LeadStatus(models.Model):
     lead_status_id = models.AutoField(primary_key=True)
@@ -218,21 +222,6 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.full_name
-    
-    def attach_marketing_data(self, request: HttpRequest):
-        from core.helpers.marketing import MarketingHelper
-        if request.user.is_authenticated:
-            lead_marketing = LeadMarketing.objects.create(lead=self)
-        else:
-            marketing_helper = MarketingHelper(request)
-            lead_marketing = LeadMarketing.objects.create(
-                lead=self,
-                ip=marketing_helper.ip,
-                external_id=marketing_helper.external_id,
-                user_agent=marketing_helper.user_agent,
-                ad=marketing_helper.ad,
-            )
-            marketing_helper.save_metadata(lead_marketing=lead_marketing)
     
     def has_gbraid(self):
         return (

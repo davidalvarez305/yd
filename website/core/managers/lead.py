@@ -7,11 +7,12 @@ from dataclasses import dataclass
 from typing import Optional
 from django.core.exceptions import ValidationError
 
-from core.models import ConversionTypeChoices, LandingPage, LandingPageConversion, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, User
+from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, User
 from core.conversions import conversion_service
 from core.utils import create_ad_from_params, format_text_message, generate_params_dict_from_url, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
 from core.messaging import messaging_service
 from website import settings
+from core.helpers.marketing import MarketingHelper
 
 @dataclass
 class LeadTransitionContext:
@@ -101,23 +102,95 @@ class LeadStateManager:
             case LeadStatusChoices.ARCHIVED:
                 self._on_archived(context)
     
+    def handle_lead_creation_via_instant_form(self, data, entry):
+        marketing, _ = LeadMarketing.objects.get_or_create(
+                instant_form_lead_id=entry.get('leadgen_id'),
+                defaults={
+                    'lead': self.lead,
+                    'instant_form_id': data.get('form_id'),
+                }
+            )
+
+        if not data.get('is_organic'):
+            ad_platform = AdPlatform.objects.get(platform=AdPlatformChoices.FACEBOOK)
+            ad_campaign, _ = AdCampaign.objects.get_or_create(
+                ad_campaign_id=data.get('campaign_id'),
+                defaults={
+                    'name': data.get('campaign_name'),
+                }
+            )
+            ad_group, _ = AdGroup.objects.get_or_create(
+                ad_group_id=data.get('adset_id'),
+                defaults={
+                    'name': data.get('adset_name'),
+                    'ad_campaign': ad_campaign,
+                }
+            )
+            ad, _ = Ad.objects.get_or_create(
+                ad_id=data.get('ad_id'),
+                defaults={
+                    'name': data.get('ad_name'),
+                    'ad_platform': ad_platform,
+                    'ad_group': ad_group,
+                }
+            )
+            
+            marketing.ad = ad
+            marketing.save()
+
+        metadata = [
+            {
+                'key': 'source',
+                'value': data.get('platform'),
+            },
+            {
+                'key': 'medium',
+                'value': 'paid',
+            },
+            {
+                'key': 'channel',
+                'value': 'social',
+            }
+        ]
+
+        for data in metadata:
+            entry = LeadMarketingMetadata(
+                key=data.get('key'),
+                value=data.get('value'),
+                lead_marketing=marketing,
+            )
+            entry.save()
+            
+        self.transition_to(LeadStatusChoices.LEAD_CREATED)
+    
     def handle_lead_creation_via_form(self, request: HttpRequest):
         marketing_helper = MarketingHelper(request=request)
-        for key, value in marketing_helper.metadata.items():
-            LeadMarketingMetadata.objects.create(
-                key=key,
-                value=value,
-                lead_marketing=self.lead.lead_marketing,
-            )
-        lp = self.request.session.get("landing_page_id")
-        if lp:
-            landing_page = LandingPage.objects.filter(pk=lp).first()
-            if landing_page:
-                conversion = LandingPageConversion(
-                    lead=self.lead,
-                    landing_page=landing_page,
+        lead_marketing = LeadMarketing.objects.create(lead=self.lead)
+        if not request.user.is_authenticated:
+            marketing_helper = MarketingHelper(request)
+            lead_marketing.ip = marketing_helper.ip
+            lead_marketing.external_id = marketing_helper.external_id
+            lead_marketing.user_agent = marketing_helper.user_agent
+            lead_marketing.ad = marketing_helper.ad
+            lead_marketing.save()
+            
+            for key, value in marketing_helper.metadata.items():
+                LeadMarketingMetadata.objects.create(
+                    key=key,
+                    value=value,
+                    lead_marketing=self.lead.lead_marketing,
                 )
-                conversion.save()
+            
+            lp = self.request.session.get("landing_page_id")
+            if lp:
+                landing_page = LandingPage.objects.filter(pk=lp).first()
+                if landing_page:
+                    conversion = LandingPageConversion(
+                        lead=self.lead,
+                        landing_page=landing_page,
+                    )
+                    conversion.save()
+        
         self.transition_to(LeadStatusChoices.LEAD_CREATED)
     
     def handle_lead_creation_via_tracking_call(self, tracking_phone_call: TrackingPhoneCall):
@@ -168,6 +241,9 @@ class LeadStateManager:
         self.transition_to(LeadStatusChoices.LEAD_CREATED)
     
     def _on_lead_created(self, context: LeadTransitionContext):
+
+        if settings.DEBUG:
+            return
         
         # Notify Users
         users = User.objects.filter(is_superuser=True)
