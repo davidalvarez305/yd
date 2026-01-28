@@ -10,9 +10,8 @@ from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.utils import timezone
 from django.db.models import Q, Sum
-from marketing.enums import ConversionServiceType
 from website import settings
-from .utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
+from core.utils import format_phone_number, generate_order_code, media_upload_path, save_image_path
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -221,7 +220,7 @@ class Lead(models.Model):
         return self.full_name
     
     def attach_marketing_data(self, request: HttpRequest):
-        from marketing.utils import MarketingHelper
+        from core.helpers.marketing import MarketingHelper
         if request.user.is_authenticated:
             lead_marketing = LeadMarketing.objects.create(lead=self)
         else:
@@ -312,24 +311,10 @@ class Lead(models.Model):
 
         return total
 
-    def change_lead_status(self, status: Union[str, LeadStatusEnum], event = None, order = None):
-        from marketing.signals import lead_status_changed
-        if isinstance(status, LeadStatusEnum):
-            status = status.name
-
-        lead_status = LeadStatus.objects.get(status=status)
-
-        self.lead_status = lead_status
-        self.save()
-
-        log = LeadStatusHistory(
-            lead=self,
-            lead_status=lead_status
-        )
-
-        log.save()
-
-        lead_status_changed.send(sender=self.__class__, instance=self, event=event)
+    @property
+    def manager(self):
+        from core.managers.lead import LeadStateManager
+        return LeadStateManager(self)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -863,10 +848,36 @@ class TrackingTextMessageMetadata(models.Model):
             )
         ]
 
-AD_PLATFORMS = [
-    (ConversionServiceType.GOOGLE.value, "Google"),
-    (ConversionServiceType.FACEBOOK.value, "Facebook"),
-]
+class AdPlatformChoices(models.TextChoices):
+    GOOGLE = 'Google Ads'
+    FACEBOOK = 'Facebook Ads'
+    MICROSOFT = 'Microsoft Ads'
+
+class AdPlatform(models.Model):
+    ad_platform_id = models.AutoField(primary_key=True)
+    platform = models.CharField(max_length=30, choices=AdPlatformChoices.choices)
+
+    def __str__(self):
+        return self.platform
+
+    class Meta:
+        db_table = 'ad_platform'
+
+class AdPlatformParamKeyChoices(models.TextChoices):
+    URL = 'url'
+    COOKIE = 'cookie'
+
+class AdPlatformParam(models.Model):
+    ad_platform_param_id = models.AutoField(primary_key=True)
+    ad_platform = models.ForeignKey(AdPlatform, related_name='params', db_column='ad_platform_id', on_delete=models.CASCADE)
+    param = models.CharField(max_length=30)
+    type = models.CharField(max_length=15, choices=AdPlatformParamKeyChoices.choices)
+
+    def __str__(self):
+        return self.param
+
+    class Meta:
+        db_table = 'ad_platform_param'
 
 class AdCampaign(models.Model):
     ad_campaign_id = models.BigIntegerField()
@@ -894,7 +905,7 @@ class Ad(models.Model):
     ad_id = models.BigIntegerField(primary_key=True)
     name = models.TextField(blank=True, null=True)
     ad_group = models.ForeignKey(AdGroup, related_name='ads', db_column='ad_group_id', on_delete=models.RESTRICT)
-    platform_id = models.IntegerField(choices=AD_PLATFORMS)
+    ad_platform = models.ForeignKey(AdPlatform, related_name='ads', db_column='platform_id', on_delete=models.RESTRICT)
 
     def __str__(self):
         return self.name
@@ -907,7 +918,7 @@ class AdSpend(models.Model):
     ad_spend_id = models.AutoField(primary_key=True)
     date = models.DateField(default=date.today)
     spend = models.FloatField()
-    platform_id = models.IntegerField(choices=AD_PLATFORMS)
+    platform = models.ForeignKey(AdPlatform, related_name='spend', db_column='platform_id', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.amount
@@ -1517,20 +1528,17 @@ class LandingPageTrackingNumber(models.Model):
     class Meta:
         db_table = 'landing_page_tracking_number'
 
-class LandingPageConversion(models.Model):
+class ConversionTypeChoices(models.TextChoices):
     PHONE_CALL = "phone_call"
     FORM_SUBMISSION = "form_submission"
+    INSTANT_FORM = 'instant_form'
 
-    CONVERSION_TYPE_CHOICES = [
-        (PHONE_CALL, "Phone Call"),
-        (FORM_SUBMISSION, "Form Submission"),
-    ]
-
+class LandingPageConversion(models.Model):
     landing_page_conversion_id = models.AutoField(primary_key=True)
     landing_page = models.ForeignKey(LandingPage, on_delete=models.RESTRICT, related_name="conversions")
     lead = models.ForeignKey(Lead, on_delete=models.RESTRICT)
+    conversion_type = models.CharField(max_length=30, choices=ConversionTypeChoices.choices, default=ConversionTypeChoices.FORM_SUBMISSION)
     date_created = models.DateTimeField(auto_now_add=True)
-    conversion_type = models.CharField(max_length=20, choices=CONVERSION_TYPE_CHOICES, default=FORM_SUBMISSION)
 
     def __str__(self):
         return f"{self.lead.full_name} - {self.landing_page.name} ({self.date_created.strftime('%b, %d')})"

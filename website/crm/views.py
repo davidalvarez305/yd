@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from website import settings
-from core.models import AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceTypeEnum, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, AddedOrRemoveActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
+from core.models import AdPlatform, AdPlatformChoices, AdSpend, CallTrackingNumber, CocktailIngredient, EventCocktail, EventDocument, EventShoppingList, EventShoppingListEntry, EventStaff, EventStatusChoices, FacebookAccessToken, HTTPLog, Ingredient, InternalLog, Invoice, InvoiceTypeEnum, LandingPage, LeadMarketingMetadata, LeadNote, LeadStatusEnum, Message, PhoneCall, Message, Quote, QuotePreset, QuotePresetService, QuoteService, AddedOrRemoveActionChoices, QuoteServiceChangeHistory, SessionMapping, StoreItem, Visit
 from communication.forms import MessageForm, OutboundPhoneCallForm, PhoneCallForm
 from core.models import LeadStatus, Lead, User, Service, Cocktail, Event, LeadMarketing
 from core.forms import ServiceForm, UserForm
@@ -26,10 +26,9 @@ from crm.tables import CocktailIngredientTable, CocktailTable, EventCocktailTabl
 from core.tables import Table
 from core.logger import logger
 from core.utils import format_phone_number, format_text_message, get_first_field_error, get_session_data, is_mobile, normalize_phone_number
-from marketing.utils import create_ad_from_params, generate_params_dict_from_url
+from core.utils import create_ad_from_params, generate_params_dict_from_url
 from crm.utils import calculate_quote_service_values, convert_to_item_quantity, update_quote_invoices
 from core.messaging import messaging_service
-from marketing.enums import ConversionServiceType
 from crm.filters import EventFilter
 
 class CRMContextMixin:
@@ -1450,24 +1449,18 @@ class MarketingAnalytics(CRMBaseView, TemplateView):
             date_to = timezone.make_aware(datetime.now())
 
         ad_spend = AdSpend.objects.filter(date__range=(date_from, date_to))
-        google_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.GOOGLE.value)
-        facebook_spend_entries = ad_spend.filter(platform_id=ConversionServiceType.FACEBOOK.value)
+        google = AdPlatform.objects.get(platform=AdPlatformChoices.GOOGLE)
+        facebook = AdPlatform.objects.get(platform=AdPlatformChoices.FACEBOOK)
+
+        google_spend_entries = ad_spend.filter(platform_id=google.pk)
+        facebook_spend_entries = ad_spend.filter(platform_id=facebook.pk)
 
         google_ad_spend = google_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
         facebook_ad_spend = facebook_spend_entries.aggregate(ad_spend=Sum('spend'))['ad_spend'] or 0
 
         leads = Lead.objects.filter(created_at__range=(date_from, date_to))
-
-        google_leads = leads.filter(
-            Q(lead_marketing__metadata__key='gclid') |
-            Q(lead_marketing__metadata__key='_gcl_aw') |
-            Q(lead_marketing__metadata__key='gbraid')
-        ).distinct()
-
-        facebook_leads = leads.filter(
-            Q(lead_marketing__metadata__key='_fbc') |
-            Q(lead_marketing__metadata__key='fbclid')
-        ).distinct()
+        google_leads = leads.filter(lead_marketing__ad__ad_platform=google).distinct()
+        facebook_leads = leads.filter(lead_marketing__ad__ad_platform=facebook).distinct()
 
         google_leads_with_events = google_leads.filter(events__isnull=False).distinct()
         facebook_leads_with_events = facebook_leads.filter(events__isnull=False).distinct()

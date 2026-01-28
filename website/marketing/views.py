@@ -6,8 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import Ad, AdCampaign, AdGroup, Lead, LeadMarketing, LeadMarketingMetadata, LeadStatusEnum
-from marketing.enums import ConversionServiceType
+from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, Lead, LeadMarketing, LeadMarketingMetadata, LeadStatusEnum
 from website import settings
 from core.facebook.api import facebook_api_service
 
@@ -84,6 +83,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                         )
 
                         if not data.get('is_organic'):
+                            ad_platform = AdPlatform.objects.get(platform=AdPlatformChoices.FACEBOOK)
                             ad_campaign, _ = AdCampaign.objects.get_or_create(
                                 ad_campaign_id=data.get('campaign_id'),
                                 defaults={
@@ -101,7 +101,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                                 ad_id=data.get('ad_id'),
                                 defaults={
                                     'name': data.get('ad_name'),
-                                    'platform_id': ConversionServiceType.FACEBOOK.value,
+                                    'ad_platform': ad_platform,
                                     'ad_group': ad_group,
                                 }
                             )

@@ -60,7 +60,6 @@ class Command(BaseCommand):
 
                 marketing_click_id = lead.lead_marketing.metadata.filter(key='gclid').first()
                 if not marketing_click_id and gclid:
-                    print(f"Associating gclid to: {lead}")
                     LeadMarketingMetadata.objects.create(
                         key='gclid',
                         lead_marketing=lead.lead_marketing,
@@ -90,7 +89,6 @@ class Command(BaseCommand):
                 
                 kw_marketing_metadata = lead.lead_marketing.metadata.filter(key='keyword').first()
                 if not kw_marketing_metadata and keyword:
-                    print(f"Associating keyword to: {lead}")
                     LeadMarketingMetadata.objects.create(
                         key='keyword',
                         lead_marketing=lead.lead_marketing,

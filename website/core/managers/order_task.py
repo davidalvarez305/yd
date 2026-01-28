@@ -110,7 +110,8 @@ class OrderTaskManager:
         match self.order_task.task.task:
             case OrderTaskChoices.LOAD_ORDER_ITEMS:
                 self.order_task.order.manager.mark_ready_for_dispatch(context.user)
-
+            case OrderTaskChoices.PREPARE_PICKUP_ORDER_ITEMS:
+                
             case OrderTaskChoices.UNLOAD_ORDER_ITEMS:
                 self.order_task.order.manager.finalize()
 

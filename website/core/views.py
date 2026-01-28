@@ -11,7 +11,6 @@ from django.core.files.storage import storages
 from website import settings
 
 from marketing.mixins import LandingPageMixin, UserTrackingMixin, VisitTrackingMixin
-from marketing.utils import MarketingHelper
 from core.email import email_service
 from .logger import logger
 from .models import Event, GoogleReview, Invoice, LandingPage, LandingPageConversion, Lead, LeadMarketing, LeadStatusEnum
@@ -393,21 +392,7 @@ class LeadCreateView(BaseView, CreateView):
         try:
             with transaction.atomic():
                 lead = form.save()
-
-                lead.attach_marketing_data(request=self.request)
-
-                lp = self.request.session.get("landing_page_id")
-                if lp:
-                    landing_page = LandingPage.objects.filter(pk=lp).first()
-                    if landing_page:
-                        conversion = LandingPageConversion(
-                            lead=lead,
-                            landing_page=landing_page,
-                        )
-                        conversion.save()
-
-                lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
-
+                lead.manager.handle_lead_creation_via_form(request=self.request)
             return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
         except Exception as e:

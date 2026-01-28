@@ -1,11 +1,11 @@
-import json
 import uuid
 import random
 
 from django.conf import settings
 from django.http import HttpRequest
 from core.models import LandingPage, LeadMarketing, SessionMapping, Visit
-from .utils import MarketingHelper, is_paid_traffic
+from core.utils import is_paid_traffic
+from core.helpers.marketing import MarketingHelper
     
 class UserTrackingMixin:
     def dispatch(self, request, *args, **kwargs):
