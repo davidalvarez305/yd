@@ -102,7 +102,13 @@ class LeadStateManager:
                 self._on_archived(context)
     
     def handle_lead_creation_via_form(self, request: HttpRequest):
-        self.lead.attach_marketing_data(request=request)
+        marketing_helper = MarketingHelper(request=request)
+        for key, value in marketing_helper.metadata.items():
+            LeadMarketingMetadata.objects.create(
+                key=key,
+                value=value,
+                lead_marketing=self.lead.lead_marketing,
+            )
         lp = self.request.session.get("landing_page_id")
         if lp:
             landing_page = LandingPage.objects.filter(pk=lp).first()
