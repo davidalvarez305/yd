@@ -24,6 +24,7 @@ class GoogleAPIService:
         self.gmail = self.build("gmail", "v1")
         self.sheets = self.build("sheets", "v4")
         self.google_ads_client = self.build_ads_client()
+        self.calendar = self.build("calendar", "v3")
 
     def build(self, api_name: str, api_version: str):
         return build(api_name, api_version, credentials=self.creds)
@@ -157,3 +158,37 @@ class GoogleAPIService:
                 exc_info=True,
             )
             return []
+    
+    def create_google_calendar_event(self, title, start_time, end_time, description, location, calendar_id):
+        try:
+            if not end_time:
+                raise ValueError('Google Calendar events must have an end time.')
+
+            if timezone.is_naive(start_time) or timezone.is_naive(end_time):
+                raise ValueError("start_time and end_time must be timezone-aware datetimes")
+
+            event = {
+                "summary": title,
+                "description": description,
+                "location": location,
+                "start": {
+                    "dateTime": start_time.isoformat(),
+                    "timeZone": start_time.tzinfo.zone,
+                },
+                "end": {
+                    "dateTime": end_time.isoformat(),
+                    "timeZone": end_time.tzinfo.zone,
+                },
+            }
+
+            created_event = (
+                self.calendar.events()
+                .insert(calendarId=calendar_id, body=event)
+                .execute()
+            )
+
+            return created_event
+
+        except Exception:
+            logger.exception("Failed to create Google Calendar event", exc_info=True)
+            raise

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional
 from django.core.exceptions import ValidationError
 
-from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, User
+from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, Event, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, User
 from core.conversions import conversion_service
 from core.utils import create_ad_from_params, format_text_message, generate_params_dict_from_url, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
 from core.messaging import messaging_service
@@ -17,6 +17,7 @@ from core.helpers.marketing import MarketingHelper
 @dataclass
 class LeadTransitionContext:
     user: Optional[User] = None
+    event: Optional[Event] = None
     source: str = "system"
 
 class InvalidLeadTransitionError(ValidationError):
@@ -101,6 +102,13 @@ class LeadStateManager:
                 self._on_event_booked(context)
             case LeadStatusChoices.ARCHIVED:
                 self._on_archived(context)
+    
+    def book_event(self, event: Event):
+        context = {
+            'event': event,
+            'source': 'webhook',
+        }
+        self.transition_to(LeadStatusChoices.EVENT_BOOKED, context=context)
     
     def handle_lead_creation_via_instant_form(self, data, entry):
         marketing, _ = LeadMarketing.objects.get_or_create(
@@ -284,7 +292,8 @@ class LeadStateManager:
         pass
 
     def _on_event_booked(self, context: LeadTransitionContext):
-        pass
+        data = self._create_data_dict(LeadStatusChoices.EVENT_BOOKED, event=context.event)
+        conversion_service.send_conversion(data=data)
 
     def _on_archived(self, context: LeadTransitionContext):
         pass

@@ -9,6 +9,7 @@ from core.email import email_service
 from core.messaging import messaging_service
 from crm.utils import generate_event_pdf
 from core.ai import ai_agent
+from core.google.api import google_api_service
 class InvalidTransitionError(ValidationError):
 
     """Raised when an invalid event state transition is attempted."""
@@ -126,13 +127,14 @@ class EventManager:
                 self._on_completed()
 
     def _on_book(self):
-        self.event.lead.change_lead_status(LeadStatusEnum.EVENT_BOOKED, event=self.event)
         self._send_lead_event_booking_notification()
         # self._send_onboarding_reminder()
         # self.transition_to(EventStatusChoices.ONBOARDING)
 
-    def _on_confirmed(self):
+    def _on_confirmed(self, data):
         self._send_event_confirmation_notification()
+
+        google_api_service.create_google_calendar_event()
 
     def _on_in_progress(self):
         print(f"Event {self.event.event_id} started at {timezone.now()}.")
