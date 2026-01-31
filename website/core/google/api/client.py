@@ -9,10 +9,10 @@ from googleapiclient.discovery import build
 
 from google.ads.googleads.client import GoogleAdsClient
 
-from core.models import Ad, AdSpend, GoogleAccessToken
+from core.models import Ad, AdPlatform, AdPlatformChoices, AdSpend, GoogleAccessToken
 from core.logger import logger
 from core.utils import load_google_credentials
-from marketing.enums import ConversionServiceType
+from core.models import ConversionServiceType
 
 class GoogleAPIService:
     def __init__(self):
@@ -123,10 +123,12 @@ class GoogleAPIService:
                     date = row.segments.date
                     spend = row.metrics.cost_micros / 1_000_000
 
+                    platform = AdPlatform.objects.get(name=AdPlatformChoices.GOOGLE)
+
                     AdSpend.objects.create(
                         spend=spend,
                         date=date,
-                        platform_id=ConversionServiceType.GOOGLE.value,
+                        ad_platform=platform,
                     )
                 
         except Exception as e:
