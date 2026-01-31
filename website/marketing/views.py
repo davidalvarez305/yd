@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 
-from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, Lead, LeadMarketing, LeadMarketingMetadata, LeadStatusEnum
+from core.models import Lead
 from website import settings
 from core.facebook.api import facebook_api_service
 
@@ -58,8 +58,6 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
 
             for entry in entries:
                 data = facebook_api_service.get_lead_data(lead=entry)
-
-                # Skip malformatted phone numbers without throwing errors.
                 if not data.get('phone_number'):
                     continue
 
@@ -74,67 +72,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
                     )
 
                     if created:
-                        marketing, _ = LeadMarketing.objects.get_or_create(
-                            instant_form_lead_id=entry.get('leadgen_id'),
-                            defaults={
-                                'lead': lead,
-                                'instant_form_id': data.get('form_id'),
-                            }
-                        )
-
-                        if not data.get('is_organic'):
-                            ad_platform = AdPlatform.objects.get(platform=AdPlatformChoices.FACEBOOK)
-                            ad_campaign, _ = AdCampaign.objects.get_or_create(
-                                ad_campaign_id=data.get('campaign_id'),
-                                defaults={
-                                    'name': data.get('campaign_name'),
-                                }
-                            )
-                            ad_group, _ = AdGroup.objects.get_or_create(
-                                ad_group_id=data.get('adset_id'),
-                                defaults={
-                                    'name': data.get('adset_name'),
-                                    'ad_campaign': ad_campaign,
-                                }
-                            )
-                            ad, _ = Ad.objects.get_or_create(
-                                ad_id=data.get('ad_id'),
-                                defaults={
-                                    'name': data.get('ad_name'),
-                                    'ad_platform': ad_platform,
-                                    'ad_group': ad_group,
-                                }
-                            )
-                            
-                            marketing.ad = ad
-                            marketing.save()
-
-                        metadata = [
-                            {
-                                'key': 'source',
-                                'value': data.get('platform'),
-                            },
-                            {
-                                'key': 'medium',
-                                'value': 'paid',
-                            },
-                            {
-                                'key': 'channel',
-                                'value': 'social',
-                            }
-                        ]
-
-                        for data in metadata:
-                            entry = LeadMarketingMetadata(
-                                key=data.get('key'),
-                                value=data.get('value'),
-                                lead_marketing=marketing,
-                            )
-                            entry.save()
-
-                        lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
-                    elif lead.is_inactive():
-                        lead.change_lead_status(status=LeadStatusEnum.RE_ENGAGED)
+                        lead.manager.handle_lead_creation_via_instant_form(data=data, entry=entry)
 
             return JsonResponse({'status': 'received'}, status=200)
 

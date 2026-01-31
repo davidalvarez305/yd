@@ -449,17 +449,6 @@ def driver_route_is_full(driver_route):
         >= settings.MAX_DRIVER_STOPS_PER_DAY
     )
 
-def is_paid_traffic(request: HttpRequest) -> bool:
-    from core.models import AdPlatformParam
-    landing_page = request.build_absolute_uri()
-    params = AdPlatformParam.objects.all()
-
-    for each in params:
-        if each.param in landing_page or request.COOKIES.get(each.param):
-            return True
-
-    return False
-
 def parse_datetime(value):
         if not value:
             return None
@@ -474,18 +463,12 @@ def generate_random_big_int_id() -> int:
 def random_selection(length: int) -> int:
     return random.randint(0, length)
 
-def generate_params_dict_from_url(url: str):
-    return dict(parse_qsl(urlparse(url).query))
-
 def is_valid_int(value):
     try:
         int(value)
         return True
     except (ValueError, TypeError):
         return False
-
-def generate_params_dict_from_url(url: str):
-    return dict(parse_qsl(urlparse(url).query))
     
 def is_google_ads_call_asset(phone_call) -> bool:
     if phone_call:
@@ -495,81 +478,3 @@ def is_google_ads_call_asset(phone_call) -> bool:
             return source_name.value == 'YD Cocktails Google Ads Call Assets'
 
     return False
-
-def create_ad_from_params(params: dict, cookies: dict):
-    from core.models import Ad, AdGroup, AdCampaign
-
-    ad_id = params.get('ad_id')
-    ad_name = params.get('ad_name')
-
-    ad_group_id = params.get('ad_group_id')
-    ad_group_name = params.get('ad_group_name')
-
-    ad_campaign_id = params.get('ad_campaign_id')
-    ad_campaign_name = params.get('ad_campaign_name')
-
-    keyword = params.get('keyword')
-
-    platform_id = get_platform_id_from_params(params=params, cookies=cookies)
-
-    if not all([is_valid_int(ad_id), is_valid_int(ad_group_id), is_valid_int(ad_campaign_id), platform_id]):
-        return None
-
-    ad_campaign, _ = AdCampaign.objects.get_or_create(
-        ad_campaign_id=ad_campaign_id,
-        defaults={
-            'name': ad_campaign_name,
-        }
-    )
-
-    ad_group, _ = AdGroup.objects.get_or_create(
-        ad_group_id=ad_group_id,
-        defaults={
-            'name': ad_group_name,
-            'ad_campaign': ad_campaign,
-        }
-    )
-
-    if keyword:
-        ad = Ad.objects.filter(name=keyword).first()
-        if ad:
-            return ad
-
-        ad_id = generate_random_big_int_id()
-        ad_name = keyword
-
-    ad, _ = Ad.objects.get_or_create(
-        ad_id=ad_id,
-        defaults={
-            'platform_id': platform_id,
-            'name': ad_name,
-            'ad_group': ad_group,
-        }
-    )
-    
-    return ad
-
-def get_platform_id_from_params(params: dict, cookies: dict):
-    from core.models import AdPlatformParam
-    marketing_params = AdPlatformParam.objects.all()
-    for each in marketing_params:
-        if each.param in params or each.param in cookies:
-            return each.ad_platform.pk
-
-def parse_google_ads_cookie(cookie_value: str | None) -> str | None:
-    if not cookie_value:
-        return None
-
-    try:
-        parts = cookie_value.split(".")
-        if len(parts) < 3:
-            return None
-
-        gclid = parts[-1]
-
-        if not gclid or len(gclid) < 10:
-            return None
-
-        return gclid
-    except Exception:
-        return None
