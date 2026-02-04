@@ -125,6 +125,7 @@ class LeadStateManager:
                 ad_campaign_id=data.get('campaign_id'),
                 defaults={
                     'name': data.get('campaign_name'),
+                    'ad_platform': ad_platform,
                 }
             )
             ad_group, _ = AdGroup.objects.get_or_create(
@@ -138,7 +139,6 @@ class LeadStateManager:
                 ad_id=data.get('ad_id'),
                 defaults={
                     'name': data.get('ad_name'),
-                    'ad_platform': ad_platform,
                     'ad_group': ad_group,
                 }
             )
@@ -222,7 +222,7 @@ class LeadStateManager:
                         self.lead.lead_marketing.ip = session.get('ip')
                         self.lead.lead_marketing.user_agent = session.get('user_agent')
                         self.lead.lead_marketing.external_id = external_id
-                        self.lead.lead_marketing.ad = create_ad_from_params(params=params, cookies=params)
+                        self.lead.lead_marketing.ad = create_ad_from_params(params=params)
                         self.lead.lead_marketing.save()
                         self.lead.lead_marketing.assign_visits()
 

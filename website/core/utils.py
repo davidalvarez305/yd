@@ -397,29 +397,6 @@ def load_google_credentials():
 
     return creds
 
-def handle_create_lead_from_inbound_communication(ctx: dict):
-    from core.models import Lead, LeadMarketing
-    from core.models import LeadStatusEnum
-
-    full_name = ctx.get('full_name')
-    phone_number = ctx.get('phone_number')
-
-    exists = Lead.objects.filter(phone_number=phone_number).exists()
-
-    if exists:
-        return
-
-    lead = Lead.objects.create(
-        full_name=full_name,
-        phone_number=phone_number,
-    )
-
-    LeadMarketing.objects.create(lead=lead)
-
-    lead.change_lead_status(status=LeadStatusEnum.LEAD_CREATED)
-
-    return lead
-
 def generate_order_code():
     """
     Generates an 8-character alphanumeric order code.
@@ -478,3 +455,72 @@ def is_google_ads_call_asset(phone_call) -> bool:
             return source_name.value == 'YD Cocktails Google Ads Call Assets'
 
     return False
+
+def get_platform_id_from_params(params):
+    from core.models import AdPlatformParam
+    marketing_params = AdPlatformParam.objects.all()
+    for each in marketing_params:
+        if each.param in params:
+            return each.ad_platform.pk
+
+def create_ad_from_params(params):
+    from core.models import Ad, AdGroup, AdCampaign, AdPlatform
+
+    ad_id = params.get("ad_id")
+    ad_name = params.get("ad_name")
+    keyword = params.get("keyword")
+
+    ad_group_id = params.get("ad_group_id")
+    ad_group_name = params.get("ad_group_name")
+
+    ad_campaign_id = params.get("ad_campaign_id")
+    ad_campaign_name = params.get("ad_campaign_name")
+
+    platform_id = get_platform_id_from_params(params=params)
+
+    if not all([
+        is_valid_int(ad_group_id),
+        is_valid_int(ad_campaign_id),
+        is_valid_int(platform_id),
+    ]):
+        return None
+
+    ad_platform = AdPlatform.objects.get(pk=platform_id)
+
+    ad_campaign, _ = AdCampaign.objects.get_or_create(
+        ad_campaign_id=ad_campaign_id,
+        defaults={
+            "name": ad_campaign_name,
+            "ad_platform": ad_platform,
+        },
+    )
+
+    ad_group, _ = AdGroup.objects.get_or_create(
+        ad_group_id=ad_group_id,
+        defaults={
+            "name": ad_group_name,
+            "ad_campaign": ad_campaign,
+        },
+    )
+
+    if is_valid_int(ad_id):
+        ad, _ = Ad.objects.get_or_create(
+            ad_id=ad_id,
+            defaults={
+                "name": ad_name,
+                "ad_group": ad_group,
+            },
+        )
+        return ad
+
+    if keyword:
+        ad, _ = Ad.objects.get_or_create(
+            ad_group=ad_group,
+            name=keyword,
+            defaults={
+                "ad_id": generate_random_big_int_id(),
+            },
+        )
+        return ad
+
+    return None

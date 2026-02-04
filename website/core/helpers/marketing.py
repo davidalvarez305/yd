@@ -2,7 +2,7 @@ import json
 from urllib.parse import parse_qsl, urlparse
 from django.http import HttpRequest
 
-from core.utils import generate_random_big_int_id, is_valid_int
+from core.utils import create_ad_from_params, generate_random_big_int_id, is_valid_int
 
 class MarketingHelper:
     def __init__(self, request: HttpRequest):
@@ -19,8 +19,8 @@ class MarketingHelper:
         self.external_id = self.request.session.get('external_id')
         self.ip = self._get_client_ip()
         self.user_agent = self.request.META.get('HTTP_USER_AGENT')
-        self.ad = self._create_ad_from_params()
         self.metadata = self._create_metadata()
+        self.ad = create_ad_from_params(params=self.metadata)
         self.lead_marketing = self._create_marketing_data()
     
     def add_metadata_from_list(self, data = []):
@@ -57,75 +57,6 @@ class MarketingHelper:
 
     def _generate_params_dict_from_url(self):
         return dict(parse_qsl(urlparse(self.landing_page).query))
-    
-    def _create_ad_from_params(self):
-        from core.models import Ad, AdGroup, AdCampaign, AdPlatform
-
-        ad_id = self.params.get("ad_id")
-        ad_name = self.params.get("ad_name")
-        keyword = self.params.get("keyword")
-
-        ad_group_id = self.params.get("ad_group_id")
-        ad_group_name = self.params.get("ad_group_name")
-
-        ad_campaign_id = self.params.get("ad_campaign_id")
-        ad_campaign_name = self.params.get("ad_campaign_name")
-
-        platform_id = self._get_platform_id_from_params()
-
-        if not all([
-            is_valid_int(ad_group_id),
-            is_valid_int(ad_campaign_id),
-            is_valid_int(platform_id),
-        ]):
-            return None
-
-        ad_platform = AdPlatform.objects.get(pk=platform_id)
-
-        ad_campaign, _ = AdCampaign.objects.get_or_create(
-            ad_campaign_id=ad_campaign_id,
-            defaults={
-                "name": ad_campaign_name,
-                "ad_platform": ad_platform,
-            },
-        )
-
-        ad_group, _ = AdGroup.objects.get_or_create(
-            ad_group_id=ad_group_id,
-            defaults={
-                "name": ad_group_name,
-                "ad_campaign": ad_campaign,
-            },
-        )
-
-        if is_valid_int(ad_id):
-            ad, _ = Ad.objects.get_or_create(
-                ad_id=ad_id,
-                defaults={
-                    "name": ad_name,
-                    "ad_group": ad_group,
-                },
-            )
-            return ad
-
-        if keyword:
-            ad, _ = Ad.objects.get_or_create(
-                ad_group=ad_group,
-                name=keyword,
-                defaults={
-                    "ad_id": generate_random_big_int_id(),
-                },
-            )
-            return ad
-
-        return None
-
-    def _get_platform_id_from_params(self):
-        from core.models import AdPlatformParam
-        marketing_params = AdPlatformParam.objects.all()
-        for each in marketing_params:
-            if each.param in self.params or each.param in self.cookies:
-                return each.ad_platform.pk
 
     def _parse_google_ads_cookie(self, cookie_value: str | None) -> str | None:
         if not cookie_value:
