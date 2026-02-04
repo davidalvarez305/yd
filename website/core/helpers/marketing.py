@@ -61,58 +61,64 @@ class MarketingHelper:
     def _create_ad_from_params(self):
         from core.models import Ad, AdGroup, AdCampaign, AdPlatform
 
-        if keyword:
-            ad = Ad.objects.filter(name=self.params.get('keyword')).first()
-            if ad:
-                return ad
+        ad_id = self.params.get("ad_id")
+        ad_name = self.params.get("ad_name")
+        keyword = self.params.get("keyword")
 
-        ad, _ = Ad.objects.filter(pk=self.params.get('ad_id')).first()
-        if ad:
-            return ad
+        ad_group_id = self.params.get("ad_group_id")
+        ad_group_name = self.params.get("ad_group_name")
 
-        ad_platform = AdPlatform.objects.get(pk=self._get_platform_id_from_params())
+        ad_campaign_id = self.params.get("ad_campaign_id")
+        ad_campaign_name = self.params.get("ad_campaign_name")
 
-        ad_id = self.params.get('ad_id')
-        ad_name = self.params.get('ad_name')
+        platform_id = self._get_platform_id_from_params()
 
-        ad_group_id = self.params.get('ad_group_id')
-        ad_group_name = self.params.get('ad_group_name')
-
-        ad_campaign_id = self.params.get('ad_campaign_id')
-        ad_campaign_name = self.params.get('ad_campaign_name')
-
-        keyword = self.params.get('keyword')
-
-        if not all([is_valid_int(ad_id), is_valid_int(ad_group_id), is_valid_int(ad_campaign_id), platform_id]):
+        if not all([
+            is_valid_int(ad_group_id),
+            is_valid_int(ad_campaign_id),
+            is_valid_int(platform_id),
+        ]):
             return None
+
+        ad_platform = AdPlatform.objects.get(pk=platform_id)
 
         ad_campaign, _ = AdCampaign.objects.get_or_create(
             ad_campaign_id=ad_campaign_id,
             defaults={
-                'name': ad_campaign_name,
-            }
+                "name": ad_campaign_name,
+                "ad_platform": ad_platform,
+            },
         )
 
         ad_group, _ = AdGroup.objects.get_or_create(
             ad_group_id=ad_group_id,
             defaults={
-                'name': ad_group_name,
-                'ad_campaign': ad_campaign,
-            }
+                "name": ad_group_name,
+                "ad_campaign": ad_campaign,
+            },
         )
+
+        if is_valid_int(ad_id):
+            ad, _ = Ad.objects.get_or_create(
+                ad_id=ad_id,
+                defaults={
+                    "name": ad_name,
+                    "ad_group": ad_group,
+                },
+            )
+            return ad
 
         if keyword:
-            ad_id = generate_random_big_int_id()
-            ad_name = keyword
+            ad, _ = Ad.objects.get_or_create(
+                ad_group=ad_group,
+                name=keyword,
+                defaults={
+                    "ad_id": generate_random_big_int_id(),
+                },
+            )
+            return ad
 
-        ad, _ = Ad.objects.create(
-            ad_id=ad_id,
-            ad_platform=ad_platform,
-            name=ad_name,
-            ad_group=ad_group,
-        )
-        
-        return ad
+        return None
 
     def _get_platform_id_from_params(self):
         from core.models import AdPlatformParam

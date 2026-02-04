@@ -844,7 +844,7 @@ class AdPlatformChoices(models.TextChoices):
 
 class AdPlatform(models.Model):
     ad_platform_id = models.AutoField(primary_key=True)
-    platform = models.CharField(max_length=30, choices=AdPlatformChoices.choices)
+    platform = models.CharField(max_length=30, choices=AdPlatformChoices)
 
     def __str__(self):
         return self.platform
@@ -871,6 +871,7 @@ class AdPlatformParam(models.Model):
 class AdCampaign(models.Model):
     ad_campaign_id = models.BigIntegerField()
     name = models.TextField()
+    ad_platform = models.ForeignKey(AdPlatform, related_name='campaigns', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -894,7 +895,6 @@ class Ad(models.Model):
     ad_id = models.BigIntegerField(primary_key=True)
     name = models.TextField(blank=True, null=True)
     ad_group = models.ForeignKey(AdGroup, related_name='ads', db_column='ad_group_id', on_delete=models.RESTRICT)
-    ad_platform = models.ForeignKey(AdPlatform, related_name='ads', db_column='platform_id', on_delete=models.RESTRICT)
 
     def __str__(self):
         return self.name
@@ -907,7 +907,7 @@ class AdSpend(models.Model):
     ad_spend_id = models.AutoField(primary_key=True)
     date = models.DateField(default=date.today)
     spend = models.FloatField()
-    platform = models.ForeignKey(AdPlatform, related_name='spend', db_column='platform_id', on_delete=models.CASCADE)
+    ad = models.ForeignKey(Ad, related_name='spend', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.amount
