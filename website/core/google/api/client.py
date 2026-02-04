@@ -9,10 +9,9 @@ from googleapiclient.discovery import build
 
 from google.ads.googleads.client import GoogleAdsClient
 
-from core.models import Ad, AdPlatform, AdPlatformChoices, AdSpend, GoogleAccessToken
+from core.models import AdPlatform, AdPlatformChoices, AdSpend, GoogleAccessToken
 from core.logger import logger
 from core.utils import load_google_credentials
-from core.models import ConversionServiceType
 
 class GoogleAPIService:
     def __init__(self):

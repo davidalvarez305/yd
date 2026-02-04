@@ -391,7 +391,7 @@ class LeadCreateView(BaseView, CreateView):
 
         try:
             with transaction.atomic():
-                lead = form.save()
+                lead: Lead = form.save()
                 lead.manager.handle_lead_creation_via_form(request=self.request)
             return self.alert(self.request, "Your request was successfully submitted!", AlertStatus.SUCCESS)
 
