@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional
 from django.core.exceptions import ValidationError
 
-from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, Event, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, User
+from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, Event, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, TrackingTextMessage, TrackingTextMessageMetadata, User
 from core.conversions import conversion_service
 from core.utils import create_ad_from_params, format_text_message, generate_params_dict_from_url, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
 from core.messaging import messaging_service
@@ -201,8 +201,55 @@ class LeadStateManager:
         
         self.transition_to(LeadStatusChoices.LEAD_CREATED)
     
-    def handle_lead_creation_via_tracking_call(self, tracking_phone_call: TrackingPhoneCall):
-        phone_call_metadata = TrackingPhoneCallMetadata.objects.filter(tracking_phone_call=tracking_phone_call)
+    def handle_lead_creation_via_tracking_message(self, tracking_message: TrackingPhoneCall):
+        message_metadata = TrackingTextMessageMetadata.objects.filter(tracking_message=tracking_message)
+        metadata = message_metadata.filter(key="custom").first()
+
+        if metadata:
+            try:
+                params = json.loads(metadata.value) or {}
+
+                lp = params.get("calltrk_landing")
+                if lp:
+                    params |= generate_params_dict_from_url(lp)
+
+                external_id = params.get(settings.TRACKING_COOKIE_NAME)
+                if external_id:
+                    session_mapping = SessionMapping.objects.filter(external_id=external_id).first()
+                    if session_mapping:
+                        session = get_session_data(session_key=session_mapping.session_key)
+
+                        self.lead.lead_marketing.ip = session.get('ip')
+                        self.lead.lead_marketing.user_agent = session.get('user_agent')
+                        self.lead.lead_marketing.external_id = external_id
+                        self.lead.lead_marketing.ad = create_ad_from_params(params=params)
+                        self.lead.lead_marketing.save()
+                        self.lead.lead_marketing.assign_visits()
+
+                        landing_page_id = session.get('landing_page_id')
+                        if landing_page_id:
+                            landing_page = LandingPage.objects.filter(pk=landing_page_id).first()
+                            if landing_page:
+                                conversion = LandingPageConversion(
+                                    lead=self.lead,
+                                    landing_page=landing_page,
+                                    conversion_type=ConversionTypeChoices.TEXT_MESSAGE
+                                )
+                                conversion.save()
+
+                for key, value in params.items():
+                    LeadMarketingMetadata.objects.create(
+                        key=key,
+                        value=value,
+                        lead_marketing=self.lead.lead_marketing,
+                    )
+            except (TypeError, json.JSONDecodeError):
+                print("Failed to load params")
+
+        self.transition_to(LeadStatusChoices.LEAD_CREATED)
+
+    def handle_lead_creation_via_tracking_call(self, tracking_message: TrackingTextMessage):
+        phone_call_metadata = TrackingPhoneCallMetadata.objects.filter(tracking_message=tracking_message)
         metadata = phone_call_metadata.filter(key="custom").first()
 
         if metadata:

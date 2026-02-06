@@ -1519,13 +1519,14 @@ class LandingPageTrackingNumber(models.Model):
 
 class ConversionTypeChoices(models.TextChoices):
     PHONE_CALL = "phone_call"
+    TEXT_MESSAGE = "text_message"
     FORM_SUBMISSION = "form_submission"
     INSTANT_FORM = 'instant_form'
 
 class LandingPageConversion(models.Model):
     landing_page_conversion_id = models.AutoField(primary_key=True)
     landing_page = models.ForeignKey(LandingPage, on_delete=models.RESTRICT, related_name="conversions")
-    lead = models.ForeignKey(Lead, on_delete=models.RESTRICT)
+    lead = models.OneToOneField(Lead, related_name='conversion', on_delete=models.RESTRICT)
     conversion_type = models.CharField(max_length=30, choices=ConversionTypeChoices.choices, default=ConversionTypeChoices.FORM_SUBMISSION)
     date_created = models.DateTimeField(auto_now_add=True)
 

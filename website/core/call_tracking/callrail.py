@@ -13,6 +13,7 @@ from core.call_tracking.base import CallingTrackingServiceInterface
 from website import settings
 
 from core.models import (
+    Lead,
     Message,
     MessageMedia,
     PhoneCall,
@@ -144,7 +145,13 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
 
             phone_call.save()
 
-            handle_create_lead_from_inbound_communication({ 'phone_number': tracking_phone_call.call_from, 'full_name': data.get("formatted_customer_name", 'Wireless Caller') })
+            lead, created = Lead.objects.get_or_create(
+                phone_number=tracking_phone_call.call_from,
+                full_name=data.get("formatted_customer_name", 'Wireless Caller')
+            )
+
+            if created:
+                lead.manager.handle_lead_creation_via_tracking_call(tracking_phone_call=tracking_phone_call)
 
             return HttpResponse(status=200)
 
@@ -292,8 +299,14 @@ class CallRailTrackingService(CallingTrackingServiceInterface):
                         media = MessageMedia(message=message, content_type=content_type)
                         media.file.save(source_file_name, ContentFile(f.read()))
 
-            handle_create_lead_from_inbound_communication({ 'phone_number': message.text_from, 'full_name': data.get("formatted_customer_name", 'Wireless Caller') })
-    
+            lead, created = Lead.objects.get_or_create(
+                full_name=data.get("formatted_customer_name", 'Wireless Caller'),
+                phone_number=message.text_from,
+            )
+
+            if created:
+                lead.manager.handle_lead_creation_via_tracking_message(tracking_text=message)
+
             return HttpResponse(status=200)
 
         except Exception as e:
