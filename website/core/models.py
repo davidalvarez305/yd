@@ -71,6 +71,7 @@ class UserRole(models.Model):
 class BusinessSegmentChoices(models.TextChoices):
     BARTENDING = 'Bartending'
     RENTALS = 'Rentals'
+    CATERING = 'Catering'
 
 class BusinessSegment(models.Model):
     business_segment_id = models.AutoField(primary_key=True)
@@ -82,48 +83,18 @@ class BusinessSegment(models.Model):
     class Meta:
         db_table = 'business_segment'
 
-class LeadStatusEnum(Enum):
-    LEAD_CREATED = 'LEAD_CREATED'
-    INVOICE_SENT = 'INVOICE_SENT'
-    EVENT_BOOKED = 'EVENT_BOOKED'
-    RE_ENGAGED = 'RE_ENGAGED'
-    ARCHIVED = 'ARCHIVED'
-
-    def __str__(self):
-        return self.value
-    
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.value == other
-        return super().__eq__(other)
-
 class LeadStatusChoices(models.TextChoices):
     LEAD_CREATED = 'Lead Created'
-    FIRST_TOUCH = 'First Touch'
-    FIRST_RESPONSE = 'First Response'
     INVOICE_SENT = 'Invoice Sent'
-    FIRST_FOLLOW_UP = 'FIRST_FOLLOW_UP', 'First Follow Up'
-    SECOND_FOLLOW_UP = 'SECOND_FOLLOW_UP', 'Second Follow Up'
-    EVENT_BOOKED = 'EVENT_BOOKED', 'Event Booked'
-    ARCHIVED = 'ARCHIVED', 'Archived'
+    EVENT_BOOKED = 'Event Booked'
+    ARCHIVED = 'Archived'
 
 class LeadStatus(models.Model):
     lead_status_id = models.AutoField(primary_key=True)
-    status = models.CharField(
-        max_length=50,
-        choices=[(status.name, status.value) for status in LeadStatusEnum]
-    )
+    status = models.CharField(max_length=50, choices=LeadStatusChoices)
 
     def __str__(self):
         return self.status
-    
-    @classmethod
-    def find_enum(cls, pk: int) -> LeadStatusEnum | None:
-        try:
-            lead_status = cls.objects.get(pk=pk)
-            return LeadStatusEnum(lead_status.status)
-        except (cls.DoesNotExist, ValueError):
-            return None
     
     class Meta:
         db_table = 'lead_status'
@@ -134,80 +105,18 @@ class LeadStatusHistory(models.Model):
     lead_status = models.ForeignKey(LeadStatus, on_delete=models.RESTRICT)
     date_changed = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def formatted_date_changed(self):
+        """
+        Formatted like '10/7 - 5:24 PM'
+        """
+        return timezone.localtime(self.date_changed).strftime("%#m/%#d - %#I:%M %p")
+
     def __str__(self):
-        return f"Lead {self.lead.pk} - Status {self.lead_status.get_status_display()} on {self.date_changed}"
+        return f"Lead {self.lead.pk} - Status {self.lead_status} on {self.formatted_date_changed}"
 
     class Meta:
         db_table = 'lead_status_history'
-
-class LeadActivityChoices(models.TextChoices):
-    WEBSITE_VISIT = 'website_visit'
-    TEXT_SENT = 'text_sent'
-
-class LeadActivity(models.Model):
-    lead_activity_id = models.AutoField(primary_key=True)
-    activity = models.CharField(max_length=255, choices=LeadActivityChoices.choices)
-
-    def __str__(self):
-        return self.activity
-
-    class Meta:
-        db_table = 'lead_activity'
-
-class LeadActivityHistory(models.Model):
-    lead_activity_history_id = models.AutoField(primary_key=True)
-    lead_activity = models.ForeignKey(LeadActivity, db_column='lead_activity_id', on_delete=models.RESTRICT)
-    lead = models.ForeignKey('Lead', db_column='lead_id', on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.lead.full_name} - {self.lead_activity.activity} - {self.formatted_date_created}"
-
-    @property
-    def formatted_date_created(self):
-        """
-        Formatted like '10/7 - 5:24 PM'
-        """
-        return timezone.localtime(self.date_created).strftime("%#m/%#d - %#I:%M %p")
-
-    class Meta:
-        db_table = 'lead_activity_history'
-
-class LeadTaskChoices(models.TextChoices):
-    FISRT_FOLLOW_UP = 'First Follow Up'
-    SECOND_FOLLOW_UP = 'Second Follow Up'
-
-class LeadTask(models.Model):
-    lead_task_id = models.AutoField(primary_key=True)
-    task = models.CharField(max_length=60, choices=LeadTaskChoices.choices, unique=True)
-    is_automated = models.BooleanField()
-    during_work_hours = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.task
-
-    class Meta:
-        db_table = 'lead_task'
-
-class LeadTaskHistory(models.Model):
-    lead_task_history_id = models.AutoField(primary_key=True)
-    lead_task = models.ForeignKey(LeadTask, db_column='lead_task_id', on_delete=models.RESTRICT)
-    lead = models.ForeignKey('Lead', related_name='tasks', db_column='lead_id', on_delete=models.CASCADE)
-    date_scheduled = models.DateTimeField(auto_now_add=True)
-    date_completed = models.DateTimeField(null=True)
-
-    def __str__(self):
-        return f"{self.lead.full_name} - {self.lead_task.task} - {self.formatted_date_scheduled}"
-
-    @property
-    def formatted_date_scheduled(self):
-        """
-        Formatted like '10/7 - 5:24 PM'
-        """
-        return timezone.localtime(self.date_scheduled).strftime("%#m/%#d - %#I:%M %p")
-
-    class Meta:
-        db_table = 'lead_task_history'
 
 class Lead(models.Model):
     lead_id = models.AutoField(primary_key=True)
@@ -216,23 +125,16 @@ class Lead(models.Model):
     opt_in_text_messaging = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     message = models.TextField(null=True)
-    lead_status = models.ForeignKey(LeadStatus, null=True, db_column='lead_status_id', on_delete=models.SET_NULL)
-    
     search_vector = SearchVectorField(null=True)
 
     def __str__(self):
         return self.full_name
     
     def has_gbraid(self):
-        return (
-            self.lead_marketing.metadata.filter(key="gbraid").exists()
-            and not self.lead_marketing.metadata.filter(key="gclid").exists()
-        )
+        return self.lead_marketing.metadata.filter(key="gbraid").exists() and not self.lead_marketing.metadata.filter(key="gclid").exists()
     
     def has_gclid(self):
-        return self.lead_marketing.metadata.filter(
-            Q(key='gclid') | Q(key='_gcl_aw') | Q(key='gbraid') | Q(key='wbraid')
-        ).exists()
+        return self.lead_marketing.metadata.filter(Q(key='gclid') | Q(key='_gcl_aw') | Q(key='gbraid') | Q(key='wbraid')).exists()
     
     def has_fbc(self):
         return self.lead_marketing.metadata.filter(key='_fbc').exists()
@@ -273,14 +175,6 @@ class Lead(models.Model):
     def visits(self):
         return Visit.objects.filter(lead_marketing=self.lead_marketing)
     
-    def last_contact(self):
-        last_msg = Message.objects.filter(Q(text_from=self.phone_number) | Q(text_to=self.phone_number)).order_by('-date_created').first()
-        last_call = PhoneCall.objects.filter(Q(call_from=self.phone_number) | Q(call_to=self.phone_number)).order_by('-date_created').first()
-
-        if last_msg and last_call:
-            return last_msg if last_msg.date_created > last_call.date_created else last_call
-        return last_msg or last_call
-    
     def update_search_vector(self):
         return SearchVector('full_name') + SearchVector('phone_number')
 
@@ -305,6 +199,11 @@ class Lead(models.Model):
         from core.managers.lead import LeadStateManager
         return LeadStateManager(self)
 
+    @property
+    def engagement_manager(self):
+        from core.managers.lead_engagement import LeadEngagementManager
+        return LeadEngagementManager(self)
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.__class__.objects.filter(pk=self.pk).update(
@@ -313,6 +212,42 @@ class Lead(models.Model):
     
     class Meta:
         db_table = 'lead'
+
+class LeadEngagementStateChoices(models.TextChoices):
+    IDLE = 'IDLE', 'Idle'
+    FIRST_CONTACT = 'FIRST_CONTACT', 'First Contact Attempted'
+    FOLLOW_UP_1 = 'FOLLOW_UP_1', 'First Follow Up Sent'
+    FOLLOW_UP_2 = 'FOLLOW_UP_2', 'Second Follow Up Sent'
+    RESPONDED = 'RESPONDED', 'Responded'
+    NO_RESPONSE = 'NO_RESPONSE', 'No Response'
+
+class LeadEngagementState(models.Model):
+    lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name='engagement')
+    state = models.CharField(max_length=32, choices=LeadEngagementStateChoices, default=LeadEngagementStateChoices.IDLE)
+    follow_up_attempts = models.PositiveSmallIntegerField(default=0)
+    retry_cycles = models.PositiveSmallIntegerField(default=0)
+    last_contacted_at = models.DateTimeField(null=True)
+    last_responded_at = models.DateTimeField(null=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    paused_until = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'lead_engagement_state'
+
+    def __str__(self):
+        return f"{self.lead.full_name} - {self.state}"
+
+class LeadEngagementHistory(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='engagements')
+    from_state = models.CharField(max_length=32, choices=LeadEngagementStateChoices.choices)
+    to_state = models.CharField(max_length=32, choices=LeadEngagementStateChoices)
+    follow_up_attempts = models.PositiveSmallIntegerField()
+    retry_cycles = models.PositiveSmallIntegerField()
+    triggered_by = models.CharField(max_length=32, default='system')
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'lead_engagement_history'
 
 class ServiceBusinessSegment(models.Model):
     service_business_segment_id = models.AutoField(primary_key=True)

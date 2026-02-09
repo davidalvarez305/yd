@@ -524,3 +524,28 @@ def create_ad_from_params(params):
         return ad
 
     return None
+
+def parse_google_ads_cookie(value: str) -> str | None:
+    if not value:
+        return None
+
+    try:
+        parts = value.split('.')
+        if len(parts) != 3:
+            return None
+
+        prefix, timestamp, gclid = parts
+
+        if prefix != 'GCL':
+            return None
+
+        if not timestamp.isdigit():
+            return None
+
+        if not gclid:
+            return None
+
+        return gclid
+
+    except Exception:
+        return None

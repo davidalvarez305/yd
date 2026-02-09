@@ -57,24 +57,6 @@ class MarketingHelper:
 
     def _generate_params_dict_from_url(self):
         return dict(parse_qsl(urlparse(self.landing_page).query))
-
-    def _parse_google_ads_cookie(self, cookie_value: str | None) -> str | None:
-        if not cookie_value:
-            return None
-
-        try:
-            parts = cookie_value.split(".")
-            if len(parts) < 3:
-                return None
-
-            gclid = parts[-1]
-
-            if not gclid or len(gclid) < 10:
-                return None
-
-            return gclid
-        except Exception:
-            return None
     
     def _is_paid_traffic(self) -> bool:
         from core.models import AdPlatformParam

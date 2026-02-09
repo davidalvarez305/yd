@@ -1,4 +1,5 @@
 import json
+from urllib.parse import parse_qsl, urlparse
 from django.db import transaction
 from django.http import HttpRequest
 from django.urls import reverse
@@ -9,7 +10,7 @@ from django.core.exceptions import ValidationError
 
 from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, Event, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, TrackingTextMessage, TrackingTextMessageMetadata, User
 from core.conversions import conversion_service
-from core.utils import create_ad_from_params, format_text_message, generate_params_dict_from_url, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
+from core.utils import create_ad_from_params, format_text_message, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
 from core.messaging import messaging_service
 from website import settings
 from core.helpers.marketing import MarketingHelper
@@ -64,7 +65,7 @@ class LeadStateManager:
         return new_status in self.allowed_transitions()
 
     @transaction.atomic
-    def transition_to(self, status: str, context: LeadTransitionContext | None = None) -> LeadStatusHistory:
+    def transition_to(self, status: str, context: LeadTransitionContext | None = None):
         context = context or LeadTransitionContext()
 
         if self.current_status in self.TERMINAL_STATUSES:
@@ -79,18 +80,9 @@ class LeadStateManager:
 
         lead_status = LeadStatus.objects.get(status=status)
 
-        self.lead.lead_status = lead_status
-        self.lead.save(update_fields=["lead_status"])
-
-        history = LeadStatusHistory.objects.create(
-            lead=self.lead,
-            lead_status=lead_status,
-            date_changed=timezone.now(),
-        )
+        LeadStatusHistory.objects.create(lead=self.lead, lead_status=lead_status)
 
         self._run_hooks(status, context)
-
-        return history
 
     def _run_hooks(self, status: LeadStatusChoices, context: LeadTransitionContext):
         match status:
@@ -211,7 +203,7 @@ class LeadStateManager:
 
                 lp = params.get("calltrk_landing")
                 if lp:
-                    params |= generate_params_dict_from_url(lp)
+                    params |= dict(parse_qsl(urlparse(self.landing_page).query))(lp)
 
                 external_id = params.get(settings.TRACKING_COOKIE_NAME)
                 if external_id:
@@ -258,7 +250,7 @@ class LeadStateManager:
 
                 lp = params.get("calltrk_landing")
                 if lp:
-                    params |= generate_params_dict_from_url(lp)
+                    params |= dict(parse_qsl(urlparse(self.landing_page).query))(lp)
 
                 external_id = params.get(settings.TRACKING_COOKIE_NAME)
                 if external_id:
@@ -385,3 +377,11 @@ class LeadStateManager:
                 data[metadata.key] = metadata.value
             
         return data
+    
+    @transaction.atomic
+    def archive(self, source: str = "system", user: Optional[User] = None):
+        if self.current_status == LeadStatusChoices.ARCHIVED:
+            return
+
+        context = LeadTransitionContext(user=user, source=source)
+        self.transition_to(LeadStatusChoices.ARCHIVED, context=context)
