@@ -9,11 +9,12 @@ from typing import Optional
 from django.core.exceptions import ValidationError
 
 from core.models import Ad, AdCampaign, AdGroup, AdPlatform, AdPlatformChoices, ConversionTypeChoices, Event, LandingPage, LandingPageConversion, LeadMarketing, LeadMarketingMetadata, LeadStatus, LeadStatusChoices, Lead, LeadStatusHistory, Message, SessionMapping, TrackingPhoneCall, TrackingPhoneCallMetadata, TrackingTextMessage, TrackingTextMessageMetadata, User
-from core.conversions import conversion_service
+from core.services.conversions import conversion_service
 from core.utils import create_ad_from_params, format_text_message, get_session_data, is_google_ads_call_asset, parse_google_ads_cookie
-from core.messaging import messaging_service
+from core.services.messaging import messaging_service
 from website import settings
-from core.helpers.marketing import MarketingHelper
+from core.logic.helpers.marketing import MarketingHelper
+from core.enums import LeadEngagementAction
 
 @dataclass
 class LeadTransitionContext:
@@ -160,7 +161,7 @@ class LeadStateManager:
                 lead_marketing=marketing,
             )
             entry.save()
-            
+        
         self.transition_to(LeadStatusChoices.LEAD_CREATED)
     
     def handle_lead_creation_via_form(self, request: HttpRequest):
@@ -288,6 +289,10 @@ class LeadStateManager:
         self.transition_to(LeadStatusChoices.LEAD_CREATED)
     
     def _on_lead_created(self, context: LeadTransitionContext):
+
+        self.lead.engagement_manager.initiate_contact()
+        
+        self.lead.actions.send_automated_message(LeadEngagementAction.INTIATE_CONTACT)
 
         if settings.DEBUG:
             return

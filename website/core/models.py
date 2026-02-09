@@ -196,13 +196,18 @@ class Lead(models.Model):
 
     @property
     def manager(self):
-        from core.managers.lead import LeadStateManager
+        from core.logic.managers.lead import LeadStateManager
         return LeadStateManager(self)
 
     @property
     def engagement_manager(self):
-        from core.managers.lead_engagement import LeadEngagementManager
+        from core.logic.managers.lead_engagement import LeadEngagementManager
         return LeadEngagementManager(self)
+
+    @property
+    def actions(self):
+        from core.logic.actions.lead import LeadAction
+        return LeadAction(self)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -1526,7 +1531,7 @@ class Item(models.Model):
     
     @property
     def inventory(self):
-        from core.managers.item import ItemInventoryManager
+        from core.logic.managers.item import ItemInventoryManager
         return ItemInventoryManager(self)
 
     class Meta:
@@ -1584,7 +1589,7 @@ class Order(models.Model):
     
     @property
     def manager(self):
-        from core.managers.order import OrderManager
+        from core.logic.managers.order import OrderManager
         return OrderManager(self)
     
     @property
@@ -1803,7 +1808,7 @@ class OrderTask(models.Model):
     
     @property
     def manager(self):
-        from core.managers.order_task import OrderTaskManager
+        from core.logic.managers.order_task import OrderTaskManager
         return OrderTaskManager(self)
 
     class Meta:

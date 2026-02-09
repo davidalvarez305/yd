@@ -265,24 +265,24 @@ GOOGLE_API_SCOPES = [
 AUTH_USER_MODEL = 'core.User'
 
 # Communication Services
-MESSAGING_SERVICE = 'core.messaging.twilio.TwilioMessagingService'
-CALLING_SERVICE = 'core.calling.twilio.TwilioCallingService'
-AI_AGENT_SERVICE = 'core.ai.openai.OpenAIAgentService'
-EMAIL_SERVICE = 'core.email.gmail.GmailService'
-FACEBOOK_API_SERVICE = 'core.facebook.api.client.FacebookAPIService'
-BILLING_SERVICE = 'core.billing.stripe.StripeBillingService'
-REVIEWS_SERVICE = 'core.reviews.google.GoogleReviewsService'
-GOOGLE_API_SERVICE = 'core.google.api.client.GoogleAPIService'
-CALL_TRACKING_SERVICE = 'core.call_tracking.callrail.CallRailTrackingService'
-DELIVERY_SERVICE = 'core.delivery.spoke.SpokeService'
+MESSAGING_SERVICE = 'core.services.messaging.twilio.TwilioMessagingService'
+CALLING_SERVICE = 'core.services.calling.twilio.TwilioCallingService'
+AI_AGENT_SERVICE = 'core.services.ai.openai.OpenAIAgentService'
+EMAIL_SERVICE = 'core.services.email.gmail.GmailService'
+FACEBOOK_API_SERVICE = 'core.services.facebook.api.client.FacebookAPIService'
+BILLING_SERVICE = 'core.services.billing.stripe.StripeBillingService'
+REVIEWS_SERVICE = 'core.services.reviews.google.GoogleReviewsService'
+GOOGLE_API_SERVICE = 'core.services.google.api.client.GoogleAPIService'
+CALL_TRACKING_SERVICE = 'core.services.call_tracking.callrail.CallRailTrackingService'
+DELIVERY_SERVICE = 'core.services.delivery.spoke.SpokeService'
 
-TRANSCRIPTION_SERVICE = 'core.transcription.aws.AWSTranscriptionService'
+TRANSCRIPTION_SERVICE = 'core.services.transcription.aws.AWSTranscriptionService'
 TRANSCRIPTION_STORAGE_PREFIX = 'uploads/jobs/'
 
 # Marketing Services
 CONVERSION_SERVICES = {
     "facebook": {
-        "BACKEND": "core.conversions.facebook.FacebookConversionService",
+        "BACKEND": "core.services.conversions.facebook.FacebookConversionService",
         "OPTIONS": {
             "pixel_id": FACEBOOK_DATASET_ID,
             "access_token": FACEBOOK_CAPI_ACCESS_TOKEN,
@@ -290,7 +290,7 @@ CONVERSION_SERVICES = {
         },
     },
     "google": {
-        "BACKEND": "core.conversions.google.GoogleAdsConversionService",
+        "BACKEND": "core.services.conversions.google.GoogleAdsConversionService",
         "OPTIONS": {
             'developer_token': GOOGLE_ADS_DEVELOPER_TOKEN,
             'customer_id': GOOGLE_ADS_CUSTOMER_ID,

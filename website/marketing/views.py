@@ -8,7 +8,8 @@ from django.db import transaction
 
 from core.models import Lead
 from website import settings
-from core.facebook.api import facebook_api_service
+from core.services.facebook.api import facebook_api_service
+from core.enums import LeadEngagementAction
 
 @csrf_exempt
 def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
@@ -73,6 +74,7 @@ def handle_facebook_create_new_lead(request: HttpRequest) -> HttpResponse:
 
                     if created:
                         lead.manager.handle_lead_creation_via_instant_form(data=data, entry=entry)
+                        lead.actions.send_automated_message(LeadEngagementAction.INITIAL_CONTACT)
 
             return JsonResponse({'status': 'received'}, status=200)
 

@@ -10,6 +10,7 @@ import string
 import subprocess
 from urllib.parse import parse_qs, urlparse, parse_qsl
 from dateutil import parser
+from collections import Counter
 import uuid
 from pathlib import Path
 
@@ -549,3 +550,36 @@ def parse_google_ads_cookie(value: str) -> str | None:
 
     except Exception:
         return None
+
+def get_most_frequent_communication_user(messages):
+    from core.models import User
+
+    default_user = User.objects.get(forward_phone_number=settings.COMPANY_NUMBER)
+
+    if not messages:
+        return default_user
+
+    users_by_phone = {
+        normalize_phone_number(user.forward_phone_number): user
+        for user in User.objects.exclude(forward_phone_number__isnull=True)
+    }
+
+    if not users_by_phone:
+        return default_user
+
+    counts = Counter()
+
+    for msg in messages:
+        if msg.is_inbound:
+            continue
+
+        from_number = normalize_phone_number(msg.text_from)
+        user = users_by_phone.get(from_number)
+
+        if user:
+            counts[user] += 1
+
+    if not counts:
+        return default_user
+
+    return counts.most_common(1)[0][0]

@@ -10,6 +10,7 @@ from core.models import (
     LeadEngagementHistory,
     LeadEngagementStateChoices,
 )
+from core.enums import EngagementAction, FollowUpVariant
 
 ENGAGEMENT_TIMEOUTS = {
     LeadEngagementStateChoices.FIRST_CONTACT: timedelta(hours=24),
@@ -108,15 +109,11 @@ class LeadEngagementManager:
         self.engagement.date_updated = timezone.now()
     
     @transaction.atomic
-    def start_contact(self, triggered_by="system"):
-        if self.current_state not in (
-            LeadEngagementStateChoices.IDLE,
-            LeadEngagementStateChoices.RESPONDED,
-        ):
+    def initiate_contact(self, triggered_by="system"):
+        if self.current_state != LeadEngagementStateChoices.IDLE:
             raise InvalidEngagementTransition(
                 f"Cannot start contact from {self.current_state}"
             )
-
         self.engagement.last_contacted_at = timezone.now()
         self.engagement.follow_up_attempts = 0
         self._transition_to(LeadEngagementStateChoices.FIRST_CONTACT, triggered_by=triggered_by)
@@ -182,35 +179,39 @@ class LeadEngagementManager:
         paused_until = self.engagement.paused_until
         return paused_until is None or paused_until > timezone.now()
     
-    def evaluate_time_based_transitions(self):
+    def evaluate_time_based_transitions(self) -> EngagementAction:
         now = timezone.now()
         state = self.current_state
 
-        if self.is_paused(now):
-            return
+        if self.is_paused():
+            return EngagementAction.NONE
 
         if state in self.TERMINAL_STATES:
-            return
+            return EngagementAction.NONE
 
         timeout = ENGAGEMENT_TIMEOUTS.get(state)
         if not timeout:
-            return
+            return EngagementAction.NONE
 
         last_contact = self.engagement.last_contacted_at
         if not last_contact:
-            return
+            return EngagementAction.NONE
 
         if now - last_contact < timeout:
-            return
+            return EngagementAction.NONE
 
         if state in (
             LeadEngagementStateChoices.FIRST_CONTACT,
             LeadEngagementStateChoices.FOLLOW_UP_1,
         ):
             self.send_follow_up(triggered_by="timeout")
+            return EngagementAction.SEND_FOLLOW_UP, FollowUpVariant.FIRST
 
         elif state == LeadEngagementStateChoices.FOLLOW_UP_2:
             self.mark_no_response(triggered_by="timeout")
+            return EngagementAction.SEND_FOLLOW_UP, FollowUpVariant.SECOND
+
+        return EngagementAction.NONE
     
     @transaction.atomic
     def pause_on_inbound(self, source="inbound"):

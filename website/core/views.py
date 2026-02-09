@@ -11,9 +11,9 @@ from django.core.files.storage import storages
 from website import settings
 
 from marketing.mixins import LandingPageMixin, UserTrackingMixin, VisitTrackingMixin
-from core.email import email_service
+from core.services.email import email_service
 from .logger import logger
-from .models import Event, GoogleReview, Invoice, LandingPage, LandingPageConversion, Lead, LeadMarketing, LeadStatusEnum
+from .models import Event, GoogleReview, Invoice, LandingPage, Lead
 from .utils import get_average_ratings, get_paired_reviews, is_mobile, format_phone_number, normalize_phone_number
 from .forms import ContactForm, LoginForm, LeadForm
 from .enums import AlertHTTPCodes, AlertStatus

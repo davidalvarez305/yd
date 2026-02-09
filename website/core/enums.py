@@ -13,3 +13,13 @@ class AlertHTTPCodes(Enum):
     @classmethod
     def get_http_code(cls, alert_status):
         return cls[alert_status.name].value
+
+class LeadEngagementAction(Enum):
+    NONE = "none"
+    INTIATE_CONTACT = "initiate_contact"
+    SEND_FOLLOW_UP = "send_follow_up"
+    MARK_NO_RESPONSE = "mark_no_response"
+
+class FollowUpVariant(Enum):
+    FIRST = "first"
+    SECOND = "second"
